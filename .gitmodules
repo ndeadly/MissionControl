@@ -1,0 +1,3 @@
+[submodule "libnx"]
+	path = libnx
+	url = https://github.com/ndeadly/libnx.git
