@@ -42,6 +42,7 @@ static const PatchInfo patch_info[] = {
     {"3714A43B8F9608D08E15067AB1D9CE8E68FE56BC", 0x000182DC, 0x9}, //7.x.x
     {"6FCF8BF53C10AA346555D74EC602FE53BF3BD88E", 0x000074cc, 0x9}, //8.x.x
     {"F013FF4FC88A8376A6F3C401485C0718E1B5E148", 0x0000715c, 0x9}, //9.x.x
+    {"A5E6C2D20334CC787617A15BFB9F53F2DABA3E41", 0x0000759c, 0x9}, //10.x.x
 };
 
 static const char *patch_dir = "sdmc:/atmosphere/exefs_patches/bluetooth_patches";
