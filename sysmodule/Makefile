@@ -39,9 +39,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source ../common/source ../common/source/controllers
+SOURCES		:=	source source/bluetooth source/gamepad source/gamepad/controllers
 DATA		:=	data
-INCLUDES	:=	include ../common/include ../common/include/controllers
+INCLUDES	:=	include ../common/include
 #ROMFS	:=	romfs
 
 #---------------------------------------------------------------------------------

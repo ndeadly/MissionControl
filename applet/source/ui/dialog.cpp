@@ -2,12 +2,15 @@
 
 namespace mc::ui {
 
-    Dialog::Dialog() {
-
+    bool Dialog::isVisible(void) {
+        return m_visible;
     }
 
-    Dialog::~Dialog() {
-
+    void Dialog::show(void) {
+        m_visible = true;
     }
 
+    void Dialog::hide(void) {
+        m_visible = false;
+    }
 }

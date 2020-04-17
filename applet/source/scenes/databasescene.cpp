@@ -1,7 +1,6 @@
 #include "application.hpp"
-#include "btcore.hpp"
-#include "controllermanager.hpp"
-
+#include "bluetooth/core.hpp"
+//#include "controllermanager.hpp"
 #include "gfx/graphics.hpp"
 #include "scenes/databasescene.hpp"
 
@@ -17,25 +16,26 @@ void DatabaseScene::draw(void) {
     uint16_t y_offset = 130;
     unsigned int i;
 
-    mc::gfx::DrawText(700, 96, mc::font::Small, mc::app::theme->foregroundColor, "%d paired controllers", mc::btcore::controllerDatabase->size());
+    /*
+    mc::gfx::DrawText(700, 96, mc::font::Small, mc::app::theme->foregroundColor, "%d paired controllers", mc::bluetooth::core::controllerDatabase->size());
 
     int x1 = 470;
     int x2 = 1189;
     int y1;
-    int y2;
+    //int y2;
     // lay down separator lines
-    for (i = 0; i < mc::btcore::controllerDatabase->size(); ++i) {
+    for (i = 0; i < mc::bluetooth::core::controllerDatabase->size(); ++i) {
         y1 = y_offset + i*(70+1);
         mc::gfx::DrawHLine(x1, x2, y1, mc::app::theme->foregroundColor2);
     }
     mc::gfx::DrawHLine(470, 1189, y_offset + i*(70+1), mc::app::theme->foregroundColor2);
 
     const BluetoothDevice *device;
-    for (i = 0; i < mc::btcore::controllerDatabase->size(); ++i) {
-        device = mc::btcore::controllerDatabase->deviceAt(i);
+    for (i = 0; i < mc::bluetooth::core::controllerDatabase->size(); ++i) {
+        device = mc::bluetooth::core::controllerDatabase->deviceAt(i);
 
         y1 = y_offset + i*(70+1);
-        y2 = y1 + 70;
+        //y2 = y1 + 70;
         
         // draw controller image
         SDL_Rect clip = {mc::controller::ControllerManager::identify(device)*48, mc::app::theme->colorSetId*48, 48, 48};
@@ -52,6 +52,7 @@ void DatabaseScene::draw(void) {
         );
         mc::gfx::DrawText(x1+360, y1 + 40, mc::font::Small, mc::app::theme->foregroundColor2, "[%04X:%04X]", device->vid, device->pid);
     }
+    */
 }
 
 void DatabaseScene::handleInput(const mc::app::UserInput *input) {

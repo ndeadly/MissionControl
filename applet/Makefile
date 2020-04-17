@@ -40,7 +40,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 INCLUDES	:=	include ../common/include
-SOURCES		:=	source source/gfx source/ui source/scenes ../common/source ../common/source/controllers
+SOURCES		:=	source source/bluetooth source/gfx source/ui source/scenes source/dialogs ../common/source ../common/source/bluetooth ../common/source/controllers
 DATA		:=	data
 ROMFS		:=	romfs
 APP_TITLE   :=  MissionControl

@@ -1,3 +1,6 @@
+![GitHub All Releases](https://img.shields.io/github/downloads/ndeadly/MissionControl/total)
+![GitHub](https://img.shields.io/github/license/ndeadly/MissionControl)
+
 # MissionControl
 Enable the use of Bluetooth controllers from other consoles on your Nintendo Switch.
 
@@ -7,6 +10,7 @@ Enable the use of Bluetooth controllers from other consoles on your Nintendo Swi
 * __Sony DualShock4 Controller__
 * __Microsoft Xbox One Controller__*
 * __Nintendo Wii Remote__**
+* __Nintendo WiiU Pro Controller__
 
 **Only newer controllers from Xbox One S and X consoles support Bluetooth*
 ** *Wiimote extension controllers eg. Nunchuck, Classic Controller etc. not supported yet*
@@ -23,13 +27,13 @@ Controller pairing should work on any firmware version, but you will need firmwa
 Grab the latest release zip and extract to the root of your SD card.
 
 ## Known Issues
-* Console crashes on sleep on firmware prior to 9.x.x. The btm module doesn't seem to like us talking to other controllers behind its back
-* Console is slow to wake from sleep on 9.x.x. I have no idea why
+* Console crashes on sleep on firmware prior to 9.0.0. The btm module doesn't seem to like us talking to other controllers behind its back
+* Console is slow to wake from sleep on 9.0.0+
 * No Rumble support. This appears to be a limitation of the virtual controller interface
 
 ## Planned features
-* Button rebinding and setting custom analog stick deadzones
-* Wii extension controller support (includes WiiU Pro Controller)
+* Button remapping and setting custom analog stick deadzones
+* Wii extension controller support
 * Setting controller LEDs
 * Overlay menu for quick switching of controller profiles
 

@@ -1,12 +1,30 @@
 #include "application.hpp"
-#include "btcore.hpp"
+#include "bluetooth/core.hpp"
 
 #include "gfx/graphics.hpp"
 #include "scenes/settingsscene.hpp"
 
+enum SettingsType {
+    SettingsType_Toggle
+};
+
+struct Setting {
+    SettingsType type;
+    const char *text;
+    const char *tooltip;
+};
+
+static const Setting g_settings[] = {
+    {
+        SettingsType_Toggle,
+        "Enable bluetooth patches (restart required)",
+        "Patches the bluetooth module pairing process to allow Wii and WiiU controllers to be paired"
+    },
+};
+
 void SettingsScene::draw(void) {
     uint16_t y_offset = 130;
-    unsigned int i;
+    int i;
 
     int num_items = 2;
     int x1 = 470;

@@ -9,6 +9,8 @@ class PairingScene : public mc::ui::Scene {
         PairingScene();
         ~PairingScene();
 
+        void setFocus(bool focus);
+
         void draw(void);
         void handleInput(const mc::app::UserInput *input);
 

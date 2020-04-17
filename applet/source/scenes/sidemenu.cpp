@@ -16,7 +16,7 @@ void SideMenu::draw(void) {
     mc::gfx::DrawRect(0, 88, 409, 646, mc::app::theme->backgroundColor2);
 
     uint16_t y_offset = 130;
-    unsigned int i;
+    int i;
     for (i = 0; i < menu_len; ++i) {
         int x1 = 80;
         int x2 = 380;

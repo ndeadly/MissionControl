@@ -1,6 +1,5 @@
 #include "application.hpp"
-#include "btcore.hpp"
-
+#include "bluetooth/core.hpp"
 #include "gfx/graphics.hpp"
 #include "scenes/testcontrollerscene.hpp"
 
