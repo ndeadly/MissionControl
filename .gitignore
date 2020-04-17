@@ -12,3 +12,6 @@ sysmodule/sysmodule.elf
 sysmodule/sysmodule.npdm
 sysmodule/sysmodule.nso
 sysmodule/sysmodule.nsp
+applet/applet.nacp
+dist/
+*.log
