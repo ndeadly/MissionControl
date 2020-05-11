@@ -28,6 +28,12 @@ namespace mc::controller {
 	}
 
 	ControllerType ControllerManager::identify(uint16_t vid, uint16_t pid) {
+		for (HardwareID hwId : JoyconController::hardwareIds) {
+			if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+				return ControllerType_Joycon;
+			}
+		}
+
 		for (HardwareID hwId : SwitchProController::hardwareIds) {
 			if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
 				return ControllerType_SwitchPro;

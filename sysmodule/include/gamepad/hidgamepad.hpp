@@ -11,7 +11,7 @@
 namespace mc::controller {
 
     enum ControllerType {
-        //ControllerType_Joycon,
+        ControllerType_Joycon,
         ControllerType_SwitchPro,
         ControllerType_WiiUPro,
         ControllerType_Wiimote,
