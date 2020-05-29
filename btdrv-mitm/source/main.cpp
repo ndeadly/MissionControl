@@ -1,3 +1,4 @@
+#include <memory>
 #include <switch.h>
 #include <stratosphere.hpp>
 
@@ -96,11 +97,11 @@ namespace {
 
 int main(int argc, char **argv) {
 
-    sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions> server_manager;
+    auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
     
-    R_ABORT_UNLESS(server_manager.RegisterMitmServer<ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName));
+    R_ABORT_UNLESS(server_manager->RegisterMitmServer<ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName));
 
-    server_manager.LoopProcess();
+    server_manager->LoopProcess();
 
     return 0;
 }
