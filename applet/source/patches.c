@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include <switch.h>
 
 #include "patches.h"
@@ -139,6 +140,7 @@ void generate_bluetooth_patches(void) {
             char patch_location[512];
             snprintf(patch_location, sizeof(patch_location), "%s/%s.ips", patch_dir, patch_info[i].nso_build_id);
 
+            mkdir(patch_dir, 0700);
             FILE *fp = fopen(patch_location, "wb");
             if (fp != NULL) {
                 fputs("IPS32", fp);
