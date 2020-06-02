@@ -15,6 +15,7 @@ void userAppInit(void) {
     if R_FAILED(rc)
         fatalThrow(rc);
 
+    /*
     rc = btmInitialize();
     if R_FAILED(rc)
         fatalThrow(rc);
@@ -22,6 +23,7 @@ void userAppInit(void) {
     rc = btmdbgInitialize();
     if R_FAILED(rc)
         fatalThrow(rc);
+    */
 
     rc = splInitialize();
     if R_FAILED(rc)
@@ -45,8 +47,8 @@ void userAppExit(void) {
     plExit();
     romfsExit();
     splExit();
-    btmdbgExit();
-    btmExit();
+    //btmdbgExit();
+    //btmExit();
     btdrvExit();
 }
 
