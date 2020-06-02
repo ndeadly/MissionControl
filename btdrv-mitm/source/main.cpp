@@ -60,6 +60,7 @@ void __appInit(void) {
         R_ABORT_UNLESS(fsInitialize());
         R_ABORT_UNLESS(pmdmntInitialize());
         R_ABORT_UNLESS(pminfoInitialize());
+        R_ABORT_UNLESS(btdrvInitialize());
     });
 
     R_ABORT_UNLESS(fsdevMountSdmc());
@@ -69,6 +70,7 @@ void __appInit(void) {
 
 void __appExit(void) {
     fsdevUnmountAll();
+    btdrvExit();
     pminfoExit();
     pmdmntExit();
     fsExit();

@@ -1,6 +1,5 @@
 #pragma once
 #include <stratosphere.hpp>
-
 #include "btdrv_mitm_logging.hpp"
 
 
@@ -23,6 +22,9 @@ namespace ams::mitm::btdrv {
                 /* 5.0.0+ */
                 InitializeBle           = 46,
                 FinalizeBle             = 49,
+
+                /* Extensions */
+                RedirectSystemEvents       = 65000,
             };
 
         public:
@@ -32,7 +34,7 @@ namespace ams::mitm::btdrv {
 
         public:
             SF_MITM_SERVICE_OBJECT_CTOR(BtdrvMitmService) {
-                BTDRV_LOG_FMT("\nbtdrv-mitm initialised");
+                //BTDRV_LOG_FMT("\nbtdrv-mitm initialised");
             }
 
         protected:
@@ -42,12 +44,14 @@ namespace ams::mitm::btdrv {
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
             Result FinalizeHid(void);
-            Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetHidEventInfo(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer);
             Result RegisterHidReportEvent(sf::OutCopyHandle out_handle);
             Result GetHidReportEventInfo(sf::OutCopyHandle out_handle);
 
             Result InitializeBle(sf::OutCopyHandle out_handle);
             Result FinalizeBle(void);
+
+            Result RedirectSystemEvents(bool redirect);
 
         public:
             DEFINE_SERVICE_DISPATCH_TABLE {
@@ -63,6 +67,8 @@ namespace ams::mitm::btdrv {
 
                 MAKE_SERVICE_COMMAND_META(InitializeBle),
                 MAKE_SERVICE_COMMAND_META(FinalizeBle),
+
+                MAKE_SERVICE_COMMAND_META(RedirectSystemEvents),
             };
 
     };

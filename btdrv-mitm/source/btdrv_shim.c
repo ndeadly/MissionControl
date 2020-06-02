@@ -1,6 +1,7 @@
 #include "btdrv_shim.h"
 #include <stratosphere/sf/sf_mitm_dispatch.h>
 
+
 Result btdrvInitializeBluetoothFwd(Service* s, Handle *out_handle) {
     return serviceMitmDispatch(s, 1, 
         .out_handle_attrs = { SfOutHandleAttr_HipcCopy },
@@ -36,6 +37,21 @@ Result btdrvWriteHidDataFwd(Service* s, const BluetoothAddress *address, const B
         .buffers = { {data, sizeof(BluetoothHidData)} }
     );
 }
+
+
+/*
+Result btdrvGetPairedDeviceInfoFwd(Service* s, const BluetoothAddress *address, BluetoothDevicesSettings *device) {
+    const struct {
+        BluetoothAddress address;
+    } in = { *address };
+
+    return serviceMitmDispatchIn(s, 25, in,
+        .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {device, sizeof(BluetoothDevicesSettings)} }
+    );
+}
+*/
+
 
 Result btdrvFinalizeHidFwd(Service* s) {
     return serviceMitmDispatch(s, 26);
