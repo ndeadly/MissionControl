@@ -54,6 +54,10 @@ void userAppExit(void) {
 }
 #endif
 
+Result btdrvextRedirectSystemEvents(bool steal) {
+    return serviceDispatchIn(btdrvGetServiceSession(), 65000, steal);
+}
+
 void appletRun(void) {
     auto applet = std::make_unique<MainApplet>();
     applet->run();
@@ -61,7 +65,10 @@ void appletRun(void) {
 
 int main(int argc, char* argv[]) {
     appletLockExit();
+    btdrvextRedirectSystemEvents(true);
     appletRun();
+    btdrvextRedirectSystemEvents(false);
     appletUnlockExit();
+
     return 0;
 }
