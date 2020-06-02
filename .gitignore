@@ -15,3 +15,8 @@ sysmodule/sysmodule.nsp
 applet/applet.nacp
 dist/
 *.log
+*.elf
+*.nro
+*.nso
+*.nsp
+btdrv-mitm/build/
