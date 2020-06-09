@@ -60,13 +60,13 @@ namespace mc::controller {
         m_state.dpad_left   = (data->report0x01.buttons.dpad == Dualshock4DPad_W)  ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_NW) ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_SW);
-        m_state.dpad_up     = (data->report0x11.buttons.dpad == Dualshock4DPad_N)  ||
+        m_state.dpad_up     = (data->report0x01.buttons.dpad == Dualshock4DPad_N)  ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_NE) ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_NW);
-        m_state.dpad_right  = (data->report0x11.buttons.dpad == Dualshock4DPad_E)  ||
+        m_state.dpad_right  = (data->report0x01.buttons.dpad == Dualshock4DPad_E)  ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_NE) ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_SE);
-        m_state.dpad_down   = (data->report0x11.buttons.dpad == Dualshock4DPad_S)  ||
+        m_state.dpad_down   = (data->report0x01.buttons.dpad == Dualshock4DPad_S)  ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_SE) ||
                                       (data->report0x01.buttons.dpad == Dualshock4DPad_SW);
 
