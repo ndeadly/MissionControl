@@ -13,6 +13,16 @@ Result btdrvFinalizeBluetoothFwd(Service* s) {
     return serviceMitmDispatch(s, 4);
 }
 
+
+Result btdrvCancelBondFwd(Service* s, const BluetoothAddress *address) {
+    const struct {
+        BluetoothAddress address;
+    } in = { *address };
+
+    return serviceMitmDispatchIn(s, 12, in);
+}
+
+
 Result btdrvGetEventInfoFwd(Service* s, BluetoothEventType *type, u8 *buffer, size_t size) {
     return serviceMitmDispatchOut(s, 15, *type,
         .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },

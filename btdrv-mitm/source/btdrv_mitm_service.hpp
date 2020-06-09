@@ -11,6 +11,9 @@ namespace ams::mitm::btdrv {
             enum class CommandId {
                 InitializeBluetooth     = 1,
                 FinalizeBluetooth       = 4,
+
+                CancelBond              = 12,
+
                 GetEventInfo            = 15,
                 InitializeHid           = 16,
                 WriteHidData            = 19,
@@ -40,6 +43,9 @@ namespace ams::mitm::btdrv {
         protected:
             Result InitializeBluetooth(sf::OutCopyHandle out_handle);
             Result FinalizeBluetooth(void);
+
+            Result CancelBond(BluetoothAddress address);
+
             Result GetEventInfo(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
@@ -57,6 +63,9 @@ namespace ams::mitm::btdrv {
             DEFINE_SERVICE_DISPATCH_TABLE {
                 MAKE_SERVICE_COMMAND_META(InitializeBluetooth),
                 MAKE_SERVICE_COMMAND_META(FinalizeBluetooth),
+
+                MAKE_SERVICE_COMMAND_META(CancelBond),
+
                 MAKE_SERVICE_COMMAND_META(GetEventInfo),
                 MAKE_SERVICE_COMMAND_META(InitializeHid),
                 MAKE_SERVICE_COMMAND_META(WriteHidData),

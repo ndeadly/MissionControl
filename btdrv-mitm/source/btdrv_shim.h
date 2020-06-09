@@ -7,6 +7,9 @@ extern "C" {
 
 Result btdrvInitializeBluetoothFwd(Service* s, Handle *out_handle);
 Result btdrvFinalizeBluetoothFwd(Service* s);
+
+Result btdrvCancelBondFwd(Service* s, const BluetoothAddress *address);
+
 Result btdrvGetEventInfoFwd(Service* s, BluetoothEventType *type, u8 *buffer, size_t size);
 Result btdrvInitializeHidFwd(Service* s, Handle *out_handle, u16 version);
 Result btdrvWriteHidDataFwd(Service* s, const BluetoothAddress *address, const BluetoothHidData *data);

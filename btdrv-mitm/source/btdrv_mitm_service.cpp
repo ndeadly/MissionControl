@@ -448,6 +448,18 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
+
+    Result BtdrvMitmService::CancelBond(BluetoothAddress address) {
+
+        BTDRV_LOG_FMT("btdrv-mitm: CancelBond");
+
+        R_ABORT_UNLESS(btdrvCancelBondFwd(this->forward_service.get(), &address));
+
+        return ams::ResultSuccess();
+    }
+
+
+
     Result BtdrvMitmService::GetEventInfo(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetEventInfo");
