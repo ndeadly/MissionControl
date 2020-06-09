@@ -431,16 +431,14 @@ namespace ams::mitm::btdrv {
                 }
                      
                 // Signal our forwarder events
-                os::SignalSystemEvent(&g_btHidSystemEventFwd);
+                //os::SignalSystemEvent(&g_btHidSystemEventFwd);
 
-                /*
                 if (!g_redirectEvents || g_preparingForSleep) {
                     os::SignalSystemEvent(&g_btHidSystemEventFwd);
                 }
                 else {
                     os::SignalSystemEvent(&g_btHidSystemEventUser);
                 }
-                */
             }
         }
 

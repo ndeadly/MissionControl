@@ -125,36 +125,10 @@ namespace mc::bluetooth::core {
                         if R_FAILED(rc) 
                             fatalThrow(rc);
                             
-                        // Add device to the controller database
-                        //rc = controllerDatabase->addDevice(&device);
-
-                        
-                        /*
-                        // Disconnect controller
-                        rc = btdrvCloseHidConnection(address);
-                        if R_FAILED(rc) 
-                            fatalThrow(rc);
-
-                        svcSleepThread(2e8);
-                        
-                        rc = btdrvRemoveBond(address);
-                        if R_FAILED(rc) 
-                            fatalThrow(rc);
-
-                        svcSleepThread(2e8);
-
-                        // Register device with btm module
+                        // Register device with btm module1
                         rc = registerDevice(&device);
                         if R_FAILED(rc) 
                             fatalThrow(rc);
-
-                        svcSleepThread(1e9);
-
-                        //rc = btdrvOpenHidConnection(address);
-                        rc = btmdbgHidConnect(address);
-                        if R_FAILED(rc) 
-                            fatalThrow(rc);
-                        */
                         
                     }
                     break;
