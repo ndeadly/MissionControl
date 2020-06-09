@@ -1,5 +1,7 @@
 #pragma once
 #include "bluetoothcontroller.hpp"
+#include "switchcontroller.hpp"
+
 
 namespace controller {
 
@@ -106,12 +108,14 @@ namespace controller {
 
             Dualshock4Controller(const BluetoothAddress *address) : BluetoothController(address, ControllerType_Dualshock4) {};
             
-            void convertReportFormat(HidReport *report);
+            Result initialize(void);
+            
+            void convertReportFormat(const HidReport *inReport, HidReport *outReport);
 
         private:
             void mapStickValues(JoystickPosition *dst, const Dualshock4StickData *src);
-            void handleInputReport0x01(const Dualshock4ReportData *data);
-            void handleInputReport0x11(const Dualshock4ReportData *data); 
+            void handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst);
+            void handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst); 
     };
 
 }

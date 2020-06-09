@@ -1,5 +1,6 @@
 #pragma once
 #include "bluetoothcontroller.hpp"
+#include "switchcontroller.hpp"
 
 namespace controller {
 
@@ -61,12 +62,12 @@ namespace controller {
 
             XboxOneController(const BluetoothAddress *address) : BluetoothController(address, ControllerType_XboxOne) {};
 
-            void convertReportFormat(HidReport *report);
+            void convertReportFormat(const HidReport *inReport, HidReport *outReport);
 
         private:
             void mapStickValues(JoystickPosition *dst, const XboxOneStickData *src); 
-            void handleInputReport0x01(const XboxOneReportData *data);
-            void handleInputReport0x02(const XboxOneReportData *data);
+            void handleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst);
+            void handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst);
             
     };
 

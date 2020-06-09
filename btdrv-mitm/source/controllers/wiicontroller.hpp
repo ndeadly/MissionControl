@@ -10,6 +10,23 @@ namespace controller {
 		WiiControllerLEDs_P4 = 0x80,
 	};
 
+    struct WiiButtonData {
+		uint8_t dpad_left	: 1;
+		uint8_t dpad_right	: 1;
+		uint8_t dpad_down	: 1;
+		uint8_t dpad_up	    : 1;
+		uint8_t plus		: 1;
+		uint8_t				: 0;
+		
+		uint8_t two			: 1;
+		uint8_t one 		: 1;
+		uint8_t B			: 1;
+		uint8_t A			: 1;
+		uint8_t minus		: 1;
+		uint8_t				: 2;
+		uint8_t home 		: 1;
+	};
+
     class WiiController : public BluetoothController {
 
         public:

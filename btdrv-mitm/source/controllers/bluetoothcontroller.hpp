@@ -27,7 +27,7 @@ namespace controller {
             bool isSwitchController(void);
 
             virtual Result initialize(void);
-            virtual void convertReportFormat(HidReport *report) {};
+            virtual void convertReportFormat(const HidReport *inReport, HidReport *outReport) {};
 
         protected:
             BluetoothController(const BluetoothAddress *address, ControllerType type);

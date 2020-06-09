@@ -8,6 +8,8 @@
 namespace controller {
 
     Result WiiController::initialize(void) {
+        BluetoothController::initialize();
+        
         BTDRV_LOG_FMT("WiiController::initialize");
         return setPlayerLeds(&m_address, WiiControllerLEDs_P1);   
     }

@@ -1,7 +1,16 @@
 #pragma once
 #include "wiicontroller.hpp"
+#include "switchcontroller.hpp"
 
 namespace controller {
+
+    union WiimoteReportData {
+		struct {
+			WiiButtonData   buttons;
+			uint8_t         _unk;
+		} report0x30;
+	};
+
 
     class WiimoteController : public WiiController {
 
@@ -12,8 +21,10 @@ namespace controller {
 
             WiimoteController(const BluetoothAddress *address)  : WiiController(address, ControllerType_Wiimote) {};
 
+            void convertReportFormat(const HidReport *inReport, HidReport *outReport);
+
         private:
-        
+            void handleInputReport0x30(const WiimoteReportData *src, SwitchReportData *dst);
     };
 
 }
