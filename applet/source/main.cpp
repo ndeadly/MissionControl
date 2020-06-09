@@ -56,8 +56,8 @@ void userAppExit(void) {
 }
 #endif
 
-Result btdrvextRedirectSystemEvents(bool steal) {
-    return serviceDispatchIn(btdrvGetServiceSession(), 65000, steal);
+Result btdrvextRedirectSystemEvents(bool redirect) {
+    return serviceDispatchIn(btdrvGetServiceSession(), 65000, redirect);
 }
 
 void appletRun(void) {
