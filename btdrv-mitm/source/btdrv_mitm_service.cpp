@@ -443,6 +443,13 @@ namespace ams::mitm::btdrv {
         }
 
         void BluetoothHidReportEventThreadFunc(void *arg) {
+            /*
+            R_ABORT_UNLESS(hiddbgInitialize());
+            // Todo: move these to some class constuctor or something?
+            if (hos::GetVersion() >= hos::Version_7_0_0)
+                R_ABORT_UNLESS(hiddbgAttachHdlsWorkBuffer());
+            */
+
             while (true) {
                 // Wait for real bluetooth event 
                 os::WaitSystemEvent(&g_btHidReportSystemEvent);
@@ -458,6 +465,13 @@ namespace ams::mitm::btdrv {
 
                 //BTDRV_LOG_FMT("wrote hid report packets");
             }
+
+            /*
+            if (hos::GetVersion() >= hos::Version_7_0_0)
+                R_ABORT_UNLESS(hiddbgReleaseHdlsWorkBuffer());
+            
+            hiddbgExit();
+            */
         }
 
         void BluetoothBleEventThreadFunc(void *arg) {
