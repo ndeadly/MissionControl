@@ -303,37 +303,37 @@ namespace ams::mitm::btdrv {
 
         controller::ControllerType identifyController(uint16_t vid, uint16_t pid) {
 
-            for (controller::HardwareID hwId : controller::JoyconController::hardwareIds) {
+            for (auto hwId : controller::JoyconController::hardwareIds) {
                 if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
                     return controller::ControllerType_Joycon;
                 }
             }
 
-            for (controller::HardwareID hwId : controller::SwitchProController::hardwareIds) {
+            for (auto hwId : controller::SwitchProController::hardwareIds) {
                 if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
                     return controller::ControllerType_SwitchPro;
                 }
             }
 
-            for (controller::HardwareID hwId : controller::WiiUProController::hardwareIds) {
+            for (auto hwId : controller::WiiUProController::hardwareIds) {
                 if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
                     return controller::ControllerType_WiiUPro;
                 }
             }
 
-            for (controller::HardwareID hwId : controller::WiimoteController::hardwareIds) {
+            for (auto hwId : controller::WiimoteController::hardwareIds) {
                 if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
                     return controller::ControllerType_Wiimote;
                 }
             }
 
-            for (controller::HardwareID hwId : controller::Dualshock4Controller::hardwareIds) {
+            for (auto hwId : controller::Dualshock4Controller::hardwareIds) {
                 if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
                     return controller::ControllerType_Dualshock4;
                 }
             }
 
-            for (controller::HardwareID hwId : controller::XboxOneController::hardwareIds) {
+            for (auto hwId : controller::XboxOneController::hardwareIds) {
                 if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
                     return controller::ControllerType_XboxOne;
                 }
