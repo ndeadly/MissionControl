@@ -20,11 +20,9 @@ extern "C" {
     void __appExit(void);
 
     /* Exception handling. */
-    /*
     alignas(16) u8 __nx_exception_stack[ams::os::MemoryPageSize];
     u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
     void __libnx_exception_handler(ThreadExceptionDump* ctx);
-    */
 }
 
 namespace ams {
@@ -78,11 +76,9 @@ void __appExit(void) {
     fsExit();
 }
 
-/*
 void __libnx_exception_handler(ThreadExceptionDump* ctx) {
     ams::CrashHandler(ctx);
 }
-*/
 
 namespace {
 
