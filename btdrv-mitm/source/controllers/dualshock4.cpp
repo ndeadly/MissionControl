@@ -4,6 +4,8 @@
 #include "dualshock4.hpp"
 #include "../btdrv_mitm_logging.hpp"
 
+#include "hdlsvirtualcontroller.hpp"
+
 
 namespace controller {
 
@@ -11,6 +13,11 @@ namespace controller {
 
         const constexpr uint8_t dualshock4_joystick_nbits = 8;
 
+    }
+
+    Dualshock4Controller::Dualshock4Controller(const BluetoothAddress *address)
+    : BluetoothController(ControllerType_Dualshock4, address) {
+        m_virtualController = std::make_unique<HdlsVirtualController>();
     }
 
     Result Dualshock4Controller::initialize(void) {

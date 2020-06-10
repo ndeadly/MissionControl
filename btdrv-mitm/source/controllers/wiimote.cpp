@@ -1,6 +1,12 @@
 #include "wiimote.hpp"
+#include "hdlsvirtualcontroller.hpp"
 
 namespace controller {
+
+    WiimoteController::WiimoteController(const BluetoothAddress *address)  
+    : WiiController(ControllerType_Wiimote, address) {
+        m_virtualController = std::make_unique<HdlsVirtualController>();
+    }
 
     void WiimoteController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
         auto wiiData = reinterpret_cast<const WiimoteReportData *>(&inReport->data);

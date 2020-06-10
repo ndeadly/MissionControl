@@ -1,10 +1,16 @@
 
 #include <vapours.hpp>
 #include "wiiupro.hpp"
+#include "hdlsvirtualcontroller.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
 
 namespace controller {
+
+    WiiUProController::WiiUProController(const BluetoothAddress *address) 
+    : WiiController(ControllerType_WiiUPro, address) {
+        m_virtualController = std::make_unique<HdlsVirtualController>();
+    }
 
     Result WiiUProController::initialize(void) {
         WiiController::initialize();

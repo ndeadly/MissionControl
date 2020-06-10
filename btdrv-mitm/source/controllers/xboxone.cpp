@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "xboxone.hpp"
+#include "hdlsvirtualcontroller.hpp"
 
 namespace controller {
 
@@ -9,6 +10,11 @@ namespace controller {
 
         const constexpr uint8_t xboxone_joystick_nbits = 16;
 
+    }
+
+    XboxOneController::XboxOneController(const BluetoothAddress *address) 
+    : BluetoothController(ControllerType_XboxOne, address) {
+        m_virtualController = std::make_unique<HdlsVirtualController>();
     }
 
     void XboxOneController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
