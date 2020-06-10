@@ -19,7 +19,7 @@ namespace controller {
                 {0x057e, 0x0306},  // Official wiimote
             };
 
-            WiimoteController(const BluetoothAddress *address)  : WiiController(address, ControllerType_Wiimote) {};
+            WiimoteController(const BluetoothAddress *address);
 
             void convertReportFormat(const HidReport *inReport, HidReport *outReport);
 

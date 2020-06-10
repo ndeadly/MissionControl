@@ -60,7 +60,7 @@ namespace controller {
                 {0x045e, 0x02fd}  // Official Xbox One S Controller
             };
 
-            XboxOneController(const BluetoothAddress *address) : BluetoothController(address, ControllerType_XboxOne) {};
+            XboxOneController(const BluetoothAddress *address);
 
             void convertReportFormat(const HidReport *inReport, HidReport *outReport);
 

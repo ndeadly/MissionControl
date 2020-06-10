@@ -3,7 +3,7 @@
 
 namespace controller {
 
-    BluetoothController::BluetoothController(const BluetoothAddress *address, ControllerType type) : m_address(*address), m_type(type) { 
+    BluetoothController::BluetoothController(ControllerType type, const BluetoothAddress *address) : m_type(type), m_address(*address) { 
         m_switchController = (type == ControllerType_Joycon) || (type == ControllerType_SwitchPro);
     }
 

@@ -61,7 +61,7 @@ namespace controller {
                 {0x057e, 0x0330},  // Official Wii U Pro Controller
             };
 
-            WiiUProController(const BluetoothAddress *address) : WiiController(address, ControllerType_WiiUPro) {};
+            WiiUProController(const BluetoothAddress *address);
 
             void convertReportFormat(const HidReport *inReport, HidReport *outReport);
 

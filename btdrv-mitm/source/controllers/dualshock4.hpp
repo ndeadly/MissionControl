@@ -106,7 +106,7 @@ namespace controller {
                 {0x054c, 0x09cc}   // Official Dualshock4 v2
             };
 
-            Dualshock4Controller(const BluetoothAddress *address) : BluetoothController(address, ControllerType_Dualshock4) {};
+            Dualshock4Controller(const BluetoothAddress *address);
             
             Result initialize(void);
             

@@ -101,7 +101,7 @@ namespace controller {
                 {0x057e, 0x2009}   // Official Switch Pro Controller
             };
 
-            SwitchProController(const BluetoothAddress *address) : BluetoothController(address, ControllerType_SwitchPro) {};
+            SwitchProController(const BluetoothAddress *address) : BluetoothController(ControllerType_SwitchPro, address) {};
 
     };
 
@@ -113,7 +113,7 @@ namespace controller {
                 {0x057e, 0x2007},   // Official Joycon(R) Controller
             };
 
-            JoyconController(const BluetoothAddress *address) : BluetoothController(address, ControllerType_Joycon) {};
+            JoyconController(const BluetoothAddress *address) : BluetoothController(ControllerType_Joycon, address) {};
 
     };
 

@@ -33,7 +33,7 @@ namespace controller {
             Result initialize(void);
 
         protected:
-            WiiController(const BluetoothAddress *address, ControllerType type) : BluetoothController(address, type) {};
+            WiiController(ControllerType type, const BluetoothAddress *address) : BluetoothController(type, address) {};
 
             Result writeMemory(const BluetoothAddress *address, uint32_t writeaddr, const uint8_t *data, uint8_t length);
             Result setReportMode(const BluetoothAddress *address, uint8_t mode);

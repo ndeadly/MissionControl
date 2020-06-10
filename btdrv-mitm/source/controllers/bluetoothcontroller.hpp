@@ -30,7 +30,7 @@ namespace controller {
             virtual void convertReportFormat(const HidReport *inReport, HidReport *outReport) {};
 
         protected:
-            BluetoothController(const BluetoothAddress *address, ControllerType type);
+            BluetoothController(ControllerType type, const BluetoothAddress *address);
 
             BluetoothAddress m_address;
             ControllerType m_type;
