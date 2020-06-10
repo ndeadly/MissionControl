@@ -1,5 +1,7 @@
 #include <cstring>
 #include <cmath>
+#include <switch.h>
+#include <vapours.hpp>
 
 #include "dualshock4.hpp"
 #include "../btdrv_mitm_logging.hpp"
@@ -21,8 +23,22 @@ namespace controller {
     }
 
     Result Dualshock4Controller::initialize(void) {
-        BTDRV_LOG_FMT("Dualshock4Controller::initialize");
-        return BluetoothController::initialize();
+        R_TRY(BluetoothController::initialize());
+        
+        uint8_t r = 0xff;
+        uint8_t g = 0x00;
+        uint8_t b = 0x00;
+            
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, r, g, b};
+        report.crc = crc32Calculate(report.data, sizeof(report.data));
+        
+        BluetoothHidData hidData = {};
+        hidData.length = sizeof(report) - 1;
+        std::memcpy(&hidData.data, &report.data[1], hidData.length);
+
+        R_TRY(btdrvSetHidReport(&m_address, HidReportType_OutputReport, &hidData));
+
+        return 0;
     }
 
     void Dualshock4Controller::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
