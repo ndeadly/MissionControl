@@ -71,43 +71,14 @@ namespace ams::mitm::btdrv {
         os::SystemEventType g_btBleSystemEventUser;
 
 
-
-        // reimpl function from bluetooth module
-        /*
-        int g_packetCount = 0;
-        u64 hid_report_buffer_write(bluetooth::CircularBuffer *buffer, const void *data, size_t size, int type) {
-            if (!buffer->_unk3 || buffer->isInitialized())
-                return -1;
-
-            buffer->DiscardOldPackets(0x27, 100);
-
-            if (type == 4 && buffer->GetWriteableSize() <= ) {
-                ++g_packetCount;
-                if (g_packetCount % 100 == 0) { // maybe inverse of this
-                    //signal_hid_events();
-                }
-
-                return -1;
-            }
-
-            if (size > BLUETOOTH_CIRCBUFFER_SIZE)
-                return -1;
-
-            buffer->Write(type, data, size);
-            //signal_hid_events();  // Think this signals the hid report event
-        }
-        */
-
         u8 g_fakeReportBuffer[0x42] = {};
         HidReportData *g_fakeReportData = reinterpret_cast<HidReportData *>(g_fakeReportBuffer);
 
-        Result TranslateHidReportPackets(bluetooth::CircularBuffer *realBuffer, bluetooth::CircularBuffer *fakeBuffer) {
+        Result ProcessHidReportPackets(bluetooth::CircularBuffer *realBuffer, bluetooth::CircularBuffer *fakeBuffer) {
             controller::BluetoothController *controller;
             bluetooth::CircularBufferPacket *realPacket;          
 
-            Result rc;
-
-            
+            /*
             BTDRV_LOG_FMT("realBuffer: name: %s, roffs: %d, woffs: %d, capacity: %d, _unk3: %d, id: %d", 
                 realBuffer->name,
                 realBuffer->readOffset, 
@@ -122,6 +93,7 @@ namespace ams::mitm::btdrv {
                 fakeBuffer->size,
                 fakeBuffer->_unk3,
                 fakeBuffer->id);
+            */
             
 
             // Take snapshot of current write offset
@@ -150,81 +122,58 @@ namespace ams::mitm::btdrv {
                 //BTDRV_LOG_DATA(realPacket, realPacket->header.size + sizeof(bluetooth::CircularBufferPacketHeader));
                 //BTDRV_LOG_FMT("fakeBuffer: [%d] writing %d bytes to data[%d]", realPacket->header.type, realPacket->header.size + sizeof(bluetooth::CircularBufferPacketHeader), fakeBuffer->writeOffset);
 
-                if (realPacket->header.type == 0xff) {
-                    //BTDRV_LOG_FMT("0xff packet received");
-                    continue;
-                }
-                else if (realPacket->header.type == 4) {
-                    controller = locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
-                    if (!controller) {
+                switch (realPacket->header.type) {
+                    case 0xff:
+                        // Skip over packet type 0xff. This packet indicates the buffer should wrap around on next read.
+                        // Since our buffer read and write offsets can differ from the real buffer we want to write this ourselves 
+                        // when appropriate via CircularBuffer::Write()
                         continue;
-                    } 
-                    
-                    if (controller->isSwitchController()) {
-
-                        // Write unmodified packet directly to fake buffer (_write call will add new timestamp)
-                        if (realPacket->header.size + sizeof(bluetooth::CircularBufferPacketHeader) <= fakeBuffer->GetWriteableSize()) {
-
-                            if (realPacket->header.size + 2*sizeof(bluetooth::CircularBufferPacketHeader) > BLUETOOTH_CIRCBUFFER_SIZE - fakeBuffer->writeOffset) {
-                                fakeBuffer->_write(0xff, nullptr, (BLUETOOTH_CIRCBUFFER_SIZE - fakeBuffer->writeOffset) - sizeof(bluetooth::CircularBufferPacketHeader));
+                        
+                    case 4:
+                        {
+                            // Locate the controller that sent the report
+                            controller = locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
+                            if (!controller) {
+                                continue;
+                            } 
+                            
+                            if (controller->isSwitchController()) {
+                                // Write unmodified packet directly to fake buffer (_write call will add new timestamp)
+                                fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                             }
+                            else {
+                                const HidReport *inReport;
+                                HidReport *outReport;
+                                // copy address and stuff over
+                                if (ams::hos::GetVersion() < ams::hos::Version_10_0_0) {
+                                    g_fakeReportData->size = 0;    // Todo: calculate size of report data
+                                    std::memcpy(&g_fakeReportData->address, &realPacket->data.address, sizeof(BluetoothAddress));
+                                    inReport = &realPacket->data.report;
+                                    outReport = &g_fakeReportData->report;
+                                }
+                                else {
+                                    std::memcpy(&g_fakeReportData->v2.address, &realPacket->data.v2.address, sizeof(BluetoothAddress));
+                                    inReport = &realPacket->data.v2.report;
+                                    outReport = &g_fakeReportData->v2.report;
+                                }
 
-                            rc = fakeBuffer->_write(realPacket->header.type, &realPacket->data, realPacket->header.size);
-                        }
-                    }
-                    else {
-                        const HidReport *inReport;
-                        HidReport *outReport;
-                        // copy address and stuff over
-                        if (ams::hos::GetVersion() < ams::hos::Version_10_0_0) {
-                            g_fakeReportData->size = 0;    // Todo: calculate size of report data
-                            std::memcpy(&g_fakeReportData->address, &realPacket->data.address, sizeof(BluetoothAddress));
-                            inReport = &realPacket->data.report;
-                            outReport = &g_fakeReportData->report;
-                        }
-                        else {
-                            std::memcpy(&g_fakeReportData->v2.address, &realPacket->data.v2.address, sizeof(BluetoothAddress));
-                            inReport = &realPacket->data.v2.report;
-                            outReport = &g_fakeReportData->v2.report;
-                        }
+                                auto switchData = reinterpret_cast<controller::SwitchReportData *>(&outReport->data);
+                                switchData->report0x30.timer = os::ConvertToTimeSpan(realPacket->header.timestamp).GetMilliSeconds() & 0xff;
 
-                        auto switchData = reinterpret_cast<controller::SwitchReportData *>(&outReport->data);
-                        switchData->report0x30.timer = os::ConvertToTimeSpan(realPacket->header.timestamp).GetMilliSeconds() & 0xff;
+                                // Translate packet to switch pro format
+                                controller->convertReportFormat(inReport, outReport);
+                                //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
 
-                        // Translate packet to switch pro format
-                        //controller->convertReportFormat(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.report : &realPacket->data.v2.report);
-                        controller->convertReportFormat(inReport, outReport);
-
-                        //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
-
-                        if (sizeof(g_fakeReportBuffer) + sizeof(bluetooth::CircularBufferPacketHeader) <= fakeBuffer->GetWriteableSize()) {
-
-                            if (sizeof(g_fakeReportBuffer) + 2*sizeof(bluetooth::CircularBufferPacketHeader) > BLUETOOTH_CIRCBUFFER_SIZE - fakeBuffer->writeOffset) {
-                                fakeBuffer->_write(0xff, nullptr, (BLUETOOTH_CIRCBUFFER_SIZE - fakeBuffer->writeOffset) - sizeof(bluetooth::CircularBufferPacketHeader));
+                                // Write the converted report to our fake buffer
+                                fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));                
                             }
-
-                            // Write translated packet to fake buffer
-                            rc = fakeBuffer->_write(4, g_fakeReportData, sizeof(g_fakeReportBuffer)); 
-                        }                     
-                    }
-
-                    if (R_SUCCEEDED(rc)) {
-                        fakeBuffer->_updateUtilization();
-                    }
-                }
-                else {
-                    BTDRV_LOG_FMT("unknown packet received");
-                    if (realPacket->header.size + sizeof(bluetooth::CircularBufferPacketHeader) <= fakeBuffer->GetWriteableSize()) {
-
-                        if (realPacket->header.size + 2*sizeof(bluetooth::CircularBufferPacketHeader) > BLUETOOTH_CIRCBUFFER_SIZE - fakeBuffer->writeOffset) {
-                            fakeBuffer->_write(0xff, nullptr, (BLUETOOTH_CIRCBUFFER_SIZE - fakeBuffer->writeOffset) - sizeof(bluetooth::CircularBufferPacketHeader));
                         }
+                        break;
 
-                        rc = fakeBuffer->_write(realPacket->header.type, &realPacket->data, realPacket->header.size);
-                        if (R_SUCCEEDED(rc)) {
-                            fakeBuffer->_updateUtilization();
-                        }
-                    }
+                    default:
+                        BTDRV_LOG_FMT("unknown packet received: %d", realPacket->header.type);
+                        fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
+                        break;
                 }
 
             } 
@@ -349,10 +298,7 @@ namespace ams::mitm::btdrv {
                 // Wait for real bluetooth event 
                 os::WaitSystemEvent(&g_btHidReportSystemEvent);
 
-                //BTDRV_LOG_FMT("hid report event fired");
-
-                // Translate all new incoming packets from the real HID buffer to Switch Pro controller format
-                TranslateHidReportPackets(g_realCircBuff, g_fakeCircBuff);
+                ProcessHidReportPackets(g_realCircBuff, g_fakeCircBuff);
 
                 // Signal our forwarder events
                 //os::SignalSystemEvent(&btHidReportSystemEventUser);
