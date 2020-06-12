@@ -75,9 +75,16 @@ Result btdrvGetHidEventInfoFwd(Service* s, HidEventType *type, u8 *buffer, size_
 }
 
 Result btdrvRegisterHidReportEventFwd(Service* s, Handle *out_handle) {
-    return serviceMitmDispatch(s, 37,
+    return serviceMitmDispatch(s, hosversionBefore(4, 0, 0) ? 36 : 37,
         .out_handle_attrs = { SfOutHandleAttr_HipcCopy },
         .out_handles = out_handle,
+    );
+}
+
+Result btdrvGetHidReportEventInfoDeprecatedFwd(Service* s, HidEventType *type, u8 *buffer, size_t size) {
+    return serviceMitmDispatchOut(s, hosversionBefore(4, 0, 0) ? 37 : 38, *type,
+        .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {buffer, size} }
     );
 }
 

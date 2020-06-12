@@ -9,18 +9,22 @@ namespace ams::mitm::btdrv {
 
         private:
             enum class CommandId {
-                InitializeBluetooth     = 1,
-                FinalizeBluetooth       = 4,
+                InitializeBluetooth                 = 1,
+                FinalizeBluetooth                   = 4,
 
-                CancelBond              = 12,
+                CancelBond                          = 12,
 
-                GetEventInfo            = 15,
-                InitializeHid           = 16,
-                WriteHidData            = 19,
-                FinalizeHid             = 26,
-                GetHidEventInfo         = 27,
-                RegisterHidReportEvent  = 37,
-                GetHidReportEventInfo   = 38,
+                GetEventInfo                        = 15,
+                InitializeHid                       = 16,
+                WriteHidData                        = 19,
+                FinalizeHid                         = 26,
+                GetHidEventInfo                     = 27,
+
+                RegisterHidReportEventDeprecated    = 36,
+                RegisterHidReportEvent              = 37,
+                GetHidReportEventInfoDeprecated1    = 37,
+                GetHidReportEventInfoDeprecated2    = 38,
+                GetHidReportEventInfo               = 38,
 
                 /* 5.0.0+ */
                 InitializeBle           = 46,
@@ -51,7 +55,10 @@ namespace ams::mitm::btdrv {
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle);
             Result RegisterHidReportEvent(sf::OutCopyHandle out_handle);
+            Result GetHidReportEventInfoDeprecated1(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetHidReportEventInfoDeprecated2(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer);
             Result GetHidReportEventInfo(sf::OutCopyHandle out_handle);
 
             Result InitializeBle(sf::OutCopyHandle out_handle);
@@ -71,8 +78,12 @@ namespace ams::mitm::btdrv {
                 MAKE_SERVICE_COMMAND_META(WriteHidData),
                 MAKE_SERVICE_COMMAND_META(FinalizeHid),
                 MAKE_SERVICE_COMMAND_META(GetHidEventInfo),
-                MAKE_SERVICE_COMMAND_META(RegisterHidReportEvent),
-                MAKE_SERVICE_COMMAND_META(GetHidReportEventInfo),
+
+                MAKE_SERVICE_COMMAND_META(RegisterHidReportEventDeprecated, hos::Version_1_0_0, hos::Version_3_0_2),
+                MAKE_SERVICE_COMMAND_META(RegisterHidReportEvent,           hos::Version_4_0_0),
+                MAKE_SERVICE_COMMAND_META(GetHidReportEventInfoDeprecated1, hos::Version_1_0_0, hos::Version_3_0_2),
+                MAKE_SERVICE_COMMAND_META(GetHidReportEventInfoDeprecated2, hos::Version_4_0_0, hos::Version_6_2_0),
+                MAKE_SERVICE_COMMAND_META(GetHidReportEventInfo,            hos::Version_7_0_0),
 
                 MAKE_SERVICE_COMMAND_META(InitializeBle),
                 MAKE_SERVICE_COMMAND_META(FinalizeBle),

@@ -19,6 +19,7 @@ Result btdrvWriteHidDataFwd(Service* s, const BluetoothAddress *address, const B
 Result btdrvFinalizeHidFwd(Service* s);
 Result btdrvGetHidEventInfoFwd(Service* s, HidEventType *type, u8 *buffer, size_t size);
 Result btdrvRegisterHidReportEventFwd(Service* s, Handle *out_handle);
+Result btdrvGetHidReportEventInfoDeprecatedFwd(Service* s, HidEventType *type, u8 *buffer, size_t size);
 Result btdrvGetHidReportEventInfoFwd(Service* s, Handle *out_handle);
 
 Result btdrvInitializeBleFwd(Service* s, Handle *out_handle);

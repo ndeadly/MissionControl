@@ -561,6 +561,12 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
+    /* 1.0.0 - 3.0.2 */
+    Result BtdrvMitmService::RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle) {
+        return RegisterHidReportEvent(out_handle);
+    }
+
+    /* 4.0.0+ */
     Result BtdrvMitmService::RegisterHidReportEvent(sf::OutCopyHandle out_handle) {
 
         BTDRV_LOG_FMT("btdrv-mitm: RegisterHidReportEvent");
@@ -601,7 +607,43 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    // This one returns shared memory handle on 7.0.0+ 
+    /* 1.0.0 - 3.0.2 */
+    Result BtdrvMitmService::GetHidReportEventInfoDeprecated1(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer) {
+        
+        BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo");
+
+        HidEventType event_type;
+
+        R_ABORT_UNLESS(btdrvGetHidReportEventInfoDeprecatedFwd(this->forward_service.get(), 
+            &event_type,
+            static_cast<u8 *>(out_buffer.GetPointer()), 
+            static_cast<size_t>(out_buffer.GetSize())
+        ));
+
+        out_type.SetValue(event_type);
+
+        return ams::ResultSuccess();
+    }
+
+    /* 4.0.0 - 6.2.0 */
+    Result BtdrvMitmService::GetHidReportEventInfoDeprecated2(sf::Out<u32> out_type, const sf::OutPointerBuffer &out_buffer) {
+
+        BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo");
+
+        HidEventType event_type;
+
+        R_ABORT_UNLESS(btdrvGetHidReportEventInfoDeprecatedFwd(this->forward_service.get(), 
+            &event_type,
+            static_cast<u8 *>(out_buffer.GetPointer()), 
+            static_cast<size_t>(out_buffer.GetSize())
+        ));
+
+        out_type.SetValue(event_type);
+
+        return ams::ResultSuccess();
+    }
+
+    /* 7.0.0+ */
     Result BtdrvMitmService::GetHidReportEventInfo(sf::OutCopyHandle out_handle) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo");
