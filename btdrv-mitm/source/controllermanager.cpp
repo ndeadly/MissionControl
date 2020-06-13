@@ -1,4 +1,6 @@
 #include <memory>
+#include <functional>
+#include <queue>
 #include <vector>
 #include <vapours.hpp>
 
@@ -16,8 +18,34 @@ namespace ams::mitm::btdrv {
 
     namespace {
 
+        std::priority_queue<int, std::vector<int>, std::greater<int>> g_uniqueIds;
         std::vector<std::unique_ptr<controller::BluetoothController>> g_controllers;
 
+    }
+
+    void initUniqueIds(void) {
+        for (int n: {1, 2, 3, 4, 5, 6, 7, 8}) {
+            g_uniqueIds.push(n);
+        }
+    }
+
+    bool uniqueIdAvailable(void) {
+        return !g_uniqueIds.empty();
+    }
+
+    int acquireUniqueId(void) {
+        if (uniqueIdAvailable()) {
+            auto id = g_uniqueIds.top();
+            g_uniqueIds.pop();
+            return id;
+        }
+
+        return -1;
+    }
+
+    void releaseUniqueId(int id) {
+        if (id > 0 && id <= 4)
+            g_uniqueIds.push(id);
     }
 
 
@@ -64,6 +92,7 @@ namespace ams::mitm::btdrv {
 
 
     controller::BluetoothController *locateController(const BluetoothAddress *address) {
+
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
                 if (controller::bdcmp(&(*it)->address(), address)) {
                     return (*it).get();
@@ -79,7 +108,7 @@ namespace ams::mitm::btdrv {
         BluetoothDevicesSettings device;
         R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(address, &device));
 
-        BTDRV_LOG_FMT(" vid/pid: %04x:%04x", device.vid, device.pid);
+        //BTDRV_LOG_FMT(" vid/pid: %04x:%04x", device.vid, device.pid);
 
         switch (identifyController(device.vid, device.pid)) {
             case controller::ControllerType_Joycon:
@@ -119,6 +148,7 @@ namespace ams::mitm::btdrv {
 
 
     void removeDeviceHandler(const BluetoothAddress *address) {
+
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
             if (controller::bdcmp(&(*it)->address(), address)) {
                 g_controllers.erase(it);
