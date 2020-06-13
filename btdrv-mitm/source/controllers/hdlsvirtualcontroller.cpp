@@ -31,14 +31,12 @@ namespace controller {
 
     Result HdlsVirtualController::connect(void) {
         BTDRV_LOG_FMT("Connecting Hdls virtual device");
-        //return hiddbgAttachHdlsVirtualDevice(&m_handle, &m_device);
-        return 0;
+        return hiddbgAttachHdlsVirtualDevice(&m_handle, &m_device);
     }
 
     Result HdlsVirtualController::disconnect(void) {
         BTDRV_LOG_FMT("Disconnecting Hdls virtual device");
-        //return hiddbgDetachHdlsVirtualDevice(m_handle);
-        return 0;
+        return hiddbgDetachHdlsVirtualDevice(m_handle);
     }
 
     Result HdlsVirtualController::setState(const SwitchProGamepadState* state) {
@@ -74,8 +72,7 @@ namespace controller {
             m_state.joysticks[JOYSTICK_RIGHT].dx = state->right_stick.dx;
             m_state.joysticks[JOYSTICK_RIGHT].dy = state->right_stick.dy;
 
-            //return hiddbgSetHdlsState(m_handle, &m_state);
-            return 0;
+            return hiddbgSetHdlsState(m_handle, &m_state);
         }
 
         return -1;
