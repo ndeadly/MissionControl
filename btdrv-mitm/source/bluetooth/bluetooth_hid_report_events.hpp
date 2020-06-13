@@ -2,18 +2,19 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
-#include "../circularbuffer.hpp"
+namespace ams::bluetooth::hid::report {
 
-extern SharedMemory g_realBtShmem;
-extern SharedMemory g_fakeBtShmem;
+    SharedMemory *GetRealSharedMemory(void);
+    SharedMemory *GetFakeSharedMemory(void);
 
-extern ams::bluetooth::CircularBuffer *g_realCircBuff;
-extern ams::bluetooth::CircularBuffer *g_fakeCircBuff;
+    os::SystemEventType *GetSystemEvent(void);
+    os::SystemEventType *GetForwardEvent(void);
+    os::SystemEventType *GetUserForwardEvent(void);
 
-extern ams::os::SystemEventType g_btHidReportSystemEvent;
-extern ams::os::SystemEventType g_btHidReportSystemEventFwd;
-extern ams::os::SystemEventType g_btHidReportSystemEventUser;
+    Result MapRemoteSharedMemory(Handle handle);
+    Result InitializeFakeSharedMemory(void);
 
-ams::Result InitializeBluetoothHidReportEvents(void);
-ams::Result InitializeBluetoothHidReportFakeSharedMemory(void);
-ams::Result StartBluetoothHidReportEventThread(void);
+    Result InitializeEvents(void);
+    Result StartEventHandlerThread(void);
+
+}

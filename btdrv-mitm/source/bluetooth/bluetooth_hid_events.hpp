@@ -2,9 +2,15 @@
 #include <switch.h>
 #include <stratosphere.hpp>  
 
-extern ams::os::SystemEventType g_btHidSystemEvent;
-extern ams::os::SystemEventType g_btHidSystemEventFwd;
-extern ams::os::SystemEventType g_btHidSystemEventUser;
+namespace ams::bluetooth::hid {
 
-ams::Result InitializeBluetoothHidEvents(void);
-ams::Result StartBluetoothHidEventThread(void);
+    void HandleEvent(void);
+
+    os::SystemEventType *GetSystemEvent(void);
+    os::SystemEventType *GetForwardEvent(void);
+    os::SystemEventType *GetUserForwardEvent(void);
+
+    Result InitializeEvents(void);
+    Result StartEventHandlerThread(void);
+
+}

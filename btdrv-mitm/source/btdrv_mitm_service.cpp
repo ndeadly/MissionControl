@@ -1,7 +1,3 @@
-#include <algorithm>
-#include <atomic>
-#include <memory>
-#include <vector>
 #include <cstring>
 
 #include <switch.h>
@@ -11,7 +7,6 @@
 
 #include "bluetooth/bluetooth_events.hpp"
 #include "controllermanager.hpp"
-
 
 namespace ams::mitm::btdrv {
 
@@ -34,27 +29,35 @@ namespace ams::mitm::btdrv {
             Handle handle = INVALID_HANDLE;
    
             // Forward to the real bluetooth module with our event handle instead
-            R_ABORT_UNLESS(btdrvInitializeBluetoothFwd(this->forward_service.get(), &handle));
+            R_TRY(btdrvInitializeBluetoothFwd(this->forward_service.get(), &handle));
 
             // Attach the handle to our real system event
-            os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, handle, false, os::EventClearMode_AutoClear);
+            os::AttachReadableHandleToSystemEvent(bluetooth::core::GetSystemEvent(),
+                handle, 
+                false, 
+                os::EventClearMode_AutoClear
+            );
 
-            // Create forwarder events
-            R_ABORT_UNLESS(InitializeBluetoothCoreEvents());
+            // Create forwarder eventsg
+            //R_ABORT_UNLESS(bluetooth::core::InitializeEvents());
+            R_TRY(bluetooth::core::InitializeEvents());
+
+            //bluetooth::events::AttachWaitHolder(BtdrvEventType_BluetoothCore);
             
             // Set callers handle to that of our forwarder event
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btSystemEventFwd)); 
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::core::GetForwardEvent())); 
 
             // Create and map fake bluetooth hid report shared memory
-            R_ABORT_UNLESS(InitializeBluetoothHidReportFakeSharedMemory());
+            R_TRY(bluetooth::hid::report::InitializeFakeSharedMemory());
 
             // Create thread for forwarding events
-            R_ABORT_UNLESS(StartBluetoothCoreEventThread());
+            R_ABORT_UNLESS(bluetooth::core::StartEventHandlerThread());
+            //R_TRY(StartEventHandlerThread());
 
             g_bluetoothInitialized = true;
 
         } else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btSystemEventUser));
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::core::GetUserForwardEvent()));
         }
 
         return ams::ResultSuccess();
@@ -143,20 +146,25 @@ namespace ams::mitm::btdrv {
             R_ABORT_UNLESS(btdrvInitializeHidFwd(this->forward_service.get(), &handle, version));
 
             // Attach the handle to our real system event
-            os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, handle, false, os::EventClearMode_AutoClear);
+            os::AttachReadableHandleToSystemEvent(bluetooth::hid::GetSystemEvent(),
+                handle, 
+                false, 
+                os::EventClearMode_AutoClear
+            );
 
             // Create forwarder events
-            R_ABORT_UNLESS(InitializeBluetoothHidEvents());
+            R_ABORT_UNLESS(bluetooth::hid::InitializeEvents());
+            //bluetooth::events::AttachWaitHolder(BtdrvEventType_BluetoothHid);
 
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btHidSystemEventFwd)); 
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::hid::GetForwardEvent())); 
 
             // Create thread for forwarding events
-            R_ABORT_UNLESS(StartBluetoothHidEventThread());
+            R_ABORT_UNLESS(bluetooth::hid::StartEventHandlerThread());
 
             g_hidInitialized = true;
         }
         else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btHidSystemEventUser));
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::hid::GetUserForwardEvent()));
         }
 
         return ams::ResultSuccess();
@@ -229,21 +237,25 @@ namespace ams::mitm::btdrv {
             R_ABORT_UNLESS(btdrvRegisterHidReportEventFwd(this->forward_service.get(), &handle));
 
             // Attach the handle to our real system event
-            os::AttachReadableHandleToSystemEvent(&g_btHidReportSystemEvent, handle, false, os::EventClearMode_AutoClear);
+            os::AttachReadableHandleToSystemEvent(bluetooth::hid::report::GetSystemEvent(),
+                handle, 
+                false, 
+                os::EventClearMode_AutoClear
+            );
 
              // Create forwarder events
-            R_ABORT_UNLESS(InitializeBluetoothHidReportEvents());
+            R_ABORT_UNLESS(bluetooth::hid::report::InitializeEvents());
 
             // Set callers handle to that of our forwarder event
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btHidReportSystemEventFwd));
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::hid::report::GetForwardEvent()));
 
             // Create thread for forwarding events
-            R_ABORT_UNLESS(StartBluetoothHidReportEventThread());
+            R_ABORT_UNLESS(bluetooth::hid::report::StartEventHandlerThread());
 
             g_hidReportInitialized = true;
         }
         else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btHidReportSystemEventUser));
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::hid::report::GetUserForwardEvent()));
         }
 
         return ams::ResultSuccess();
@@ -295,13 +307,10 @@ namespace ams::mitm::btdrv {
         R_ABORT_UNLESS(btdrvGetHidReportEventInfoFwd(this->forward_service.get(), &handle));
 
         // Load and map the real bluetooth shared memory
-        shmemLoadRemote(&g_realBtShmem, handle, BLUETOOTH_SHAREDMEM_SIZE, Perm_Rw);
-        R_ABORT_UNLESS(shmemMap(&g_realBtShmem));
-        g_realCircBuff = reinterpret_cast<bluetooth::CircularBuffer *>(shmemGetAddr(&g_realBtShmem));
-        BTDRV_LOG_FMT("Real shmem @ 0x%p", (void *)g_realCircBuff);
+        R_TRY(bluetooth::hid::report::MapRemoteSharedMemory(handle));
        
         // Return the handle of our fake shared memory to the caller instead
-        out_handle.SetValue(g_fakeBtShmem.handle);
+        out_handle.SetValue(bluetooth::hid::report::GetFakeSharedMemory()->handle);
         
         return ams::ResultSuccess();
     }
@@ -317,20 +326,19 @@ namespace ams::mitm::btdrv {
             R_ABORT_UNLESS(btdrvInitializeBleFwd(this->forward_service.get(), &handle));
 
             // Attach the handle to our real system event
-            os::AttachReadableHandleToSystemEvent(&g_btBleSystemEvent, handle, false, os::EventClearMode_AutoClear);
+            os::AttachReadableHandleToSystemEvent(bluetooth::ble::GetSystemEvent(), handle, false, os::EventClearMode_AutoClear);
 
-            // Create forwarder events
-            R_ABORT_UNLESS(InitializeBluetoothBleEvents());
+            R_ABORT_UNLESS(bluetooth::ble::InitializeEvents());
+            //bluetooth::events::AttachWaitHolder(BtdrvEventType_BluetoothBle);
 
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btBleSystemEventFwd)); 
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::ble::GetForwardEvent())); 
 
-            // Create thread for forwarding events
-            R_ABORT_UNLESS(StartBluetoothBleEventThread());
+            R_ABORT_UNLESS(bluetooth::ble::StartEventHandlerThread());
 
             g_bleInitialized = true;
         }
         else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(&g_btBleSystemEventUser));
+            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::ble::GetUserForwardEvent()));
         }
 
         return ams::ResultSuccess();

@@ -13,7 +13,6 @@
 
 #include "btdrv_mitm_logging.hpp"
 
-
 namespace ams::mitm::btdrv {
 
     namespace {

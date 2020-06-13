@@ -2,10 +2,15 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
-extern ams::os::SystemEventType g_btBleSystemEvent;
-extern ams::os::SystemEventType g_btBleSystemEventFwd;
-extern ams::os::SystemEventType g_btBleSystemEventUser;
+namespace ams::bluetooth::ble {
 
-ams::Result InitializeBluetoothBleEvents(void);
-ams::Result StartBluetoothBleEventThread(void);
+    void HandleEvent(void);
+
+    os::SystemEventType *GetSystemEvent(void);
+    os::SystemEventType *GetForwardEvent(void);
+    os::SystemEventType *GetUserForwardEvent(void);
+
+    Result InitializeEvents(void);
+    Result StartEventHandlerThread(void);
     
+}

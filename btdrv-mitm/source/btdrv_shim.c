@@ -1,7 +1,6 @@
 #include "btdrv_shim.h"
 #include <stratosphere/sf/sf_mitm_dispatch.h>
 
-
 Result btdrvInitializeBluetoothFwd(Service* s, Handle *out_handle) {
     return serviceMitmDispatch(s, 1, 
         .out_handle_attrs = { SfOutHandleAttr_HipcCopy },

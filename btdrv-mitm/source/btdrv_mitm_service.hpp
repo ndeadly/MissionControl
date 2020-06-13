@@ -1,7 +1,7 @@
 #pragma once
 #include <stratosphere.hpp>
-#include "btdrv_mitm_logging.hpp"
 
+#include "btdrv_mitm_logging.hpp"
 
 namespace ams::mitm::btdrv {
 

@@ -4,45 +4,57 @@
 
 #include "../btdrv_mitm_logging.hpp"
 
-ams::os::ThreadType g_bt_hid_event_task_thread;
-alignas(ams::os::ThreadStackAlignment) u8 g_bt_hid_event_task_stack[0x2000];
-u8 g_bt_hid_event_data_buffer[0x480];
-HidEventType g_current_bt_hid_event_type;
+namespace ams::bluetooth::hid {
 
-ams::os::SystemEventType g_btHidSystemEvent;
-ams::os::SystemEventType g_btHidSystemEventFwd;
-ams::os::SystemEventType g_btHidSystemEventUser;
+    namespace {
 
+        os::ThreadType g_eventHandlerThread;
+        alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+        u8 g_eventDataBuffer[0x480];
+        HidEventType g_currentEventType;
 
-void handleConnectionStateEvent(HidEventData *eventData) {
-    switch (eventData->connectionState.state) {
-        case HidConnectionState_Connected:
-            ams::mitm::btdrv::attachDeviceHandler(&eventData->connectionState.address);
-            BTDRV_LOG_FMT("device connected");
-            break;
-        case HidConnectionState_Disconnected:
-            ams::mitm::btdrv::removeDeviceHandler(&eventData->connectionState.address);
-            BTDRV_LOG_FMT("device disconnected");
-            break;
-        default:
-            break;
+        os::SystemEventType g_btHidSystemEvent;
+        os::SystemEventType g_btHidSystemEventFwd;
+        os::SystemEventType g_btHidSystemEventUser;
+
     }
-    BTDRV_LOG_DATA(&eventData->connectionState.address, sizeof(BluetoothAddress));
-}
 
+    os::SystemEventType *GetSystemEvent(void) {
+        return &g_btHidSystemEvent;
+    }
 
-void BluetoothHidEventThreadFunc(void *arg) {
-    HidEventData *eventData = reinterpret_cast<HidEventData *>(g_bt_hid_event_data_buffer);
+    os::SystemEventType *GetForwardEvent(void) {
+        return &g_btHidSystemEventFwd;
+    }
 
-    while (true) {
-        // Wait for real bluetooth event 
-        ams::os::WaitSystemEvent(&g_btHidSystemEvent);
+    os::SystemEventType *GetUserForwardEvent(void) {
+        return &g_btHidSystemEventUser;
+    }
 
+    void handleConnectionStateEvent(HidEventData *eventData) {
+        switch (eventData->connectionState.state) {
+            case HidConnectionState_Connected:
+                ams::mitm::btdrv::attachDeviceHandler(&eventData->connectionState.address);
+                BTDRV_LOG_FMT("device connected");
+                break;
+            case HidConnectionState_Disconnected:
+                ams::mitm::btdrv::removeDeviceHandler(&eventData->connectionState.address);
+                BTDRV_LOG_FMT("device disconnected");
+                break;
+            default:
+                break;
+        }
+        BTDRV_LOG_DATA(&eventData->connectionState.address, sizeof(BluetoothAddress));
+    }
+
+    void HandleEvent(void) {
         BTDRV_LOG_FMT("hid event fired");
 
-        R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_current_bt_hid_event_type, g_bt_hid_event_data_buffer, sizeof(g_bt_hid_event_data_buffer)));
+        HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 
-        switch (g_current_bt_hid_event_type) {
+        R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+
+        switch (g_currentEventType) {
             case HidEvent_ConnectionState:
                 handleConnectionStateEvent(eventData);
                 break;
@@ -54,32 +66,42 @@ void BluetoothHidEventThreadFunc(void *arg) {
         //os::SignalSystemEvent(&g_btHidSystemEventFwd);
 
         if (!g_redirectEvents || g_preparingForSleep) {
-            ams::os::SignalSystemEvent(&g_btHidSystemEventFwd);
+            os::SignalSystemEvent(&g_btHidSystemEventFwd);
         }
         else {
-            ams::os::SignalSystemEvent(&g_btHidSystemEventUser);
+            os::SignalSystemEvent(&g_btHidSystemEventUser);
         }
     }
-}
 
-ams::Result InitializeBluetoothHidEvents(void) {
-    R_TRY(ams::os::CreateSystemEvent(&g_btHidSystemEventFwd, ams::os::EventClearMode_AutoClear, true));
-    R_TRY(ams::os::CreateSystemEvent(&g_btHidSystemEventUser, ams::os::EventClearMode_AutoClear, true));
+    void BluetoothHidEventThreadFunc(void *arg) {
+        while (true) {
+            // Wait for real bluetooth event 
+            os::WaitSystemEvent(&g_btHidSystemEvent);
 
-    return ams::ResultSuccess();
-}
+            HandleEvent();
+        }
+    }
 
-ams::Result StartBluetoothHidEventThread(void) {
-    R_TRY(ams::os::CreateThread(&g_bt_hid_event_task_thread, 
-        BluetoothHidEventThreadFunc, 
-        nullptr, 
-        g_bt_hid_event_task_stack, 
-        sizeof(g_bt_hid_event_task_stack), 
-        9
-        //38 // priority of btm sysmodule + 1
-    ));
+    Result InitializeEvents(void) {
+        R_TRY(os::CreateSystemEvent(&g_btHidSystemEventFwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_btHidSystemEventUser, os::EventClearMode_AutoClear, true));
 
-    ams::os::StartThread(&g_bt_hid_event_task_thread); 
+        return ams::ResultSuccess();
+    }
 
-    return ams::ResultSuccess();
+    Result StartEventHandlerThread(void) {
+        R_TRY(os::CreateThread(&g_eventHandlerThread, 
+            BluetoothHidEventThreadFunc, 
+            nullptr, 
+            g_eventHandlerThreadStack, 
+            sizeof(g_eventHandlerThreadStack), 
+            9
+            //38 // priority of btm sysmodule + 1
+        ));
+
+        os::StartThread(&g_eventHandlerThread); 
+
+        return ams::ResultSuccess();
+    }
+
 }

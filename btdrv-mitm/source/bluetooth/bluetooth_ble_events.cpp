@@ -3,49 +3,73 @@
 
 #include "../btdrv_mitm_logging.hpp"
 
-ams::os::ThreadType g_bt_ble_event_task_thread;
-alignas(ams::os::ThreadStackAlignment) u8 g_bt_ble_event_task_stack[0x2000];
-//u8 g_bt_ble_event_data_buffer[0x400];
-//BluetoothEventType g_current_bt_ble_event_type;
+namespace ams::bluetooth::ble {
 
-ams::os::SystemEventType g_btBleSystemEvent;
-ams::os::SystemEventType g_btBleSystemEventFwd;
-ams::os::SystemEventType g_btBleSystemEventUser;
+    namespace {
 
+        os::ThreadType g_eventHandlerThread;
+        alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+        //u8 g_bt_ble_event_data_buffer[0x400];
+        //BluetoothEventType g_current_bt_ble_event_type;
 
-void BluetoothBleEventThreadFunc(void *arg) {
-    while (true) {
-        // Wait for real bluetooth event 
-        ams::os::WaitSystemEvent(&g_btBleSystemEvent);
+        os::SystemEventType g_btBleSystemEvent;
+        os::SystemEventType g_btBleSystemEventFwd;
+        os::SystemEventType g_btBleSystemEventUser;
 
+    }
+
+    os::SystemEventType *GetSystemEvent(void) {
+        return &g_btBleSystemEvent;
+    }
+
+    os::SystemEventType *GetForwardEvent(void) {
+        return &g_btBleSystemEventFwd;
+    }
+
+    os::SystemEventType *GetUserForwardEvent(void) {
+        return &g_btBleSystemEventUser;
+    }
+
+    void HandleEvent(void) {
         BTDRV_LOG_FMT("ble event fired");
         
         // Signal our forwarder events
         if (!g_redirectEvents || g_preparingForSleep)
-            ams::os::SignalSystemEvent(&g_btBleSystemEventFwd);
+            os::SignalSystemEvent(&g_btBleSystemEventFwd);
         else
-            ams::os::SignalSystemEvent(&g_btBleSystemEventUser);
+            os::SignalSystemEvent(&g_btBleSystemEventUser);
     }
-}
 
-ams::Result InitializeBluetoothBleEvents(void) {
-    R_TRY(ams::os::CreateSystemEvent(&g_btBleSystemEventFwd, ams::os::EventClearMode_AutoClear, true));
-    R_TRY(ams::os::CreateSystemEvent(&g_btBleSystemEventUser, ams::os::EventClearMode_AutoClear, true));
 
-    return ams::ResultSuccess();
-}
+    void BluetoothBleEventThreadFunc(void *arg) {
+        while (true) {
+            // Wait for real bluetooth event 
+            os::WaitSystemEvent(&g_btBleSystemEvent);
 
-ams::Result StartBluetoothBleEventThread(void) {
-    R_TRY(ams::os::CreateThread(&g_bt_ble_event_task_thread, 
-        BluetoothBleEventThreadFunc, 
-        nullptr, 
-        g_bt_ble_event_task_stack, 
-        sizeof(g_bt_ble_event_task_stack), 
-        9
-        //38 // priority of btm sysmodule + 1
-    ));
+            HandleEvent();
+        }
+    }
 
-    ams::os::StartThread(&g_bt_ble_event_task_thread); 
+    Result InitializeEvents(void) {
+        R_TRY(os::CreateSystemEvent(&g_btBleSystemEventFwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_btBleSystemEventUser, os::EventClearMode_AutoClear, true));
 
-    return ams::ResultSuccess();
+        return ams::ResultSuccess();
+    }
+
+    Result StartEventHandlerThread(void) {
+        R_TRY(os::CreateThread(&g_eventHandlerThread, 
+            BluetoothBleEventThreadFunc, 
+            nullptr, 
+            g_eventHandlerThreadStack, 
+            sizeof(g_eventHandlerThreadStack), 
+            9
+            //38 // priority of btm sysmodule + 1
+        ));
+
+        os::StartThread(&g_eventHandlerThread); 
+
+        return ams::ResultSuccess();
+    }
+
 }
