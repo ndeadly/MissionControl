@@ -25,3 +25,4 @@ btdrv-mitm/build/
 *.id2
 *.nam
 *.til
+*.npdm
