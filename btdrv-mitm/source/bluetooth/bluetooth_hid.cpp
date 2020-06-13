@@ -1,4 +1,4 @@
-#include "bluetooth_hid_events.hpp"
+#include "bluetooth_hid.hpp"
 #include "../controllermanager.hpp"
 #include "../btdrv_mitm_flags.hpp"
 

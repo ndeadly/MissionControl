@@ -1,4 +1,4 @@
-#include "bluetooth_core_events.hpp"
+#include "bluetooth_core.hpp"
 #include "../btdrv_mitm_flags.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
