@@ -35,9 +35,9 @@ namespace controller {
         protected:
             BluetoothController(ControllerType type, const BluetoothAddress *address);
 
-            BluetoothAddress m_address;
             ControllerType m_type;
-
+            BluetoothAddress m_address;
+        
             bool m_switchController;
             std::unique_ptr<VirtualController> m_virtualController;
 
