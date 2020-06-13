@@ -22,51 +22,6 @@ namespace ams::mitm::btdrv {
         bool g_hidReportInitialized = false;
         bool g_bleInitialized       = false;
        
-
-        /*
-        void pscpmThreadFunc(void *arg) {
-            psc::PmModule   pmModule;
-            psc::PmState    pmState;
-            psc::PmFlagSet  pmFlags;
-
-            // Init power management
-            psc::PmModuleId pmModuleId = static_cast<psc::PmModuleId>(0xbd);
-            const psc::PmModuleId dependencies[] = { psc::PmModuleId_Bluetooth }; //PscPmModuleId_Bluetooth, PscPmModuleId_Btm, PscPmModuleId_Hid ??
-            R_ABORT_UNLESS(pmModule.Initialize(pmModuleId, dependencies, util::size(dependencies), os::EventClearMode_AutoClear));
-
-            while (true) {
-                // Check power management events
-                pmModule.GetEventPointer()->Wait();
-
-                if (R_SUCCEEDED(pmModule.GetRequest(&pmState, &pmFlags))) {
-                    switch(pmState) {
-                        case PscPmState_Awake:
-                            break;
-                        case PscPmState_ReadyAwaken:
-                            g_preparingForSleep = false;
-                            BTDRV_LOG_FMT("Console waking up");
-                            break;
-                        case PscPmState_ReadySleep:
-                            g_preparingForSleep = true;
-                            BTDRV_LOG_FMT("Console going to sleep");
-                            break;
-                        case PscPmState_ReadyShutdown:
-                        case PscPmState_ReadyAwakenCritical:              
-                        case PscPmState_ReadySleepCritical:
-                        default:
-                            break;
-                    }
-
-                    R_ABORT_UNLESS(pmModule.Acknowledge(pmState, ams::ResultSuccess()));
-                }
-                
-            }
-
-            pmModule.Finalize();
-        }
-        */
-
-
     }
 
     Result BtdrvMitmService::InitializeBluetooth(sf::OutCopyHandle out_handle) {
