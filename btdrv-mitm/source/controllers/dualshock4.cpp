@@ -25,11 +25,14 @@ namespace controller {
     Result Dualshock4Controller::initialize(void) {
         R_TRY(BluetoothController::initialize());
         
-        uint8_t r = 0xff;
-        uint8_t g = 0x00;
-        uint8_t b = 0x00;
-            
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, r, g, b};
+        //uint8_t r = 0xff;
+        //uint8_t g = 0x00;
+        //uint8_t b = 0x00;
+        //Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, r, g, b};    
+
+        uint8_t rgb[3];
+        randomGet(rgb, sizeof(rgb));
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, rgb[0], rgb[1], rgb[2]};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
         
         BluetoothHidData hidData = {};
