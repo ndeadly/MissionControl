@@ -17,8 +17,8 @@ namespace ams::bluetooth::hid::report {
         SharedMemory g_realBtShmem;
         SharedMemory g_fakeBtShmem;
 
-        bluetooth::CircularBuffer *g_realCircBuff;
-        bluetooth::CircularBuffer *g_fakeCircBuff;
+        bluetooth::CircularBuffer *g_realBuffer;
+        bluetooth::CircularBuffer *g_fakeBuffer;
 
         os::SystemEventType g_btHidReportSystemEvent;
         os::SystemEventType g_btHidReportSystemEventFwd;
@@ -52,8 +52,8 @@ namespace ams::bluetooth::hid::report {
     Result MapRemoteSharedMemory(Handle handle) {
         shmemLoadRemote(&g_realBtShmem, handle, BLUETOOTH_SHAREDMEM_SIZE, Perm_Rw);
         R_TRY(shmemMap(&g_realBtShmem));
-        g_realCircBuff = reinterpret_cast<bluetooth::CircularBuffer *>(shmemGetAddr(&g_realBtShmem));
-        BTDRV_LOG_FMT("Real shmem @ 0x%p", (void *)g_realCircBuff);
+        g_realBuffer = reinterpret_cast<bluetooth::CircularBuffer *>(shmemGetAddr(&g_realBtShmem));
+        BTDRV_LOG_FMT("Real shmem @ 0x%p", (void *)g_realBuffer);
 
         return ams::ResultSuccess();
     }
@@ -61,19 +61,19 @@ namespace ams::bluetooth::hid::report {
     Result InitializeFakeSharedMemory(void) {
         R_TRY(shmemCreate(&g_fakeBtShmem, BLUETOOTH_SHAREDMEM_SIZE, Perm_Rw, Perm_Rw));
         R_TRY(shmemMap(&g_fakeBtShmem));
-        g_fakeCircBuff = reinterpret_cast<CircularBuffer *>(shmemGetAddr(&g_fakeBtShmem));
-        BTDRV_LOG_FMT("Fake shmem @ 0x%p", (void *)g_fakeCircBuff);
+        g_fakeBuffer = reinterpret_cast<CircularBuffer *>(shmemGetAddr(&g_fakeBtShmem));
+        BTDRV_LOG_FMT("Fake shmem @ 0x%p", (void *)g_fakeBuffer);
 
         // Initialise fake hid report buffer
-        g_fakeCircBuff->Initialize("HID Report");
-        g_fakeCircBuff->id = 1;
-        g_fakeCircBuff->_unk3 = 1;
+        g_fakeBuffer->Initialize("HID Report");
+        g_fakeBuffer->id = 1;
+        g_fakeBuffer->_unk3 = 1;
 
         return ams::ResultSuccess();
     }
 
 
-    Result ProcessHidReportPackets(CircularBuffer *realBuffer, CircularBuffer *fakeBuffer) {
+    void HandleEvent(void) {
         controller::BluetoothController *controller;
         CircularBufferPacket *realPacket;          
 
@@ -96,25 +96,25 @@ namespace ams::bluetooth::hid::report {
         
 
         // Take snapshot of current write offset
-        u32 writeOffset = realBuffer->writeOffset;
+        u32 writeOffset = g_realBuffer->writeOffset;
 
         while (true) {
-            if (realBuffer->readOffset == writeOffset)
+            if (g_realBuffer->readOffset == writeOffset)
                 break;
 
             // Get packet from real buffer
-            //realPacket = reinterpret_cast<bluetooth::CircularBufferPacket *>(realBuffer->_read());
-            realPacket = reinterpret_cast<CircularBufferPacket *>(&realBuffer->data[realBuffer->readOffset]);
+            //realPacket = reinterpret_cast<bluetooth::CircularBufferPacket *>(g_realBuffer->_read());
+            realPacket = reinterpret_cast<CircularBufferPacket *>(&g_realBuffer->data[g_realBuffer->readOffset]);
             if (!realPacket)
                 break;
 
             // Move read pointer past current packet (I think this is what Free does)
-            if (realBuffer->readOffset != writeOffset) {
-                u32 newOffset = realBuffer->readOffset + realPacket->header.size + sizeof(CircularBufferPacketHeader);
+            if (g_realBuffer->readOffset != writeOffset) {
+                u32 newOffset = g_realBuffer->readOffset + realPacket->header.size + sizeof(CircularBufferPacketHeader);
                 if (newOffset >= BLUETOOTH_CIRCBUFFER_SIZE)
                     newOffset = 0;
 
-                realBuffer->_setReadOffset(newOffset);
+                g_realBuffer->_setReadOffset(newOffset);
             }
             
             //BTDRV_LOG_DATA(&realPacket->data, realPacket->header.size);
@@ -138,7 +138,7 @@ namespace ams::bluetooth::hid::report {
                         
                         if (controller->isSwitchController()) {
                             // Write unmodified packet directly to fake buffer (_write call will add new timestamp)
-                            fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
+                            g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                         }
                         else {
                             const HidReport *inReport;
@@ -164,28 +164,22 @@ namespace ams::bluetooth::hid::report {
                             //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
 
                             // Write the converted report to our fake buffer
-                            fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));                
+                            g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));                
                         }
                     }
                     break;
 
                 default:
                     BTDRV_LOG_FMT("unknown packet received: %d", realPacket->header.type);
-                    fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
+                    g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                     break;
             }
 
         } 
 
-        return ams::ResultSuccess();
-    }
-
-    void HandleEvent(void) {
-        ProcessHidReportPackets(g_realCircBuff, g_fakeCircBuff);
-
         // Signal our forwarder events
-        //os::SignalSystemEvent(&btHidReportSystemEventUser);
         os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
+        //os::SignalSystemEvent(&btHidReportSystemEventUser);
     }
 
 
@@ -226,7 +220,6 @@ namespace ams::bluetooth::hid::report {
             g_eventHandlerThreadStack, 
             sizeof(g_eventHandlerThreadStack), 
             -10
-            //18  // priority of hid sysmodule
         ));
 
         os::StartThread(&g_eventHandlerThread); 
