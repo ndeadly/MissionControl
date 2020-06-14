@@ -107,35 +107,33 @@ namespace ams::mitm::btdrv {
         BluetoothDevicesSettings device;
         R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(address, &device));
 
-        //BTDRV_LOG_FMT(" vid/pid: %04x:%04x", device.vid, device.pid);
-
         switch (identifyController(device.vid, device.pid)) {
             case controller::ControllerType_Joycon:
-                BTDRV_LOG_FMT(" Joycon controller");
                 g_controllers.push_back(std::make_unique<controller::JoyconController>(address));
+                BTDRV_LOG_FMT("[+] Joycon controller connected");
                 break;
             case controller::ControllerType_SwitchPro:
-                BTDRV_LOG_FMT(" Switch pro controller");
                 g_controllers.push_back(std::make_unique<controller::SwitchProController>(address));
+                BTDRV_LOG_FMT("[+] Switch pro controller connected");
                 break;
             case controller::ControllerType_Wiimote:
-                BTDRV_LOG_FMT(" Wiimote controller");
                 g_controllers.push_back(std::make_unique<controller::WiimoteController>(address));
+                BTDRV_LOG_FMT("[+] Wiimote controller connected");
                 break;
             case controller::ControllerType_WiiUPro:
-                BTDRV_LOG_FMT(" Wii U pro controller");
                 g_controllers.push_back(std::make_unique<controller::WiiUProController>(address));
+                BTDRV_LOG_FMT("[+] Wii U pro controller connected");
                 break;
             case controller::ControllerType_Dualshock4:
-                BTDRV_LOG_FMT(" Dualshock4 controller");
                 g_controllers.push_back(std::make_unique<controller::Dualshock4Controller>(address));
+                BTDRV_LOG_FMT("[+] Dualshock4 controller connected");
                 break;
             case controller::ControllerType_XboxOne:
-                BTDRV_LOG_FMT(" Xbox one controller");
                 g_controllers.push_back(std::make_unique<controller::XboxOneController>(address));
+                BTDRV_LOG_FMT("[+] Xbox one controller connected");
                 break;
             default:
-                BTDRV_LOG_FMT(" Unknown controller");
+                BTDRV_LOG_FMT(" Unknown controller [%04x:%04x | %s]", device.vid, device.pid, device.name);
                 // Disconnect unknown controller
                 btdrvCloseHidConnection(address);
                 btdrvRemoveBond(address);
