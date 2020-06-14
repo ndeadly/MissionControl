@@ -89,11 +89,12 @@ namespace ams::bluetooth::core {
     }
 
     void HandleEvent(void) {
-        BTDRV_LOG_FMT("bluetooth event fired");
 
         std::scoped_lock lk(g_eventDataLock);
         {
             R_ABORT_UNLESS(btdrvGetEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+
+            BTDRV_LOG_FMT("[%02d] Bluetooth Core Event", g_currentEventType);
 
             BluetoothEventData *event_data = reinterpret_cast<BluetoothEventData *>(g_eventDataBuffer);
 

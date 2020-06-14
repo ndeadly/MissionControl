@@ -114,13 +114,13 @@ namespace ams::bluetooth::hid {
     }
 
     void HandleEvent(void) {
-        BTDRV_LOG_FMT("hid event fired");
-
         HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 
         std::scoped_lock lk(g_eventDataLock);
         {
             R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+
+            BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
 
             switch (g_currentEventType) {
 

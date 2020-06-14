@@ -25,6 +25,8 @@ namespace ams::mitm::btdrv {
                 /* 5.0.0+ */
                 InitializeBle                       = 46,
                 FinalizeBle                         = 49,
+                GetBleManagedEventInfoDeprecated    = 78,
+                GetBleManagedEventInfo              = 79,
 
                 /* Extensions */
                 RedirectSystemEvents                = 65000,
@@ -54,6 +56,8 @@ namespace ams::mitm::btdrv {
             Result GetHidReportEventInfo(sf::OutCopyHandle out_handle);
             Result InitializeBle(sf::OutCopyHandle out_handle);
             Result FinalizeBle(void);
+            Result GetBleManagedEventInfoDeprecated(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetBleManagedEventInfo(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
             void RedirectSystemEvents(bool redirect);
 
@@ -74,6 +78,8 @@ namespace ams::mitm::btdrv {
                 MAKE_SERVICE_COMMAND_META(GetHidReportEventInfo,            hos::Version_7_0_0),
                 MAKE_SERVICE_COMMAND_META(InitializeBle,                    hos::Version_5_0_0),
                 MAKE_SERVICE_COMMAND_META(FinalizeBle,                      hos::Version_5_0_0),
+                MAKE_SERVICE_COMMAND_META(GetBleManagedEventInfoDeprecated, hos::Version_5_0_0, hos::Version_5_0_2),
+                MAKE_SERVICE_COMMAND_META(GetBleManagedEventInfo,           hos::Version_5_1_0),
 
                 MAKE_SERVICE_COMMAND_META(RedirectSystemEvents),
             };

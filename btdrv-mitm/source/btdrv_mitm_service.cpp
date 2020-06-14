@@ -66,7 +66,7 @@ namespace ams::mitm::btdrv {
             static_cast<size_t>(out_buffer.GetSize())
         ));
 
-        BTDRV_LOG_FMT("btdrv-mitm: GetEventInfo [%02d]", out_type.GetValue());
+        BTDRV_LOG_FMT("btdrv-mitm: GetEventInfo");
 
         return ams::ResultSuccess();
     }
@@ -136,7 +136,7 @@ namespace ams::mitm::btdrv {
         ));
 
 
-        BTDRV_LOG_FMT("btdrv-mitm: GetHidEventInfo [%02d]", out_type.GetValue());
+        BTDRV_LOG_FMT("btdrv-mitm: GetHidEventInfo");
 
         return ams::ResultSuccess();
     }
@@ -240,6 +240,21 @@ namespace ams::mitm::btdrv {
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             R_TRY(btdrvFinalizeBleFwd(this->forward_service.get()));
         }
+
+        return ams::ResultSuccess();
+    }
+
+    Result BtdrvMitmService::GetBleManagedEventInfoDeprecated(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+        return GetBleManagedEventInfo(out_type, out_buffer);
+    }
+    
+    Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+        R_TRY(bluetooth::ble::GetEventInfo(out_type.GetPointer(), 
+            static_cast<u8 *>(out_buffer.GetPointer()),
+            static_cast<size_t>(out_buffer.GetSize())
+        ));
+
+        BTDRV_LOG_FMT("btdrv-mitm: GetBleManagedEventInfo");
 
         return ams::ResultSuccess();
     }

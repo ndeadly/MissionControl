@@ -1,6 +1,8 @@
 #include "bluetooth_ble.hpp"
 
 #include <atomic>
+#include <mutex>
+#include <cstring>
 #include "../btdrv_mitm_flags.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
@@ -13,8 +15,10 @@ namespace ams::bluetooth::ble {
 
         os::ThreadType g_eventHandlerThread;
         alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
-        //u8 g_eventDataBuffer[0x400];
-        //BluetoothEventType g_currentEventType;
+
+        os::Mutex g_eventDataLock(false);
+        u8 g_eventDataBuffer[0x400];
+        BleEventType g_currentEventType;
 
         os::SystemEventType g_btBleSystemEvent;
         os::SystemEventType g_btBleSystemEventFwd;
@@ -75,8 +79,23 @@ namespace ams::bluetooth::ble {
         g_isInitialized = false;
     }
 
+    Result GetEventInfo(BleEventType *type, u8* buffer, size_t size) {
+        std::scoped_lock lk(g_eventDataLock);
+        
+        *type = g_currentEventType;
+        std::memcpy(buffer, g_eventDataBuffer, size);
+
+        return ams::ResultSuccess();
+    }
+
     void HandleEvent(void) {
-        BTDRV_LOG_FMT("ble event fired");
+
+        std::scoped_lock lk(g_eventDataLock);
+        {
+            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+
+            BTDRV_LOG_FMT("[%02d] BLE Event", g_currentEventType);
+        }
         
         // Signal our forwarder events
         if (!g_redirectEvents || g_preparingForSleep)

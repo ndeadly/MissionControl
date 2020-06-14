@@ -13,6 +13,7 @@ namespace ams::bluetooth::ble {
     Result Initialize(Handle eventHandle);
     void Finalize(void);
 
+    Result GetEventInfo(BleEventType *type, u8* buffer, size_t size);
     void HandleEvent(void);
     
 }

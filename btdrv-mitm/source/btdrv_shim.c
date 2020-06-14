@@ -12,7 +12,7 @@ Result btdrvFinalizeBluetoothFwd(Service* s) {
     return serviceMitmDispatch(s, 4);
 }
 
-
+/*
 Result btdrvCancelBondFwd(Service* s, const BluetoothAddress *address) {
     const struct {
         BluetoothAddress address;
@@ -20,14 +20,16 @@ Result btdrvCancelBondFwd(Service* s, const BluetoothAddress *address) {
 
     return serviceMitmDispatchIn(s, 12, in);
 }
+*/
 
-
+/*
 Result btdrvGetEventInfoFwd(Service* s, BluetoothEventType *type, u8 *buffer, size_t size) {
     return serviceMitmDispatchOut(s, 15, *type,
         .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
         .buffers = { {buffer, size} }
     );
 }
+*/
 
 Result btdrvInitializeHidFwd(Service* s, Handle *out_handle, u16 version) {
     return serviceMitmDispatchIn(s, 16, version,
@@ -66,12 +68,14 @@ Result btdrvFinalizeHidFwd(Service* s) {
     return serviceMitmDispatch(s, 26);
 }
 
+/*
 Result btdrvGetHidEventInfoFwd(Service* s, HidEventType *type, u8 *buffer, size_t size) {
     return serviceMitmDispatchOut(s, 27, *type,
         .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
         .buffers = { {buffer, size} }
     );
 }
+*/
 
 Result btdrvRegisterHidReportEventFwd(Service* s, Handle *out_handle) {
     return serviceMitmDispatch(s, hosversionBefore(4, 0, 0) ? 36 : 37,
@@ -104,3 +108,15 @@ Result btdrvInitializeBleFwd(Service* s, Handle *out_handle) {
 Result btdrvFinalizeBleFwd(Service* s) {
     return serviceMitmDispatch(s, 49);
 }
+
+/*
+Result btdrvGetBleManagedEventInfoFwd(Service* s, BleEventType *type, u8 *buffer, u16 length) {
+    if (hosversionBefore(5, 0, 0))
+        return MAKERESULT(Module_Libnx, LibnxError_IncompatSysVer);
+
+    return serviceDispatchOut(s, hosversionBefore(5, 1, 0) ? 78 : 79, *type,
+        .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {buffer, length} }
+    );
+}
+*/
