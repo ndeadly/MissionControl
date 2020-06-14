@@ -355,13 +355,11 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::RedirectSystemEvents(bool redirect) {
+    void BtdrvMitmService::RedirectSystemEvents(bool redirect) {
 
         BTDRV_LOG_FMT("btdrv-mitm: RedirectSystemEvents");
 
         g_redirectEvents = redirect;
-
-        return ams::ResultSuccess();
     }
 
 }

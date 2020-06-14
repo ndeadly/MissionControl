@@ -55,7 +55,7 @@ namespace ams::mitm::btdrv {
             Result InitializeBle(sf::OutCopyHandle out_handle);
             Result FinalizeBle(void);
 
-            Result RedirectSystemEvents(bool redirect);
+            void RedirectSystemEvents(bool redirect);
 
         public:
             DEFINE_SERVICE_DISPATCH_TABLE {
