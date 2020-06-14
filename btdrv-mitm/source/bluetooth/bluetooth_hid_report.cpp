@@ -193,7 +193,7 @@ namespace ams::bluetooth::hid::report {
                             const HidReport *inReport;
                             HidReport *outReport;
                             // copy address and stuff over
-                            if (hos::GetVersion() < hos::Version_10_0_0) {
+                            if (hos::GetVersion() < hos::Version_9_0_0) {
                                 g_fakeReportData->size = 0;    // Todo: calculate size of report data
                                 std::memcpy(&g_fakeReportData->address, &realPacket->data.address, sizeof(BluetoothAddress));
                                 inReport = &realPacket->data.report;
