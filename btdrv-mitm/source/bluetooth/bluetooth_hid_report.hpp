@@ -4,6 +4,8 @@
 
 namespace ams::bluetooth::hid::report {
 
+    bool IsInitialized(void);
+
     SharedMemory *GetRealSharedMemory(void);
     SharedMemory *GetFakeSharedMemory(void);
 
@@ -11,10 +13,12 @@ namespace ams::bluetooth::hid::report {
     os::SystemEventType *GetForwardEvent(void);
     os::SystemEventType *GetUserForwardEvent(void);
 
+    Result Initialize(Handle eventHandle);
+    void Finalize(void);
+
     Result MapRemoteSharedMemory(Handle handle);
     Result InitializeFakeSharedMemory(void);
 
-    Result InitializeEvents(void);
-    Result StartEventHandlerThread(void);
+    void HandleEvent(void);
 
 }

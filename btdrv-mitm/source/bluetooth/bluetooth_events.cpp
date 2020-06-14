@@ -68,9 +68,9 @@ namespace ams::bluetooth::events {
 
     Result InitializeSystemEvents(void) {
         //R_TRY(InitializePscPmModule());
-        R_TRY(core::InitializeEvents());
-        R_TRY(hid::InitializeEvents());
-        R_TRY(ble::InitializeEvents());
+        //R_TRY(core::InitializeEvents());
+        //R_TRY(hid::InitializeEvents());
+        //R_TRY(ble::InitializeEvents());
         
         os::InitializeWaitableManager(&g_manager);
 

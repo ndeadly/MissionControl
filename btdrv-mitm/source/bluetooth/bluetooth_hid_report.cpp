@@ -1,4 +1,6 @@
 #include "bluetooth_hid_report.hpp"
+
+#include <atomic>
 #include "bluetooth_circularbuffer.hpp"
 #include "../btdrv_mitm_flags.hpp"
 #include "../controllermanager.hpp"
@@ -11,8 +13,15 @@ namespace ams::bluetooth::hid::report {
 
     namespace {
 
+        std::atomic<bool> g_isInitialized(false);
+
         os::ThreadType g_eventHandlerThread;
         alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+
+        // This is only required  on fw < 7.0.0
+        os::Mutex g_eventDataLock(false);
+        u8 g_eventDataBuffer[0x480];
+        HidEventType g_currentEventType;
 
         SharedMemory g_realBtShmem;
         SharedMemory g_fakeBtShmem;
@@ -27,6 +36,17 @@ namespace ams::bluetooth::hid::report {
         u8 g_fakeReportBuffer[0x42] = {};
         HidReportData *g_fakeReportData = reinterpret_cast<HidReportData *>(g_fakeReportBuffer);
 
+        void EventThreadFunc(void *arg) {
+            while (true) {
+                os::WaitSystemEvent(&g_btHidReportSystemEvent);
+                HandleEvent();
+            }
+        }
+
+    }
+
+    bool IsInitialized(void) {
+        return g_isInitialized;
     }
 
     SharedMemory *GetRealSharedMemory(void) {
@@ -47,6 +67,36 @@ namespace ams::bluetooth::hid::report {
 
     os::SystemEventType *GetUserForwardEvent(void) {
         return &g_btHidReportSystemEventUser;
+    }
+
+    Result Initialize(Handle eventHandle) {
+        os::AttachReadableHandleToSystemEvent(&g_btHidReportSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
+
+        R_TRY(os::CreateSystemEvent(&g_btHidReportSystemEventFwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_btHidReportSystemEventUser, os::EventClearMode_AutoClear, true));
+
+        R_TRY(os::CreateThread(&g_eventHandlerThread, 
+            EventThreadFunc, 
+            nullptr, 
+            g_eventHandlerThreadStack, 
+            sizeof(g_eventHandlerThreadStack), 
+            -10
+        ));
+
+        os::StartThread(&g_eventHandlerThread); 
+
+        g_isInitialized = true;
+
+        return ams::ResultSuccess();
+    }
+
+    void Finalize(void) {
+        os::DestroyThread(&g_eventHandlerThread);
+
+        os::DestroySystemEvent(&g_btHidReportSystemEventUser);
+        os::DestroySystemEvent(&g_btHidReportSystemEventFwd); 
+
+        g_isInitialized = false;
     }
 
     Result MapRemoteSharedMemory(Handle handle) {
@@ -71,7 +121,6 @@ namespace ams::bluetooth::hid::report {
 
         return ams::ResultSuccess();
     }
-
 
     void HandleEvent(void) {
         controller::BluetoothController *controller;
@@ -180,51 +229,6 @@ namespace ams::bluetooth::hid::report {
         // Signal our forwarder events
         os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
         //os::SignalSystemEvent(&btHidReportSystemEventUser);
-    }
-
-
-    void BluetoothHidReportEventThreadFunc(void *arg) {
-        /*
-        R_ABORT_UNLESS(hiddbgInitialize());
-        // Todo: move these to some class constuctor or something?
-        if (hos::GetVersion() >= hos::Version_7_0_0)
-            R_ABORT_UNLESS(hiddbgAttachHdlsWorkBuffer());
-        */
-
-        while (true) {
-            // Wait for real bluetooth event 
-            os::WaitSystemEvent(&g_btHidReportSystemEvent);
-
-            HandleEvent();
-        }
-
-        /*
-        if (hos::GetVersion() >= hos::Version_7_0_0)
-            R_ABORT_UNLESS(hiddbgReleaseHdlsWorkBuffer());
-        
-        hiddbgExit();
-        */
-    }
-
-    ams::Result InitializeEvents(void) {
-        R_TRY(os::CreateSystemEvent(&g_btHidReportSystemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_btHidReportSystemEventUser, os::EventClearMode_AutoClear, true));
-        
-        return ams::ResultSuccess();
-    }
-
-    ams::Result StartEventHandlerThread(void) {
-        R_TRY(os::CreateThread(&g_eventHandlerThread, 
-            BluetoothHidReportEventThreadFunc, 
-            nullptr, 
-            g_eventHandlerThreadStack, 
-            sizeof(g_eventHandlerThreadStack), 
-            -10
-        ));
-
-        os::StartThread(&g_eventHandlerThread); 
-
-        return ams::ResultSuccess();
     }
 
 }

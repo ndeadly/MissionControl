@@ -15,8 +15,8 @@ namespace ams::bluetooth::events {
         BtdrvEventType_BluetoothBle,
     };
 
-    void    AttachWaitHolder(BtdrvEventType type);
-    Result  InitializeSystemEvents(void);
-    Result  StartEventHandlerThread(void);
+    void AttachWaitHolder(BtdrvEventType type);
+    Result InitializeSystemEvents(void);
+    Result StartEventHandlerThread(void);
 
 }
