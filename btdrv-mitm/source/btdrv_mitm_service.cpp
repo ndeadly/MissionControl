@@ -17,8 +17,11 @@ namespace ams::mitm::btdrv {
         if (!bluetooth::core::IsInitialized()) {
             Handle handle = INVALID_HANDLE;
             R_TRY(btdrvInitializeBluetoothFwd(this->forward_service.get(), &handle));
-            R_TRY(bluetooth::hid::report::InitializeFakeSharedMemory());
             R_TRY(bluetooth::core::Initialize(handle));
+
+            if (hos::GetVersion() >= hos::Version_7_0_0)
+                R_TRY(bluetooth::hid::report::InitializeFakeSharedMemory());
+
             //bluetooth::events::AttachWaitHolder(BtdrvEventType_BluetoothCore);
             out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::core::GetForwardEvent())); 
         } else {
