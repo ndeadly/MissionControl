@@ -18,7 +18,7 @@ namespace ams::bluetooth {
 
         this->readOffset = 0;
         this->writeOffset = 0;
-        std::strncpy(this->name, name, 0x10);
+        std::strncpy(this->name, name, sizeof(this->name) - 1);
         this->_unk1 = 0;
         this->size = BLUETOOTH_CIRCBUFFER_SIZE;
         //os::InitializeSdkMutex(&this->mutex);
