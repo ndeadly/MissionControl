@@ -114,9 +114,9 @@ namespace ams::bluetooth::hid::report {
         g_fakeBuffer = reinterpret_cast<CircularBuffer *>(shmemGetAddr(&g_fakeBtShmem));
         BTDRV_LOG_FMT("Fake shmem @ 0x%p", (void *)g_fakeBuffer);
 
-        // Initialise fake hid report buffer
+        // Initialise fake hid report buffer the same way bluetooth does
         g_fakeBuffer->Initialize("HID Report");
-        g_fakeBuffer->id = 1;
+        g_fakeBuffer->type = CircularBufferType_HidReport;
         g_fakeBuffer->_unk3 = 1;
 
         return ams::ResultSuccess();

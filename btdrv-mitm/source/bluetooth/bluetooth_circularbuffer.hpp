@@ -30,7 +30,7 @@ namespace ams::bluetooth {
         //public:
             CircularBuffer(void);
 
-            void Initialize(const char *name); // 10.0.0+
+            void Initialize(const char *name); // 10.0.0+, previously took event argument
             void Finalize(void);
             bool IsInitialized(void);
             u64  GetWriteableSize(void);
@@ -50,7 +50,6 @@ namespace ams::bluetooth {
             void *_read(void);
 
         //private:
-            //os::SdkMutexType    mutex;
             os::SdkMutex    mutex;
             os::EventType   *event;
             
@@ -62,7 +61,7 @@ namespace ams::bluetooth {
             u8      _unk1;
             bool 	isInitialized;
             u8      _unk2[6];
-            u32 	id;
+            CircularBufferType 	type;
             bool    _unk3;
             //u8      _unk3[4];
     };
