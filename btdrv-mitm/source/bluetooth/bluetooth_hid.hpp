@@ -13,7 +13,7 @@ namespace ams::bluetooth::hid {
     Result Initialize(Handle eventHandle);
     void Finalize(void);
 
-    Result GetEventInfo(HidEventType *type, u8* buffer, size_t size);
+    Result GetEventInfo(ncm::ProgramId program_id, HidEventType *type, u8* buffer, size_t size);
     void HandleEvent(void);
 
 }

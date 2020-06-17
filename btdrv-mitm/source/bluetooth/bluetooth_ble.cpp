@@ -79,23 +79,22 @@ namespace ams::bluetooth::ble {
         g_isInitialized = false;
     }
 
-    Result GetEventInfo(BleEventType *type, u8* buffer, size_t size) {
-        std::scoped_lock lk(g_eventDataLock);
+    Result GetEventInfo(ncm::ProgramId program_id, BleEventType *type, u8* buffer, size_t size) {
+        std::scoped_lock lk(g_eventDataLock); 
+        {
+            *type = g_currentEventType;
+            std::memcpy(buffer, g_eventDataBuffer, size);
+        }
         
-        *type = g_currentEventType;
-        std::memcpy(buffer, g_eventDataBuffer, size);
-
         return ams::ResultSuccess();
     }
 
     void HandleEvent(void) {
-
         std::scoped_lock lk(g_eventDataLock);
-        {
-            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
 
-            BTDRV_LOG_FMT("[%02d] BLE Event", g_currentEventType);
-        }
+        R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+
+        BTDRV_LOG_FMT("[%02d] BLE Event", g_currentEventType);
         
         // Signal our forwarder events
         if (!g_redirectEvents || g_preparingForSleep)

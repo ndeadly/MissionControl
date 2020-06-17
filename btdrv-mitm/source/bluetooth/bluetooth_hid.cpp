@@ -89,7 +89,7 @@ namespace ams::bluetooth::hid {
         g_isInitialized = false;           
     }
 
-    Result GetEventInfo(HidEventType *type, u8* buffer, size_t size) {
+    Result GetEventInfo(ncm::ProgramId program_id, HidEventType *type, u8* buffer, size_t size) {
         std::scoped_lock lk(g_eventDataLock);
 
         *type = g_currentEventType;
@@ -114,33 +114,31 @@ namespace ams::bluetooth::hid {
     }
 
     void HandleEvent(void) {
+        std::scoped_lock lk(g_eventDataLock);
+        
+        R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+
+        BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
+
         HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 
-        std::scoped_lock lk(g_eventDataLock);
-        {
-            R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+        switch (g_currentEventType) {
 
-            BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
+            case HidEvent_ConnectionState:
+                handleConnectionStateEvent(eventData);
+                break;
 
-            switch (g_currentEventType) {
-
-                case HidEvent_ConnectionState:
-                    handleConnectionStateEvent(eventData);
-                    break;
-
-                default:
-                    break;
-            }
+            default:
+                break;
         }
-                
-        // Signal our forwarder events
+
+            // Signal our forwarder events
         //os::SignalSystemEvent(&g_btHidSystemEventFwd);
         //if (!g_redirectEvents || g_preparingForSleep)
         if (!g_redirectEvents || g_currentEventType == HidEvent_Unknown07)
             os::SignalSystemEvent(&g_btHidSystemEventFwd);
         else
             os::SignalSystemEvent(&g_btHidSystemEventUser);
-
     }
 
 }
