@@ -1,3 +1,4 @@
+#include <stratosphere.hpp>
 #include "wiimote.hpp"
 #include "hdlsvirtualcontroller.hpp"
 
@@ -5,7 +6,8 @@ namespace controller {
 
     WiimoteController::WiimoteController(const BluetoothAddress *address)  
     : WiiController(ControllerType_Wiimote, address) {
-        m_virtualController = std::make_unique<HdlsVirtualController>();
+        if (ams::hos::GetVersion() >= ams::hos::Version_7_0_0)
+            m_virtualController = std::make_unique<HdlsVirtualController>();
     }
 
     void WiimoteController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {

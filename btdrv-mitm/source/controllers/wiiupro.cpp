@@ -1,5 +1,5 @@
 
-#include <vapours.hpp>
+#include <stratosphere.hpp>
 #include "wiiupro.hpp"
 #include "hdlsvirtualcontroller.hpp"
 
@@ -9,7 +9,8 @@ namespace controller {
 
     WiiUProController::WiiUProController(const BluetoothAddress *address) 
     : WiiController(ControllerType_WiiUPro, address) {
-        m_virtualController = std::make_unique<HdlsVirtualController>();
+        if (ams::hos::GetVersion() >= ams::hos::Version_7_0_0)
+            m_virtualController = std::make_unique<HdlsVirtualController>();
     }
 
     Result WiiUProController::initialize(void) {
