@@ -133,12 +133,15 @@ namespace ams::bluetooth::hid {
         }
 
             // Signal our forwarder events
-        //os::SignalSystemEvent(&g_btHidSystemEventFwd);
+        os::SignalSystemEvent(&g_btHidSystemEventFwd);
+        os::SignalSystemEvent(&g_btHidSystemEventUser);
         //if (!g_redirectEvents || g_preparingForSleep)
+        /*
         if (!g_redirectEvents || g_currentEventType == HidEvent_Unknown07)
             os::SignalSystemEvent(&g_btHidSystemEventFwd);
         else
             os::SignalSystemEvent(&g_btHidSystemEventUser);
+        */
     }
 
 }
