@@ -12,33 +12,19 @@ namespace ams::mitm::btdrv {
 
         psc::PmModule   g_pmModule;
 
-    }
 
-    void handlePscPmEvent(void) {
-        psc::PmState    pmState;
-        psc::PmFlagSet  pmFlags;
+        void PscMmThreadFunc(void *arg) {
+            
+            while (true) {
+                // Check power management events
+                g_pmModule.GetEventPointer()->Wait();
 
-        if (R_SUCCEEDED(g_pmModule.GetRequest(&pmState, &pmFlags))) {
-            switch(pmState) {
-                case PscPmState_Awake:
-                    break;
-                case PscPmState_ReadyAwaken:
-                    g_preparingForSleep = false;
-                    BTDRV_LOG_FMT("Console waking up");
-                    break;
-                case PscPmState_ReadySleep:
-                    g_preparingForSleep = true;
-                    BTDRV_LOG_FMT("Console going to sleep");
-                    break;
-                case PscPmState_ReadyShutdown:
-                case PscPmState_ReadyAwakenCritical:              
-                case PscPmState_ReadySleepCritical:
-                default:
-                    break;
+                HandlePscPmEvent();
             }
 
-            R_ABORT_UNLESS(g_pmModule.Acknowledge(pmState, ams::ResultSuccess()));
+            FinalizePscPmModule();
         }
+
     }
 
     psc::PmModule *GetPscPmModule(void) {
@@ -47,8 +33,9 @@ namespace ams::mitm::btdrv {
 
     ams::Result InitializePscPmModule(void) {
         psc::PmModuleId pmModuleId = static_cast<psc::PmModuleId>(0xbd);
-        const psc::PmModuleId dependencies[] = { psc::PmModuleId_Bluetooth }; //PscPmModuleId_Bluetooth, PscPmModuleId_Btm, PscPmModuleId_Hid ??
-        R_TRY(g_pmModule.Initialize(pmModuleId, dependencies, util::size(dependencies), os::EventClearMode_AutoClear));
+        //const psc::PmModuleId dependencies[] = { psc::PmModuleId_Bluetooth }; //PscPmModuleId_Bluetooth, PscPmModuleId_Btm, PscPmModuleId_Hid ??
+        const psc::PmModuleId dependencies[] = { psc::PmModuleId_Fs }; //PscPmModuleId_Bluetooth, PscPmModuleId_Btm, PscPmModuleId_Hid ??
+        R_TRY(g_pmModule.Initialize(pmModuleId, dependencies, util::size(dependencies), os::EventClearMode_ManualClear));
         
         return ams::ResultSuccess();
     }
@@ -57,18 +44,6 @@ namespace ams::mitm::btdrv {
         g_pmModule.Finalize();
     }
             
-    void PscMmThreadFunc(void *arg) {
-        
-        while (true) {
-            // Check power management events
-            g_pmModule.GetEventPointer()->Wait();
-
-            handlePscPmEvent();
-        }
-
-        FinalizePscPmModule();
-    }
-
     Result StartPscPmThread(void) {
         R_TRY(os::CreateThread(&g_eventHandlerThread, 
             PscMmThreadFunc, 
@@ -81,6 +56,34 @@ namespace ams::mitm::btdrv {
         os::StartThread(&g_eventHandlerThread); 
 
         return ams::ResultSuccess();
+    }
+
+    void HandlePscPmEvent(void) {
+        psc::PmState    pmState;
+        psc::PmFlagSet  pmFlags;
+
+        if (R_SUCCEEDED(g_pmModule.GetRequest(&pmState, &pmFlags))) {
+            g_pmModule.GetEventPointer()->Clear();
+
+            switch(pmState) {
+                case PscPmState_Awake:
+                case PscPmState_ReadyAwaken:
+                    g_preparingForSleep = false;
+                    //BTDRV_LOG_FMT("Console waking up");
+                    break;
+                case PscPmState_ReadySleep:
+                case PscPmState_ReadyShutdown:
+                    g_preparingForSleep = true;
+                    //BTDRV_LOG_FMT("Console going to sleep");
+                    break;
+                case PscPmState_ReadyAwakenCritical:              
+                case PscPmState_ReadySleepCritical:
+                default:
+                    break;
+            }
+
+            R_ABORT_UNLESS(g_pmModule.Acknowledge(pmState, ams::ResultSuccess()));
+        }
     }
 
 }

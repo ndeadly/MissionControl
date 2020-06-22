@@ -11,12 +11,15 @@ namespace ams::mitm::btdrv {
             enum class CommandId {
                 InitializeBluetooth                 = 1,
                 FinalizeBluetooth                   = 4,
-                //CancelBond                          = 12,
                 GetEventInfo                        = 15,
                 InitializeHid                       = 16,
                 WriteHidData                        = 19,
+                SetHidReport                        = 21,
+                GetHidReport                        = 22,
+                GetPairedDeviceInfo                 = 25,
                 FinalizeHid                         = 26,
                 GetHidEventInfo                     = 27,
+                //SetTsi                              = 28,
                 RegisterHidReportEventDeprecated    = 36,
                 RegisterHidReportEvent              = 37,
                 GetHidReportEventInfoDeprecated1    = 37,
@@ -38,17 +41,25 @@ namespace ams::mitm::btdrv {
             }
 
         public:
-            SF_MITM_SERVICE_OBJECT_CTOR(BtdrvMitmService) { }
+            SF_MITM_SERVICE_OBJECT_CTOR(BtdrvMitmService) { 
+                u32 ver = hosversionGet();
+                BTDRV_LOG_FMT("*** btdrv-mitm [%d.%d.%d] ***", HOSVER_MAJOR(ver), HOSVER_MINOR(ver), HOSVER_MICRO(ver));
+            }
 
         protected:
             Result InitializeBluetooth(sf::OutCopyHandle out_handle);
             Result FinalizeBluetooth(void);
-            //Result CancelBond(BluetoothAddress address);
             Result GetEventInfo(sf::Out<BluetoothEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
+            Result SetHidReport(BluetoothAddress address, BluetoothHhReportType type, const sf::InPointerBuffer &buffer);
+            Result GetHidReport(BluetoothAddress address, BluetoothHhReportType type, u8 id);
+            Result GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+
+            //Result SetTsi(BluetoothAddress address, u8 tsi);
+            
             Result RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle);
             Result RegisterHidReportEvent(sf::OutCopyHandle out_handle);
             Result GetHidReportEventInfoDeprecated1(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
@@ -65,12 +76,15 @@ namespace ams::mitm::btdrv {
             DEFINE_SERVICE_DISPATCH_TABLE {
                 MAKE_SERVICE_COMMAND_META(InitializeBluetooth),
                 MAKE_SERVICE_COMMAND_META(FinalizeBluetooth),
-                //MAKE_SERVICE_COMMAND_META(CancelBond),
                 MAKE_SERVICE_COMMAND_META(GetEventInfo),
                 MAKE_SERVICE_COMMAND_META(InitializeHid),
                 MAKE_SERVICE_COMMAND_META(WriteHidData),
+                MAKE_SERVICE_COMMAND_META(SetHidReport),
+                MAKE_SERVICE_COMMAND_META(GetHidReport),
+                MAKE_SERVICE_COMMAND_META(GetPairedDeviceInfo),
                 MAKE_SERVICE_COMMAND_META(FinalizeHid),
                 MAKE_SERVICE_COMMAND_META(GetHidEventInfo),
+                //MAKE_SERVICE_COMMAND_META(SetTsi),
                 MAKE_SERVICE_COMMAND_META(RegisterHidReportEventDeprecated, hos::Version_1_0_0, hos::Version_3_0_2),
                 MAKE_SERVICE_COMMAND_META(RegisterHidReportEvent,           hos::Version_4_0_0),
                 MAKE_SERVICE_COMMAND_META(GetHidReportEventInfoDeprecated1, hos::Version_1_0_0, hos::Version_3_0_2),

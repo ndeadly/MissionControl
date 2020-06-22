@@ -3,6 +3,7 @@
 #include <stratosphere.hpp>
 
 #include "btdrv_mitm_service.hpp"
+#include "bluetooth/bluetooth_events.hpp"
 
 extern "C" {
 
@@ -103,6 +104,8 @@ int main(int argc, char **argv) {
     auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
     
     R_ABORT_UNLESS(server_manager->RegisterMitmServer<ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName));
+
+    R_ABORT_UNLESS(bluetooth::events::Initialize());
 
     server_manager->LoopProcess();
 

@@ -13,16 +13,6 @@ Result btdrvFinalizeBluetoothFwd(Service* srv) {
 }
 
 /*
-Result btdrvCancelBondFwd(Service* srv, const BluetoothAddress *address) {
-    const struct {
-        BluetoothAddress address;
-    } in = { *address };
-
-    return serviceMitmDispatchIn(srv, 12, in);
-}
-*/
-
-/*
 Result btdrvGetEventInfoFwd(Service* srv, BluetoothEventType *type, u8 *buffer, size_t size) {
     return serviceMitmDispatchOut(srv, 15, *type,
         .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
@@ -49,8 +39,28 @@ Result btdrvWriteHidDataFwd(Service* srv, const BluetoothAddress *address, const
     );
 }
 
+Result btdrvSetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, const BluetoothHidData *data) {
+    const struct {
+        BluetoothAddress address;
+        BluetoothHhReportType type;
+    } in = { *address, type};
 
-/*
+    return serviceMitmDispatchIn(srv, 21, in,
+        .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_In },
+        .buffers = { {data, sizeof(BluetoothHidData)} }
+    );
+}
+
+Result btdrvGetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, u8 id) {
+    const struct {
+        BluetoothAddress address;
+        BluetoothHhReportType type;
+        u8 id;
+    } in = { *address, type, id };
+
+    return serviceMitmDispatchIn(srv, 22, in);
+}
+
 Result btdrvGetPairedDeviceInfoFwd(Service* srv, const BluetoothAddress *address, BluetoothDevicesSettings *device) {
     const struct {
         BluetoothAddress address;
@@ -60,6 +70,16 @@ Result btdrvGetPairedDeviceInfoFwd(Service* srv, const BluetoothAddress *address
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
         .buffers = { {device, sizeof(BluetoothDevicesSettings)} }
     );
+}
+
+/*
+Result btdrvSetTsiFwd(Service* srv, const BluetoothAddress *address, u8 tsi) {
+    const struct {
+        BluetoothAddress address;
+        u8 tsi;
+    } in = { *address, tsi };
+
+    return serviceMitmDispatchIn(srv, 28, in);
 }
 */
 
@@ -84,12 +104,14 @@ Result btdrvRegisterHidReportEventFwd(Service* srv, Handle *out_handle) {
     );
 }
 
+/*
 Result btdrvGetHidReportEventInfoDeprecatedFwd(Service* srv, HidEventType *type, u8 *buffer, size_t size) {
     return serviceMitmDispatchOut(srv, hosversionBefore(4, 0, 0) ? 37 : 38, *type,
         .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
         .buffers = { {buffer, size} }
     );
 }
+*/
 
 Result btdrvGetHidReportEventInfoFwd(Service* srv, Handle *out_handle) {
     return serviceMitmDispatch(srv, 38,

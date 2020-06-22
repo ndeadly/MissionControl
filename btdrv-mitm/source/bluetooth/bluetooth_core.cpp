@@ -14,8 +14,8 @@ namespace ams::bluetooth::core {
 
         std::atomic<bool> g_isInitialized(false);
 
-        os::ThreadType g_eventHandlerThread;
-        alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+        //os::ThreadType g_eventHandlerThread;
+        //alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
 
         os::Mutex g_eventDataLock(false);
         u8 g_eventDataBuffer[0x400];
@@ -25,12 +25,14 @@ namespace ams::bluetooth::core {
         os::SystemEventType g_btSystemEventFwd;
         os::SystemEventType g_btSystemEventUser;
 
+        /*
         void EventThreadFunc(void *arg) {
             while (true) {
                 os::WaitSystemEvent(&g_btSystemEvent);
                 HandleEvent();
             }
         }
+        */
 
         void _LogEvent(BluetoothEventType type, BluetoothEventData *eventData) {
         
@@ -59,7 +61,8 @@ namespace ams::bluetooth::core {
                     break;
             }
 
-            BTDRV_LOG_DATA(eventData, dataSize);
+            //BTDRV_LOG_DATA(eventData, dataSize);
+            BTDRV_LOG_DATA_MSG(eventData, dataSize, "Bluetooth core event [%02d]", type);
         }
 
     }
@@ -81,11 +84,14 @@ namespace ams::bluetooth::core {
     }
 
     Result Initialize(Handle eventHandle) {
-        os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
+        //os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
+        os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, true, os::EventClearMode_AutoClear);
 
         R_TRY(os::CreateSystemEvent(&g_btSystemEventFwd, os::EventClearMode_AutoClear, true));
         R_TRY(os::CreateSystemEvent(&g_btSystemEventUser, os::EventClearMode_AutoClear, true));
 
+        
+        /*
         R_TRY(os::CreateThread(&g_eventHandlerThread, 
             EventThreadFunc, 
             nullptr, 
@@ -94,7 +100,9 @@ namespace ams::bluetooth::core {
             9
         ));
 
-        os::StartThread(&g_eventHandlerThread); 
+        os::StartThread(&g_eventHandlerThread);
+        */
+                
 
         g_isInitialized = true;
 
@@ -102,7 +110,7 @@ namespace ams::bluetooth::core {
     }
 
     void Finalize(void) {
-        os::DestroyThread(&g_eventHandlerThread);
+        //os::DestroyThread(&g_eventHandlerThread);
 
         os::DestroySystemEvent(&g_btSystemEventUser);
         os::DestroySystemEvent(&g_btSystemEventFwd);
@@ -115,6 +123,14 @@ namespace ams::bluetooth::core {
             std::strncpy(eventData->deviceFound.name, "Lic Pro Controller", sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
+        else {
+            BTDRV_LOG_FMT("handleDeviceFoundEvent: [%02x%02x%02x] | %s",
+                eventData->deviceFound.cod.cod[0],
+                eventData->deviceFound.cod.cod[1],
+                eventData->deviceFound.cod.cod[2],
+                eventData->deviceFound.name
+            );
+        }
     }
 
     void handlePinRequesEvent(BluetoothEventData *eventData) {
@@ -122,12 +138,28 @@ namespace ams::bluetooth::core {
             std::strncpy(eventData->pinReply.name, "Lic Pro Controller", sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
+        else {
+            BTDRV_LOG_FMT("handleDeviceFoundEvent: [%02x%02x%02x] | %s",
+                eventData->pinReply.cod.cod[0],
+                eventData->pinReply.cod.cod[1],
+                eventData->pinReply.cod.cod[2],
+                eventData->pinReply.name
+            );
+        }
     }
 
     void handleSspRequesEvent(BluetoothEventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->sspReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->sspReply.name)) {
             std::strncpy(eventData->sspReply.name, "Lic Pro Controller", sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
+        }
+        else {
+            BTDRV_LOG_FMT("handleDeviceFoundEvent: [%02x%02x%02x] | %s",
+                eventData->sspReply.cod.cod[0],
+                eventData->sspReply.cod.cod[1],
+                eventData->sspReply.cod.cod[2],
+                eventData->sspReply.name
+            );
         }
     }
 
@@ -158,12 +190,17 @@ namespace ams::bluetooth::core {
                     default:
                         break;
                 }
+            } else {
+                BTDRV_LOG_FMT("Not BTM: [%02x]", program_id);
             }
 
             _LogEvent(g_currentEventType, eventData);
 
         }
         
+        // Might not be required if original event is autoclear?
+        //os::ClearSystemEvent(&g_btSystemEvent);
+
         return ams::ResultSuccess();
     }
 
@@ -173,7 +210,7 @@ namespace ams::bluetooth::core {
         
         R_ABORT_UNLESS(btdrvGetEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
 
-        BTDRV_LOG_FMT("[%02d] Bluetooth Core Event", g_currentEventType);
+        //BTDRV_LOG_FMT("[%02d] Bluetooth Core Event", g_currentEventType);
         //BTDRV_LOG_DATA(g_eventDataBuffer, sizeof(g_eventDataBuffer));
 
         //BluetoothEventData *eventData = reinterpret_cast<BluetoothEventData *>(g_eventDataBuffer);
@@ -205,7 +242,8 @@ namespace ams::bluetooth::core {
         */
 
         // Signal our forwarder events
-        if (!g_redirectEvents || g_preparingForSleep)
+        //if (!g_redirectEvents || g_preparingForSleep)
+        if (!g_redirectEvents)
             os::SignalSystemEvent(&g_btSystemEventFwd);
         else
             os::SignalSystemEvent(&g_btSystemEventUser);

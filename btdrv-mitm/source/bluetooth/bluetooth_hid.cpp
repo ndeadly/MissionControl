@@ -14,8 +14,8 @@ namespace ams::bluetooth::hid {
 
         std::atomic<bool> g_isInitialized(false);
 
-        os::ThreadType g_eventHandlerThread;
-        alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+        //os::ThreadType g_eventHandlerThread;
+        //alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
 
         os::Mutex g_eventDataLock(false);
         u8 g_eventDataBuffer[0x480];
@@ -25,12 +25,14 @@ namespace ams::bluetooth::hid {
         os::SystemEventType g_btHidSystemEventFwd;
         os::SystemEventType g_btHidSystemEventUser;
 
+        /*
         void EventThreadFunc(void *arg) {
             while (true) {
                 os::WaitSystemEvent(&g_btHidSystemEvent);
                 HandleEvent();
             }
         }
+        */
 
     }
 
@@ -55,11 +57,13 @@ namespace ams::bluetooth::hid {
         if (hos::GetVersion() >= hos::Version_7_0_0)
             R_ABORT_UNLESS(hiddbgAttachHdlsWorkBuffer());
         */
-        os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
+        //os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
+        os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, true, os::EventClearMode_AutoClear);
 
         R_TRY(os::CreateSystemEvent(&g_btHidSystemEventFwd, os::EventClearMode_AutoClear, true));
         R_TRY(os::CreateSystemEvent(&g_btHidSystemEventUser, os::EventClearMode_AutoClear, true));
 
+        /*
         R_TRY(os::CreateThread(&g_eventHandlerThread, 
             EventThreadFunc, 
             nullptr, 
@@ -69,6 +73,7 @@ namespace ams::bluetooth::hid {
         ));
 
         os::StartThread(&g_eventHandlerThread); 
+        */
 
         g_isInitialized = true;
 
@@ -81,7 +86,7 @@ namespace ams::bluetooth::hid {
             R_ABORT_UNLESS(hiddbgReleaseHdlsWorkBuffer());
         */
 
-        os::DestroyThread(&g_eventHandlerThread);
+        //os::DestroyThread(&g_eventHandlerThread);
 
         os::DestroySystemEvent(&g_btHidSystemEventUser);
         os::DestroySystemEvent(&g_btHidSystemEventFwd); 

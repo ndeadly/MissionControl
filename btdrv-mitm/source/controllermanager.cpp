@@ -2,6 +2,7 @@
 #include <functional>
 #include <queue>
 #include <vector>
+#include <cstring>
 #include <vapours.hpp>
 
 #include "controllermanager.hpp"
@@ -47,6 +48,16 @@ namespace ams::mitm::btdrv {
             g_uniqueIds.push(id);
     }
 
+    bool IsValidSwitchControllerName(const char *name) {
+        return std::strncmp(name, "Joy-Con (L)", 		sizeof(BluetoothName)) == 0 ||
+               std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0  ||
+               std::strncmp(name, "Pro Controller", 	sizeof(BluetoothName)) == 0  ||
+               std::strncmp(name, "Lic Pro Controller", sizeof(BluetoothName)) == 0  ||
+               std::strncmp(name, "NES Controller", 	sizeof(BluetoothName)) == 0  ||
+               std::strncmp(name, "HVC Controller", 	sizeof(BluetoothName)) == 0  ||
+               std::strncmp(name, "SNES Controller", 	sizeof(BluetoothName)) == 0  ||
+               std::strncmp(name, "NintendoGamepad", 	sizeof(BluetoothName)) == 0 ;
+    }
 
     controller::ControllerType identifyController(uint16_t vid, uint16_t pid) {
 
@@ -89,7 +100,6 @@ namespace ams::mitm::btdrv {
         return controller::ControllerType_Unknown;
     }
 
-
     controller::BluetoothController *locateController(const BluetoothAddress *address) {
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
@@ -100,7 +110,6 @@ namespace ams::mitm::btdrv {
 
         return nullptr;
     }
-
 
     void attachDeviceHandler(const BluetoothAddress *address) {
         // Retrieve information about paired device
@@ -133,16 +142,15 @@ namespace ams::mitm::btdrv {
                 BTDRV_LOG_FMT("[+] Xbox one controller connected");
                 break;
             default:
-                BTDRV_LOG_FMT(" Unknown controller [%04x:%04x | %s]", device.vid, device.pid, device.name);
+                BTDRV_LOG_FMT("[?] Unknown controller [%04x:%04x | %s]", device.vid, device.pid, device.name);
                 // Disconnect unknown controller
-                btdrvCloseHidConnection(address);
-                btdrvRemoveBond(address);
+                //btdrvCloseHidConnection(address);
+                //btdrvRemoveBond(address);
                 return;
         }
 
         g_controllers.back()->initialize();
     }
-
 
     void removeDeviceHandler(const BluetoothAddress *address) {
 
@@ -153,6 +161,5 @@ namespace ams::mitm::btdrv {
             }
         }
     }
-
 
 }

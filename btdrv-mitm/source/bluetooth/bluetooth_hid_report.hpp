@@ -19,6 +19,7 @@ namespace ams::bluetooth::hid::report {
     Result MapRemoteSharedMemory(Handle handle);
     Result InitializeFakeSharedMemory(void);
 
+    Result GetEventInfo(HidEventType *type, u8* buffer, size_t size);
     void HandleEvent(void);
 
 }
