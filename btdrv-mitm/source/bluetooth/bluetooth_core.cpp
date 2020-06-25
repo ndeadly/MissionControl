@@ -12,10 +12,9 @@ namespace ams::bluetooth::core {
 
     namespace {
 
-        std::atomic<bool> g_isInitialized(false);
+        const constexpr char* g_licProControllerName = "Lic Pro Controller";
 
-        //os::ThreadType g_eventHandlerThread;
-        //alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+        std::atomic<bool> g_isInitialized(false);
 
         os::Mutex g_eventDataLock(false);
         u8 g_eventDataBuffer[0x400];
@@ -24,15 +23,6 @@ namespace ams::bluetooth::core {
         os::SystemEventType g_btSystemEvent;
         os::SystemEventType g_btSystemEventFwd;
         os::SystemEventType g_btSystemEventUser;
-
-        /*
-        void EventThreadFunc(void *arg) {
-            while (true) {
-                os::WaitSystemEvent(&g_btSystemEvent);
-                HandleEvent();
-            }
-        }
-        */
 
         void _LogEvent(BluetoothEventType type, BluetoothEventData *eventData) {
         
@@ -62,7 +52,7 @@ namespace ams::bluetooth::core {
             }
 
             //BTDRV_LOG_DATA(eventData, dataSize);
-            BTDRV_LOG_DATA_MSG(eventData, dataSize, "Bluetooth core event [%02d]", type);
+            BTDRV_LOG_DATA_MSG(eventData, dataSize, "[%02d] Bluetooth core event", type);
         }
 
     }
@@ -85,24 +75,10 @@ namespace ams::bluetooth::core {
 
     Result Initialize(Handle eventHandle) {
         //os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
-        os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, true, os::EventClearMode_AutoClear);
+        os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
         R_TRY(os::CreateSystemEvent(&g_btSystemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_btSystemEventUser, os::EventClearMode_AutoClear, true));
-
-        
-        /*
-        R_TRY(os::CreateThread(&g_eventHandlerThread, 
-            EventThreadFunc, 
-            nullptr, 
-            g_eventHandlerThreadStack, 
-            sizeof(g_eventHandlerThreadStack), 
-            9
-        ));
-
-        os::StartThread(&g_eventHandlerThread);
-        */
-                
+        R_TRY(os::CreateSystemEvent(&g_btSystemEventUser, os::EventClearMode_AutoClear, true));               
 
         g_isInitialized = true;
 
@@ -110,8 +86,6 @@ namespace ams::bluetooth::core {
     }
 
     void Finalize(void) {
-        //os::DestroyThread(&g_eventHandlerThread);
-
         os::DestroySystemEvent(&g_btSystemEventUser);
         os::DestroySystemEvent(&g_btSystemEventFwd);
 
@@ -120,7 +94,7 @@ namespace ams::bluetooth::core {
 
     void handleDeviceFoundEvent(BluetoothEventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->deviceFound.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->deviceFound.name)) {
-            std::strncpy(eventData->deviceFound.name, "Lic Pro Controller", sizeof(BluetoothName) - 1);
+            std::strncpy(eventData->deviceFound.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
         else {
@@ -135,7 +109,7 @@ namespace ams::bluetooth::core {
 
     void handlePinRequesEvent(BluetoothEventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->pinReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->pinReply.name)) {
-            std::strncpy(eventData->pinReply.name, "Lic Pro Controller", sizeof(BluetoothName) - 1);
+            std::strncpy(eventData->pinReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
         else {
@@ -150,7 +124,7 @@ namespace ams::bluetooth::core {
 
     void handleSspRequesEvent(BluetoothEventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->sspReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->sspReply.name)) {
-            std::strncpy(eventData->sspReply.name, "Lic Pro Controller", sizeof(BluetoothName) - 1);
+            std::strncpy(eventData->sspReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
         else {

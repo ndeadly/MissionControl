@@ -34,7 +34,7 @@ namespace ams::mitm::btdrv {
     ams::Result InitializePscPmModule(void) {
         psc::PmModuleId pmModuleId = static_cast<psc::PmModuleId>(0xbd);
         //const psc::PmModuleId dependencies[] = { psc::PmModuleId_Bluetooth }; //PscPmModuleId_Bluetooth, PscPmModuleId_Btm, PscPmModuleId_Hid ??
-        const psc::PmModuleId dependencies[] = { psc::PmModuleId_Fs }; //PscPmModuleId_Bluetooth, PscPmModuleId_Btm, PscPmModuleId_Hid ??
+        const psc::PmModuleId dependencies[] = { psc::PmModuleId_Bluetooth, psc::PmModuleId_Fs }; //PscPmModuleId_Bluetooth, PscPmModuleId_Btm, PscPmModuleId_Hid ??
         R_TRY(g_pmModule.Initialize(pmModuleId, dependencies, util::size(dependencies), os::EventClearMode_ManualClear));
         
         return ams::ResultSuccess();

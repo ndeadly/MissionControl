@@ -13,9 +13,7 @@ namespace ams::bluetooth::hid {
     namespace {
 
         std::atomic<bool> g_isInitialized(false);
-
-        //os::ThreadType g_eventHandlerThread;
-        //alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+        std::atomic<bool> g_bufferRead(false);
 
         os::Mutex g_eventDataLock(false);
         u8 g_eventDataBuffer[0x480];
@@ -24,15 +22,6 @@ namespace ams::bluetooth::hid {
         os::SystemEventType g_btHidSystemEvent;
         os::SystemEventType g_btHidSystemEventFwd;
         os::SystemEventType g_btHidSystemEventUser;
-
-        /*
-        void EventThreadFunc(void *arg) {
-            while (true) {
-                os::WaitSystemEvent(&g_btHidSystemEvent);
-                HandleEvent();
-            }
-        }
-        */
 
     }
 
@@ -58,22 +47,10 @@ namespace ams::bluetooth::hid {
             R_ABORT_UNLESS(hiddbgAttachHdlsWorkBuffer());
         */
         //os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
-        os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, true, os::EventClearMode_AutoClear);
+        os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
         R_TRY(os::CreateSystemEvent(&g_btHidSystemEventFwd, os::EventClearMode_AutoClear, true));
         R_TRY(os::CreateSystemEvent(&g_btHidSystemEventUser, os::EventClearMode_AutoClear, true));
-
-        /*
-        R_TRY(os::CreateThread(&g_eventHandlerThread, 
-            EventThreadFunc, 
-            nullptr, 
-            g_eventHandlerThreadStack, 
-            sizeof(g_eventHandlerThreadStack), 
-            9
-        ));
-
-        os::StartThread(&g_eventHandlerThread); 
-        */
 
         g_isInitialized = true;
 
@@ -86,8 +63,6 @@ namespace ams::bluetooth::hid {
             R_ABORT_UNLESS(hiddbgReleaseHdlsWorkBuffer());
         */
 
-        //os::DestroyThread(&g_eventHandlerThread);
-
         os::DestroySystemEvent(&g_btHidSystemEventUser);
         os::DestroySystemEvent(&g_btHidSystemEventFwd); 
 
@@ -99,6 +74,10 @@ namespace ams::bluetooth::hid {
 
         *type = g_currentEventType;
         std::memcpy(buffer, g_eventDataBuffer, size);
+
+        if (program_id== ncm::SystemProgramId::Btm) {
+            // Todo: flag buffer read by btm
+        }
 
         return ams::ResultSuccess();
     }
@@ -123,9 +102,10 @@ namespace ams::bluetooth::hid {
         
         R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
 
-        BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
-
         HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
+
+        //BTDRV_LOG_DATA_MSG(g_eventDataBuffer, sizeof(g_eventDataBuffer), "[%02d] HID Event", g_currentEventType);
+        BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
 
         switch (g_currentEventType) {
 
@@ -137,7 +117,7 @@ namespace ams::bluetooth::hid {
                 break;
         }
 
-            // Signal our forwarder events
+        // Signal our forwarder events
         os::SignalSystemEvent(&g_btHidSystemEventFwd);
         os::SignalSystemEvent(&g_btHidSystemEventUser);
         //if (!g_redirectEvents || g_preparingForSleep)

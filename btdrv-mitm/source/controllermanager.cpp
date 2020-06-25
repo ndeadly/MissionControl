@@ -1,9 +1,10 @@
-#include <memory>
 #include <functional>
+#include <memory>
+#include <mutex>
 #include <queue>
 #include <vector>
 #include <cstring>
-#include <vapours.hpp>
+#include <stratosphere.hpp>
 
 #include "controllermanager.hpp"
 #include "controllers/switchcontroller.hpp"
@@ -19,6 +20,8 @@ namespace ams::mitm::btdrv {
     namespace {
 
         std::priority_queue<int, std::vector<int>, std::greater<int>> g_uniqueIds;
+
+        os::Mutex g_controllerLock(false);
         std::vector<std::unique_ptr<controller::BluetoothController>> g_controllers;
 
     }
@@ -101,7 +104,7 @@ namespace ams::mitm::btdrv {
     }
 
     controller::BluetoothController *locateController(const BluetoothAddress *address) {
-
+        std::scoped_lock lk(g_controllerLock);
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
                 if (controller::bdcmp(&(*it)->address(), address)) {
                     return (*it).get();
@@ -112,6 +115,8 @@ namespace ams::mitm::btdrv {
     }
 
     void attachDeviceHandler(const BluetoothAddress *address) {
+        std::scoped_lock lk(g_controllerLock);
+
         // Retrieve information about paired device
         BluetoothDevicesSettings device;
         R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(address, &device));
@@ -153,6 +158,7 @@ namespace ams::mitm::btdrv {
     }
 
     void removeDeviceHandler(const BluetoothAddress *address) {
+        std::scoped_lock lk(g_controllerLock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
             if (controller::bdcmp(&(*it)->address(), address)) {

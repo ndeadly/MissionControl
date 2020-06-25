@@ -194,10 +194,9 @@ namespace ams::bluetooth::hid::report {
                     
                 case 4:
                     {
+                        // Always write back to the fake buffer
                         //g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
-                        //break;
-                        // !!!!!!!!! NOTHING BENEATH HERE WILL EXECUTE
-                        
+                        //break;                      
 
                         // Locate the controller that sent the report
                         controller = ams::mitm::btdrv::locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
@@ -210,8 +209,6 @@ namespace ams::bluetooth::hid::report {
                             g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                         }
                         else {
-
-                            /*
                             const HidReport *inReport;
                             HidReport *outReport;
                             // copy address and stuff over
@@ -235,14 +232,13 @@ namespace ams::bluetooth::hid::report {
                             //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
 
                             // Write the converted report to our fake buffer
-                            g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));
-                            */                
+                            g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));                
                         }
                     }
                     break;
 
                 default:
-                    BTDRV_LOG_FMT("unknown packet received: %d", realPacket->header.type);
+                    BTDRV_LOG_DATA_MSG(&realPacket->data, realPacket->header.size, "unknown packet received: %d", realPacket->header.type);
                     g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                     break;
             }

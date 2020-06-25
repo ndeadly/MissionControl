@@ -16,7 +16,7 @@ namespace ams::mitm::btdrv {
                 WriteHidData                        = 19,
                 SetHidReport                        = 21,
                 GetHidReport                        = 22,
-                GetPairedDeviceInfo                 = 25,
+                //GetPairedDeviceInfo                 = 25,
                 FinalizeHid                         = 26,
                 GetHidEventInfo                     = 27,
                 //SetTsi                              = 28,
@@ -54,7 +54,7 @@ namespace ams::mitm::btdrv {
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
             Result SetHidReport(BluetoothAddress address, BluetoothHhReportType type, const sf::InPointerBuffer &buffer);
             Result GetHidReport(BluetoothAddress address, BluetoothHhReportType type, u8 id);
-            Result GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer);
+            //Result GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
@@ -81,7 +81,7 @@ namespace ams::mitm::btdrv {
                 MAKE_SERVICE_COMMAND_META(WriteHidData),
                 MAKE_SERVICE_COMMAND_META(SetHidReport),
                 MAKE_SERVICE_COMMAND_META(GetHidReport),
-                MAKE_SERVICE_COMMAND_META(GetPairedDeviceInfo),
+                //MAKE_SERVICE_COMMAND_META(GetPairedDeviceInfo),
                 MAKE_SERVICE_COMMAND_META(FinalizeHid),
                 MAKE_SERVICE_COMMAND_META(GetHidEventInfo),
                 //MAKE_SERVICE_COMMAND_META(SetTsi),

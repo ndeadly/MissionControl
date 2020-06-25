@@ -132,6 +132,7 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
+    /*
     Result BtdrvMitmService::GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer) {
         //BTDRV_LOG_FMT("btdrv-mitm: GetPairedDeviceInfo");
         
@@ -144,10 +145,15 @@ namespace ams::mitm::btdrv {
             //BTDRV_LOG_FMT("Caller is BTM");
 
             auto controller = locateController(&address);
-            if (controller && !controller->isSwitchController()) {
-                BluetoothDevicesSettings *device = reinterpret_cast<BluetoothDevicesSettings *>(out_buffer.GetPointer());
-                std::strncpy(device->name, "Lic Pro Controller", sizeof(BluetoothLocalName) - 1);
-                BTDRV_LOG_FMT("!!! Modified controller name");
+            if (controller) {
+                if (!controller->isSwitchController()) {
+                    BluetoothDevicesSettings *device = reinterpret_cast<BluetoothDevicesSettings *>(out_buffer.GetPointer());
+                    std::strncpy(device->name, "Lic Pro Controller", sizeof(BluetoothLocalName) - 1);
+                    BTDRV_LOG_FMT("!!! Modified controller name");
+                }
+                else {
+                    BTDRV_LOG_FMT("!!! Switch controller. Passing through");
+                }
             } else {
                 BTDRV_LOG_FMT("!!! Controller not found");
             }
@@ -156,10 +162,24 @@ namespace ams::mitm::btdrv {
             BTDRV_LOG_FMT("!!! Caller is not BTM");
         }
 
-        BTDRV_LOG_DATA_MSG(out_buffer.GetPointer(), sizeof(BluetoothDevicesSettings), "btdrv-mitm: GetPairedDeviceInfo");
+        BTDRV_LOG_DATA_MSG(out_buffer.GetPointer(), sizeof(BluetoothDevicesSettings), "btdrv-mitm: GetPairedDeviceInfo vv");
 
         return ams::ResultSuccess();
     }
+    */
+
+    /*
+    Result BtdrvMitmService::GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer) {
+        //BTDRV_LOG_FMT("btdrv-mitm: GetPairedDeviceInfo");
+        
+        R_TRY(btdrvGetPairedDeviceInfoFwd(this->forward_service.get(),
+            &address, 
+            reinterpret_cast<BluetoothDevicesSettings *>(out_buffer.GetPointer())
+        ));
+
+        return ams::ResultSuccess();
+    }
+    */
 
     Result BtdrvMitmService::FinalizeHid(void) {
 
@@ -175,13 +195,13 @@ namespace ams::mitm::btdrv {
 
     Result BtdrvMitmService::GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
 
-        BTDRV_LOG_FMT("btdrv-mitm: GetHidEventInfo");
-
         R_TRY(bluetooth::hid::GetEventInfo(this->client_info.program_id,
             out_type.GetPointer(), 
             static_cast<u8 *>(out_buffer.GetPointer()),
             static_cast<size_t>(out_buffer.GetSize())
         ));
+
+        BTDRV_LOG_DATA_MSG(out_buffer.GetPointer(), out_buffer.GetSize(), "btdrv-mitm: GetHidEventInfo [%02d] vv", out_type.GetValue());
 
         return ams::ResultSuccess();
     }
@@ -305,7 +325,7 @@ namespace ams::mitm::btdrv {
 
     void BtdrvMitmService::RedirectSystemEvents(bool redirect) {
 
-        BTDRV_LOG_FMT("btdrv-mitm: RedirectSystemEvents");
+        BTDRV_LOG_FMT("btdrv-mitm: RedirectSystemEvents [%s]", redirect ? "on" : "off");
 
         g_redirectEvents = redirect;
     }
