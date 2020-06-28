@@ -3,6 +3,7 @@
 #include <atomic>
 #include <mutex>
 #include <cstring>
+
 #include "../btdrv_mitm_flags.hpp"
 #include "../controllermanager.hpp"
 
@@ -23,6 +24,7 @@ namespace ams::bluetooth::core {
         os::SystemEventType g_btSystemEvent;
         os::SystemEventType g_btSystemEventFwd;
         os::SystemEventType g_btSystemEventUser;
+        os::EventType       g_dataReadEvent;
 
         void _LogEvent(BluetoothEventType type, BluetoothEventData *eventData) {
         
@@ -78,7 +80,8 @@ namespace ams::bluetooth::core {
         os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
         R_TRY(os::CreateSystemEvent(&g_btSystemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_btSystemEventUser, os::EventClearMode_AutoClear, true));               
+        R_TRY(os::CreateSystemEvent(&g_btSystemEventUser, os::EventClearMode_AutoClear, true)); 
+        os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);           
 
         g_isInitialized = true;
 
@@ -86,6 +89,7 @@ namespace ams::bluetooth::core {
     }
 
     void Finalize(void) {
+        os::FinalizeEvent(&g_dataReadEvent);
         os::DestroySystemEvent(&g_btSystemEventUser);
         os::DestroySystemEvent(&g_btSystemEventFwd);
 
@@ -139,88 +143,57 @@ namespace ams::bluetooth::core {
 
     Result GetEventInfo(ncm::ProgramId program_id, BluetoothEventType *type, u8* buffer, size_t size) {
         std::scoped_lock lk(g_eventDataLock);
-        {
-            *type = g_currentEventType;
-            std::memcpy(buffer, g_eventDataBuffer, size);
 
-            BluetoothEventData *eventData = reinterpret_cast<BluetoothEventData *>(buffer);
+        *type = g_currentEventType;
+        std::memcpy(buffer, g_eventDataBuffer, size);
 
-            if (program_id == ncm::SystemProgramId::Btm) {
-                
-                switch (g_currentEventType) {
-                    case BluetoothEvent_DeviceFound:
-                        handleDeviceFoundEvent(eventData);
-                        break;
-                    case BluetoothEvent_DiscoveryStateChanged:
-                        break;
-                    case BluetoothEvent_PinRequest:
-                        handlePinRequesEvent(eventData);
-                        break;
-                    case BluetoothEvent_SspRequest:
-                        handleSspRequesEvent(eventData);
-                        break;
-                    case BluetoothEvent_BondStateChanged:
-                        break;
-                    default:
-                        break;
-                }
-            } else {
-                BTDRV_LOG_FMT("Not BTM: [%02x]", program_id);
+        BluetoothEventData *eventData = reinterpret_cast<BluetoothEventData *>(buffer);
+
+        if (program_id == ncm::SystemProgramId::Btm) {
+            
+            switch (g_currentEventType) {
+                case BluetoothEvent_DeviceFound:
+                    handleDeviceFoundEvent(eventData);
+                    break;
+                case BluetoothEvent_DiscoveryStateChanged:
+                    break;
+                case BluetoothEvent_PinRequest:
+                    handlePinRequesEvent(eventData);
+                    break;
+                case BluetoothEvent_SspRequest:
+                    handleSspRequesEvent(eventData);
+                    break;
+                case BluetoothEvent_BondStateChanged:
+                    break;
+                default:
+                    break;
             }
-
-            _LogEvent(g_currentEventType, eventData);
-
         }
-        
-        // Might not be required if original event is autoclear?
-        //os::ClearSystemEvent(&g_btSystemEvent);
+
+        //_LogEvent(g_currentEventType, eventData);
+
+        os::SignalEvent(&g_dataReadEvent);
 
         return ams::ResultSuccess();
     }
 
     void HandleEvent(void) {
-
-        std::scoped_lock lk(g_eventDataLock);
-        
-        R_ABORT_UNLESS(btdrvGetEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
-
-        //BTDRV_LOG_FMT("[%02d] Bluetooth Core Event", g_currentEventType);
-        //BTDRV_LOG_DATA(g_eventDataBuffer, sizeof(g_eventDataBuffer));
-
-        //BluetoothEventData *eventData = reinterpret_cast<BluetoothEventData *>(g_eventDataBuffer);
-
-        //_LogEvent(g_currentEventType, eventData);
-
-        /*
-        if (g_currentEventType == BluetoothEvent_DeviceFound) {
-
-            if (ams::mitm::btdrv::IsController(&eventData->deviceFound.cod)) {
-                if (std::strncmp(eventData->deviceFound.name, "Nintendo RVL-CNT-01",    sizeof(BluetoothName)) == 0 ||
-                    std::strncmp(eventData->deviceFound.name, "Nintendo RVL-CNT-01-UC", sizeof(BluetoothName)) == 0) 
-                {
-                    BTDRV_LOG_FMT("!!!!! Calling CreateBond");
-                    btdrvCreateBond(&eventData->deviceFound.address, BluetoothTransport_Auto);
-                    return;
-                }
-            }
+        {
+            std::scoped_lock lk(g_eventDataLock);
+            R_ABORT_UNLESS(btdrvGetEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
         }
-        */
 
-        /*
-        if (g_currentEventType == BluetoothEvent_PinRequest) {
-            BTDRV_LOG_FMT("!!!!! Calling PinReply");
-            BluetoothPinCode pincode = {};
-            btdrvRespondToPinRequest(&eventData->pinReply.address, false, &pincode, sizeof(BluetoothAddress));
-            return;
-        }
-        */
-
-        // Signal our forwarder events
-        //if (!g_redirectEvents || g_preparingForSleep)
-        if (!g_redirectEvents)
+        if (!g_redirectEvents) {
             os::SignalSystemEvent(&g_btSystemEventFwd);
-        else
-            os::SignalSystemEvent(&g_btSystemEventUser);
+            os::WaitEvent(&g_dataReadEvent);
+        }
+
+        if (g_btSystemEventUser.state) {
+            //os::SignalSystemEvent(&g_btSystemEventUser);
+            //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
+        }
+
+        BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
     }
 
 }

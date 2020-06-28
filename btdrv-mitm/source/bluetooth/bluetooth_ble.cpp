@@ -3,6 +3,7 @@
 #include <atomic>
 #include <mutex>
 #include <cstring>
+
 #include "../btdrv_mitm_flags.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
@@ -20,6 +21,7 @@ namespace ams::bluetooth::ble {
         os::SystemEventType g_btBleSystemEvent;
         os::SystemEventType g_btBleSystemEventFwd;
         os::SystemEventType g_btBleSystemEventUser;
+        os::EventType       g_dataReadEvent;
 
     }
 
@@ -45,6 +47,7 @@ namespace ams::bluetooth::ble {
 
         R_TRY(os::CreateSystemEvent(&g_btBleSystemEventFwd, os::EventClearMode_AutoClear, true));
         R_TRY(os::CreateSystemEvent(&g_btBleSystemEventUser, os::EventClearMode_AutoClear, true));
+        os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);
 
         g_isInitialized = true;
 
@@ -52,6 +55,7 @@ namespace ams::bluetooth::ble {
     }
 
     void Finalize(void) {
+        os::FinalizeEvent(&g_dataReadEvent);
         os::DestroySystemEvent(&g_btBleSystemEventUser);
         os::DestroySystemEvent(&g_btBleSystemEventFwd);
 
@@ -60,27 +64,32 @@ namespace ams::bluetooth::ble {
 
     Result GetEventInfo(ncm::ProgramId program_id, BleEventType *type, u8* buffer, size_t size) {
         std::scoped_lock lk(g_eventDataLock); 
-        {
-            *type = g_currentEventType;
-            std::memcpy(buffer, g_eventDataBuffer, size);
-        }
+
+        *type = g_currentEventType;
+        std::memcpy(buffer, g_eventDataBuffer, size);
+
+        os::SignalEvent(&g_dataReadEvent);
         
         return ams::ResultSuccess();
     }
 
     void HandleEvent(void) {
-        std::scoped_lock lk(g_eventDataLock);
+        {
+            std::scoped_lock lk(g_eventDataLock); 
+            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+        }
 
-        R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+        if (!g_redirectEvents) {
+            os::SignalSystemEvent(&g_btBleSystemEventFwd);
+            os::WaitEvent(&g_dataReadEvent);
+        }
+
+        if (g_btBleSystemEventUser.state) {
+            //os::SignalSystemEvent(&g_btBleSystemEventUser);
+            //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
+        }
 
         BTDRV_LOG_FMT("[%02d] BLE Event", g_currentEventType);
-        
-        // Signal our forwarder events
-        //if (!g_redirectEvents || g_preparingForSleep)
-        if (!g_redirectEvents)
-            os::SignalSystemEvent(&g_btBleSystemEventFwd);
-        else
-            os::SignalSystemEvent(&g_btBleSystemEventUser);
     }
 
 }
