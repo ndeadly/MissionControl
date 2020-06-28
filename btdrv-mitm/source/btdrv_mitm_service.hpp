@@ -16,7 +16,7 @@ namespace ams::mitm::btdrv {
                 WriteHidData                        = 19,
                 SetHidReport                        = 21,
                 GetHidReport                        = 22,
-                //GetPairedDeviceInfo                 = 25,
+                GetPairedDeviceInfo                 = 25,
                 FinalizeHid                         = 26,
                 GetHidEventInfo                     = 27,
                 //SetTsi                              = 28,
@@ -54,7 +54,12 @@ namespace ams::mitm::btdrv {
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
             Result SetHidReport(BluetoothAddress address, BluetoothHhReportType type, const sf::InPointerBuffer &buffer);
             Result GetHidReport(BluetoothAddress address, BluetoothHhReportType type, u8 id);
+            
+            //Result GetPairedDeviceInfo(sf::Out<BluetoothDevicesSettings> out_buffer, BluetoothAddress address);
+            //Result GetPairedDeviceInfo(BluetoothAddress address, sf::Out<BluetoothDevicesSettings> out);
             //Result GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer);
+            //Result GetPairedDeviceInfo(const sf::OutPointerBuffer &out_buffer, BluetoothAddress address);
+
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
