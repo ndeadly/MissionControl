@@ -39,7 +39,7 @@ namespace controller {
             BluetoothAddress m_address;
         
             bool m_switchController;
-            std::unique_ptr<VirtualController> m_virtualController;
+            //std::unique_ptr<VirtualController> m_virtualController;
 
     };
 
