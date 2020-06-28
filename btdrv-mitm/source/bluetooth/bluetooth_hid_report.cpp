@@ -127,29 +127,27 @@ namespace ams::bluetooth::hid::report {
     /* Only used for < 7.0.0. newer firmwares read straight from shared memory */ 
     Result GetEventInfo(HidEventType *type, u8* buffer, size_t size) {
         std::scoped_lock lk(g_eventDataLock);
-        {
-            *type = g_currentEventType;
-        
-            if (g_currentEventType == HidEvent_GetReport) {
-                HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 
-                auto controller = ams::mitm::btdrv::locateController(&eventData->getReport.address);
-                if (controller && !controller->isSwitchController()) {
-                    BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo - Non-Switch controller");
+        *type = g_currentEventType;
+    
+        if (g_currentEventType == HidEvent_GetReport) {
+            HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 
-                    // TODO: Modify report data if coming from a non-switch controller
-                    //controller->convertReportFormat(inReport, outReport);
+            auto controller = ams::mitm::btdrv::locateController(&eventData->getReport.address);
+            if (controller && !controller->isSwitchController()) {
+                BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo - Non-Switch controller");
 
-                    //eventData->getReport.report_length = 0x42;
-                }
-                else {
-                    std::memcpy(buffer, g_eventDataBuffer, eventData->getReport.report_length + 0);  // Todo: check this size is correct, might need to add header size
-                }
+                // TODO: Modify report data if coming from a non-switch controller
+                //controller->convertReportFormat(inReport, outReport);
+
+                //eventData->getReport.report_length = 0x42;
             }
             else {
-                std::memcpy(buffer, g_eventDataBuffer, size);
+                std::memcpy(buffer, g_eventDataBuffer, eventData->getReport.report_length + 0);  // Todo: check this size is correct, might need to add header size
             }
-
+        }
+        else {
+            std::memcpy(buffer, g_eventDataBuffer, size);
         }
         
         return ams::ResultSuccess();
@@ -157,7 +155,9 @@ namespace ams::bluetooth::hid::report {
 
     void HandleEvent(void) {
         controller::BluetoothController *controller;
-        CircularBufferPacket *realPacket;                 
+        CircularBufferPacket *realPacket;      
+
+        //BTDRV_LOG_FMT("btdrv-mitm: HidReportEvent");           
 
         // Take snapshot of current write offset
         u32 writeOffset = g_realBuffer->writeOffset;
@@ -238,8 +238,10 @@ namespace ams::bluetooth::hid::report {
                     break;
 
                 default:
-                    BTDRV_LOG_DATA_MSG(&realPacket->data, realPacket->header.size, "unknown packet received: %d", realPacket->header.type);
-                    g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
+                    //BTDRV_LOG_DATA_MSG(&realPacket->data, realPacket->header.size, "unknown packet received: %d", realPacket->header.type);
+
+                    BTDRV_LOG_FMT("unknown packet received: %d", realPacket->header.type); 
+                    //g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                     break;
             }
 
