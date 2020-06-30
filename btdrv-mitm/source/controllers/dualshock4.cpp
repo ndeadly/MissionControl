@@ -6,9 +6,6 @@
 #include "dualshock4.hpp"
 #include "../btdrv_mitm_logging.hpp"
 
-#include "hdlsvirtualcontroller.hpp"
-
-
 namespace controller {
 
     namespace {
@@ -19,8 +16,7 @@ namespace controller {
 
     Dualshock4Controller::Dualshock4Controller(const BluetoothAddress *address)
     : BluetoothController(ControllerType_Dualshock4, address) {
-        //if (ams::hos::GetVersion() >= ams::hos::Version_7_0_0)
-            //m_virtualController = std::make_unique<HdlsVirtualController>();
+
     }
 
     Result Dualshock4Controller::initialize(void) {

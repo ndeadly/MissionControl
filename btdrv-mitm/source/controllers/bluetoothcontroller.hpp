@@ -1,9 +1,6 @@
 #pragma once
-#include <memory>
 #include <cstring>
 #include <switch.h>
-
-#include "virtualcontroller.hpp"
 
 namespace controller {
 
@@ -39,7 +36,6 @@ namespace controller {
             BluetoothAddress m_address;
         
             bool m_switchController;
-            //std::unique_ptr<VirtualController> m_virtualController;
 
     };
 

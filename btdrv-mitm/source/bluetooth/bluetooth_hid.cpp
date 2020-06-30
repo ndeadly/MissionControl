@@ -44,10 +44,6 @@ namespace ams::bluetooth::hid {
     }
 
     Result Initialize(Handle eventHandle) {
-        /*
-        if (hos::GetVersion() >= hos::Version_7_0_0)
-            R_ABORT_UNLESS(hiddbgAttachHdlsWorkBuffer());
-        */
         //os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
         os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
@@ -61,11 +57,6 @@ namespace ams::bluetooth::hid {
     }
 
     void Finalize(void) {
-        /*
-        if (hos::GetVersion() >= hos::Version_7_0_0)
-            R_ABORT_UNLESS(hiddbgReleaseHdlsWorkBuffer());
-        */
-
         os::FinalizeEvent(&g_dataReadEvent);
         os::DestroySystemEvent(&g_btHidSystemEventUser);
         os::DestroySystemEvent(&g_btHidSystemEventFwd); 

@@ -3,7 +3,6 @@
 #include <stratosphere.hpp>
 
 #include "xboxone.hpp"
-#include "hdlsvirtualcontroller.hpp"
 
 namespace controller {
 
@@ -15,8 +14,7 @@ namespace controller {
 
     XboxOneController::XboxOneController(const BluetoothAddress *address) 
     : BluetoothController(ControllerType_XboxOne, address) {
-        //if (ams::hos::GetVersion() >= ams::hos::Version_7_0_0)
-            //m_virtualController = std::make_unique<HdlsVirtualController>();
+
     }
 
     void XboxOneController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
