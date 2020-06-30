@@ -1,5 +1,6 @@
 #pragma once
 #include <stratosphere.hpp>
+#include "bluetooth/bluetooth_types.hpp"
 
 #include "btdrv_mitm_logging.hpp"
 
@@ -54,12 +55,7 @@ namespace ams::mitm::btdrv {
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
             Result SetHidReport(BluetoothAddress address, BluetoothHhReportType type, const sf::InPointerBuffer &buffer);
             Result GetHidReport(BluetoothAddress address, BluetoothHhReportType type, u8 id);
-            
-            //Result GetPairedDeviceInfo(sf::Out<BluetoothDevicesSettings> out_buffer, BluetoothAddress address);
-            //Result GetPairedDeviceInfo(BluetoothAddress address, sf::Out<BluetoothDevicesSettings> out);
-            //Result GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer);
-            //Result GetPairedDeviceInfo(const sf::OutPointerBuffer &out_buffer, BluetoothAddress address);
-
+            Result GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, BluetoothAddress address);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
@@ -86,7 +82,7 @@ namespace ams::mitm::btdrv {
                 MAKE_SERVICE_COMMAND_META(WriteHidData),
                 MAKE_SERVICE_COMMAND_META(SetHidReport),
                 MAKE_SERVICE_COMMAND_META(GetHidReport),
-                //MAKE_SERVICE_COMMAND_META(GetPairedDeviceInfo),
+                MAKE_SERVICE_COMMAND_META(GetPairedDeviceInfo),
                 MAKE_SERVICE_COMMAND_META(FinalizeHid),
                 MAKE_SERVICE_COMMAND_META(GetHidEventInfo),
                 //MAKE_SERVICE_COMMAND_META(SetTsi),

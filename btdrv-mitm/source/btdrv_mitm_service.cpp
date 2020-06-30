@@ -120,16 +120,13 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    /*
-    //Result BtdrvMitmService::GetPairedDeviceInfo(sf::Out<BluetoothDevicesSettings> out, BluetoothAddress address) {
-    Result BtdrvMitmService::GetPairedDeviceInfo(BluetoothAddress address, sf::Out<BluetoothDevicesSettings> out) {
-    //Result BtdrvMitmService::GetPairedDeviceInfo(BluetoothAddress address, const sf::OutPointerBuffer &out_buffer) {
-    //Result BtdrvMitmService::GetPairedDeviceInfo(const sf::OutPointerBuffer &out_buffer, BluetoothAddress address) {
+    Result BtdrvMitmService::GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, BluetoothAddress address) {
+
         BTDRV_LOG_FMT("btdrv-mitm: GetPairedDeviceInfo");
 
-        R_TRY(btdrvGetPairedDeviceInfoFwd(this->forward_service.get(), &address, out.GetPointer()));
+        auto device = reinterpret_cast<BluetoothDevicesSettings *>(out.GetPointer());
 
-        BluetoothDevicesSettings *device = reinterpret_cast<BluetoothDevicesSettings *>(out.GetPointer());
+        R_TRY(btdrvGetPairedDeviceInfoFwd(this->forward_service.get(), &address, device));
 
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             
@@ -142,11 +139,8 @@ namespace ams::mitm::btdrv {
 
         BTDRV_LOG_FMT("name: %s\nvid: %04x\npid: %04x", device->name, device->vid, device->pid);
 
-        //BTDRV_LOG_DATA_MSG(out_buffer.GetPointer(), sizeof(BluetoothDevicesSettings), "btdrv-mitm: GetPairedDeviceInfo vv");
-
         return ams::ResultSuccess();
     }
-    */
         
     Result BtdrvMitmService::FinalizeHid(void) {
 
