@@ -124,6 +124,30 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
+    Result WriteFakeHidData(const BluetoothAddress *address, const BluetoothHidData *data) {
+
+        BTDRV_LOG_DATA_MSG((void *)data, data->length, "btdrv-mitm: WriteFakeHidData");
+
+        u16 bufferSize = data->length + 0x11;
+        u8 buffer[bufferSize] = {};
+        auto fakeReportData = reinterpret_cast<HidReportData *>(buffer);
+
+        if (hos::GetVersion() < hos::Version_9_0_0) {
+            fakeReportData->size = bufferSize;
+            std::memcpy(&fakeReportData->address, address, sizeof(BluetoothAddress));
+            std::memcpy(&fakeReportData->report, data, data->length);
+        }
+        else {
+            std::memcpy(&fakeReportData->v2.address, address, sizeof(BluetoothAddress));
+            std::memcpy(&fakeReportData->v2.report, data, data->length);
+        }
+
+        g_fakeBuffer->Write(4, fakeReportData, bufferSize); 
+        os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
+
+        return ams::ResultSuccess();
+    }
+
     /* Only used for < 7.0.0. newer firmwares read straight from shared memory */ 
     Result GetEventInfo(HidEventType *type, u8* buffer, size_t size) {
         std::scoped_lock lk(g_eventDataLock);
@@ -194,10 +218,6 @@ namespace ams::bluetooth::hid::report {
                     
                 case 4:
                     {
-                        // Always write back to the fake buffer
-                        //g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
-                        //break;                      
-
                         // Locate the controller that sent the report
                         controller = ams::mitm::btdrv::locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
                         if (!controller) {
