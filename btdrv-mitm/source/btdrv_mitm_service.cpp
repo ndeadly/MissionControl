@@ -114,7 +114,7 @@ namespace ams::mitm::btdrv {
                                 
                                 u32 read_addr = *(u32 *)(&requestData->data[11]);
                                 u8  read_size = requestData->data[15];
-                                BTDRV_LOG_DATA_MSG((void *)requestData, requestData->length, "SPI flash read: %d bytes @ 0x%08x", read_size, read_addr);
+                                BTDRV_LOG_DATA_MSG((void *)requestData, requestData->length+2, "SPI flash read: %d bytes @ 0x%08x", read_size, read_addr);
 
                                 s64 timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds();
 

@@ -126,7 +126,7 @@ namespace ams::bluetooth::hid::report {
 
     Result WriteFakeHidData(const BluetoothAddress *address, const BluetoothHidData *data) {
 
-        BTDRV_LOG_DATA_MSG((void *)data, data->length, "btdrv-mitm: WriteFakeHidData");
+        //BTDRV_LOG_DATA_MSG((void*)data, data->length + sizeof(data->length), "btdrv-mitm: WriteFakeHidData");
 
         u16 bufferSize = data->length + 0x11;
         u8 buffer[bufferSize] = {};
@@ -135,11 +135,11 @@ namespace ams::bluetooth::hid::report {
         if (hos::GetVersion() < hos::Version_9_0_0) {
             fakeReportData->size = bufferSize;
             std::memcpy(&fakeReportData->address, address, sizeof(BluetoothAddress));
-            std::memcpy(&fakeReportData->report, data, data->length);
+            std::memcpy(&fakeReportData->report, data, data->length + sizeof(data->length));
         }
         else {
             std::memcpy(&fakeReportData->v2.address, address, sizeof(BluetoothAddress));
-            std::memcpy(&fakeReportData->v2.report, data, data->length);
+            std::memcpy(&fakeReportData->v2.report, data, data->length + sizeof(data->length));
         }
 
         g_fakeBuffer->Write(4, fakeReportData, bufferSize); 
