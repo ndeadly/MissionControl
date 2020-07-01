@@ -13,19 +13,9 @@ namespace controller {
         BatteryLevel_Medium,
         BatteryLevel_Full
     };
-
-    union SwitchStickData {
-        struct __attribute__ ((__packed__)) {
-            uint16_t     x : 12;
-            uint16_t       : 0;
-            uint8_t        : 8;
-        };
-
-        struct __attribute__ ((__packed__)) {
-            uint8_t        : 8;
-            uint16_t       : 4;
-            uint16_t     y : 12;
-        };
+        
+    struct SwitchStickData {
+        uint8_t xy[3];
     };
 
     struct SwitchButtonData {
@@ -96,6 +86,14 @@ namespace controller {
             Switch6AxisData     imu_10ms;
         } report0x30;
     };
+
+    inline void packStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
+        *stick = (SwitchStickData){
+            static_cast<uint8_t>(x & 0xff), 
+            static_cast<uint8_t>((x >> 8) | ((y & 0xff) << 4)), 
+            static_cast<uint8_t>((y >> 4) & 0xff)
+        };
+    }
 
     class SwitchProController : public BluetoothController {
 

@@ -41,10 +41,14 @@ namespace controller {
     }
 
     void XboxOneController::handleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst) {
-        dst->report0x30.left_stick.x  = static_cast<uint16_t>(scale_factor * src->report0x01.left_stick.x) & 0xfff;
-        dst->report0x30.left_stick.y  = static_cast<uint16_t>(scale_factor * (UINT16_MAX - src->report0x01.left_stick.y)) & 0xfff;
-        dst->report0x30.right_stick.x = static_cast<uint16_t>(scale_factor * src->report0x01.right_stick.x) & 0xfff;
-        dst->report0x30.right_stick.y = static_cast<uint16_t>(scale_factor * (UINT16_MAX - src->report0x01.right_stick.y)) & 0xfff;
+        packStickData(&dst->report0x30.left_stick,
+            static_cast<uint16_t>(scale_factor * src->report0x01.left_stick.x) & 0xfff,
+            static_cast<uint16_t>(scale_factor * (UINT16_MAX - src->report0x01.left_stick.y)) & 0xfff
+        );
+        packStickData(&dst->report0x30.right_stick,
+            static_cast<uint16_t>(scale_factor * src->report0x01.right_stick.x) & 0xfff,
+            static_cast<uint16_t>(scale_factor * (UINT16_MAX - src->report0x01.right_stick.y)) & 0xfff
+        );
 
         dst->report0x30.buttons.dpad_down   = (src->report0x01.buttons.dpad == XboxOneDPad_S)  ||
                                               (src->report0x01.buttons.dpad == XboxOneDPad_SE) ||

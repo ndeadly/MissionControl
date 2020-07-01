@@ -29,10 +29,8 @@ namespace controller {
     }
 
     void WiimoteController::handleInputReport0x30(const WiimoteReportData *src, SwitchReportData *dst) {
-        dst->report0x30.left_stick.x  = STICK_ZERO;
-        dst->report0x30.left_stick.y  = STICK_ZERO;
-        dst->report0x30.right_stick.x = STICK_ZERO;
-        dst->report0x30.right_stick.y = STICK_ZERO;
+        packStickData(&dst->report0x30.left_stick,  STICK_ZERO, STICK_ZERO);
+        packStickData(&dst->report0x30.right_stick, STICK_ZERO, STICK_ZERO);
 
         // Orientation vertical
         //dst->report0x30.buttons.dpad_down   = src->report0x30.buttons.dpad_down;
