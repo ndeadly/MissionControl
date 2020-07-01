@@ -96,15 +96,15 @@ namespace ams::bluetooth::hid {
             R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
         }
 
+        BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
+
         os::SignalSystemEvent(&g_btHidSystemEventFwd);
         os::WaitEvent(&g_dataReadEvent);
 
         if (g_btHidSystemEventUser.state) {
-            //os::SignalSystemEvent(&g_btHidSystemEventUser);
+            os::SignalSystemEvent(&g_btHidSystemEventUser);
             //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
         }
-
-        BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
 
         HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
         switch (g_currentEventType) {

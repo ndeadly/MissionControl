@@ -183,17 +183,18 @@ namespace ams::bluetooth::core {
             R_ABORT_UNLESS(btdrvGetEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
         }
 
+        BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
+
         if (!g_redirectEvents) {
             os::SignalSystemEvent(&g_btSystemEventFwd);
             os::WaitEvent(&g_dataReadEvent);
         }
 
         if (g_btSystemEventUser.state) {
-            //os::SignalSystemEvent(&g_btSystemEventUser);
+            os::SignalSystemEvent(&g_btSystemEventUser);
             //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
         }
 
-        BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
     }
 
 }
