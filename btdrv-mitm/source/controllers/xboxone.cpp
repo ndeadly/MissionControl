@@ -1,5 +1,4 @@
 #include <cstring>
-#include <cmath>
 #include <stratosphere.hpp>
 
 #include "xboxone.hpp"
@@ -8,7 +7,7 @@ namespace controller {
 
     namespace {
 
-        const constexpr uint8_t xboxone_joystick_nbits = 16;
+        const constexpr float scale_factor = float(UINT12_MAX) / UINT16_MAX;
 
     }
 
@@ -41,30 +40,12 @@ namespace controller {
         }
     }
 
-    void XboxOneController::mapStickValues(SwitchStickData *dst, const XboxOneStickData *src) {
-        dst->x = static_cast<uint16_t>(src->x * (powf(2, 12) - 1) / UINT16_MAX) & 0xfff;
-        dst->y = static_cast<uint16_t>((UINT16_MAX - src->y) * (powf(2, 12) - 1) / UINT16_MAX) & 0xfff;
-        /*
-        dst->dx = unsigned_to_signed(src->x, xboxone_joystick_nbits);
-        dst->dy = -unsigned_to_signed(src->y, xboxone_joystick_nbits);
-
-        float angle = atan2(dst->dy, dst->dx);
-        float magnitude = hypot(dst->dx, dst->dy);
-
-        if (magnitude < m_innerDeadzone) {
-            dst->dx = 0;
-            dst->dy = 0;
-        }
-        else if (magnitude > m_outerDeadzone) {
-            dst->dx = JOYSTICK_MAX * cos(angle);
-            dst->dy = JOYSTICK_MAX * sin(angle);
-        }
-        */
-    }
-
     void XboxOneController::handleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst) {
-        this->mapStickValues(&dst->report0x30.left_stick, &src->report0x01.left_stick);
-        this->mapStickValues(&dst->report0x30.right_stick, &src->report0x01.right_stick);
+        dst->report0x30.left_stick.x  = static_cast<uint16_t>(src->report0x01.left_stick.x * scale_factor) & 0xfff;
+        dst->report0x30.left_stick.y  = static_cast<uint16_t>((UINT16_MAX - src->report0x01.left_stick.y) * scale_factor) & 0xfff;
+        dst->report0x30.right_stick.x = static_cast<uint16_t>(src->report0x01.right_stick.x * scale_factor) & 0xfff;
+        dst->report0x30.right_stick.y = static_cast<uint16_t>((UINT16_MAX - src->report0x01.right_stick.y) * scale_factor) & 0xfff;
+
         
         dst->report0x30.buttons.dpad_down   = (src->report0x01.buttons.dpad == XboxOneDPad_S)  ||
                                               (src->report0x01.buttons.dpad == XboxOneDPad_SE) ||

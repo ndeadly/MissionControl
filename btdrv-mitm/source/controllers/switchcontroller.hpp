@@ -1,6 +1,8 @@
 #pragma once
 #include "bluetoothcontroller.hpp"
 
+#define UINT12_MAX 0xfff
+
 namespace controller {
 
     enum BatteryLevel {
