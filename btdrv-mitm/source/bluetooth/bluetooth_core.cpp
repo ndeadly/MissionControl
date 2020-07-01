@@ -125,7 +125,7 @@ namespace ams::bluetooth::core {
         *type = g_currentEventType;
         std::memcpy(buffer, g_eventDataBuffer, size);
 
-        BluetoothEventData *eventData = reinterpret_cast<BluetoothEventData *>(buffer);
+        auto eventData = reinterpret_cast<BluetoothEventData *>(buffer);
 
         if (program_id == ncm::SystemProgramId::Btm) {
             

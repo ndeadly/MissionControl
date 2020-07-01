@@ -106,7 +106,8 @@ namespace ams::bluetooth::hid {
             //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
         }
 
-        HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
+        auto eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
+
         switch (g_currentEventType) {
 
             case HidEvent_ConnectionState:

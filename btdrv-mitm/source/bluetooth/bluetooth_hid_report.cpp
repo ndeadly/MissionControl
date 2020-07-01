@@ -155,7 +155,7 @@ namespace ams::bluetooth::hid::report {
         *type = g_currentEventType;
     
         if (g_currentEventType == HidEvent_GetReport) {
-            HidEventData *eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
+            auto eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 
             auto controller = ams::mitm::btdrv::locateController(&eventData->getReport.address);
             if (controller && !controller->isSwitchController()) {
