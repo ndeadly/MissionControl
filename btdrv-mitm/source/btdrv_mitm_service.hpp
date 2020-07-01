@@ -15,8 +15,8 @@ namespace ams::mitm::btdrv {
                 GetEventInfo                        = 15,
                 InitializeHid                       = 16,
                 WriteHidData                        = 19,
-                SetHidReport                        = 21,
-                GetHidReport                        = 22,
+                //SetHidReport                        = 21,
+                //GetHidReport                        = 22,
                 GetPairedDeviceInfo                 = 25,
                 FinalizeHid                         = 26,
                 GetHidEventInfo                     = 27,
@@ -52,9 +52,9 @@ namespace ams::mitm::btdrv {
             Result GetEventInfo(sf::Out<BluetoothEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
             Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
-            Result SetHidReport(BluetoothAddress address, BluetoothHhReportType type, const sf::InPointerBuffer &buffer);
-            Result GetHidReport(BluetoothAddress address, BluetoothHhReportType type, u8 id);
             Result GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, BluetoothAddress address);
+            //Result SetHidReport(bluetooth::Address address, bluetooth::HhReportType type, const sf::InPointerBuffer &buffer);
+            //Result GetHidReport(bluetooth::Address address, bluetooth::HhReportType type, u8 id);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle);
@@ -76,12 +76,11 @@ namespace ams::mitm::btdrv {
                 MAKE_SERVICE_COMMAND_META(GetEventInfo),
                 MAKE_SERVICE_COMMAND_META(InitializeHid),
                 MAKE_SERVICE_COMMAND_META(WriteHidData),
-                MAKE_SERVICE_COMMAND_META(SetHidReport),
-                MAKE_SERVICE_COMMAND_META(GetHidReport),
+                //MAKE_SERVICE_COMMAND_META(SetHidReport),
+                //MAKE_SERVICE_COMMAND_META(GetHidReport),
                 MAKE_SERVICE_COMMAND_META(GetPairedDeviceInfo),
                 MAKE_SERVICE_COMMAND_META(FinalizeHid),
                 MAKE_SERVICE_COMMAND_META(GetHidEventInfo),
-                //MAKE_SERVICE_COMMAND_META(SetTsi),
                 MAKE_SERVICE_COMMAND_META(RegisterHidReportEventDeprecated, hos::Version_1_0_0, hos::Version_3_0_2),
                 MAKE_SERVICE_COMMAND_META(RegisterHidReportEvent,           hos::Version_4_0_0),
                 MAKE_SERVICE_COMMAND_META(GetHidReportEventInfoDeprecated1, hos::Version_1_0_0, hos::Version_3_0_2),
