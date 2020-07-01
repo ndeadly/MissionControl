@@ -65,10 +65,10 @@ namespace controller {
     }
 
     void Dualshock4Controller::handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst) {
-        dst->report0x30.left_stick.x  = static_cast<uint16_t>(src->report0x01.left_stick.x * scale_factor) & 0xfff;
-        dst->report0x30.left_stick.y  = static_cast<uint16_t>((UINT8_MAX - src->report0x01.left_stick.y) * scale_factor) & 0xfff;
-        dst->report0x30.right_stick.x = static_cast<uint16_t>(src->report0x01.right_stick.x * scale_factor) & 0xfff;
-        dst->report0x30.right_stick.y = static_cast<uint16_t>((UINT8_MAX - src->report0x01.right_stick.y) * scale_factor) & 0xfff;
+        dst->report0x30.left_stick.x  = static_cast<uint16_t>(scale_factor * src->report0x01.left_stick.x) & 0xfff;
+        dst->report0x30.left_stick.y  = static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x01.left_stick.y)) & 0xfff;
+        dst->report0x30.right_stick.x = static_cast<uint16_t>(scale_factor * src->report0x01.right_stick.x) & 0xfff;
+        dst->report0x30.right_stick.y = static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x01.right_stick.y)) & 0xfff;
 
         dst->report0x30.buttons.dpad_down   = (src->report0x01.buttons.dpad == Dualshock4DPad_S)  ||
                                               (src->report0x01.buttons.dpad == Dualshock4DPad_SE) ||
@@ -104,10 +104,10 @@ namespace controller {
     }
 
     void Dualshock4Controller::handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
-        dst->report0x30.left_stick.x  = static_cast<uint16_t>(src->report0x11.left_stick.x * scale_factor) & 0xfff;
-        dst->report0x30.left_stick.y  = static_cast<uint16_t>((UINT8_MAX - src->report0x11.left_stick.y) * scale_factor) & 0xfff;
-        dst->report0x30.right_stick.x = static_cast<uint16_t>(src->report0x11.right_stick.x * scale_factor) & 0xfff;
-        dst->report0x30.right_stick.y = static_cast<uint16_t>((UINT8_MAX - src->report0x11.right_stick.y) * scale_factor) & 0xfff;
+        dst->report0x30.left_stick.x  = static_cast<uint16_t>(scale_factor * src->report0x11.left_stick.x) & 0xfff;
+        dst->report0x30.left_stick.y  = static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x11.left_stick.y)) & 0xfff;
+        dst->report0x30.right_stick.x = static_cast<uint16_t>(scale_factor * src->report0x11.right_stick.x) & 0xfff;
+        dst->report0x30.right_stick.y = static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x11.right_stick.y)) & 0xfff;
 
         dst->report0x30.buttons.dpad_down   = (src->report0x11.buttons.dpad == Dualshock4DPad_S)  ||
                                               (src->report0x11.buttons.dpad == Dualshock4DPad_SE) ||
