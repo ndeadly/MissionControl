@@ -124,7 +124,7 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    Result WriteFakeHidData(const BluetoothAddress *address, const BluetoothHidData *data) {
+    Result WriteFakeHidData(const Address *address, const HidData *data) {
 
         //BTDRV_LOG_DATA_MSG((void*)data, data->length + sizeof(data->length), "btdrv-mitm: WriteFakeHidData");
 
@@ -134,11 +134,11 @@ namespace ams::bluetooth::hid::report {
 
         if (hos::GetVersion() < hos::Version_9_0_0) {
             fakeReportData->size = bufferSize;
-            std::memcpy(&fakeReportData->address, address, sizeof(BluetoothAddress));
+            std::memcpy(&fakeReportData->address, address, sizeof(Address));
             std::memcpy(&fakeReportData->report, data, data->length + sizeof(data->length));
         }
         else {
-            std::memcpy(&fakeReportData->v2.address, address, sizeof(BluetoothAddress));
+            std::memcpy(&fakeReportData->v2.address, address, sizeof(Address));
             std::memcpy(&fakeReportData->v2.report, data, data->length + sizeof(data->length));
         }
 
@@ -234,12 +234,12 @@ namespace ams::bluetooth::hid::report {
                             // copy address and stuff over
                             if (hos::GetVersion() < hos::Version_9_0_0) {
                                 g_fakeReportData->size = 0x42;    // Todo: check size is correct for report 0x30
-                                std::memcpy(&g_fakeReportData->address, &realPacket->data.address, sizeof(BluetoothAddress));
+                                std::memcpy(&g_fakeReportData->address, &realPacket->data.address, sizeof(Address));
                                 inReport = &realPacket->data.report;
                                 outReport = &g_fakeReportData->report;
                             }
                             else {
-                                std::memcpy(&g_fakeReportData->v2.address, &realPacket->data.v2.address, sizeof(BluetoothAddress));
+                                std::memcpy(&g_fakeReportData->v2.address, &realPacket->data.v2.address, sizeof(Address));
                                 inReport = &realPacket->data.v2.report;
                                 outReport = &g_fakeReportData->v2.report;
                             }

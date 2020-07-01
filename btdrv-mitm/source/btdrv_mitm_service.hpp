@@ -49,23 +49,23 @@ namespace ams::mitm::btdrv {
         protected:
             Result InitializeBluetooth(sf::OutCopyHandle out_handle);
             Result FinalizeBluetooth(void);
-            Result GetEventInfo(sf::Out<BluetoothEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetEventInfo(sf::Out<bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
-            Result WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer);
-            Result GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, BluetoothAddress address);
+            Result WriteHidData(bluetooth::Address address, const sf::InPointerBuffer &buffer);
             //Result SetHidReport(bluetooth::Address address, bluetooth::HhReportType type, const sf::InPointerBuffer &buffer);
             //Result GetHidReport(bluetooth::Address address, bluetooth::HhReportType type, u8 id);
+            Result GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address);
             Result FinalizeHid(void);
-            Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetHidEventInfo(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);            
             Result RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle);
             Result RegisterHidReportEvent(sf::OutCopyHandle out_handle);
-            Result GetHidReportEventInfoDeprecated1(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
-            Result GetHidReportEventInfoDeprecated2(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetHidReportEventInfoDeprecated1(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetHidReportEventInfoDeprecated2(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result GetHidReportEventInfo(sf::OutCopyHandle out_handle);
             Result InitializeBle(sf::OutCopyHandle out_handle);
             Result FinalizeBle(void);
-            Result GetBleManagedEventInfoDeprecated(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
-            Result GetBleManagedEventInfo(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetBleManagedEventInfoDeprecated(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
+            Result GetBleManagedEventInfo(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
             void RedirectSystemEvents(bool redirect);
 

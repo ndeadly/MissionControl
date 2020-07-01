@@ -1,6 +1,7 @@
 #pragma once
 #include <switch.h>
 #include <stratosphere.hpp>
+#include "bluetooth_types.hpp"
 
 namespace ams::bluetooth::core {
 
@@ -13,7 +14,7 @@ namespace ams::bluetooth::core {
     Result Initialize(Handle eventHandle);
     void Finalize(void);
 
-    Result GetEventInfo(ncm::ProgramId program_id, BluetoothEventType *type, u8* buffer, size_t size);
+    Result GetEventInfo(ncm::ProgramId program_id, EventType *type, u8* buffer, size_t size);
     void HandleEvent(void);
    
 }

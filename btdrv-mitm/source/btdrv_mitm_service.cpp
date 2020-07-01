@@ -42,7 +42,7 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::GetEventInfo(sf::Out<BluetoothEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+    Result BtdrvMitmService::GetEventInfo(sf::Out<bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetEventInfo");
 
@@ -73,7 +73,7 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::WriteHidData(BluetoothAddress address, const sf::InPointerBuffer &buffer) {
+    Result BtdrvMitmService::WriteHidData(bluetooth::Address address, const sf::InPointerBuffer &buffer) {
 
         BTDRV_LOG_FMT("btdrv-mitm: WriteHidData");
 
@@ -82,7 +82,7 @@ namespace ams::mitm::btdrv {
             if (controller && !controller->isSwitchController()) {
 
                 // TODO: convert hid data format where possible and call btdrvWriteHidDataFwd
-                auto requestData = reinterpret_cast<const BluetoothHidData *>(buffer.GetPointer());
+                auto requestData = reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer());
                 u8 cmdId = requestData->data[0];
                 
                 if (cmdId == 0x01) {
@@ -96,7 +96,7 @@ namespace ams::mitm::btdrv {
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0x82, 0x02, 0x03, 0x48, 0x03, 0x02, address.address[0], address.address[1], address.address[2], address.address[3], address.address[4], address.address[5], 0x01, 0x02};
                                 
-                                auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                 bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                             }
                             break;
@@ -123,7 +123,7 @@ namespace ams::mitm::btdrv {
                                                     0x90, subCmdId, requestData->data[11], requestData->data[12], requestData->data[13], requestData->data[14], requestData->data[15],
                                                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-                                    auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                    auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                     bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                                 }
 
@@ -134,7 +134,7 @@ namespace ams::mitm::btdrv {
                                                     0x32, 0x32, 0x32, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0x00
                                                     };
 
-                                    auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                    auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                     bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                                 }
 
@@ -143,7 +143,7 @@ namespace ams::mitm::btdrv {
                                                     0x90, subCmdId, requestData->data[11], requestData->data[12], requestData->data[13], requestData->data[14], requestData->data[15],
                                                     0x50, 0xfd, 0x00, 0x00, 0xc6, 0x0f, 0x0f, 0x30, 0x61, 0xae, 0x90, 0xd9, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63};
 
-                                    auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                    auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                     bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                                 }
 
@@ -152,7 +152,7 @@ namespace ams::mitm::btdrv {
                                                     0x90, subCmdId, requestData->data[11], requestData->data[12], requestData->data[13], requestData->data[14], requestData->data[15],
                                                     0x0f, 0x30, 0x61, 0xae, 0x90, 0xd9, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63};
 
-                                    auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                    auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                     bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                                 }
 
@@ -161,7 +161,7 @@ namespace ams::mitm::btdrv {
                                                     0x90, subCmdId, requestData->data[11], requestData->data[12], requestData->data[13], requestData->data[14], requestData->data[15],
                                                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-                                    auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                    auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                     bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                                 }
 
@@ -170,7 +170,7 @@ namespace ams::mitm::btdrv {
                                                     0x90, subCmdId, requestData->data[11], requestData->data[12], requestData->data[13], requestData->data[14], requestData->data[15],
                                                     0xe6, 0xa5, 0x67, 0x1a, 0x58, 0x78, 0x50, 0x56, 0x60, 0x1a, 0xf8, 0x7f, 0x20, 0xc6, 0x63, 0xd5, 0x15, 0x5e, 0xff, 0x32, 0x32, 0x32, 0xff, 0xff, 0xff};
 
-                                    auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                    auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                     bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                                 }
 
@@ -179,7 +179,7 @@ namespace ams::mitm::btdrv {
                                                     0x90, subCmdId, requestData->data[11], requestData->data[12], requestData->data[13], requestData->data[14], requestData->data[15],
                                                     0x64, 0xff, 0x33, 0x00, 0xb8, 0x01, 0x00, 0x40, 0x00, 0x40, 0x00, 0x40, 0x17, 0x00, 0xd7, 0xff, 0xbd, 0xff, 0x3b, 0x34, 0x3b, 0x34, 0x3b, 0x34};
 
-                                    auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                    auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                     bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                                 }
 
@@ -193,7 +193,7 @@ namespace ams::mitm::btdrv {
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0x80, subCmdId};
 
-                                auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                 bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                             }
                             break;
@@ -204,7 +204,7 @@ namespace ams::mitm::btdrv {
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0x83, subCmdId};
 
-                                auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                 bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                             }
                             break;
@@ -215,7 +215,7 @@ namespace ams::mitm::btdrv {
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0xa0, subCmdId, 0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5c};
 
-                                auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                 bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                             }
                             break;
@@ -227,7 +227,7 @@ namespace ams::mitm::btdrv {
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0x80, subCmdId};
 
-                                auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                 bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                             }
                             break;
@@ -238,7 +238,7 @@ namespace ams::mitm::btdrv {
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0x80, subCmdId};
 
-                                auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                 bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                             }
                             break;
@@ -249,7 +249,7 @@ namespace ams::mitm::btdrv {
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0x80, subCmdId};
 
-                                auto responseData = reinterpret_cast<BluetoothHidData *>(reportData);
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
                                 bluetooth::hid::report::WriteFakeHidData(&address, responseData);
                             }
                             break;
@@ -268,26 +268,27 @@ namespace ams::mitm::btdrv {
 
         R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), 
             &address,
-            reinterpret_cast<const BluetoothHidData *>(buffer.GetPointer()) 
+            reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer()) 
         ));
 
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::SetHidReport(BluetoothAddress address, BluetoothHhReportType type, const sf::InPointerBuffer &buffer) {
+    /*
+    Result BtdrvMitmService::SetHidReport(bluetooth::Address address, bluetooth::HhReportType type, const sf::InPointerBuffer &buffer) {
 
         BTDRV_LOG_FMT("btdrv-mitm: SetHidReport");
 
         R_TRY(btdrvSetHidReportFwd(this->forward_service.get(), 
             &address, 
             type, 
-            reinterpret_cast<const BluetoothHidData *>(buffer.GetPointer())
+            reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer())
         ));
 
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::GetHidReport(BluetoothAddress address, BluetoothHhReportType type, u8 id) {
+    Result BtdrvMitmService::GetHidReport(bluetooth::Address address, bluetooth::HhReportType type, u8 id) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetHidReport");
 
@@ -295,8 +296,9 @@ namespace ams::mitm::btdrv {
 
         return ams::ResultSuccess();
     }
+    */
 
-    Result BtdrvMitmService::GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, BluetoothAddress address) {
+    Result BtdrvMitmService::GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetPairedDeviceInfo");
 
@@ -330,7 +332,7 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+    Result BtdrvMitmService::GetHidEventInfo(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetHidEventInfo");
 
@@ -367,7 +369,7 @@ namespace ams::mitm::btdrv {
     }
 
     /* 1.0.0 - 6.2.0 */
-    Result _GetHidReportEventInfoDeprecated(Service *srv, sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+    Result _GetHidReportEventInfoDeprecated(Service *srv, sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo");
 
@@ -380,12 +382,12 @@ namespace ams::mitm::btdrv {
     }
 
     /* 1.0.0 - 3.0.2 */
-    Result BtdrvMitmService::GetHidReportEventInfoDeprecated1(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+    Result BtdrvMitmService::GetHidReportEventInfoDeprecated1(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
         return _GetHidReportEventInfoDeprecated(this->forward_service.get(), out_type, out_buffer);
     }
 
     /* 4.0.0 - 6.2.0 */
-    Result BtdrvMitmService::GetHidReportEventInfoDeprecated2(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+    Result BtdrvMitmService::GetHidReportEventInfoDeprecated2(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
         return _GetHidReportEventInfoDeprecated(this->forward_service.get(), out_type, out_buffer);
     }
 
@@ -431,11 +433,11 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::GetBleManagedEventInfoDeprecated(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+    Result BtdrvMitmService::GetBleManagedEventInfoDeprecated(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
         return GetBleManagedEventInfo(out_type, out_buffer);
     }
     
-    Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
+    Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
         
         BTDRV_LOG_FMT("btdrv-mitm: GetBleManagedEventInfo");
         

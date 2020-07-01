@@ -19,7 +19,7 @@ namespace ams::bluetooth::core {
 
         os::Mutex g_eventDataLock(false);
         u8 g_eventDataBuffer[0x400];
-        BluetoothEventType g_currentEventType;
+        EventType g_currentEventType;
 
         os::SystemEventType g_btSystemEvent;
         os::SystemEventType g_btSystemEventFwd;
@@ -27,7 +27,7 @@ namespace ams::bluetooth::core {
         os::EventType       g_dataReadEvent;
 
         /*
-        void _LogEvent(BluetoothEventType type, BluetoothEventData *eventData) {
+        void _LogEvent(EventType type, EventData *eventData) {
         
             size_t dataSize;
             switch (type) {
@@ -98,34 +98,34 @@ namespace ams::bluetooth::core {
         g_isInitialized = false;
     }
 
-    void handleDeviceFoundEvent(BluetoothEventData *eventData) {
+    void handleDeviceFoundEvent(EventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->deviceFound.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->deviceFound.name)) {
             std::strncpy(eventData->deviceFound.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
     }
 
-    void handlePinRequesEvent(BluetoothEventData *eventData) {
+    void handlePinRequesEvent(EventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->pinReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->pinReply.name)) {
             std::strncpy(eventData->pinReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
     }
 
-    void handleSspRequesEvent(BluetoothEventData *eventData) {
+    void handleSspRequesEvent(EventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->sspReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->sspReply.name)) {
             std::strncpy(eventData->sspReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
     }
 
-    Result GetEventInfo(ncm::ProgramId program_id, BluetoothEventType *type, u8* buffer, size_t size) {
+    Result GetEventInfo(ncm::ProgramId program_id, EventType *type, u8* buffer, size_t size) {
         std::scoped_lock lk(g_eventDataLock);
 
         *type = g_currentEventType;
         std::memcpy(buffer, g_eventDataBuffer, size);
 
-        auto eventData = reinterpret_cast<BluetoothEventData *>(buffer);
+        auto eventData = reinterpret_cast<EventData *>(buffer);
 
         if (program_id == ncm::SystemProgramId::Btm) {
             
@@ -172,7 +172,6 @@ namespace ams::bluetooth::core {
             os::SignalSystemEvent(&g_btSystemEventUser);
             //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
         }
-
     }
 
 }

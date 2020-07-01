@@ -1,6 +1,7 @@
 #pragma once
 #include <switch.h>
 #include <stratosphere.hpp>
+#include "bluetooth_types.hpp"
 
 namespace ams::bluetooth::hid::report {
 
@@ -19,7 +20,7 @@ namespace ams::bluetooth::hid::report {
     Result MapRemoteSharedMemory(Handle handle);
     Result InitializeFakeSharedMemory(void);
 
-    Result WriteFakeHidData(const BluetoothAddress *address, const BluetoothHidData *data);
+    Result WriteFakeHidData(const Address *address, const HidData *data);
 
     Result GetEventInfo(HidEventType *type, u8* buffer, size_t size);
     void HandleEvent(void);
