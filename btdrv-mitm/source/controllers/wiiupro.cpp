@@ -69,6 +69,11 @@ namespace controller {
     }
 
     void WiiUProController::handleInputReport0x34(const WiiUProReportData *src, SwitchReportData *dst) {
+        dst->report0x30.left_stick.x = src->report0x34.left_stick_x;
+        dst->report0x30.left_stick.y = src->report0x34.left_stick_y;
+        dst->report0x30.right_stick.x = src->report0x34.right_stick_x;
+        dst->report0x30.right_stick.y = src->report0x34.right_stick_y;
+
         dst->report0x30.buttons.dpad_down   = !src->report0x34.buttons.dpad_down;
         dst->report0x30.buttons.dpad_up     = !src->report0x34.buttons.dpad_up;
         dst->report0x30.buttons.dpad_right  = !src->report0x34.buttons.dpad_right;

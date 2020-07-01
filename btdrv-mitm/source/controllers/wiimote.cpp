@@ -29,17 +29,27 @@ namespace controller {
     }
 
     void WiimoteController::handleInputReport0x30(const WiimoteReportData *src, SwitchReportData *dst) {
+        dst->report0x30.left_stick.x  = STICK_ZERO;
+        dst->report0x30.left_stick.y  = STICK_ZERO;
+        dst->report0x30.right_stick.x = STICK_ZERO;
+        dst->report0x30.right_stick.y = STICK_ZERO;
 
-        dst->report0x30.buttons.dpad_down   = src->report0x30.buttons.dpad_down;
-        dst->report0x30.buttons.dpad_up     = src->report0x30.buttons.dpad_up;
-        dst->report0x30.buttons.dpad_right  = src->report0x30.buttons.dpad_right;
-        dst->report0x30.buttons.dpad_left   = src->report0x30.buttons.dpad_left;
+        // Orientation vertical
+        //dst->report0x30.buttons.dpad_down   = src->report0x30.buttons.dpad_down;
+        //dst->report0x30.buttons.dpad_up     = src->report0x30.buttons.dpad_up;
+        //dst->report0x30.buttons.dpad_right  = src->report0x30.buttons.dpad_right;
+        //dst->report0x30.buttons.dpad_left   = src->report0x30.buttons.dpad_left;
+
+        dst->report0x30.buttons.dpad_down   = src->report0x30.buttons.dpad_left;
+        dst->report0x30.buttons.dpad_up     = src->report0x30.buttons.dpad_right;
+        dst->report0x30.buttons.dpad_right  = src->report0x30.buttons.dpad_down;
+        dst->report0x30.buttons.dpad_left   = src->report0x30.buttons.dpad_up;
 
         dst->report0x30.buttons.A = src->report0x30.buttons.two;
         dst->report0x30.buttons.B = src->report0x30.buttons.one;
 
-        dst->report0x30.buttons.R = src->report0x30.buttons.B;
-        dst->report0x30.buttons.L = src->report0x30.buttons.A;
+        dst->report0x30.buttons.R = src->report0x30.buttons.A;
+        dst->report0x30.buttons.L = src->report0x30.buttons.B;
 
         dst->report0x30.buttons.minus   = src->report0x30.buttons.minus;
         dst->report0x30.buttons.plus    = src->report0x30.buttons.plus;

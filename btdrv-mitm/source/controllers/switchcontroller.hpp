@@ -2,6 +2,7 @@
 #include "bluetoothcontroller.hpp"
 
 #define UINT12_MAX 0xfff
+#define STICK_ZERO 0x800
 
 namespace controller {
 

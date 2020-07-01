@@ -164,8 +164,18 @@ namespace ams::bluetooth::core {
         BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
 
         if (!g_redirectEvents) {
-            os::SignalSystemEvent(&g_btSystemEventFwd);
-            os::WaitEvent(&g_dataReadEvent);
+            if (g_currentEventType != BluetoothEvent_PinRequest) {
+                os::SignalSystemEvent(&g_btSystemEventFwd);
+                os::WaitEvent(&g_dataReadEvent);
+            }
+            else {
+                // Todo: set this to what it should be if we ever enable bluetooth to actually read the pincode parameter
+                PinCode pincode = {};
+
+                // Fuck BTM, we're sending the pin response. What it doesn't know won't hurt it
+                auto eventData = reinterpret_cast<EventData *>(g_eventDataBuffer);
+                R_ABORT_UNLESS(btdrvRespondToPinRequest(&eventData->pinReply.address, false, &pincode, sizeof(Address)));
+            }
         }
 
         if (g_btSystemEventUser.state) {
