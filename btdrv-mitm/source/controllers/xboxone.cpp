@@ -75,9 +75,12 @@ namespace controller {
 
         dst->report0x30.buttons.lstick_press = src->report0x01.buttons.lstick_press;
         dst->report0x30.buttons.rstick_press = src->report0x01.buttons.rstick_press;
+
+        dst->report0x30.buttons.capture = 0;
     }
 
     void XboxOneController::handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst) {
+        std::memset(&dst->report0x30.buttons, 0, sizeof(SwitchButtonData));
         dst->report0x30.buttons.home = src->report0x02.guide;
     }
 
