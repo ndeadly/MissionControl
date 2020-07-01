@@ -26,6 +26,7 @@ namespace ams::bluetooth::core {
         os::SystemEventType g_btSystemEventUser;
         os::EventType       g_dataReadEvent;
 
+        /*
         void _LogEvent(BluetoothEventType type, BluetoothEventData *eventData) {
         
             size_t dataSize;
@@ -56,6 +57,7 @@ namespace ams::bluetooth::core {
             //BTDRV_LOG_DATA(eventData, dataSize);
             BTDRV_LOG_DATA_MSG(eventData, dataSize, "[%02d] Bluetooth core event", type);
         }
+        */
 
     }
 
@@ -101,14 +103,6 @@ namespace ams::bluetooth::core {
             std::strncpy(eventData->deviceFound.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
-        else {
-            BTDRV_LOG_FMT("handleDeviceFoundEvent: [%02x%02x%02x] | %s",
-                eventData->deviceFound.cod.cod[0],
-                eventData->deviceFound.cod.cod[1],
-                eventData->deviceFound.cod.cod[2],
-                eventData->deviceFound.name
-            );
-        }
     }
 
     void handlePinRequesEvent(BluetoothEventData *eventData) {
@@ -116,28 +110,12 @@ namespace ams::bluetooth::core {
             std::strncpy(eventData->pinReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
-        else {
-            BTDRV_LOG_FMT("handleDeviceFoundEvent: [%02x%02x%02x] | %s",
-                eventData->pinReply.cod.cod[0],
-                eventData->pinReply.cod.cod[1],
-                eventData->pinReply.cod.cod[2],
-                eventData->pinReply.name
-            );
-        }
     }
 
     void handleSspRequesEvent(BluetoothEventData *eventData) {
         if (ams::mitm::btdrv::IsController(&eventData->sspReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->sspReply.name)) {
             std::strncpy(eventData->sspReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
-        }
-        else {
-            BTDRV_LOG_FMT("handleDeviceFoundEvent: [%02x%02x%02x] | %s",
-                eventData->sspReply.cod.cod[0],
-                eventData->sspReply.cod.cod[1],
-                eventData->sspReply.cod.cod[2],
-                eventData->sspReply.name
-            );
         }
     }
 

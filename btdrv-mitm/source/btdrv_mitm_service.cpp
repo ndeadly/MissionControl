@@ -223,7 +223,6 @@ namespace ams::mitm::btdrv {
 
                         case bluetooth::SubCmd_SetPlayerLeds:
                             {
-                                BTDRV_LOG_FMT("SET PLAYER LED [%02d]", requestData->data[11]);
                                 s64 timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds();
                                 u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
                                                 0x80, subCmdId};
@@ -260,7 +259,7 @@ namespace ams::mitm::btdrv {
                     }
                 }
                 else if (cmdId == 0x10) {
-                    BTDRV_LOG_DATA_MSG((void *)requestData, requestData->length, "Rumble report");
+                    // Rumble report
                 }
 
                 return ams::ResultSuccess();
