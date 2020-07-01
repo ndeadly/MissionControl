@@ -65,7 +65,11 @@ namespace controller {
         }
     }
 
-    void Dualshock4Controller::mapStickValues(JoystickPosition *dst, const Dualshock4StickData *src) {
+    void Dualshock4Controller::mapStickValues(SwitchStickData *dst, const Dualshock4StickData *src) {
+
+        dst->x = static_cast<uint16_t>(src->x * (powf(2, 12) - 1) / UINT8_MAX) & 0xfff;
+        dst->y = static_cast<uint16_t>((UINT8_MAX - src->y) * (powf(2, 12) - 1) / UINT8_MAX) & 0xfff;
+
         /*
         dst->dx = unsigned_to_signed(src->x, dualshock4_joystick_nbits);
         dst->dy = -unsigned_to_signed(src->y, dualshock4_joystick_nbits);
@@ -85,7 +89,8 @@ namespace controller {
     }
 
     void Dualshock4Controller::handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst) {
-
+        this->mapStickValues(&dst->report0x30.left_stick, &src->report0x01.left_stick);
+        this->mapStickValues(&dst->report0x30.right_stick, &src->report0x01.right_stick);
 
         dst->report0x30.buttons.dpad_down   = (src->report0x01.buttons.dpad == Dualshock4DPad_S)  ||
                                               (src->report0x01.buttons.dpad == Dualshock4DPad_SE) ||
@@ -121,7 +126,8 @@ namespace controller {
     }
 
     void Dualshock4Controller::handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
-
+        this->mapStickValues(&dst->report0x30.left_stick, &src->report0x11.left_stick);
+        this->mapStickValues(&dst->report0x30.right_stick, &src->report0x11.right_stick);
 
         dst->report0x30.buttons.dpad_down   = (src->report0x11.buttons.dpad == Dualshock4DPad_S)  ||
                                               (src->report0x11.buttons.dpad == Dualshock4DPad_SE) ||

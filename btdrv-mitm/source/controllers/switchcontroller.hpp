@@ -79,7 +79,7 @@ namespace controller {
 
         } report0x21;
 
-        struct {
+        struct __attribute__ ((__packed__)) {
             uint8_t             timer;
             uint8_t             conn_info      : 4;
             uint8_t             battery        : 4;

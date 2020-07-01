@@ -113,7 +113,7 @@ namespace controller {
             void convertReportFormat(const HidReport *inReport, HidReport *outReport);
 
         private:
-            void mapStickValues(JoystickPosition *dst, const Dualshock4StickData *src);
+            void mapStickValues(SwitchStickData *dst, const Dualshock4StickData *src);
             void handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst);
             void handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst); 
     };

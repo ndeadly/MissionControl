@@ -65,7 +65,7 @@ namespace controller {
             void convertReportFormat(const HidReport *inReport, HidReport *outReport);
 
         private:
-            void mapStickValues(JoystickPosition *dst, const XboxOneStickData *src); 
+            void mapStickValues(SwitchStickData *dst, const XboxOneStickData *src); 
             void handleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst);
             void handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst);
             
