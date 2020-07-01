@@ -343,18 +343,6 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    /*
-    Result BtdrvMitmService::SetTsi(BluetoothAddress address, u8 tsi) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: SetTsi");
-
-        R_TRY(btdrvSetTsiFwd(this->forward_service.get(), &address, tsi));
-
-        return ams::ResultSuccess();
-    }
-    */
-
-
     /* 1.0.0 - 3.0.2 */
     Result BtdrvMitmService::RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle) {
         return RegisterHidReportEvent(out_handle);

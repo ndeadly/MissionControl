@@ -72,18 +72,6 @@ Result btdrvGetPairedDeviceInfoFwd(Service* srv, const BluetoothAddress *address
     );
 }
 
-/*
-Result btdrvSetTsiFwd(Service* srv, const BluetoothAddress *address, u8 tsi) {
-    const struct {
-        BluetoothAddress address;
-        u8 tsi;
-    } in = { *address, tsi };
-
-    return serviceMitmDispatchIn(srv, 28, in);
-}
-*/
-
-
 Result btdrvFinalizeHidFwd(Service* srv) {
     return serviceMitmDispatch(srv, 26);
 }

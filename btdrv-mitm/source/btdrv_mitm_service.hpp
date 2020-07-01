@@ -20,7 +20,6 @@ namespace ams::mitm::btdrv {
                 GetPairedDeviceInfo                 = 25,
                 FinalizeHid                         = 26,
                 GetHidEventInfo                     = 27,
-                //SetTsi                              = 28,
                 RegisterHidReportEventDeprecated    = 36,
                 RegisterHidReportEvent              = 37,
                 GetHidReportEventInfoDeprecated1    = 37,
@@ -58,9 +57,6 @@ namespace ams::mitm::btdrv {
             Result GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, BluetoothAddress address);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
-
-            //Result SetTsi(BluetoothAddress address, u8 tsi);
-            
             Result RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle);
             Result RegisterHidReportEvent(sf::OutCopyHandle out_handle);
             Result GetHidReportEventInfoDeprecated1(sf::Out<HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
