@@ -70,12 +70,12 @@ namespace controller {
 
     void WiiUProController::handleInputReport0x34(const WiiUProReportData *src, SwitchReportData *dst) {
         packStickData(&dst->report0x30.left_stick,
-            src->report0x34.left_stick_x, 
-            src->report0x34.left_stick_y
+            ((3 * (src->report0x34.left_stick_x - STICK_ZERO)) >> 1) + STICK_ZERO, 
+            ((3 * (src->report0x34.left_stick_y - STICK_ZERO)) >> 1) + STICK_ZERO
         );
         packStickData(&dst->report0x30.right_stick,
-            src->report0x34.right_stick_x,
-            src->report0x34.right_stick_y
+            ((3 * (src->report0x34.right_stick_x - STICK_ZERO)) >> 1) + STICK_ZERO,
+            ((3 * (src->report0x34.right_stick_y - STICK_ZERO)) >> 1) + STICK_ZERO
         );
 
         dst->report0x30.buttons.dpad_down   = !src->report0x34.buttons.dpad_down;
