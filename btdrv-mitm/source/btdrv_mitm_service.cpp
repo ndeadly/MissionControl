@@ -209,6 +209,17 @@ namespace ams::mitm::btdrv {
                             }
                             break;
 
+                        case bluetooth::SubCmd_SetShipPowerState:
+                            {
+                                s64 timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds();
+                                u8 reportData[] = {0x31, 0x00, 0x21, timer & 0xff, 0x80, 0x00, 0x00, 0x00, 0x0b, 0xb8, 0x78, 0xd9, 0xd7, 0x81, 0x00,
+                                                0x80, subCmdId, 0x00};
+
+                                auto responseData = reinterpret_cast<bluetooth::HidData *>(reportData);
+                                bluetooth::hid::report::WriteFakeHidData(&address, responseData);
+                            }
+                            break;
+
                         case bluetooth::SubCmd_SetMcuConfig:
                             {
                                 s64 timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds();
