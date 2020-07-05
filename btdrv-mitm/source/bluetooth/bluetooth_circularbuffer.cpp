@@ -10,6 +10,7 @@ namespace ams::bluetooth {
         this->readOffset = 0;
         this->writeOffset = 0;
         this->isInitialized = false;
+        this->event = nullptr;
     }
 
     void CircularBuffer::Initialize(const char *name) {
