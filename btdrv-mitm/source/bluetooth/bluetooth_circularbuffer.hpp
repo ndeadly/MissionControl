@@ -34,7 +34,7 @@ namespace ams::bluetooth {
             void Finalize(void);
             bool IsInitialized(void);
             u64  GetWriteableSize(void);
-            void AttachEvent(os::EventType *event); // Introduced in 10.0.0. Made-up name
+            void SetWriteCompleteEvent(os::EventType *event);
             u64  Write(u8 type, void *data, size_t size);
             void DiscardOldPackets(u8 a1, u32 a2);
             void *Read(void);

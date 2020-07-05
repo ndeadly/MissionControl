@@ -57,7 +57,7 @@ namespace ams::bluetooth {
         return size;
     }
 
-    void CircularBuffer::AttachEvent(os::EventType *event) {
+    void CircularBuffer::SetWriteCompleteEvent(os::EventType *event) {
         this->event = event;
     }
 
