@@ -25,7 +25,7 @@ namespace controller {
     struct Dualshock4StickData {
         uint8_t x;
         uint8_t y;
-    };
+    } __attribute__((packed));
 
     struct Dualshock4ButtonData {
         uint8_t dpad       : 4;
@@ -46,7 +46,7 @@ namespace controller {
         uint8_t ps         : 1;
         uint8_t tpad       : 1;
         uint8_t counter    : 6;
-    };
+    } __attribute__((packed));
 
     struct Dualshock4OutputReport0x11  {
         struct {
@@ -61,7 +61,7 @@ namespace controller {
         Dualshock4ButtonData    buttons;
         uint8_t                 left_trigger;
         uint8_t                 right_trigger;
-    };
+    } __attribute__((packed));
 
     /* This report is sent once the GET REPORT FEATURE 0x02 is received */
     struct Dualshock4InputReport0x11 {
@@ -90,7 +90,7 @@ namespace controller {
         uint16_t _unk2;
         uint8_t tpad_packets;
         uint8_t packet_counter;
-    };
+    } __attribute__((packed));
 
     union Dualshock4ReportData {
         Dualshock4InputReport0x01 report0x01;
