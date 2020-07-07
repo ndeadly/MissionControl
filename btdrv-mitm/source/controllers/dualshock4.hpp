@@ -71,7 +71,7 @@ namespace controller {
         Dualshock4ButtonData    buttons;
         uint8_t                 left_trigger;
         uint8_t                 right_trigger;
-        uint16_t                imestamp;
+        uint16_t                timestamp;
         uint8_t                 battery;
         uint16_t                vel_x;
         uint16_t                vel_y;
