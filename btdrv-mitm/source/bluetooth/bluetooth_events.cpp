@@ -13,7 +13,7 @@ namespace ams::bluetooth::events {
         alignas(os::ThreadStackAlignment) u8 	g_eventHandlerThreadStack[0x2000];
         
         os::WaitableManagerType g_manager;
-        os::WaitableHolderType 	g_holderPscPm;
+        //os::WaitableHolderType 	g_holderPscPm;
         os::WaitableHolderType 	g_holderBtCore;
         os::WaitableHolderType 	g_holderBtHid;
         os::WaitableHolderType 	g_holderBtBle;
@@ -48,10 +48,10 @@ namespace ams::bluetooth::events {
             while (true) {
                 auto signalled_holder = os::WaitAny(&g_manager);
                 switch (os::GetWaitableHolderUserData(signalled_holder)) {
-                    case BtdrvEventType_PscPm:
-                        BTDRV_LOG_FMT("btdrv-mitm: handling psc:pm event");
-                        mitm::btdrv::HandlePscPmEvent();
-                        break;
+                    //case BtdrvEventType_PscPm:
+                        //BTDRV_LOG_FMT("btdrv-mitm: handling psc:pm event");
+                        //mitm::btdrv::HandlePscPmEvent();
+                        //break;
                     case BtdrvEventType_BluetoothCore:
                         //core::GetSystemEvent()->Clear();
                         os::ClearSystemEvent(core::GetSystemEvent());
