@@ -53,38 +53,41 @@ namespace controller {
         uint16_t    gyro_3;
     };
 
-    union SwitchReportData {
+    struct SwitchReport0x21 {
+        uint8_t             timer;
+        uint8_t             conn_info      : 4;
+        uint8_t             battery        : 4;
+        //uint8_t             timer;
+        SwitchButtonData    buttons;
+        SwitchStickData     left_stick;
+        SwitchStickData     right_stick;
+        uint8_t             vibrator;
+        
         struct {
-            uint8_t             conn_info      : 4;
-            uint8_t             battery        : 4;
-            uint8_t             timer;
-            SwitchButtonData    buttons;
-            SwitchStickData     left_stick;
-            SwitchStickData     right_stick;
-            uint8_t             vibrator;
-            
-            struct {
-                uint8_t         ack;
-                uint8_t         id;
-                uint8_t         reply;
-                uint8_t         data[0x22];
-            } subcmd;
+            uint8_t         ack;
+            uint8_t         id;
+            uint8_t         reply;
+            uint8_t         data[0x22];
+        } subcmd;
+    };
 
-        } report0x21;
+    struct SwitchReport0x30 {
+        uint8_t             timer;
+        uint8_t             conn_info      : 4;
+        uint8_t             battery        : 4;
+        SwitchButtonData    buttons;
+        SwitchStickData     left_stick;
+        SwitchStickData     right_stick;
+        uint8_t             vibrator;
 
-        struct __attribute__ ((__packed__)) {
-            uint8_t             timer;
-            uint8_t             conn_info      : 4;
-            uint8_t             battery        : 4;
-            SwitchButtonData    buttons;
-            SwitchStickData     left_stick;
-            SwitchStickData     right_stick;
-            uint8_t             vibrator;
+        Switch6AxisData     imu_0ms;
+        Switch6AxisData     imu_5ms;
+        Switch6AxisData     imu_10ms;
+    } __attribute__ ((__packed__));
 
-            Switch6AxisData     imu_0ms;
-            Switch6AxisData     imu_5ms;
-            Switch6AxisData     imu_10ms;
-        } report0x30;
+    union SwitchReportData {
+        SwitchReport0x21 report0x21;
+        SwitchReport0x30 report0x30;
     };
 
     inline void packStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
