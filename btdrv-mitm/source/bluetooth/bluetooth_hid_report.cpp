@@ -267,9 +267,13 @@ namespace ams::bluetooth::hid::report {
 
         } 
 
-        // Signal our forwarder events
-        os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
-        //os::SignalSystemEvent(&btHidReportSystemEventUser);
+        if (!g_redirectHidReportEvents) {
+            os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
+        }
+        else {
+            os::SignalSystemEvent(&g_btHidReportSystemEventUser);
+        }
+        
     }
 
 }

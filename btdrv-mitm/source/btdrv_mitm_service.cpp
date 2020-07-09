@@ -468,4 +468,13 @@ namespace ams::mitm::btdrv {
         g_redirectEvents = redirect;
     }
 
+    void BtdrvMitmService::RedirectHidReportEvents(bool redirect) {
+
+        BTDRV_LOG_FMT("btdrv-mitm: RedirectHidReportEvents [%s]", redirect ? "on" : "off");
+
+        g_redirectHidReportEvents = redirect;
+    }
+
+
+
 }
