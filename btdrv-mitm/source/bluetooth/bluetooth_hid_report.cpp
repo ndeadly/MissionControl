@@ -163,7 +163,7 @@ namespace ams::bluetooth::hid::report {
     }
 
     /* Write a fake subcommand response into buffer */
-    Result FakeSubCmdResponse(const bluetooth::Address *address, u8 response[], size_t size) {
+    Result FakeSubCmdResponse(const bluetooth::Address *address, const u8 response[], size_t size) {
         auto report = &g_hidReport;
         report->type = 0x31;    // This is actually size, need to rename
         report->id   = 0x21;
@@ -176,7 +176,7 @@ namespace ams::bluetooth::hid::report {
         reportData->right_stick = {0xd9, 0xd7, 0x81};
         reportData->vibrator    = 0;
         std::memcpy(&reportData->subcmd, response, size);
-        
+
         reportData->timer       = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         // Todo: change types so we don't have to cast
