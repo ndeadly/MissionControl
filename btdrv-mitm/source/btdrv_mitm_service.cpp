@@ -151,6 +151,20 @@ namespace ams::mitm::btdrv {
                             }
                             break;
 
+                        case bluetooth::SubCmd_SpiFlashWrite:
+                            {
+                                const u8 response[] = {0x80, subCmdId, 0x01};
+                                bluetooth::hid::report::FakeSubCmdResponse(&address, response, sizeof(response));
+                            }
+                            break;
+
+                        case bluetooth::SubCmd_SpiSectorErase:
+                            {
+                                const u8 response[] = {0x80, subCmdId, 0x01};
+                                bluetooth::hid::report::FakeSubCmdResponse(&address, response, sizeof(response));
+                            }
+                            break;
+
                         case bluetooth::SubCmd_SetInputReportMode:
                             {
                                 const u8 response[] = {0x80, subCmdId};
