@@ -1,7 +1,9 @@
+#include "xboxone.hpp"
+
 #include <cstring>
 #include <stratosphere.hpp>
 
-#include "xboxone.hpp"
+#include "../btdrv_mitm_logging.hpp"
 
 namespace controller {
 
@@ -36,6 +38,7 @@ namespace controller {
                 break;
 
             default:
+                BTDRV_LOG_FMT("XBONE: RECEIVED REPORT [%02d]", inReport->id);
                 break;
         }
     }

@@ -1,6 +1,7 @@
 
-#include <stratosphere.hpp>
 #include "wiiupro.hpp"
+
+#include <stratosphere.hpp>
 
 #include "../btdrv_mitm_logging.hpp"
 
@@ -49,17 +50,18 @@ namespace controller {
                 handleInputReport0x20(wiiUData, switchData);
                 break;
 
-            case 0x22:  // Acknowledgement
-                break;
+            //case 0x22:  // Acknowledgement
+                //break;
 
-            case 0x32:  // Buttons + Ext bytes
-                break;
+            //case 0x32:  // Buttons + Ext bytes
+                //break;
 
             case 0x34:  // Buttons + Ext bytes
                 handleInputReport0x34(wiiUData, switchData);
                 break;
 
             default:
+                BTDRV_LOG_FMT("WIIUPRO: RECEIVED REPORT [%02d]", inReport->id);
                 break;
         }
     }

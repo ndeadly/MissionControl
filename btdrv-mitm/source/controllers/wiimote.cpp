@@ -1,5 +1,8 @@
-#include <stratosphere.hpp>
 #include "wiimote.hpp"
+
+#include <stratosphere.hpp>
+
+#include "../btdrv_mitm_logging.hpp"
 
 namespace controller {
 
@@ -24,6 +27,7 @@ namespace controller {
                 break;
 
             default:
+                BTDRV_LOG_FMT("WIIMOTE: RECEIVED REPORT [%02d]", inReport->id);
                 break;
         }
     }

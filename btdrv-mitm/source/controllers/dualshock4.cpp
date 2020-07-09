@@ -1,8 +1,9 @@
+#include "dualshock4.hpp"
+
 #include <cstring>
 #include <switch.h>
 #include <stratosphere.hpp>
 
-#include "dualshock4.hpp"
 #include "../btdrv_mitm_logging.hpp"
 
 namespace controller {
@@ -60,6 +61,7 @@ namespace controller {
                 break;
 
             default:
+                BTDRV_LOG_FMT("DS4: RECEIVED REPORT [%02d]", inReport->id);
                 break;
         }
     }
