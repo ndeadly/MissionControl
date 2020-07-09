@@ -74,21 +74,29 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
+    /*
+    void subcmd_response() {
+        s64 timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds();
+        SwitchReport0x21 *report;
+        report->timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+        report->conn_info = 0;
+        report->battery = 8;
+
+    }
+    */
+
     Result BtdrvMitmService::WriteHidData(bluetooth::Address address, const sf::InPointerBuffer &buffer) {
 
-        BTDRV_LOG_FMT("btdrv-mitm: WriteHidData");
+        auto requestData = reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer());
+        u8 cmdId = requestData->data[0];
 
         if (this->client_info.program_id == ncm::SystemProgramId::Hid) {
             auto controller = locateController(&address);
-            if (controller && !controller->isSwitchController()) {
-
-                // TODO: convert hid data format where possible and call btdrvWriteHidDataFwd
-                auto requestData = reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer());
-                u8 cmdId = requestData->data[0];
+            if (controller && !controller->isSwitchController()) {                
                 
                 if (cmdId == 0x01) {
                     auto subCmdId = static_cast<bluetooth::SubCmdType>(requestData->data[10]);
-                    BTDRV_LOG_FMT("Subcommand report [%02x]", subCmdId);
+                    BTDRV_LOG_FMT("Subcommand report [0x%02x]", subCmdId);
 
                     switch (subCmdId) {
                         case bluetooth::SubCmd_RequestDeviceInfo:
@@ -286,6 +294,9 @@ namespace ams::mitm::btdrv {
                 else if (cmdId == 0x10) {
                     // Rumble report
                 }
+                else {
+                    BTDRV_LOG_FMT("btdrv-mitm: WriteHidData [0x%02x]", cmdId);
+                }
 
                 return ams::ResultSuccess();
             }
@@ -334,13 +345,14 @@ namespace ams::mitm::btdrv {
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             
             if (!IsValidSwitchControllerName(device->name)) {
-                std::strncpy(device->name, "Lic Pro Controller", sizeof(BluetoothLocalName) - 1);
+                //std::strncpy(device->name, "Lic Pro Controller", sizeof(BluetoothLocalName) - 1);
+                std::strncpy(device->name, "Pro Controller", sizeof(BluetoothLocalName) - 1);
                 device->device_class = {0x00, 0x25, 0x08};
             }
 
         }
 
-        BTDRV_LOG_FMT("name: %s\nvid: %04x\npid: %04x", device->name, device->vid, device->pid);
+        //BTDRV_LOG_FMT("name: %s\nvid: %04x\npid: %04x", device->name, device->vid, device->pid);
 
         return ams::ResultSuccess();
     }
@@ -396,7 +408,7 @@ namespace ams::mitm::btdrv {
     /* 1.0.0 - 6.2.0 */
     Result _GetHidReportEventInfoDeprecated(Service *srv, sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
 
-        BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo");
+        //BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo (deprecated)");
 
         R_TRY(bluetooth::hid::report::GetEventInfo(out_type.GetPointer(), 
             static_cast<u8 *>(out_buffer.GetPointer()),

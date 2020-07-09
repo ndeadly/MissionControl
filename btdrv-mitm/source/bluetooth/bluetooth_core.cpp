@@ -13,7 +13,8 @@ namespace ams::bluetooth::core {
 
     namespace {
 
-        const constexpr char* g_licProControllerName = "Lic Pro Controller";
+        //const constexpr char* g_licProControllerName = "Lic Pro Controller";
+        const constexpr char* g_licProControllerName = "Pro Controller";
 
         std::atomic<bool> g_isInitialized(false);
 
@@ -83,7 +84,7 @@ namespace ams::bluetooth::core {
 
         R_TRY(os::CreateSystemEvent(&g_btSystemEventFwd, os::EventClearMode_AutoClear, true));
         R_TRY(os::CreateSystemEvent(&g_btSystemEventUser, os::EventClearMode_AutoClear, true)); 
-        os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);           
+        os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);
 
         g_isInitialized = true;
 

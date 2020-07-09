@@ -147,10 +147,12 @@ namespace ams::bluetooth::hid::report {
 
         return ams::ResultSuccess();
     }
+    */
 
+    /* Write a fake report into the circular buffer */
     Result WriteFakeHidData(const Address *address, const HidData *data) {
 
-        //BTDRV_LOG_DATA_MSG((void*)data, data->length + sizeof(data->length), "btdrv-mitm: WriteFakeHidData");
+        BTDRV_LOG_DATA_MSG((void*)data, data->length + sizeof(data->length), "btdrv-mitm: WriteFakeHidData");
 
         u16 bufferSize = data->length + 0x11;
         u8 buffer[bufferSize] = {};
@@ -174,38 +176,61 @@ namespace ams::bluetooth::hid::report {
 
     /* Only used for < 7.0.0. newer firmwares read straight from shared memory */ 
     Result GetEventInfo(HidEventType *type, u8* buffer, size_t size) {
-        std::scoped_lock lk(g_eventDataLock);
 
-        *type = g_currentEventType;
-    
-        if (g_currentEventType == HidEvent_GetReport) {
-            auto eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
+        /*
+        auto packet = reinterpret_cast<CircularBufferPacket *>(g_fakeBuffer->Read());
+        if (!packet)
+            return -1;
+        */
 
-            auto controller = ams::mitm::btdrv::locateController(&eventData->getReport.address);
-            if (controller && !controller->isSwitchController()) {
-                BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo - Non-Switch controller");
+       //BTDRV_LOG_FMT("!!! GetEventInfo Called");
 
-                // TODO: Modify report data if coming from a non-switch controller
-                //controller->convertReportFormat(inReport, outReport);
+       CircularBufferPacket *packet;
 
-                //eventData->getReport.report_length = 0x42;
+        while (true) {
+            if (g_fakeBuffer->readOffset == g_fakeBuffer->writeOffset)
+                continue;
+
+            // Get packet from real buffer
+            packet = reinterpret_cast<CircularBufferPacket *>(&g_fakeBuffer->data[g_fakeBuffer->readOffset]);
+            if (!packet)
+                continue;
+
+            // Move read pointer past current packet (I think this is what Free does)
+            if (g_fakeBuffer->readOffset != g_fakeBuffer->writeOffset) {
+                u32 newOffset = g_fakeBuffer->readOffset + packet->header.size + sizeof(CircularBufferPacketHeader);
+                if (newOffset >= BLUETOOTH_CIRCBUFFER_SIZE)
+                    newOffset = 0;
+
+                g_fakeBuffer->_setReadOffset(newOffset);
             }
-            else {
-                std::memcpy(buffer, g_eventDataBuffer, eventData->getReport.report_length + 0);  // Todo: check this size is correct, might need to add header size
-            }
+
+            if (packet->header.type == 0xff)
+                continue;
+
+            break;
         }
-        else {
-            std::memcpy(buffer, g_eventDataBuffer, size);
-        }
+
+
+
+        auto eventData = reinterpret_cast<HidEventData *>(buffer);
+
+        *type = static_cast<HidEventType>(packet->header.type);
+        std::memcpy(&eventData->getReport.address, &packet->data.address, sizeof(Address));
+        eventData->getReport.status = HidStatus_Ok;
+        eventData->getReport.report_length = packet->header.size;
+
+        std::memcpy(&eventData->getReport.report_data, &packet->data, packet->header.size);
+
+        //BTDRV_LOG_DATA_MSG(&packet->data, packet->header.size, "btdrv-mitm: hid::report::GetEventInfo -> Read");
+        //g_fakeBuffer->Free();
         
         return ams::ResultSuccess();
     }
 
-    void HandleEvent(void) {
+    void _HandleEvent() {
         controller::BluetoothController *controller;
         CircularBufferPacket *realPacket;      
-
-        //BTDRV_LOG_FMT("btdrv-mitm: HidReportEvent");           
 
         // Take snapshot of current write offset
         u32 writeOffset = g_realBuffer->writeOffset;
@@ -257,7 +282,7 @@ namespace ams::bluetooth::hid::report {
                             HidReport *outReport;
                             // copy address and stuff over
                             if (hos::GetVersion() < hos::Version_9_0_0) {
-                                g_fakeReportData->size = 0x42;    // Todo: check size is correct for report 0x30
+                                g_fakeReportData->size = 0x42;
                                 std::memcpy(&g_fakeReportData->address, &realPacket->data.address, sizeof(Address));
                                 inReport = &realPacket->data.report;
                                 outReport = &g_fakeReportData->report;
@@ -282,7 +307,6 @@ namespace ams::bluetooth::hid::report {
                     break;
 
                 default:
-                    //BTDRV_LOG_DATA_MSG(&realPacket->data, realPacket->header.size, "unknown packet received: %d", realPacket->header.type);
 
                     BTDRV_LOG_FMT("unknown packet received: %d", realPacket->header.type); 
                     //g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
@@ -290,6 +314,71 @@ namespace ams::bluetooth::hid::report {
             }
 
         } 
+    }
+
+    void _HandleEventDeprecated(void) {
+
+        std::scoped_lock lk(g_eventDataLock);
+        R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+
+        auto eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
+
+        //BTDRV_LOG_FMT("hid report event [%02d]", g_currentEventType);
+
+        switch (g_currentEventType) {
+
+            case HidEvent_GetReport:
+                {
+                    // Locate the controller that sent the report
+                    auto controller = ams::mitm::btdrv::locateController(&eventData->getReport.address);
+                    if (!controller) {
+                        return;
+                    }
+                    
+                    if (controller->isSwitchController()) {
+                        //BTDRV_LOG_DATA_MSG(&eventData->getReport.report_data, eventData->getReport.report_length, "Switch controller -> Write");
+                        int rc = g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
+                        //BTDRV_LOG_FMT("Write result: %d", rc);
+                    }
+                    else {
+                        const HidReport *inReport;
+                        HidReport *outReport;
+
+                        //BTDRV_LOG_FMT("Non-Switch controller");
+
+                        g_fakeReportData->size = 0x42; // Todo: check size is correct for report 0x30
+                        std::memcpy(&g_fakeReportData->address, &eventData->getReport.address, sizeof(Address));
+                        inReport = &eventData->getReport.report_data.report;
+                        outReport = &g_fakeReportData->report;
+
+                        auto switchData = reinterpret_cast<controller::SwitchReportData *>(&outReport->data);
+                        switchData->report0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+
+                        // Translate packet to switch pro format
+                        controller->convertReportFormat(inReport, outReport);
+                        //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
+
+                        // Write the converted report to our fake buffer
+                        g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));  
+                    }
+                }
+                break;
+
+            default:
+                BTDRV_LOG_FMT("unknown packet received: %d", g_currentEventType); 
+                //g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, &eventData->getReport.report_length);
+                break;
+        }
+    }
+
+    void HandleEvent(void) {
+        
+        if (hos::GetVersion() < hos::Version_7_0_0) {
+            _HandleEventDeprecated();
+        }
+        else {
+            _HandleEvent();
+        }
 
         if (!g_redirectHidReportEvents) {
             os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
