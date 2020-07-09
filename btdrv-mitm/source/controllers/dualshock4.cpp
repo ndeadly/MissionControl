@@ -110,6 +110,8 @@ namespace controller {
     }
 
     void Dualshock4Controller::handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
+        //dst->report0x30.battery = (((src->report0x11.battery / 64) + 1) << 1) & 0xf ;
+
         packStickData(&dst->report0x30.left_stick,
             static_cast<uint16_t>(scale_factor * src->report0x11.left_stick.x) & 0xfff,
             static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x11.left_stick.y)) & 0xfff
