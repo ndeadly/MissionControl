@@ -40,8 +40,10 @@ namespace ams::bluetooth {
     //typedef BluetoothHidReportEventData HidReportEventData;
     
     typedef BluetoothAddress Address;
-    typedef BluetoothHidData HidData;
     typedef BluetoothPinCode PinCode;
+
+    typedef BluetoothHidData    HidData;
+    //typedef BluetoothHidReport  HidReport;
 
     typedef BluetoothHhReportType HhReportType;
 

@@ -38,6 +38,10 @@ namespace ams::bluetooth::hid::report {
         u8 g_fakeReportBuffer[0x42] = {};
         HidReportData *g_fakeReportData = reinterpret_cast<HidReportData *>(g_fakeReportBuffer);
 
+        // Buffer for hid report responses. Might be able to replace the above
+        HidReport g_hidReport = {};
+
+
         void EventThreadFunc(void *arg) {
             while (true) {
                 os::WaitSystemEvent(&g_btHidReportSystemEvent);
@@ -156,6 +160,27 @@ namespace ams::bluetooth::hid::report {
         os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
 
         return ams::ResultSuccess();
+    }
+
+    /* Write a fake subcommand response into buffer */
+    Result FakeSubCmdResponse(const bluetooth::Address *address, u8 response[], size_t size) {
+        auto report = &g_hidReport;
+        report->type = 0x31;    // This is actually size, need to rename
+        report->id   = 0x21;
+
+        auto reportData = reinterpret_cast<controller::SwitchReport0x21 *>(&report->data);
+        reportData->conn_info   = 0;
+        reportData->battery     = 8;
+        reportData->buttons     = {0x00, 0x00, 0x00};
+        reportData->left_stick  = {0x0b, 0xb8, 0x78};
+        reportData->right_stick = {0xd9, 0xd7, 0x81};
+        reportData->vibrator    = 0;
+        std::memcpy(&reportData->subcmd, response, size);
+        
+        reportData->timer       = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+
+        // Todo: change types so we don't have to cast
+        return bluetooth::hid::report::WriteFakeHidData(address, reinterpret_cast<bluetooth::HidData *>(report));
     }
 
     /* Only used for < 7.0.0. newer firmwares read straight from shared memory */ 
@@ -321,7 +346,7 @@ namespace ams::bluetooth::hid::report {
                     
                     if (controller->isSwitchController()) {
                         //BTDRV_LOG_DATA_MSG(&eventData->getReport.report_data, eventData->getReport.report_length, "Switch controller -> Write");
-                        int rc = g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
+                        g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
                         //BTDRV_LOG_FMT("Write result: %d", rc);
                     }
                     else {
