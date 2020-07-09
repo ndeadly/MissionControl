@@ -18,7 +18,8 @@ namespace ams::bluetooth::hid::report {
     void Finalize(void);
 
     Result MapRemoteSharedMemory(Handle handle);
-    Result InitializeFakeSharedMemory(void);
+    //Result InitializeFakeSharedMemory(void);
+    Result InitializeReportBuffer(void);
 
     Result WriteFakeHidData(const Address *address, const HidData *data);
 

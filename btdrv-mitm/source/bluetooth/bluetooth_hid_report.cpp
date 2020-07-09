@@ -95,6 +95,9 @@ namespace ams::bluetooth::hid::report {
     void Finalize(void) {
         os::DestroyThread(&g_eventHandlerThread);
 
+        //if (hos::GetVersion() < hos::Version_7_0_0)
+            //delete g_fakeBuffer;
+
         os::DestroySystemEvent(&g_btHidReportSystemEventUser);
         os::DestroySystemEvent(&g_btHidReportSystemEventFwd); 
 
@@ -110,6 +113,27 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
+    Result InitializeReportBuffer(void) {
+        BTDRV_LOG_FMT("btdrv-mitm: InitializeReportBuffer");
+
+        // Todo: maybe just create shared memory for all fw?
+        if (hos::GetVersion() < hos::Version_7_0_0) {
+            g_fakeBuffer = new CircularBuffer();
+        }
+        else {
+            R_TRY(shmemCreate(&g_fakeBtShmem, BLUETOOTH_SHAREDMEM_SIZE, Perm_Rw, Perm_Rw));
+            R_TRY(shmemMap(&g_fakeBtShmem));
+            g_fakeBuffer = reinterpret_cast<CircularBuffer *>(shmemGetAddr(&g_fakeBtShmem));
+        }
+
+        g_fakeBuffer->Initialize("HID Report");
+        g_fakeBuffer->type = CircularBufferType_HidReport;
+        g_fakeBuffer->_unk3 = 1;
+
+        return ams::ResultSuccess();
+    }
+
+    /*
     Result InitializeFakeSharedMemory(void) {
         R_TRY(shmemCreate(&g_fakeBtShmem, BLUETOOTH_SHAREDMEM_SIZE, Perm_Rw, Perm_Rw));
         R_TRY(shmemMap(&g_fakeBtShmem));
