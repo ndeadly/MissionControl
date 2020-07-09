@@ -27,6 +27,10 @@ namespace controller {
 		uint8_t home 		: 1;
 	};
 
+	struct WiiAccelerometerData {
+		uint8_t xyz[3];
+	};
+
     class WiiController : public BluetoothController {
 
         public:
