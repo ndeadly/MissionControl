@@ -133,22 +133,6 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    /*
-    Result InitializeFakeSharedMemory(void) {
-        R_TRY(shmemCreate(&g_fakeBtShmem, BLUETOOTH_SHAREDMEM_SIZE, Perm_Rw, Perm_Rw));
-        R_TRY(shmemMap(&g_fakeBtShmem));
-        g_fakeBuffer = reinterpret_cast<CircularBuffer *>(shmemGetAddr(&g_fakeBtShmem));
-        BTDRV_LOG_FMT("Fake shmem @ 0x%p", (void *)g_fakeBuffer);
-
-        // Initialise fake hid report buffer the same way bluetooth does
-        g_fakeBuffer->Initialize("HID Report");
-        g_fakeBuffer->type = CircularBufferType_HidReport;
-        g_fakeBuffer->_unk3 = 1;
-
-        return ams::ResultSuccess();
-    }
-    */
-
     /* Write a fake report into the circular buffer */
     Result WriteFakeHidData(const Address *address, const HidData *data) {
 
