@@ -7,12 +7,12 @@ namespace controller {
     union WiimoteReportData {
 		struct {
 			WiiButtonData   buttons;
-			uint8_t         _unk;
+			//uint8_t         _unk;
 		} report0x30;
 
         struct {
-			WiiButtonData   buttons;
-			uint8_t         _unk;
+			WiiButtonData           buttons;
+			WiiAccelerometerData    accel;
 		} report0x31;
 	};
 
