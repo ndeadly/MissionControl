@@ -48,8 +48,17 @@ namespace controller {
         } report0x01;
 
         struct {
-            uint8_t guide    : 1;
+            uint8_t guide   : 1;
+            uint8_t         : 0; 
         } report0x02;
+
+        struct {
+            uint8_t capacity : 2;
+            uint8_t mode     : 2;
+            uint8_t charging : 1;
+            uint8_t          : 2;
+            uint8_t online   : 1;
+        } report0x04;
     };
 
     class XboxOneController : public BluetoothController {
@@ -67,7 +76,8 @@ namespace controller {
         private:
             void handleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst);
             void handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst);
-            
+            void handleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst);
+
     };
 
 }

@@ -35,6 +35,9 @@ namespace controller {
 
             case 0x02:
                 handleInputReport0x02(xboxData, switchData);
+
+            case 0x04:
+                this->handleInputReport0x04(xboxData, switchData);
                 break;
 
             default:
@@ -88,6 +91,19 @@ namespace controller {
     void XboxOneController::handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst) {
         std::memset(&dst->report0x30.buttons, 0, sizeof(SwitchButtonData));
         dst->report0x30.buttons.home = src->report0x02.guide;
+    }
+
+    void XboxOneController::handleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst) {
+        BTDRV_LOG_FMT("Xbox One battery flags: online: %d, mode: %d, capacity: %d", 
+            src->report0x04.online,
+            src->report0x04.mode,
+            src->report0x04.capacity
+        );
+
+        packStickData(&dst->report0x30.left_stick, STICK_ZERO, STICK_ZERO);
+        packStickData(&dst->report0x30.right_stick, STICK_ZERO, STICK_ZERO);
+        std::memset(&dst->report0x30.buttons, 0, sizeof(SwitchButtonData));
+
     }
 
 }
