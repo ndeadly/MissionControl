@@ -14,7 +14,8 @@ namespace controller {
 
     Result WiimoteController::initialize(void) {
         R_TRY(WiiController::initialize());
-        R_TRY(setReportMode(&m_address, 0x31));
+
+        R_TRY(this->setReportMode(&m_address, 0x31));
 
         return 0;
     }
@@ -31,11 +32,11 @@ namespace controller {
 
         switch(inReport->id) {
             case 0x30:
-                handleInputReport0x30(wiiData, switchData);
+                this->handleInputReport0x30(wiiData, switchData);
                 break;
 
             case 0x31:
-                handleInputReport0x31(wiiData, switchData);
+                this->handleInputReport0x31(wiiData, switchData);
                 break;
 
             default:

@@ -30,11 +30,12 @@ namespace controller {
 
         switch(inReport->id) {
             case 0x01:
-                handleInputReport0x01(xboxData, switchData);
+                this->handleInputReport0x01(xboxData, switchData);
                 break;
 
             case 0x02:
-                handleInputReport0x02(xboxData, switchData);
+                this->handleInputReport0x02(xboxData, switchData);
+                break;
 
             case 0x04:
                 this->handleInputReport0x04(xboxData, switchData);

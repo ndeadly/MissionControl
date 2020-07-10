@@ -11,7 +11,7 @@ namespace controller {
         BluetoothController::initialize();
         
         BTDRV_LOG_FMT("WiiController::initialize");
-        return setPlayerLeds(&m_address, WiiControllerLEDs_P1);   
+        return this->setPlayerLeds(&m_address, WiiControllerLEDs_P1);   
     }
 
     Result WiiController::writeMemory(const BluetoothAddress *address, uint32_t writeaddr, const uint8_t *data, uint8_t length) {

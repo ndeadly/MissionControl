@@ -18,21 +18,21 @@ namespace controller {
         BTDRV_LOG_FMT("WiiUProController::initialize");
 
         // This should actually probably be run in response to report 0x20
-        R_TRY(sendInit1(&m_address));
-        R_TRY(sendInit2(&m_address));
-        R_TRY(setReportMode(&m_address, 0x34));
+        R_TRY(this->sendInit1(&m_address));
+        R_TRY(this->sendInit2(&m_address));
+        R_TRY(this->setReportMode(&m_address, 0x34));
 
         return 0;
     }
 
     Result WiiUProController::sendInit1(const BluetoothAddress *address) {
         const uint8_t data[] = {0x55};
-        return writeMemory(address, 0x04a400f0, data, sizeof(data));
+        return this->writeMemory(address, 0x04a400f0, data, sizeof(data));
     }
 
     Result WiiUProController::sendInit2(const BluetoothAddress *address) {
         const uint8_t data[] = {0x00};
-        return writeMemory(address, 0x04a400fb, data, sizeof(data));
+        return this->writeMemory(address, 0x04a400fb, data, sizeof(data));
     }
 
     void WiiUProController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
@@ -47,7 +47,7 @@ namespace controller {
 
         switch(inReport->id) {
             case 0x20:  //extension connected
-                handleInputReport0x20(wiiUData, switchData);
+                this->handleInputReport0x20(wiiUData, switchData);
                 break;
 
             //case 0x22:  // Acknowledgement
@@ -57,7 +57,7 @@ namespace controller {
                 //break;
 
             case 0x34:  // Buttons + Ext bytes
-                handleInputReport0x34(wiiUData, switchData);
+                this->handleInputReport0x34(wiiUData, switchData);
                 break;
 
             default:

@@ -57,11 +57,11 @@ namespace controller {
 
         switch(inReport->id) {
             case 0x01:
-                handleInputReport0x01(ds4Data, switchData);
+                this->handleInputReport0x01(ds4Data, switchData);
                 break;
 
             case 0x11:
-                handleInputReport0x11(ds4Data, switchData);
+                this->handleInputReport0x11(ds4Data, switchData);
                 break;
 
             default:
