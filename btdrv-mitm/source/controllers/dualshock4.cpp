@@ -65,7 +65,7 @@ namespace controller {
                 break;
 
             default:
-                BTDRV_LOG_FMT("DS4: RECEIVED REPORT [%02d]", inReport->id);
+                BTDRV_LOG_FMT("DS4: RECEIVED REPORT [0x%02x]", inReport->id);
                 break;
         }
     }
