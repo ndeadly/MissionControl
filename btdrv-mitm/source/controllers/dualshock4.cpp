@@ -12,6 +12,13 @@ namespace controller {
 
         const constexpr float scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
+        const Dualshock4LedColour playerLedColours[] = {
+            {0x00, 0x00, 0x7f}, // blue
+            {0x7f, 0x00, 0x00}, // red
+            {0x00, 0x7f, 0x00}, // green
+            {0x7f, 0x00, 0x7f}  // pink
+        };
+
     }
 
     Dualshock4Controller::Dualshock4Controller(const BluetoothAddress *address)
@@ -21,15 +28,12 @@ namespace controller {
 
     Result Dualshock4Controller::initialize(void) {
         R_TRY(BluetoothController::initialize());
-        
-        //uint8_t r = 0xff;
-        //uint8_t g = 0x00;
-        //uint8_t b = 0x00;
-        //Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, r, g, b};    
 
-        uint8_t rgb[3];
-        randomGet(rgb, sizeof(rgb));
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, rgb[0], rgb[1], rgb[2]};
+        u8 ind;
+        randomGet(&ind, 1);
+        auto colour = playerLedColours[ind >> 6];
+
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, colour.r, colour.g, colour.b};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
         
         BluetoothHidData hidData = {};

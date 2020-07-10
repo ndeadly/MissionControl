@@ -4,6 +4,12 @@
 
 namespace controller {
 
+    struct Dualshock4LedColour {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+    };
+
     enum Dualshock4ControllerVariant {
         Dualshock4ControllerVariant_V1,
         Dualshock4ControllerVariant_V2,
