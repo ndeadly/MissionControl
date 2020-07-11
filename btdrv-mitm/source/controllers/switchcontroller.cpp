@@ -1,6 +1,6 @@
 #include "switchcontroller.hpp"
 
-namespace controller {
+namespace ams::controller {
 
 
 

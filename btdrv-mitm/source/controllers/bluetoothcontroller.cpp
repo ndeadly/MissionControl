@@ -1,13 +1,13 @@
 #include "bluetoothcontroller.hpp"
 #include "../btdrv_mitm_logging.hpp"
 
-namespace controller {
+namespace ams::controller {
 
-    BluetoothController::BluetoothController(ControllerType type, const BluetoothAddress *address) : m_type(type), m_address(*address) { 
+    BluetoothController::BluetoothController(ControllerType type, const bluetooth::Address *address) : m_type(type), m_address(*address) { 
         m_switchController = (type == ControllerType_Joycon) || (type == ControllerType_SwitchPro);
     }
 
-    const BluetoothAddress& BluetoothController::address(void) const {
+    const bluetooth::Address& BluetoothController::address(void) const {
         return m_address;
     }
 
@@ -20,7 +20,6 @@ namespace controller {
     }
 
     Result BluetoothController::initialize(void) {
-        BTDRV_LOG_FMT("BluetoothController::initialize");
         return 0;
     }
 

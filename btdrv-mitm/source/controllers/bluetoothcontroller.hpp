@@ -2,7 +2,9 @@
 #include <cstring>
 #include <switch.h>
 
-namespace controller {
+#include "../bluetooth/bluetooth_types.hpp"
+
+namespace ams::controller {
 
     struct HardwareID {
         uint16_t vid;
@@ -22,25 +24,25 @@ namespace controller {
     class BluetoothController {
 
         public:
-            const BluetoothAddress& address(void) const;
+            const bluetooth::Address& address(void) const;
             ControllerType type(void);
             bool isSwitchController(void);
 
             virtual Result initialize(void);
-            virtual void convertReportFormat(const HidReport *inReport, HidReport *outReport) {};
+            virtual void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {};
 
         protected:
-            BluetoothController(ControllerType type, const BluetoothAddress *address);
+            BluetoothController(ControllerType type, const bluetooth::Address *address);
 
             ControllerType m_type;
-            BluetoothAddress m_address;
+            bluetooth::Address m_address;
         
             bool m_switchController;
 
     };
 
-    inline bool bdcmp(const BluetoothAddress *addr1, const BluetoothAddress *addr2) {
-        return std::memcmp(addr1, addr2, sizeof(BluetoothAddress)) == 0;
+    inline bool bdcmp(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
+        return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
     }
 
 }

@@ -4,7 +4,7 @@
 #define UINT12_MAX 0xfff
 #define STICK_ZERO 0x800
 
-namespace controller {
+namespace ams::controller {
 
     enum BatteryLevel {
         BatteryLevel_Empty,
@@ -16,7 +16,7 @@ namespace controller {
         
     struct SwitchStickData {
         uint8_t xy[3];
-    };
+    } __attribute__ ((__packed__));
 
     struct SwitchButtonData {
         uint8_t Y              : 1;
@@ -42,7 +42,7 @@ namespace controller {
         uint8_t                : 2; // SR, SL (Left Joy)
         uint8_t L              : 1;
         uint8_t ZL             : 1;
-    };
+    } __attribute__ ((__packed__));
 
     struct Switch6AxisData {
         uint16_t    accel_x;
@@ -51,7 +51,7 @@ namespace controller {
         uint16_t    gyro_1;
         uint16_t    gyro_2;
         uint16_t    gyro_3;
-    };
+    } __attribute__ ((__packed__));
 
     struct SwitchReport0x21 {
         uint8_t             timer;
@@ -69,7 +69,7 @@ namespace controller {
             uint8_t         reply;
             uint8_t         data[0x22];
         } subcmd;
-    };
+    } __attribute__ ((__packed__));
 
     struct SwitchReport0x30 {
         uint8_t             timer;
@@ -85,10 +85,13 @@ namespace controller {
         Switch6AxisData     imu_10ms;
     } __attribute__ ((__packed__));
 
-    union SwitchReportData {
-        SwitchReport0x21 report0x21;
-        SwitchReport0x30 report0x30;
-    };
+    struct SwitchReportData {
+        uint8_t id;
+        union {
+            SwitchReport0x21 report0x21;
+            SwitchReport0x30 report0x30;
+        };
+    } __attribute__ ((__packed__));
 
     inline void packStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
         *stick = (SwitchStickData){

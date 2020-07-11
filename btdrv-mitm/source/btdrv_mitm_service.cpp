@@ -73,7 +73,7 @@ namespace ams::mitm::btdrv {
 
     Result BtdrvMitmService::WriteHidData(bluetooth::Address address, const sf::InPointerBuffer &buffer) {
 
-        auto requestData = reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer());
+        auto requestData = reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer());
         u8 cmdId = requestData->data[0];
 
         if (this->client_info.program_id == ncm::SystemProgramId::Hid) {
@@ -105,7 +105,7 @@ namespace ams::mitm::btdrv {
                                 
                                 u32 read_addr = *(u32 *)(&requestData->data[11]);
                                 u8  read_size = requestData->data[15];
-                                BTDRV_LOG_DATA_MSG((void *)requestData, requestData->length+2, "SPI flash read: %d bytes @ 0x%08x", read_size, read_addr);
+                                BTDRV_LOG_DATA_MSG((void *)requestData, requestData->size + 2, "SPI flash read: %d bytes @ 0x%08x", read_size, read_addr);
 
                                 if (read_addr == 0x6000 && read_size == 0x10) {
                                     const u8 response[] = {0x90, subCmdId, requestData->data[11], requestData->data[12], requestData->data[13], requestData->data[14], requestData->data[15],
@@ -238,7 +238,7 @@ namespace ams::mitm::btdrv {
 
         R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), 
             &address,
-            reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer()) 
+            reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer()) 
         ));
 
         return ams::ResultSuccess();
@@ -252,7 +252,7 @@ namespace ams::mitm::btdrv {
         R_TRY(btdrvSetHidReportFwd(this->forward_service.get(), 
             &address, 
             type, 
-            reinterpret_cast<const bluetooth::HidData *>(buffer.GetPointer())
+            reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer())
         ));
 
         return ams::ResultSuccess();

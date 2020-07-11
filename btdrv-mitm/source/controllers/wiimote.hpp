@@ -2,19 +2,8 @@
 #include "wiicontroller.hpp"
 #include "switchcontroller.hpp"
 
-namespace controller {
+namespace ams::controller {
 
-    union WiimoteReportData {
-		struct {
-			WiiButtonData   buttons;
-			//uint8_t         _unk;
-		} report0x30;
-
-        struct {
-			WiiButtonData           buttons;
-			WiiAccelerometerData    accel;
-		} report0x31;
-	};
 
 
     class WiimoteController : public WiiController {
@@ -24,15 +13,15 @@ namespace controller {
                 {0x057e, 0x0306},  // Official wiimote
             };
 
-            WiimoteController(const BluetoothAddress *address);
+            WiimoteController(const bluetooth::Address *address);
 
             Result initialize(void);
 
-            void convertReportFormat(const HidReport *inReport, HidReport *outReport);
+            void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
         private:
-            void handleInputReport0x30(const WiimoteReportData *src, SwitchReportData *dst);
-            void handleInputReport0x31(const WiimoteReportData *src, SwitchReportData *dst);
+            void handleInputReport0x30(const WiiReportData *src, SwitchReportData *dst);
+            void handleInputReport0x31(const WiiReportData *src, SwitchReportData *dst);
 
     };
 

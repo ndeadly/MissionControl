@@ -5,9 +5,9 @@
 
 #include "../btdrv_mitm_logging.hpp"
 
-namespace controller {
+namespace ams::controller {
 
-    WiiUProController::WiiUProController(const BluetoothAddress *address) 
+    WiiUProController::WiiUProController(const bluetooth::Address *address) 
     : WiiController(ControllerType_WiiUPro, address) {
 
     }
@@ -15,8 +15,6 @@ namespace controller {
     Result WiiUProController::initialize(void) {
         WiiController::initialize();
         
-        BTDRV_LOG_FMT("WiiUProController::initialize");
-
         // This should actually probably be run in response to report 0x20
         R_TRY(this->sendInit1(&m_address));
         R_TRY(this->sendInit2(&m_address));
@@ -25,29 +23,28 @@ namespace controller {
         return 0;
     }
 
-    Result WiiUProController::sendInit1(const BluetoothAddress *address) {
+    Result WiiUProController::sendInit1(const bluetooth::Address *address) {
         const uint8_t data[] = {0x55};
         return this->writeMemory(address, 0x04a400f0, data, sizeof(data));
     }
 
-    Result WiiUProController::sendInit2(const BluetoothAddress *address) {
+    Result WiiUProController::sendInit2(const bluetooth::Address *address) {
         const uint8_t data[] = {0x00};
         return this->writeMemory(address, 0x04a400fb, data, sizeof(data));
     }
 
-    void WiiUProController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
-        auto wiiUData = reinterpret_cast<const WiiUProReportData *>(&inReport->data);
-        auto switchData = reinterpret_cast<SwitchReportData *>(&outReport->data);
+    void WiiUProController::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
+        auto wiiUReport = reinterpret_cast<const WiiUProReportData *>(&inReport->data);
+        auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);
 
-        outReport->type = 0x31;
-        outReport->id = 0x30;
+        outReport->size = 0x31;
+        switchReport->id = 0x30;
+        switchReport->report0x30.conn_info = 0x0;
+        switchReport->report0x30.battery = 0x8;
 
-        switchData->report0x30.conn_info = 0x0;
-        switchData->report0x30.battery = 0x8;
-
-        switch(inReport->id) {
+        switch(wiiUReport->id) {
             case 0x20:  //extension connected
-                this->handleInputReport0x20(wiiUData, switchData);
+                this->handleInputReport0x20(wiiUReport, switchReport);
                 break;
 
             //case 0x22:  // Acknowledgement
@@ -57,11 +54,11 @@ namespace controller {
                 //break;
 
             case 0x34:  // Buttons + Ext bytes
-                this->handleInputReport0x34(wiiUData, switchData);
+                this->handleInputReport0x34(wiiUReport, switchReport);
                 break;
 
             default:
-                BTDRV_LOG_FMT("WIIUPRO: RECEIVED REPORT [0x%02x]", inReport->id);
+                BTDRV_LOG_FMT("WIIUPRO: RECEIVED REPORT [0x%02x]", wiiUReport->id);
                 break;
         }
     }

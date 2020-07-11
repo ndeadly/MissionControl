@@ -2,7 +2,7 @@
 #include "bluetoothcontroller.hpp"
 #include "switchcontroller.hpp"
 
-namespace controller {
+namespace ams::controller {
 
     struct Dualshock4LedColour {
         uint8_t r;
@@ -98,10 +98,13 @@ namespace controller {
         uint8_t packet_counter;
     } __attribute__((packed));
 
-    union Dualshock4ReportData {
-        Dualshock4InputReport0x01 report0x01;
-        Dualshock4InputReport0x11 report0x11;
-    };
+    struct Dualshock4ReportData {
+        uint8_t id;
+        union {
+            Dualshock4InputReport0x01 report0x01;
+            Dualshock4InputReport0x11 report0x11;
+        };
+    } __attribute__((packed));
 
     class Dualshock4Controller : public BluetoothController {
 
@@ -111,15 +114,15 @@ namespace controller {
                 {0x054c, 0x09cc}   // Official Dualshock4 v2
             };
 
-            Dualshock4Controller(const BluetoothAddress *address);
+            Dualshock4Controller(const bluetooth::Address *address);
             
             Result initialize(void);
             
-            void convertReportFormat(const HidReport *inReport, HidReport *outReport);
+            void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
         private:
             void handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst);
-            void handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst); 
+            void handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst);
     };
 
 }

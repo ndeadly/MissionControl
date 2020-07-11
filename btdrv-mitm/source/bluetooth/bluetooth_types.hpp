@@ -1,4 +1,5 @@
 #pragma once
+#include <stratosphere.hpp>
 #include <switch.h>
 
 namespace ams::bluetooth {
@@ -42,8 +43,8 @@ namespace ams::bluetooth {
     typedef BluetoothAddress Address;
     typedef BluetoothPinCode PinCode;
 
-    typedef BluetoothHidData    HidData;
-    //typedef BluetoothHidReport  HidReport;
+    typedef BluetoothHidReport     HidReport;
+    typedef BluetoothHidReportData HidReportData;
 
     typedef BluetoothHhReportType HhReportType;
 

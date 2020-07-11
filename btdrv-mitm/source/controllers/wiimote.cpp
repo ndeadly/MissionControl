@@ -5,9 +5,9 @@
 
 #include "../btdrv_mitm_logging.hpp"
 
-namespace controller {
+namespace ams::controller {
 
-    WiimoteController::WiimoteController(const BluetoothAddress *address)  
+    WiimoteController::WiimoteController(const bluetooth::Address *address)  
     : WiiController(ControllerType_Wiimote, address) {
 
     }
@@ -20,32 +20,31 @@ namespace controller {
         return 0;
     }
 
-    void WiimoteController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
-        auto wiiData = reinterpret_cast<const WiimoteReportData *>(&inReport->data);
-        auto switchData = reinterpret_cast<SwitchReportData *>(&outReport->data);
+    void WiimoteController::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
+        auto wiiReport = reinterpret_cast<const WiiReportData *>(&inReport->data);
+        auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);
 
-        outReport->type = 0x31;
-        outReport->id = 0x30;
+        outReport->size = 0x31;
+        switchReport->id = 0x30;
+        switchReport->report0x30.conn_info = 0x0;
+        switchReport->report0x30.battery = 0x8;
 
-        switchData->report0x30.conn_info = 0x0;
-        switchData->report0x30.battery = 0x8;
-
-        switch(inReport->id) {
+        switch(wiiReport->id) {
             case 0x30:
-                this->handleInputReport0x30(wiiData, switchData);
+                this->handleInputReport0x30(wiiReport, switchReport);
                 break;
 
             case 0x31:
-                this->handleInputReport0x31(wiiData, switchData);
+                this->handleInputReport0x31(wiiReport, switchReport);
                 break;
 
             default:
-                BTDRV_LOG_FMT("WIIMOTE: RECEIVED REPORT [0x%02x]", inReport->id);
+                BTDRV_LOG_FMT("WIIMOTE: RECEIVED REPORT [0x%02x]", wiiReport->id);
                 break;
         }
     }
 
-    void WiimoteController::handleInputReport0x30(const WiimoteReportData *src, SwitchReportData *dst) {
+    void WiimoteController::handleInputReport0x30(const WiiReportData *src, SwitchReportData *dst) {
         packStickData(&dst->report0x30.left_stick,  STICK_ZERO, STICK_ZERO);
         packStickData(&dst->report0x30.right_stick, STICK_ZERO, STICK_ZERO);
 
@@ -72,7 +71,7 @@ namespace controller {
         dst->report0x30.buttons.home    = src->report0x30.buttons.home;
     }
 
-    void WiimoteController::handleInputReport0x31(const WiimoteReportData *src, SwitchReportData *dst) {
+    void WiimoteController::handleInputReport0x31(const WiiReportData *src, SwitchReportData *dst) {
         packStickData(&dst->report0x30.left_stick,  STICK_ZERO, STICK_ZERO);
         packStickData(&dst->report0x30.right_stick, STICK_ZERO, STICK_ZERO);
 

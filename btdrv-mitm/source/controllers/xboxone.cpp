@@ -5,7 +5,7 @@
 
 #include "../btdrv_mitm_logging.hpp"
 
-namespace controller {
+namespace ams::controller {
 
     namespace {
 
@@ -13,36 +13,35 @@ namespace controller {
 
     }
 
-    XboxOneController::XboxOneController(const BluetoothAddress *address) 
+    XboxOneController::XboxOneController(const bluetooth::Address *address) 
     : BluetoothController(ControllerType_XboxOne, address) {
 
     }
 
-    void XboxOneController::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
-        auto xboxData = reinterpret_cast<const XboxOneReportData *>(&inReport->data);
-        auto switchData = reinterpret_cast<SwitchReportData *>(&outReport->data);
+    void XboxOneController::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
+        auto xboxReport = reinterpret_cast<const XboxOneReportData *>(&inReport->data);
+        auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);
 
-        outReport->type = 0x31;
-        outReport->id = 0x30;
+        outReport->size = 0x31;
+        switchReport->id = 0x30;
+        switchReport->report0x30.conn_info = 0x0;
+        switchReport->report0x30.battery = 0x8;
 
-        switchData->report0x30.conn_info = 0x0;
-        switchData->report0x30.battery = 0x8;
-
-        switch(inReport->id) {
+        switch(xboxReport->id) {
             case 0x01:
-                this->handleInputReport0x01(xboxData, switchData);
+                this->handleInputReport0x01(xboxReport, switchReport);
                 break;
 
             case 0x02:
-                this->handleInputReport0x02(xboxData, switchData);
+                this->handleInputReport0x02(xboxReport, switchReport);
                 break;
 
             case 0x04:
-                this->handleInputReport0x04(xboxData, switchData);
+                this->handleInputReport0x04(xboxReport, switchReport);
                 break;
 
             default:
-                BTDRV_LOG_FMT("XBONE: RECEIVED REPORT [0x%02x]", inReport->id);
+                BTDRV_LOG_FMT("XBONE: RECEIVED REPORT [0x%02x]", xboxReport->id);
                 break;
         }
     }
@@ -90,7 +89,10 @@ namespace controller {
     }
 
     void XboxOneController::handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst) {
+        packStickData(&dst->report0x30.left_stick, STICK_ZERO, STICK_ZERO);
+        packStickData(&dst->report0x30.right_stick, STICK_ZERO, STICK_ZERO);
         std::memset(&dst->report0x30.buttons, 0, sizeof(SwitchButtonData));
+
         dst->report0x30.buttons.home = src->report0x02.guide;
     }
 

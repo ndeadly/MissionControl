@@ -6,7 +6,7 @@
 
 #include "../btdrv_mitm_logging.hpp"
 
-namespace controller {
+namespace ams::controller {
 
     namespace {
 
@@ -21,7 +21,7 @@ namespace controller {
 
     }
 
-    Dualshock4Controller::Dualshock4Controller(const BluetoothAddress *address)
+    Dualshock4Controller::Dualshock4Controller(const bluetooth::Address *address)
     : BluetoothController(ControllerType_Dualshock4, address) {
 
     }
@@ -35,37 +35,36 @@ namespace controller {
 
         Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, colour.r, colour.g, colour.b};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
-        
-        BluetoothHidData hidData = {};
-        hidData.length = sizeof(report) - 1;
-        std::memcpy(&hidData.data, &report.data[1], hidData.length);
 
-        R_TRY(btdrvSetHidReport(&m_address, HidReportType_OutputReport, &hidData));
+        bluetooth::HidReport hidReport = {};
+        hidReport.size = sizeof(report) - 1;
+        std::memcpy(&hidReport.data, &report.data[1], hidReport.size);
+
+        R_TRY(btdrvSetHidReport(&m_address, HidReportType_OutputReport, &hidReport));
 
         return 0;
     }
 
-    void Dualshock4Controller::convertReportFormat(const HidReport *inReport, HidReport *outReport) {
-        auto ds4Data = reinterpret_cast<const Dualshock4ReportData *>(&inReport->data);
-        auto switchData = reinterpret_cast<SwitchReportData *>(&outReport->data);
+    void Dualshock4Controller::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
+        auto ds4Report = reinterpret_cast<const Dualshock4ReportData *>(&inReport->data);
+        auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);
 
-        outReport->type = 0x31;
-        outReport->id = 0x30;
+        outReport->size = 0x31;
+        switchReport->id = 0x30;
+        switchReport->report0x30.conn_info = 0x0;
+        switchReport->report0x30.battery = 0x8;
 
-        switchData->report0x30.conn_info = 0x0;
-        switchData->report0x30.battery = 0x8;
-
-        switch(inReport->id) {
+        switch(ds4Report->id) {
             case 0x01:
-                this->handleInputReport0x01(ds4Data, switchData);
+                this->handleInputReport0x01(ds4Report, switchReport);
                 break;
 
             case 0x11:
-                this->handleInputReport0x11(ds4Data, switchData);
+                this->handleInputReport0x11(ds4Report, switchReport);
                 break;
 
             default:
-                BTDRV_LOG_FMT("DS4: RECEIVED REPORT [0x%02x]", inReport->id);
+                BTDRV_LOG_FMT("DS4: RECEIVED REPORT [0x%02x]", ds4Report->id);
                 break;
         }
     }
@@ -109,8 +108,8 @@ namespace controller {
         dst->report0x30.buttons.lstick_press = src->report0x01.buttons.L3;
         dst->report0x30.buttons.rstick_press = src->report0x01.buttons.R3;
 
-        dst->report0x30.buttons.capture       = src->report0x01.buttons.tpad;
-        dst->report0x30.buttons.home          = src->report0x01.buttons.ps;
+        dst->report0x30.buttons.capture = src->report0x01.buttons.tpad;
+        dst->report0x30.buttons.home    = src->report0x01.buttons.ps;
     }
 
     void Dualshock4Controller::handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
@@ -154,8 +153,8 @@ namespace controller {
         dst->report0x30.buttons.lstick_press = src->report0x11.buttons.L3;
         dst->report0x30.buttons.rstick_press = src->report0x11.buttons.R3;
 
-        dst->report0x30.buttons.capture       = src->report0x11.buttons.tpad;
-        dst->report0x30.buttons.home          = src->report0x11.buttons.ps;
+        dst->report0x30.buttons.capture = src->report0x11.buttons.tpad;
+        dst->report0x30.buttons.home    = src->report0x11.buttons.ps;
     }
 
 }

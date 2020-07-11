@@ -2,7 +2,7 @@
 #include "wiicontroller.hpp"
 #include "switchcontroller.hpp"
 
-namespace controller {
+namespace ams::controller {
 
     struct WiiUProButtonData {
         uint8_t             : 1;
@@ -26,33 +26,38 @@ namespace controller {
         uint8_t rstick_press : 1;
         uint8_t lstick_press : 1;
         uint8_t : 0;
-    };
+    } __attribute__ ((__packed__));
 
-    union WiiUProReportData {
-        struct {
-            WiiButtonData core_buttons;
+    struct WiiUProReport0x34 {
+        WiiButtonData core_buttons;
 
-            /*
-            uint8_t left_stick_x    : 6;
-            uint8_t right_stick_x2  : 2;
+        /*
+        uint8_t left_stick_x    : 6;
+        uint8_t right_stick_x2  : 2;
 
-            uint8_t left_stick_y    : 6;
-            uint8_t right_stick_x1  : 2;
+        uint8_t left_stick_y    : 6;
+        uint8_t right_stick_x1  : 2;
 
-            uint8_t right_stick_x0  : 1;
-            uint8_t left_trigger_1  : 2;
-            uint8_t right_stick_y   : 5;
+        uint8_t right_stick_x0  : 1;
+        uint8_t left_trigger_1  : 2;
+        uint8_t right_stick_y   : 5;
 
-            uint8_t left_trigger_0  : 3;
-            uint8_t right_trigger   : 5;
-            */
-            uint16_t left_stick_x;
-            uint16_t right_stick_x;
-            uint16_t left_stick_y;
-            uint16_t right_stick_y;
-            WiiUProButtonData buttons;
-        } report0x34;
-    };
+        uint8_t left_trigger_0  : 3;
+        uint8_t right_trigger   : 5;
+        */
+        uint16_t left_stick_x;
+        uint16_t right_stick_x;
+        uint16_t left_stick_y;
+        uint16_t right_stick_y;
+        WiiUProButtonData buttons;
+    } __attribute__ ((__packed__));
+
+    struct WiiUProReportData {
+        uint8_t id;
+        union {
+            WiiUProReport0x34 report0x34;
+        }; 
+    } __attribute__ ((__packed__));
 
     class WiiUProController : public WiiController {
 
@@ -61,15 +66,15 @@ namespace controller {
                 {0x057e, 0x0330},  // Official Wii U Pro Controller
             };
 
-            WiiUProController(const BluetoothAddress *address);
+            WiiUProController(const bluetooth::Address *address);
 
-            void convertReportFormat(const HidReport *inReport, HidReport *outReport);
+            void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
             Result initialize(void);
 
         private:
-            Result sendInit1(const BluetoothAddress *address);
-            Result sendInit2(const BluetoothAddress *address);
+            Result sendInit1(const bluetooth::Address *address);
+            Result sendInit2(const bluetooth::Address *address);
 
             void handleInputReport0x20(const WiiUProReportData *src, SwitchReportData *dst);
             void handleInputReport0x34(const WiiUProReportData *src, SwitchReportData *dst);

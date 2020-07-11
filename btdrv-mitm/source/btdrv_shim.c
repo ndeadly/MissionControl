@@ -19,19 +19,19 @@ Result btdrvInitializeHidFwd(Service* srv, Handle *out_handle, u16 version) {
     );
 }
 
-Result btdrvWriteHidDataFwd(Service* srv, const BluetoothAddress *address, const BluetoothHidData *data) {
+Result btdrvWriteHidDataFwd(Service* srv, const BluetoothAddress *address, const BluetoothHidReport *data) {
     const struct {
         BluetoothAddress address;
     } in = { *address };
 
     return serviceMitmDispatchIn(srv, 19, in,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_In },
-        .buffers = { {data, sizeof(BluetoothHidData)} }
+        .buffers = { {data, sizeof(BluetoothHidReport)} }
     );
 }
 
 /*
-Result btdrvSetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, const BluetoothHidData *data) {
+Result btdrvSetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, const BluetoothHidReport *data) {
     const struct {
         BluetoothAddress address;
         BluetoothHhReportType type;
@@ -39,7 +39,7 @@ Result btdrvSetHidReportFwd(Service* srv, const BluetoothAddress *address, Bluet
 
     return serviceMitmDispatchIn(srv, 21, in,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_In },
-        .buffers = { {data, sizeof(BluetoothHidData)} }
+        .buffers = { {data, sizeof(BluetoothHidReport)} }
     );
 }
 
