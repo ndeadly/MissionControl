@@ -14,50 +14,47 @@ namespace ams::controller {
     }
 
     Result WiiController::writeMemory(const bluetooth::Address *address, uint32_t writeaddr, const uint8_t *data, uint8_t length) {
-        bluetooth::HidReport hidReport = {};
+        bluetooth::HidReport report = {};
+        report.size = sizeof(WiiOutputReport0x16) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(report.data);
+        reportData->id = 0x16;
+        reportData->output0x16.address = ams::util::SwapBytes(writeaddr);
+        reportData->output0x16.size = length;
+        std::memcpy(&reportData->output0x16.data, data, length);
+
+        return btdrvWriteHidData(address, &report);
         
-        const struct {
-            u8 id;
-            uint32_t writeaddr;
-            uint8_t length;
-            uint8_t data[0x10];
-        } __attribute__((packed)) reportData = {0x16, ams::util::SwapBytes(writeaddr), length, *data};
-
-        hidReport.size = sizeof(reportData);
-        std::memcpy(&hidReport.data, &reportData, sizeof(reportData));
-
-        return btdrvWriteHidData(address, &hidReport);
     }
 
     Result WiiController::setReportMode(const bluetooth::Address *address, uint8_t mode) {
-        bluetooth::HidReport hidReport = {};
+        bluetooth::HidReport report = {};
+        report.size = sizeof(WiiOutputReport0x12) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(report.data);
+        reportData->id = 0x12;
+        reportData->output0x12._unk = 0;
+        reportData->output0x12.report_mode = mode;
 
-        const struct {
-            u8 id;
-            u8 _unk;
-            u8 mode;
-        } reportData = {0x12, 0x00, mode};
-
-        hidReport.size = sizeof(reportData);
-        std::memcpy(&hidReport.data, &reportData, sizeof(reportData));
-
-        return btdrvWriteHidData(address, &hidReport);
+        return btdrvWriteHidData(address, &report);
     }
 
     Result WiiController::setPlayerLeds(const bluetooth::Address *address, uint8_t mask) {
-        bluetooth::HidReport hidReport = {};
-        //uint8_t reportData[] = {mask};    // set player led
+        bluetooth::HidReport report = {};
+        report.size = sizeof(WiiOutputReport0x15) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(report.data);
+        reportData->id = 0x11;
+        reportData->output0x11.leds = mask;
 
-        const struct {
-            u8 id;
-            u8 mask;
-        } __attribute__((packed)) reportData = {0x11, mask};
+        return btdrvWriteHidData(address, &report);
+    }
 
-        hidReport.size = sizeof(reportData);
-        //hidReport.id = 0x11;
-        std::memcpy(&hidReport.data, &reportData, sizeof(reportData));
-
-        return btdrvWriteHidData(address, &hidReport);
+    Result queryStatus(const bluetooth::Address *address) {
+        bluetooth::HidReport report = {};
+        report.size = sizeof(WiiOutputReport0x15) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(report.data);
+        reportData->id = 0x15;
+        reportData->output0x15._unk = 0;
+        
+        return btdrvWriteHidData(address, &report);
     }
 
 }
