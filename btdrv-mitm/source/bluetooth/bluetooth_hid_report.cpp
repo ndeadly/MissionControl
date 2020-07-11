@@ -190,20 +190,20 @@ namespace ams::bluetooth::hid::report {
 
        //BTDRV_LOG_FMT("!!! GetEventInfo Called");
 
-       CircularBufferPacket *packet;
+       bluetooth::CircularBufferPacket *packet;
 
         while (true) {
             if (g_fakeBuffer->readOffset == g_fakeBuffer->writeOffset)
                 continue;
 
             // Get packet from real buffer
-            packet = reinterpret_cast<CircularBufferPacket *>(&g_fakeBuffer->data[g_fakeBuffer->readOffset]);
+            packet = reinterpret_cast<bluetooth::CircularBufferPacket *>(&g_fakeBuffer->data[g_fakeBuffer->readOffset]);
             if (!packet)
                 continue;
 
             // Move read pointer past current packet (I think this is what Free does)
             if (g_fakeBuffer->readOffset != g_fakeBuffer->writeOffset) {
-                u32 newOffset = g_fakeBuffer->readOffset + packet->header.size + sizeof(CircularBufferPacketHeader);
+                u32 newOffset = g_fakeBuffer->readOffset + packet->header.size + sizeof(bluetooth::CircularBufferPacketHeader);
                 if (newOffset >= BLUETOOTH_CIRCBUFFER_SIZE)
                     newOffset = 0;
 
@@ -218,10 +218,10 @@ namespace ams::bluetooth::hid::report {
 
 
 
-        auto eventData = reinterpret_cast<HidEventData *>(buffer);
+        auto eventData = reinterpret_cast<bluetooth::HidEventData *>(buffer);
 
-        *type = static_cast<HidEventType>(packet->header.type);
-        std::memcpy(&eventData->getReport.address, &packet->data.address, sizeof(Address));
+        *type = static_cast<bluetooth::HidEventType>(packet->header.type);
+        std::memcpy(&eventData->getReport.address, &packet->data.address, sizeof(bluetooth::Address));
         eventData->getReport.status = HidStatus_Ok;
         eventData->getReport.report_length = packet->header.size;
 
@@ -342,13 +342,10 @@ namespace ams::bluetooth::hid::report {
                     if (device->isSwitchController()) {
                         //BTDRV_LOG_DATA_MSG(&eventData->getReport.report_data, eventData->getReport.report_length, "Switch controller -> Write");
                         g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
-                        //BTDRV_LOG_FMT("Write result: %d", rc);
                     }
                     else {
                         const bluetooth::HidReport *inReport;
                         bluetooth::HidReport *outReport;
-
-                        //BTDRV_LOG_FMT("Non-Switch controller");
 
                         g_fakeReportData->size = 0x42; // Todo: check size is correct for report 0x30
                         std::memcpy(&g_fakeReportData->address, &eventData->getReport.address, sizeof(bluetooth::Address));

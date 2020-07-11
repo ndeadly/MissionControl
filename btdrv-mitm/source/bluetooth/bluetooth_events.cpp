@@ -1,6 +1,6 @@
 #include <switch.h>
 #include "bluetooth_events.hpp"
-#include "../pscpm_module.hpp"
+//#include "../pscpm_module.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
 

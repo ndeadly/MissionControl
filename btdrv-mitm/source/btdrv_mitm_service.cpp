@@ -81,7 +81,8 @@ namespace ams::mitm::btdrv {
             if (device && !device->isSwitchController()) {                
                 
                 if (cmdId == 0x01) {
-                    auto subCmdId = static_cast<bluetooth::SubCmdType>(requestData->data[10]);
+                    const u8 *subCmd = &requestData->data[10];
+                    auto subCmdId = static_cast<bluetooth::SubCmdType>(subCmd[0]);
                     BTDRV_LOG_FMT("Subcommand report [0x%02x]", subCmdId);
 
                     switch (subCmdId) {
@@ -202,6 +203,9 @@ namespace ams::mitm::btdrv {
 
                         case bluetooth::SubCmd_SetPlayerLeds:
                             {
+                                // Todo: translate the packet and allow the write to happen in this case
+                                BTDRV_LOG_FMT("Player LED [%02x:%02x]", subCmd[1], subCmd[2]); 
+
                                 const u8 response[] = {0x80, subCmdId};
                                 bluetooth::hid::report::FakeSubCmdResponse(&address, response, sizeof(response));
                             }
