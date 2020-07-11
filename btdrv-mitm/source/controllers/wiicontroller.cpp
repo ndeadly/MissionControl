@@ -23,7 +23,6 @@ namespace ams::controller {
         std::memcpy(&reportData->output0x16.data, data, length);
 
         return btdrvWriteHidData(address, &report);
-        
     }
 
     Result WiiController::setReportMode(const bluetooth::Address *address, uint8_t mode) {

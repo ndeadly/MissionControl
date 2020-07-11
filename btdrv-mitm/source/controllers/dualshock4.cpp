@@ -48,11 +48,6 @@ namespace ams::controller {
         auto ds4Report = reinterpret_cast<const Dualshock4ReportData *>(&inReport->data);
         auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);
 
-        outReport->size = 0x31;
-        switchReport->id = 0x30;
-        switchReport->input0x30.conn_info = 0x0;
-        switchReport->input0x30.battery = 0x8;
-
         switch(ds4Report->id) {
             case 0x01:
                 this->handleInputReport0x01(ds4Report, switchReport);
@@ -66,9 +61,15 @@ namespace ams::controller {
                 BTDRV_LOG_FMT("DS4: RECEIVED REPORT [0x%02x]", ds4Report->id);
                 break;
         }
+
+        outReport->size = 0x31;
+        switchReport->id = 0x30;
+        switchReport->input0x30.conn_info = 0x0;
+        switchReport->input0x30.battery = m_battery | m_charging;
+        switchReport->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
-    void Dualshock4Controller::handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst) {
+    void Dualshock4Controller::handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst) {       
         packStickData(&dst->input0x30.left_stick,
             static_cast<uint16_t>(stickScaleFactor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stickScaleFactor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
@@ -113,6 +114,7 @@ namespace ams::controller {
 
     void Dualshock4Controller::handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
         //dst->input0x30.battery = (((src->report0x11.battery / 64) + 1) << 1) & 0xf ;
+        m_battery = convert8bitBatteryLevel(src->input0x11.battery);
 
         packStickData(&dst->input0x30.left_stick,
             static_cast<uint16_t>(stickScaleFactor * src->input0x11.left_stick.x) & 0xfff,

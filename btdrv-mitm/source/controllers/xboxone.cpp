@@ -22,11 +22,6 @@ namespace ams::controller {
         auto xboxReport = reinterpret_cast<const XboxOneReportData *>(&inReport->data);
         auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);
 
-        outReport->size = 0x31;
-        switchReport->id = 0x30;
-        switchReport->input0x30.conn_info = 0x0;
-        switchReport->input0x30.battery = 0x8;
-
         switch(xboxReport->id) {
             case 0x01:
                 this->handleInputReport0x01(xboxReport, switchReport);
@@ -44,6 +39,12 @@ namespace ams::controller {
                 BTDRV_LOG_FMT("XBONE: RECEIVED REPORT [0x%02x]", xboxReport->id);
                 break;
         }
+
+        outReport->size = 0x31;
+        switchReport->id = 0x30;
+        switchReport->input0x30.conn_info = 0x0;
+        switchReport->input0x30.battery = m_battery | m_charging;
+        switchReport->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
     void XboxOneController::handleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst) {
@@ -97,16 +98,11 @@ namespace ams::controller {
     }
 
     void XboxOneController::handleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst) {
-        BTDRV_LOG_FMT("Xbox One battery flags: online: %d, mode: %d, capacity: %d", 
-            src->input0x04.online,
-            src->input0x04.mode,
-            src->input0x04.capacity
-        );
+        m_battery = src->input0x04.capacity;
 
         packStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
         packStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
         std::memset(&dst->input0x30.buttons, 0, sizeof(SwitchButtonData));
-
     }
 
 }

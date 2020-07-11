@@ -3,6 +3,7 @@
 
 #define UINT12_MAX 0xfff
 #define STICK_ZERO 0x800
+#define BATTERY_MAX 8
 
 namespace ams::controller {
 
@@ -20,16 +21,6 @@ namespace ams::controller {
         uint16_t vid;
         uint16_t pid;
     };
-
-    /*
-    enum BatteryLevel {
-        BatteryLevel_Empty,
-        BatteryLevel_Critical,
-        BatteryLevel_Low,
-        BatteryLevel_Medium,
-        BatteryLevel_Full
-    };
-    */
         
     struct SwitchStickData {
         uint8_t xy[3];
@@ -139,6 +130,10 @@ namespace ams::controller {
             static_cast<uint8_t>((x >> 8) | ((y & 0xff) << 4)), 
             static_cast<uint8_t>((y >> 4) & 0xff)
         };
+    }
+
+    inline uint8_t convert8bitBatteryLevel(uint8_t battery) {
+        return (battery / 52) << 1;
     }
 
     inline bool bdcmp(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {

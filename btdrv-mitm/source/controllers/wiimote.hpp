@@ -19,6 +19,7 @@ namespace ams::controller {
             void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
         private:
+            void handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);
             void handleInputReport0x30(const WiiReportData *src, SwitchReportData *dst);
             void handleInputReport0x31(const WiiReportData *src, SwitchReportData *dst);
 

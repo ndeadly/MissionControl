@@ -22,12 +22,11 @@ namespace ams::controller {
         auto wiiReport = reinterpret_cast<const WiiReportData *>(&inReport->data);
         auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);
 
-        outReport->size = 0x31;
-        switchReport->id = 0x30;
-        switchReport->input0x30.conn_info = 0x0;
-        switchReport->input0x30.battery = 0x8;
-
         switch(wiiReport->id) {
+            case 0x20:  //extension connected
+                this->handleInputReport0x20(wiiReport, switchReport);
+                break;
+
             case 0x30:
                 this->handleInputReport0x30(wiiReport, switchReport);
                 break;
@@ -40,6 +39,16 @@ namespace ams::controller {
                 BTDRV_LOG_FMT("WIIMOTE: RECEIVED REPORT [0x%02x]", wiiReport->id);
                 break;
         }
+
+        outReport->size = 0x31;
+        switchReport->id = 0x30;
+        switchReport->input0x30.conn_info = 0x0;
+        switchReport->input0x30.battery = m_battery | m_charging;
+        switchReport->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+    }
+
+    void WiimoteController::handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst) {
+        m_battery = convert8bitBatteryLevel(src->input0x20.battery);
     }
 
     void WiimoteController::handleInputReport0x30(const WiiReportData *src, SwitchReportData *dst) {
