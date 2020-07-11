@@ -10,7 +10,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        const constexpr float stickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
         const Dualshock4LedColour playerLedColours[] = {
             {0x00, 0x00, 0x7f}, // blue
@@ -71,12 +71,12 @@ namespace ams::controller {
 
     void Dualshock4Controller::handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst) {
         packStickData(&dst->report0x30.left_stick,
-            static_cast<uint16_t>(scale_factor * src->report0x01.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x01.left_stick.y)) & 0xfff
+            static_cast<uint16_t>(stickScaleFactor * src->report0x01.left_stick.x) & 0xfff,
+            static_cast<uint16_t>(stickScaleFactor * (UINT8_MAX - src->report0x01.left_stick.y)) & 0xfff
         );
         packStickData(&dst->report0x30.right_stick,
-            static_cast<uint16_t>(scale_factor * src->report0x01.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x01.right_stick.y)) & 0xfff
+            static_cast<uint16_t>(stickScaleFactor * src->report0x01.right_stick.x) & 0xfff,
+            static_cast<uint16_t>(stickScaleFactor * (UINT8_MAX - src->report0x01.right_stick.y)) & 0xfff
         );
 
         dst->report0x30.buttons.dpad_down   = (src->report0x01.buttons.dpad == Dualshock4DPad_S)  ||
@@ -116,12 +116,12 @@ namespace ams::controller {
         //dst->report0x30.battery = (((src->report0x11.battery / 64) + 1) << 1) & 0xf ;
 
         packStickData(&dst->report0x30.left_stick,
-            static_cast<uint16_t>(scale_factor * src->report0x11.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x11.left_stick.y)) & 0xfff
+            static_cast<uint16_t>(stickScaleFactor * src->report0x11.left_stick.x) & 0xfff,
+            static_cast<uint16_t>(stickScaleFactor * (UINT8_MAX - src->report0x11.left_stick.y)) & 0xfff
         );
         packStickData(&dst->report0x30.right_stick,
-            static_cast<uint16_t>(scale_factor * src->report0x11.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(scale_factor * (UINT8_MAX - src->report0x11.right_stick.y)) & 0xfff
+            static_cast<uint16_t>(stickScaleFactor * src->report0x11.right_stick.x) & 0xfff,
+            static_cast<uint16_t>(stickScaleFactor * (UINT8_MAX - src->report0x11.right_stick.y)) & 0xfff
         );
 
         dst->report0x30.buttons.dpad_down   = (src->report0x11.buttons.dpad == Dualshock4DPad_S)  ||
