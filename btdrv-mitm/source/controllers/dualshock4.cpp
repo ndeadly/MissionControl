@@ -39,7 +39,7 @@ namespace ams::controller {
         hidReport.size = sizeof(report) - 1;
         std::memcpy(&hidReport.data, &report.data[1], hidReport.size);
 
-        R_TRY(btdrvSetHidReport(&m_address, HidReportType_OutputReport, &hidReport));
+        R_TRY(btdrvWriteHidData(&m_address, &hidReport));
 
         return 0;
     }
