@@ -31,66 +31,66 @@ namespace ams::controller {
 		uint8_t xyz[3];
 	} __attribute__ ((__packed__));
 
-	    struct WiiReport0x30 {
+	    struct WiiInputReport0x30 {
         WiiButtonData   buttons;
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x31 {
+    struct WiiInputReport0x31 {
         WiiButtonData           buttons;
         WiiAccelerometerData    accel;
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x32 {
+    struct WiiInputReport0x32 {
         WiiButtonData   buttons;
         uint8_t         extension[8];
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x33 {
+    struct WiiInputReport0x33 {
         WiiButtonData           buttons;
         WiiAccelerometerData    accel;
         uint8_t                 ir[12];
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x34 {
+    struct WiiInputReport0x34 {
         WiiButtonData           buttons;
         uint8_t                 extension[19];
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x35 {
+    struct WiiInputReport0x35 {
         WiiButtonData           buttons;
         WiiAccelerometerData    accel;
         uint8_t                 extension[16];
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x36 {
+    struct WiiInputReport0x36 {
         WiiButtonData   buttons;
         uint8_t         ir[10];
         uint8_t         extension[9];
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x37 {
+    struct WiiInputReport0x37 {
         WiiButtonData           buttons;
         WiiAccelerometerData    accel;
         uint8_t                 ir[10];
         uint8_t                 extension[6];
     } __attribute__ ((__packed__));
 
-    struct WiiReport0x3d {
+    struct WiiInputReport0x3d {
         uint8_t extension[21];
     } __attribute__ ((__packed__));
 
     struct WiiReportData {
         uint8_t id;
         union {
-            WiiReport0x30 report0x30;
-            WiiReport0x31 report0x31;
-            WiiReport0x32 report0x32;
-            WiiReport0x33 report0x33;
-            WiiReport0x34 report0x34;
-            WiiReport0x35 report0x35;
-            WiiReport0x36 report0x36;
-            WiiReport0x37 report0x37;
-            WiiReport0x3d report0x3d;
+            WiiInputReport0x30 input0x30;
+            WiiInputReport0x31 input0x31;
+            WiiInputReport0x32 input0x32;
+            WiiInputReport0x33 input0x33;
+            WiiInputReport0x34 input0x34;
+            WiiInputReport0x35 input0x35;
+            WiiInputReport0x36 input0x36;
+            WiiInputReport0x37 input0x37;
+            WiiInputReport0x3d input0x3d;
         };
 	} __attribute__ ((__packed__));
 
@@ -106,10 +106,6 @@ namespace ams::controller {
             Result setReportMode(const bluetooth::Address *address, uint8_t mode);
             Result setPlayerLeds(const bluetooth::Address *address, uint8_t mask);
 
-        private:
-            //void mapStickValues(JoystickPosition *dst, const Dualshock4StickData *src);
-            //void handleInputReport0x01(const Dualshock4ReportData *data);
-            //void handleInputReport0x11(const Dualshock4ReportData *data); 
     };
 
 

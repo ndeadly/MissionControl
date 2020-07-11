@@ -101,8 +101,8 @@ namespace ams::controller {
     struct Dualshock4ReportData {
         uint8_t id;
         union {
-            Dualshock4InputReport0x01 report0x01;
-            Dualshock4InputReport0x11 report0x11;
+            Dualshock4InputReport0x01 input0x01;
+            Dualshock4InputReport0x11 input0x11;
         };
     } __attribute__((packed));
 

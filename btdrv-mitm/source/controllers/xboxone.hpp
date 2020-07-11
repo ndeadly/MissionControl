@@ -38,7 +38,7 @@ namespace ams::controller {
         uint8_t              : 0;
     } __attribute__ ((__packed__));
 
-    struct XboxOneReport0x01 {
+    struct XboxOneInputReport0x01 {
         XboxOneStickData    left_stick;
         XboxOneStickData    right_stick;
         uint16_t            left_trigger;
@@ -46,12 +46,12 @@ namespace ams::controller {
         XboxOneButtonData   buttons;
     } __attribute__ ((__packed__));
 
-    struct XboxOneReport0x02{
+    struct XboxOneInputReport0x02{
         uint8_t guide   : 1;
         uint8_t         : 0; 
     } __attribute__ ((__packed__)); 
 
-    struct XboxOneReport0x04{
+    struct XboxOneInputReport0x04{
         uint8_t capacity : 2;
         uint8_t mode     : 2;
         uint8_t charging : 1;
@@ -62,9 +62,9 @@ namespace ams::controller {
     struct XboxOneReportData {
         uint8_t id;
         union {
-            XboxOneReport0x01 report0x01;
-            XboxOneReport0x02 report0x02;
-            XboxOneReport0x04 report0x04;
+            XboxOneInputReport0x01 input0x01;
+            XboxOneInputReport0x02 input0x02;
+            XboxOneInputReport0x04 input0x04;
         };
     } __attribute__ ((__packed__));
 

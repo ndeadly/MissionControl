@@ -143,7 +143,7 @@ namespace ams::bluetooth::hid::report {
 
         u16 bufferSize = report->size + 0x11;
         u8 buffer[bufferSize] = {};
-        auto fakeReportData = reinterpret_cast<HidReportData *>(buffer);
+        auto fakeReportData = reinterpret_cast<bluetooth::HidReportData *>(buffer);
 
         if (hos::GetVersion() < hos::Version_9_0_0) {
             fakeReportData->size = bufferSize;
@@ -163,20 +163,22 @@ namespace ams::bluetooth::hid::report {
 
     /* Write a fake subcommand response into buffer */
     Result FakeSubCmdResponse(const bluetooth::Address *address, const u8 response[], size_t size) {
+        BTDRV_LOG_FMT("SIZE OF INPUT REPORT 0x21: 0x%x", sizeof(controller::SwitchInputReport0x21));
+        BTDRV_LOG_FMT("SIZE OF INPUT REPORT 0x30: 0x%x", sizeof(controller::SwitchInputReport0x30));
+
         auto report = &g_hidReport;
-        report->size = 0x31;
+        auto reportData = reinterpret_cast<controller::SwitchReportData *>(&report->data);
+        report->size = sizeof(controller::SwitchInputReport0x21);
+        reportData->id   = 0x21;
+        reportData->input0x21.conn_info   = 0;
+        reportData->input0x21.battery     = 8;
+        reportData->input0x21.buttons     = {0x00, 0x00, 0x00};
+        reportData->input0x21.left_stick  = {0x0b, 0xb8, 0x78};
+        reportData->input0x21.right_stick = {0xd9, 0xd7, 0x81};
+        reportData->input0x21.vibrator    = 0;
+        std::memcpy(&reportData->input0x21.subcmd, response, size);
 
-        report->data[0]   = 0x21;
-        auto reportData = reinterpret_cast<controller::SwitchReport0x21 *>(&report->data[1]);
-        reportData->conn_info   = 0;
-        reportData->battery     = 8;
-        reportData->buttons     = {0x00, 0x00, 0x00};
-        reportData->left_stick  = {0x0b, 0xb8, 0x78};
-        reportData->right_stick = {0xd9, 0xd7, 0x81};
-        reportData->vibrator    = 0;
-        std::memcpy(&reportData->subcmd, response, size);
-
-        reportData->timer       = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+        reportData->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         // Todo: change types so we don't have to cast
         return bluetooth::hid::report::WriteFakeHidData(address, report);
@@ -302,7 +304,7 @@ namespace ams::bluetooth::hid::report {
                             }
 
                             auto switchData = reinterpret_cast<controller::SwitchReportData *>(&outReport->data);
-                            switchData->report0x30.timer = os::ConvertToTimeSpan(realPacket->header.timestamp).GetMilliSeconds() & 0xff;
+                            switchData->input0x30.timer = os::ConvertToTimeSpan(realPacket->header.timestamp).GetMilliSeconds() & 0xff;
 
                             // Translate packet to switch pro format
                             controller->convertReportFormat(inReport, outReport);
@@ -360,7 +362,7 @@ namespace ams::bluetooth::hid::report {
                         outReport = &g_fakeReportData->report;
 
                         auto switchData = reinterpret_cast<controller::SwitchReportData *>(&outReport->data);
-                        switchData->report0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+                        switchData->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
                         // Translate packet to switch pro format
                         controller->convertReportFormat(inReport, outReport);

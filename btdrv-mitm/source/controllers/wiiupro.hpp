@@ -28,35 +28,12 @@ namespace ams::controller {
         uint8_t : 0;
     } __attribute__ ((__packed__));
 
-    struct WiiUProReport0x34 {
-        WiiButtonData core_buttons;
-
-        /*
-        uint8_t left_stick_x    : 6;
-        uint8_t right_stick_x2  : 2;
-
-        uint8_t left_stick_y    : 6;
-        uint8_t right_stick_x1  : 2;
-
-        uint8_t right_stick_x0  : 1;
-        uint8_t left_trigger_1  : 2;
-        uint8_t right_stick_y   : 5;
-
-        uint8_t left_trigger_0  : 3;
-        uint8_t right_trigger   : 5;
-        */
+    struct WiiUProExtensionData {
         uint16_t left_stick_x;
         uint16_t right_stick_x;
         uint16_t left_stick_y;
         uint16_t right_stick_y;
         WiiUProButtonData buttons;
-    } __attribute__ ((__packed__));
-
-    struct WiiUProReportData {
-        uint8_t id;
-        union {
-            WiiUProReport0x34 report0x34;
-        }; 
     } __attribute__ ((__packed__));
 
     class WiiUProController : public WiiController {
@@ -76,8 +53,8 @@ namespace ams::controller {
             Result sendInit1(const bluetooth::Address *address);
             Result sendInit2(const bluetooth::Address *address);
 
-            void handleInputReport0x20(const WiiUProReportData *src, SwitchReportData *dst);
-            void handleInputReport0x34(const WiiUProReportData *src, SwitchReportData *dst);
+            void handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);
+            void handleInputReport0x34(const WiiReportData *src, SwitchReportData *dst);
 
     };
 

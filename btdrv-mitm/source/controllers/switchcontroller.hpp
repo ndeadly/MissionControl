@@ -53,11 +53,10 @@ namespace ams::controller {
         uint16_t    gyro_3;
     } __attribute__ ((__packed__));
 
-    struct SwitchReport0x21 {
+    struct SwitchInputReport0x21 {
         uint8_t             timer;
         uint8_t             conn_info      : 4;
         uint8_t             battery        : 4;
-        //uint8_t             timer;
         SwitchButtonData    buttons;
         SwitchStickData     left_stick;
         SwitchStickData     right_stick;
@@ -71,7 +70,9 @@ namespace ams::controller {
         } subcmd;
     } __attribute__ ((__packed__));
 
-    struct SwitchReport0x30 {
+    struct SwitchInputReport0x23;
+
+    struct SwitchInputReport0x30 {
         uint8_t             timer;
         uint8_t             conn_info      : 4;
         uint8_t             battery        : 4;
@@ -85,11 +86,33 @@ namespace ams::controller {
         Switch6AxisData     imu_10ms;
     } __attribute__ ((__packed__));
 
+    struct SwitchInputReport0x31;
+    struct SwitchInputReport0x32;
+    struct SwitchInputReport0x33;
+    struct SwitchInputReport0x3f;
+
+    struct SwitchOutputReport0x01;
+    struct SwitchOutputReport0x03;
+    struct SwitchOutputReport0x10;
+    struct SwitchOutputReport0x11;
+    struct SwitchOutputReport0x12;
+
     struct SwitchReportData {
         uint8_t id;
         union {
-            SwitchReport0x21 report0x21;
-            SwitchReport0x30 report0x30;
+            SwitchInputReport0x21 input0x21;
+            SwitchInputReport0x30 input0x30;
+            //SwitchInputReport0x31 input0x31;
+            //SwitchInputReport0x32 input0x32;
+            //SwitchInputReport0x33 input0x33;
+            //SwitchInputReport0x3f input0x3f;
+            /*
+            SwitchOutputReport0x01 output0x01;
+            SwitchOutputReport0x03 output0x03;
+            SwitchOutputReport0x10 output0x10;
+            SwitchOutputReport0x11 output0x11;
+            SwitchOutputReport0x12 output0x12;
+            */
         };
     } __attribute__ ((__packed__));
 
