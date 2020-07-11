@@ -14,7 +14,7 @@ namespace ams::controller {
     }
 
     XboxOneController::XboxOneController(const bluetooth::Address *address) 
-    : BluetoothController(ControllerType_XboxOne, address) {
+    : FakeSwitchController(ControllerType_XboxOne, address) {
 
     }
 

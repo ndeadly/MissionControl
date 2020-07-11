@@ -1,5 +1,5 @@
 #pragma once
-#include "bluetoothcontroller.hpp"
+#include "fakeswitchcontroller.hpp"
 
 namespace ams::controller {
 
@@ -94,13 +94,13 @@ namespace ams::controller {
         };
 	} __attribute__ ((__packed__));
 
-    class WiiController : public BluetoothController {
+    class WiiController : public FakeSwitchController {
 
         public:
             Result initialize(void);
 
         protected:
-            WiiController(ControllerType type, const bluetooth::Address *address) : BluetoothController(type, address) {};
+            WiiController(ControllerType type, const bluetooth::Address *address) : FakeSwitchController(type, address) {};
 
             Result writeMemory(const bluetooth::Address *address, uint32_t writeaddr, const uint8_t *data, uint8_t length);
             Result setReportMode(const bluetooth::Address *address, uint8_t mode);

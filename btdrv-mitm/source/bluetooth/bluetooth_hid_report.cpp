@@ -6,8 +6,6 @@
 #include "bluetooth_circularbuffer.hpp"
 #include "../btdrv_mitm_flags.hpp"
 #include "../controllermanager.hpp"
-#include "../controllers/bluetoothcontroller.hpp"
-#include "../controllers/switchcontroller.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
 
@@ -163,9 +161,6 @@ namespace ams::bluetooth::hid::report {
 
     /* Write a fake subcommand response into buffer */
     Result FakeSubCmdResponse(const bluetooth::Address *address, const u8 response[], size_t size) {
-        BTDRV_LOG_FMT("SIZE OF INPUT REPORT 0x21: 0x%x", sizeof(controller::SwitchInputReport0x21));
-        BTDRV_LOG_FMT("SIZE OF INPUT REPORT 0x30: 0x%x", sizeof(controller::SwitchInputReport0x30));
-
         auto report = &g_hidReport;
         auto reportData = reinterpret_cast<controller::SwitchReportData *>(&report->data);
         report->size = sizeof(controller::SwitchInputReport0x21);
@@ -239,7 +234,6 @@ namespace ams::bluetooth::hid::report {
     }
 
     void _HandleEvent() {
-        controller::BluetoothController *controller;
         bluetooth::CircularBufferPacket *realPacket;      
 
         // Take snapshot of current write offset
@@ -278,7 +272,7 @@ namespace ams::bluetooth::hid::report {
                 case 4:
                     {
                         // Locate the controller that sent the report
-                        controller = ams::mitm::btdrv::locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
+                        auto controller = ams::mitm::btdrv::locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
                         if (!controller) {
                             continue;
                         } 

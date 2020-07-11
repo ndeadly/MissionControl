@@ -1,11 +1,27 @@
 #pragma once
-#include "bluetoothcontroller.hpp"
+#include "../bluetooth/bluetooth_types.hpp"
 
 #define UINT12_MAX 0xfff
 #define STICK_ZERO 0x800
 
 namespace ams::controller {
 
+    enum ControllerType {
+        ControllerType_Unknown,
+        ControllerType_Joycon,
+        ControllerType_SwitchPro,
+        ControllerType_Wiimote,
+        ControllerType_WiiUPro,
+        ControllerType_Dualshock4,
+        ControllerType_XboxOne,
+    };
+
+    struct HardwareID {
+        uint16_t vid;
+        uint16_t pid;
+    };
+
+    /*
     enum BatteryLevel {
         BatteryLevel_Empty,
         BatteryLevel_Critical,
@@ -13,6 +29,7 @@ namespace ams::controller {
         BatteryLevel_Medium,
         BatteryLevel_Full
     };
+    */
         
     struct SwitchStickData {
         uint8_t xy[3];
@@ -124,18 +141,44 @@ namespace ams::controller {
         };
     }
 
-    class SwitchProController : public BluetoothController {
+    inline bool bdcmp(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
+        return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
+    }
+
+    class SwitchController {
+
+        public: 
+            const bluetooth::Address& address(void) const;
+            ControllerType type(void);
+            bool isSwitchController(void);
+
+            virtual Result initialize(void);
+            virtual void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {};
+
+        protected:
+            SwitchController(ControllerType type, const bluetooth::Address *address);
+
+            ControllerType m_type;
+            bluetooth::Address m_address;
+            bool    m_charging;
+            uint8_t m_battery;
+        
+            bool m_switchController;
+
+    };
+
+    class SwitchProController : public SwitchController {
 
         public:
             static constexpr const HardwareID hardwareIds[] = { 
                 {0x057e, 0x2009}   // Official Switch Pro Controller
             };
 
-            SwitchProController(const BluetoothAddress *address) : BluetoothController(ControllerType_SwitchPro, address) {};
+            SwitchProController(const bluetooth::Address *address) : SwitchController(ControllerType_SwitchPro, address) {};
 
     };
 
-    class JoyconController : public BluetoothController {
+    class JoyconController : public SwitchController {
 
         public:
             static constexpr const HardwareID hardwareIds[] = { 
@@ -143,7 +186,7 @@ namespace ams::controller {
                 {0x057e, 0x2007},   // Official Joycon(R) Controller
             };
 
-            JoyconController(const BluetoothAddress *address) : BluetoothController(ControllerType_Joycon, address) {};
+            JoyconController(const bluetooth::Address *address) : SwitchController(ControllerType_Joycon, address) {};
 
     };
 

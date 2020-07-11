@@ -22,12 +22,11 @@ namespace ams::controller {
     }
 
     Dualshock4Controller::Dualshock4Controller(const bluetooth::Address *address)
-    : BluetoothController(ControllerType_Dualshock4, address) {
-
+    : FakeSwitchController(ControllerType_Dualshock4, address) {
     }
 
     Result Dualshock4Controller::initialize(void) {
-        R_TRY(BluetoothController::initialize());
+        R_TRY(FakeSwitchController::initialize());
 
         u8 ind;
         randomGet(&ind, 1);

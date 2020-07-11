@@ -1,7 +1,5 @@
 #include "wiimote.hpp"
-#include "switchcontroller.hpp"
 #include <stratosphere.hpp>
-#include "../bluetooth/bluetooth_hid_report.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
 

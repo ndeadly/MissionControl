@@ -1,6 +1,5 @@
 #pragma once
-#include "bluetoothcontroller.hpp"
-#include "switchcontroller.hpp"
+#include "fakeswitchcontroller.hpp"
 
 namespace ams::controller {
 
@@ -106,7 +105,7 @@ namespace ams::controller {
         };
     } __attribute__((packed));
 
-    class Dualshock4Controller : public BluetoothController {
+    class Dualshock4Controller : public FakeSwitchController {
 
         public:
             static constexpr const HardwareID hardwareIds[] = { 

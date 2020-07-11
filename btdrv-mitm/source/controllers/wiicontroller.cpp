@@ -8,9 +8,8 @@
 namespace ams::controller {
 
     Result WiiController::initialize(void) {
-        BluetoothController::initialize();
+        FakeSwitchController::initialize();
         
-        BTDRV_LOG_FMT("WiiController::initialize");
         return this->setPlayerLeds(&m_address, WiiControllerLEDs_P1);   
     }
 

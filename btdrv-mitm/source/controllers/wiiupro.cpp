@@ -64,7 +64,7 @@ namespace ams::controller {
     }
 
     void WiiUProController::handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst) {
-
+        BTDRV_LOG_FMT("WII STATUS REPORT: battery: 0x%02x", src->input0x20.battery);   
     }
 
     void WiiUProController::handleInputReport0x34(const WiiReportData *src, SwitchReportData *dst) {

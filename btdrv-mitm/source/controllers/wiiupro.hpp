@@ -1,6 +1,5 @@
 #pragma once
 #include "wiicontroller.hpp"
-#include "switchcontroller.hpp"
 
 namespace ams::controller {
 

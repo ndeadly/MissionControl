@@ -1,7 +1,5 @@
-#include <functional>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <vector>
 #include <cstring>
 #include <stratosphere.hpp>
@@ -19,46 +17,19 @@ namespace ams::mitm::btdrv {
 
     namespace {
 
-        std::priority_queue<int, std::vector<int>, std::greater<int>> g_uniqueIds;
-
         os::Mutex g_controllerLock(false);
-        std::vector<std::unique_ptr<controller::BluetoothController>> g_controllers;
+        std::vector<std::unique_ptr<controller::SwitchController>> g_controllers;
 
-    }
-
-    void initUniqueIds(void) {
-        for (int n: {1, 2, 3, 4, 5, 6, 7, 8}) {
-            g_uniqueIds.push(n);
-        }
-    }
-
-    bool uniqueIdAvailable(void) {
-        return !g_uniqueIds.empty();
-    }
-
-    int acquireUniqueId(void) {
-        if (uniqueIdAvailable()) {
-            auto id = g_uniqueIds.top();
-            g_uniqueIds.pop();
-            return id;
-        }
-
-        return -1;
-    }
-
-    void releaseUniqueId(int id) {
-        if (id > 0 && id <= 4)
-            g_uniqueIds.push(id);
     }
 
     bool IsValidSwitchControllerName(const char *name) {
         return std::strncmp(name, "Joy-Con (L)", 		sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0  ||
-               std::strncmp(name, "Pro Controller", 	sizeof(BluetoothName)) == 0  ||
-               std::strncmp(name, "Lic Pro Controller", sizeof(BluetoothName)) == 0  ||
-               std::strncmp(name, "NES Controller", 	sizeof(BluetoothName)) == 0  ||
-               std::strncmp(name, "HVC Controller", 	sizeof(BluetoothName)) == 0  ||
-               std::strncmp(name, "SNES Controller", 	sizeof(BluetoothName)) == 0  ||
+               std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0 ||
+               std::strncmp(name, "Pro Controller", 	sizeof(BluetoothName)) == 0 ||
+               std::strncmp(name, "Lic Pro Controller", sizeof(BluetoothName)) == 0 ||
+               std::strncmp(name, "NES Controller", 	sizeof(BluetoothName)) == 0 ||
+               std::strncmp(name, "HVC Controller", 	sizeof(BluetoothName)) == 0 ||
+               std::strncmp(name, "SNES Controller", 	sizeof(BluetoothName)) == 0 ||
                std::strncmp(name, "NintendoGamepad", 	sizeof(BluetoothName)) == 0 ;
     }
 
@@ -103,7 +74,7 @@ namespace ams::mitm::btdrv {
         return controller::ControllerType_Unknown;
     }
 
-    controller::BluetoothController *locateController(const BluetoothAddress *address) {
+    controller::SwitchController *locateController(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controllerLock);
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
                 if (controller::bdcmp(&(*it)->address(), address)) {
@@ -114,7 +85,7 @@ namespace ams::mitm::btdrv {
         return nullptr;
     }
 
-    void attachDeviceHandler(const BluetoothAddress *address) {
+    void attachDeviceHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controllerLock);
 
         // Retrieve information about paired device
@@ -157,7 +128,7 @@ namespace ams::mitm::btdrv {
         g_controllers.back()->initialize();
     }
 
-    void removeDeviceHandler(const BluetoothAddress *address) {
+    void removeDeviceHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controllerLock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
