@@ -4,7 +4,7 @@
 #include <mutex>
 #include <cstring>
 
-#include "../controllermanager.hpp"
+#include "../controllers/controllermanager.hpp"
 #include "../btdrv_mitm_flags.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
@@ -78,11 +78,11 @@ namespace ams::bluetooth::hid {
     void handleConnectionStateEvent(HidEventData *eventData) {
         switch (eventData->connectionState.state) {
             case HidConnectionState_Connected:
-                ams::mitm::btdrv::attachDeviceHandler(&eventData->connectionState.address);
+                controller::attachDeviceHandler(&eventData->connectionState.address);
                 BTDRV_LOG_FMT("device connected");
                 break;
             case HidConnectionState_Disconnected:
-                ams::mitm::btdrv::removeDeviceHandler(&eventData->connectionState.address);
+                controller::removeDeviceHandler(&eventData->connectionState.address);
                 BTDRV_LOG_FMT("device disconnected");
                 break;
             default:

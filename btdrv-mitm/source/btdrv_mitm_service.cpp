@@ -6,7 +6,7 @@
 #include "btdrv_shim.h"
 
 #include "bluetooth/bluetooth_events.hpp"
-#include "controllermanager.hpp"
+#include "controllers/controllermanager.hpp"
 
 namespace ams::mitm::btdrv {
 
@@ -77,8 +77,8 @@ namespace ams::mitm::btdrv {
         u8 cmdId = requestData->data[0];
 
         if (this->client_info.program_id == ncm::SystemProgramId::Hid) {
-            auto controller = locateController(&address);
-            if (controller && !controller->isSwitchController()) {                
+            auto device = controller::locateController(&address);
+            if (device && !device->isSwitchController()) {                
                 
                 if (cmdId == 0x01) {
                     auto subCmdId = static_cast<bluetooth::SubCmdType>(requestData->data[10]);
@@ -278,7 +278,7 @@ namespace ams::mitm::btdrv {
 
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             
-            if (!IsValidSwitchControllerName(device->name)) {
+            if (!controller::IsValidSwitchControllerName(device->name)) {
                 //std::strncpy(device->name, "Lic Pro Controller", sizeof(BluetoothLocalName) - 1);
                 std::strncpy(device->name, "Pro Controller", sizeof(BluetoothLocalName) - 1);
                 device->device_class = {0x00, 0x25, 0x08};

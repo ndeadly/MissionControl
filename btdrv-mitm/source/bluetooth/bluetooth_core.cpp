@@ -5,7 +5,7 @@
 #include <cstring>
 
 #include "../btdrv_mitm_flags.hpp"
-#include "../controllermanager.hpp"
+#include "../controllers/controllermanager.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
 
@@ -100,21 +100,21 @@ namespace ams::bluetooth::core {
     }
 
     void handleDeviceFoundEvent(EventData *eventData) {
-        if (ams::mitm::btdrv::IsController(&eventData->deviceFound.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->deviceFound.name)) {
+        if (controller::IsController(&eventData->deviceFound.cod) && !controller::IsValidSwitchControllerName(eventData->deviceFound.name)) {
             std::strncpy(eventData->deviceFound.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
     }
 
     void handlePinRequesEvent(EventData *eventData) {
-        if (ams::mitm::btdrv::IsController(&eventData->pinReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->pinReply.name)) {
+        if (controller::IsController(&eventData->pinReply.cod) && !controller::IsValidSwitchControllerName(eventData->pinReply.name)) {
             std::strncpy(eventData->pinReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }
     }
 
     void handleSspRequesEvent(EventData *eventData) {
-        if (ams::mitm::btdrv::IsController(&eventData->sspReply.cod) && !ams::mitm::btdrv::IsValidSwitchControllerName(eventData->sspReply.name)) {
+        if (controller::IsController(&eventData->sspReply.cod) && !controller::IsValidSwitchControllerName(eventData->sspReply.name)) {
             std::strncpy(eventData->sspReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
             eventData->pinReply.cod = {0x00, 0x25, 0x08};
         }

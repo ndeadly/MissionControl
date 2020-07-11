@@ -5,20 +5,20 @@
 #include <stratosphere.hpp>
 
 #include "controllermanager.hpp"
-#include "controllers/switchcontroller.hpp"
-#include "controllers/wiimote.hpp"
-#include "controllers/wiiupro.hpp"
-#include "controllers/dualshock4.hpp"
-#include "controllers/xboxone.hpp"
+#include "switchcontroller.hpp"
+#include "wiimote.hpp"
+#include "wiiupro.hpp"
+#include "dualshock4.hpp"
+#include "xboxone.hpp"
 
-#include "btdrv_mitm_logging.hpp"
+#include "../btdrv_mitm_logging.hpp"
 
-namespace ams::mitm::btdrv {
+namespace ams::controller {
 
     namespace {
 
         os::Mutex g_controllerLock(false);
-        std::vector<std::unique_ptr<controller::SwitchController>> g_controllers;
+        std::vector<std::unique_ptr<SwitchController>> g_controllers;
 
     }
 
@@ -33,51 +33,56 @@ namespace ams::mitm::btdrv {
                std::strncmp(name, "NintendoGamepad", 	sizeof(BluetoothName)) == 0 ;
     }
 
-    controller::ControllerType identifyController(uint16_t vid, uint16_t pid) {
-
-        for (auto hwId : controller::JoyconController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
-                return controller::ControllerType_Joycon;
-            }
-        }
-
-        for (auto hwId : controller::SwitchProController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
-                return controller::ControllerType_SwitchPro;
-            }
-        }
-
-        for (auto hwId : controller::WiiUProController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
-                return controller::ControllerType_WiiUPro;
-            }
-        }
-
-        for (auto hwId : controller::WiimoteController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
-                return controller::ControllerType_Wiimote;
-            }
-        }
-
-        for (auto hwId : controller::Dualshock4Controller::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
-                return controller::ControllerType_Dualshock4;
-            }
-        }
-
-        for (auto hwId : controller::XboxOneController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
-                return controller::ControllerType_XboxOne;
-            }
-        }
-
-        return controller::ControllerType_Unknown;
+    bool IsJoyCon(const char *name) {
+        return std::strncmp(name, "Joy-Con (L)", 		sizeof(BluetoothName)) == 0 ||
+               std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0;
     }
 
-    controller::SwitchController *locateController(const bluetooth::Address *address) {
+    ControllerType identifyController(uint16_t vid, uint16_t pid) {
+
+        for (auto hwId : JoyconController::hardwareIds) {
+            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+                return ControllerType_Joycon;
+            }
+        }
+
+        for (auto hwId : SwitchProController::hardwareIds) {
+            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+                return ControllerType_SwitchPro;
+            }
+        }
+
+        for (auto hwId : WiiUProController::hardwareIds) {
+            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+                return ControllerType_WiiUPro;
+            }
+        }
+
+        for (auto hwId : WiimoteController::hardwareIds) {
+            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+                return ControllerType_Wiimote;
+            }
+        }
+
+        for (auto hwId : Dualshock4Controller::hardwareIds) {
+            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+                return ControllerType_Dualshock4;
+            }
+        }
+
+        for (auto hwId : XboxOneController::hardwareIds) {
+            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+                return ControllerType_XboxOne;
+            }
+        }
+
+        return ControllerType_Unknown;
+    }
+
+    SwitchController *locateController(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controllerLock);
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
-                if (controller::bdcmp(&(*it)->address(), address)) {
+                if (bdcmp(&(*it)->address(), address)) {
                     return (*it).get();
                 }
         }
@@ -93,28 +98,28 @@ namespace ams::mitm::btdrv {
         R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(address, &device));
 
         switch (identifyController(device.vid, device.pid)) {
-            case controller::ControllerType_Joycon:
-                g_controllers.push_back(std::make_unique<controller::JoyconController>(address));
+            case ControllerType_Joycon:
+                g_controllers.push_back(std::make_unique<JoyconController>(address));
                 BTDRV_LOG_FMT("[+] Joycon controller connected");
                 break;
-            case controller::ControllerType_SwitchPro:
-                g_controllers.push_back(std::make_unique<controller::SwitchProController>(address));
+            case ControllerType_SwitchPro:
+                g_controllers.push_back(std::make_unique<SwitchProController>(address));
                 BTDRV_LOG_FMT("[+] Switch pro controller connected");
                 break;
-            case controller::ControllerType_Wiimote:
-                g_controllers.push_back(std::make_unique<controller::WiimoteController>(address));
+            case ControllerType_Wiimote:
+                g_controllers.push_back(std::make_unique<WiimoteController>(address));
                 BTDRV_LOG_FMT("[+] Wiimote controller connected");
                 break;
-            case controller::ControllerType_WiiUPro:
-                g_controllers.push_back(std::make_unique<controller::WiiUProController>(address));
+            case ControllerType_WiiUPro:
+                g_controllers.push_back(std::make_unique<WiiUProController>(address));
                 BTDRV_LOG_FMT("[+] Wii U pro controller connected");
                 break;
-            case controller::ControllerType_Dualshock4:
-                g_controllers.push_back(std::make_unique<controller::Dualshock4Controller>(address));
+            case ControllerType_Dualshock4:
+                g_controllers.push_back(std::make_unique<Dualshock4Controller>(address));
                 BTDRV_LOG_FMT("[+] Dualshock4 controller connected");
                 break;
-            case controller::ControllerType_XboxOne:
-                g_controllers.push_back(std::make_unique<controller::XboxOneController>(address));
+            case ControllerType_XboxOne:
+                g_controllers.push_back(std::make_unique<XboxOneController>(address));
                 BTDRV_LOG_FMT("[+] Xbox one controller connected");
                 break;
             default:
@@ -132,7 +137,7 @@ namespace ams::mitm::btdrv {
         std::scoped_lock lk(g_controllerLock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
-            if (controller::bdcmp(&(*it)->address(), address)) {
+            if (bdcmp(&(*it)->address(), address)) {
                 g_controllers.erase(it);
                 return;
             }

@@ -5,7 +5,7 @@
 #include <cstring>
 #include "bluetooth_circularbuffer.hpp"
 #include "../btdrv_mitm_flags.hpp"
-#include "../controllermanager.hpp"
+#include "../controllers/controllermanager.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
 
@@ -272,12 +272,12 @@ namespace ams::bluetooth::hid::report {
                 case 4:
                     {
                         // Locate the controller that sent the report
-                        auto controller = ams::mitm::btdrv::locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
-                        if (!controller) {
+                        auto device = controller::locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
+                        if (!device) {
                             continue;
                         } 
                         
-                        if (controller->isSwitchController()) {
+                        if (device->isSwitchController()) {
                             // Write unmodified packet directly to fake buffer (_write call will add new timestamp)
                             g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                         }
@@ -301,7 +301,7 @@ namespace ams::bluetooth::hid::report {
                             switchData->input0x30.timer = os::ConvertToTimeSpan(realPacket->header.timestamp).GetMilliSeconds() & 0xff;
 
                             // Translate packet to switch pro format
-                            controller->convertReportFormat(inReport, outReport);
+                            device->convertReportFormat(inReport, outReport);
                             //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
 
                             // Write the converted report to our fake buffer
@@ -334,12 +334,12 @@ namespace ams::bluetooth::hid::report {
             case HidEvent_GetReport:
                 {
                     // Locate the controller that sent the report
-                    auto controller = ams::mitm::btdrv::locateController(&eventData->getReport.address);
-                    if (!controller) {
+                    auto device = controller::locateController(&eventData->getReport.address);
+                    if (!device) {
                         return;
                     }
                     
-                    if (controller->isSwitchController()) {
+                    if (device->isSwitchController()) {
                         //BTDRV_LOG_DATA_MSG(&eventData->getReport.report_data, eventData->getReport.report_length, "Switch controller -> Write");
                         g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
                         //BTDRV_LOG_FMT("Write result: %d", rc);
@@ -359,7 +359,7 @@ namespace ams::bluetooth::hid::report {
                         switchData->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
                         // Translate packet to switch pro format
-                        controller->convertReportFormat(inReport, outReport);
+                        device->convertReportFormat(inReport, outReport);
                         //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
 
                         // Write the converted report to our fake buffer

@@ -1,17 +1,18 @@
 #pragma once
 #include <switch.h>
-#include "controllers/switchcontroller.hpp"
+#include "switchcontroller.hpp"
 
 #define BTM_COD_MAJOR_PERIPHERAL    0x05
 #define BTM_COD_MINOR_GAMEPAD       0x08
 #define BTM_COD_MINOR_JOYSTICK      0x04
 
-namespace ams::mitm::btdrv {
+namespace ams::controller {
 
-    controller::ControllerType identifyController(uint16_t vid, uint16_t pid);
-    controller::SwitchController *locateController(const bluetooth::Address *address);
+    ControllerType identifyController(uint16_t vid, uint16_t pid);
+    SwitchController *locateController(const bluetooth::Address *address);
 
     bool IsValidSwitchControllerName(const char *name);
+    bool IsJoyCon(const char *name);
 
     void attachDeviceHandler(const bluetooth::Address *address);
     void removeDeviceHandler(const bluetooth::Address *address);
