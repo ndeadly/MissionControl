@@ -124,6 +124,13 @@ namespace ams::controller {
                 BTDRV_LOG_FMT("[+] Xbox one controller connected");
                 break;
             default:
+                // Handle the case where joycons have been assigned random hardware ids when paired via rails
+                if (IsJoyCon(device.name)) {
+                    g_controllers.push_back(std::make_unique<JoyconController>(address));
+                    BTDRV_LOG_FMT("[+] Joycon controller connected");
+                    break;
+                }
+
                 BTDRV_LOG_FMT("[?] Unknown controller [%04x:%04x | %s]", device.vid, device.pid, device.name);
                 // Disconnect unknown controller
                 //btdrvCloseHidConnection(address);
