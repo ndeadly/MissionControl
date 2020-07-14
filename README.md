@@ -2,14 +2,12 @@
 ![GitHub](https://img.shields.io/github/license/ndeadly/MissionControl)
 
 # MissionControl
-Use Bluetooth controllers from other consoles on your Nintendo Switch.
+Use Bluetooth controllers from other consoles natively on your Nintendo Switch.
 
 ### Features
 * Supports all firmware versions
-* Pair Bluetooth controllers natively via *`Change Grip/Order`* screen*
+* Pair Bluetooth controllers natively via *`Change Grip/Order`* screen
 * Native button remapping (10.0.0+)
-
-**Wii(U) controllers require console-specific patches to be generated before they can be paired.*
 
 ### Supported Controllers
  Currently, the following controllers are supported. If you have a third-party variant of one of the below, or a bluetooth controller that isn't listed, consider submitting an issue with the controller vid/pid to request support.
@@ -19,7 +17,7 @@ Use Bluetooth controllers from other consoles on your Nintendo Switch.
 * __Nintendo Wii Remote__**
 * __Nintendo WiiU Pro Controller__
 
-**Only newer Xbox One controllers support Bluetooth. Older variants use a custom 2.4Ghz protocol and cannot be used wirelessly with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
+**Not all Xbox One wireless controllers support Bluetooth. Older variants use a custom 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 ** *Wiimote extension controllers eg. Nunchuck, Classic Controller etc. not supported yet*
 
 ### Requirements
@@ -31,18 +29,10 @@ Grab the latest release .zip and extract to the root of your SD card.
 
 ### Building from source
 
-### Planned features
-* Wii extension controller support
-* Controller configuration app
-* Rumble support
-* Overlay menu for quick access to controller configuration
-
 ### Known Issues
-* Joy-Con controllers that have paired via the console rails store incorrect vid/pid information. This causes them to be unrecognised over Bluetooth. Clearing the pairing database via *`System Settings->Controllers and Sensors->Disconnect Controllers`* and re-pairing wirelessly in the *`Change Grip/Order`* screen should resolve the issue. 
-*__(Note: Joy-Cons must be disconnected from the rails prior to attempting this or else they will instantly re-pair with the console)__*
-* Xbox One controllers currently disconnect after pairing. Controller will connect normally after console is restarted.
+* Xbox One controllers currently disconnect and refuse to reconnect after pairing. The controller will connect normally after console is restarted.
+* Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device descovery cycle. Be patient and re-press the sync button on the controller if neccessary.
 * Controllers with player indicator LEDs always show as player 1.
-* Battery level indicator always displays full battery.
 
 ### Support
 If you like this project, please consider supporting its development.
