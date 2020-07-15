@@ -1,36 +1,35 @@
+PROJECT_NAME := MissionControl
+BTDRVMITM_TID := 010000000000bd00
 
-export PROJECT_NAME = MissionControl
-export SYSMODULE_TID = 010000000000b100
-export CONTROLLER_TID = 0100000000001003
-
-TARGETS := sysmodule applet
-
-.PHONY: all clean dist
+TARGETS := btdrv-mitm
 
 all: $(TARGETS)
 
-sysmodule:
+btdrv-mitm:
 	$(MAKE) -C $@
 
-applet:
-	$(MAKE) -C $@
+#applet:
+	#$(MAKE) -C $@
 
 clean:
-	rm -rf dist
-	$(MAKE) -C sysmodule clean
-	$(MAKE) -C applet clean
-
-dist:
+	$(MAKE) -C btdrv-mitm clean
+	#$(MAKE) -C applet clean
 	rm -rf dist
 
-	mkdir -p dist/atmosphere/contents/$(SYSMODULE_TID)/flags
-	cp sysmodule/sysmodule.nsp dist/atmosphere/contents/$(SYSMODULE_TID)/exefs.nsp
-	touch dist/atmosphere/contents/$(SYSMODULE_TID)/flags/boot2.flag
+dist: all
+	rm -rf dist
+	
+	mkdir -p dist/atmosphere/contents/$(BTDRVMITM_TID)
+	cp btdrv-mitm/btdrv-mitm.nsp dist/atmosphere/contents/$(BTDRVMITM_TID)/exefs.nsp
+	#mkdir -p dist/atmosphere/contents/$(BTDRVMITM_TID)/flags
+	#touch dist/atmosphere/contents/$(BTDRVMITM_TID)/flags/boot2.flag
+	#echo "btdrv" > mitm.lst
+	
+	#mkdir -p dist/switch
+	#cp applet/applet.nro dist/switch/$(PROJECT_NAME).nro
+	
+	cp -r exefs_patches dist/atmosphere/
 
-	# controller applet replacement
-	#mkdir -p dist/atmosphere/contents/$(CONTROLLER_TID)/flags
-	#cp applet/applet.nsp dist/atmosphere/contents/$(CONTROLLER_TID)/exefs.nsp
-	#cp -R applet/romfs dist/atmosphere/contents/$(CONTROLLER_TID)/romfs
-
-	mkdir -p dist/switch
-	cp applet/applet.nro dist/switch/$(PROJECT_NAME).nro
+	cd dist; zip -r $(PROJECT_NAME).zip ./*; cd ../;
+	
+.PHONY: all clean dist $(TARGETS)
