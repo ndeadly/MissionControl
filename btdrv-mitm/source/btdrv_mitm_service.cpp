@@ -283,14 +283,10 @@ namespace ams::mitm::btdrv {
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             
             if (!controller::IsValidSwitchControllerName(device->name)) {
-                //std::strncpy(device->name, "Lic Pro Controller", sizeof(BluetoothLocalName) - 1);
                 std::strncpy(device->name, "Pro Controller", sizeof(BluetoothLocalName) - 1);
-                device->device_class = {0x00, 0x25, 0x08};
             }
 
         }
-
-        //BTDRV_LOG_FMT("name: %s\nvid: %04x\npid: %04x", device->name, device->vid, device->pid);
 
         return ams::ResultSuccess();
     }

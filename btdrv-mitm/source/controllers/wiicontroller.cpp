@@ -1,7 +1,7 @@
+#include "wiicontroller.hpp"
 #include <cstring>
 #include <switch.h>
 #include <vapours.hpp>
-#include "wiicontroller.hpp"
 
 #include "../btdrv_mitm_logging.hpp"
 

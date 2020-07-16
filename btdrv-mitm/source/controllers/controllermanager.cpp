@@ -1,10 +1,10 @@
+#include "controllermanager.hpp"
 #include <memory>
 #include <mutex>
 #include <vector>
 #include <cstring>
 #include <stratosphere.hpp>
 
-#include "controllermanager.hpp"
 #include "switchcontroller.hpp"
 #include "wiimote.hpp"
 #include "wiiupro.hpp"

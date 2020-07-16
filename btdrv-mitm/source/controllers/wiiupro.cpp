@@ -1,6 +1,5 @@
 
 #include "wiiupro.hpp"
-
 #include <stratosphere.hpp>
 
 #include "../btdrv_mitm_logging.hpp"

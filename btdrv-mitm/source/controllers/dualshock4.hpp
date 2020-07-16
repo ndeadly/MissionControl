@@ -68,7 +68,6 @@ namespace ams::controller {
         uint8_t                 right_trigger;
     } __attribute__((packed));
 
-    /* This report is sent once the GET REPORT FEATURE 0x02 is received */
     struct Dualshock4InputReport0x11 {
         uint8_t _unk[2];
         Dualshock4StickData     left_stick;

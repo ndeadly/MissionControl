@@ -109,7 +109,6 @@ namespace ams::bluetooth::hid::report {
         shmemLoadRemote(&g_realBtShmem, handle, BLUETOOTH_SHAREDMEM_SIZE, Perm_Rw);
         R_TRY(shmemMap(&g_realBtShmem));
         g_realBuffer = reinterpret_cast<bluetooth::CircularBuffer *>(shmemGetAddr(&g_realBtShmem));
-        BTDRV_LOG_FMT("Real shmem @ 0x%p", (void *)g_realBuffer);
 
         return ams::ResultSuccess();
     }

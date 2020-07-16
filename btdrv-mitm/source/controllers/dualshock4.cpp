@@ -1,5 +1,4 @@
 #include "dualshock4.hpp"
-
 #include <cstring>
 #include <switch.h>
 #include <stratosphere.hpp>

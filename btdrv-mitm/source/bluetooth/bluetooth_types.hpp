@@ -33,15 +33,14 @@ namespace ams::bluetooth {
     typedef BluetoothEventType          EventType;
     typedef BluetoothHidEventType       HidEventType;
     typedef BluetoothBleEventType       BleEventType;
-    //typedef BluetoothHidReportEventType HidReportEventType;
 
     typedef BluetoothEventData          EventData;
     typedef BluetoothHidEventData       HidEventData;
     typedef BluetoothBleEventData       BleEventData;
-    //typedef BluetoothHidReportEventData HidReportEventData;
     
-    typedef BluetoothAddress Address;
-    typedef BluetoothPinCode PinCode;
+    typedef BluetoothAddress        Address;
+    typedef BluetoothDeviceClass    DeviceClass;
+    typedef BluetoothPinCode        PinCode;
 
     typedef BluetoothHidReport     HidReport;
     typedef BluetoothHidReportData HidReportData;

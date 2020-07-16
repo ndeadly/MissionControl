@@ -1,5 +1,4 @@
 #include "xboxone.hpp"
-
 #include <cstring>
 #include <stratosphere.hpp>
 

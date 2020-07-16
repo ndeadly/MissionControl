@@ -13,8 +13,7 @@ namespace ams::bluetooth::core {
 
     namespace {
 
-        //const constexpr char* g_licProControllerName = "Lic Pro Controller";
-        const constexpr char* g_licProControllerName = "Pro Controller";
+        const constexpr char* g_proControllerName = "Pro Controller";
 
         std::atomic<bool> g_isInitialized(false);
 
@@ -101,22 +100,19 @@ namespace ams::bluetooth::core {
 
     void handleDeviceFoundEvent(EventData *eventData) {
         if (controller::IsController(&eventData->deviceFound.cod) && !controller::IsValidSwitchControllerName(eventData->deviceFound.name)) {
-            std::strncpy(eventData->deviceFound.name, g_licProControllerName, sizeof(BluetoothName) - 1);
-            eventData->pinReply.cod = {0x00, 0x25, 0x08};
+            std::strncpy(eventData->deviceFound.name, g_proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 
     void handlePinRequesEvent(EventData *eventData) {
         if (controller::IsController(&eventData->pinReply.cod) && !controller::IsValidSwitchControllerName(eventData->pinReply.name)) {
-            std::strncpy(eventData->pinReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
-            eventData->pinReply.cod = {0x00, 0x25, 0x08};
+            std::strncpy(eventData->pinReply.name, g_proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 
     void handleSspRequesEvent(EventData *eventData) {
         if (controller::IsController(&eventData->sspReply.cod) && !controller::IsValidSwitchControllerName(eventData->sspReply.name)) {
-            std::strncpy(eventData->sspReply.name, g_licProControllerName, sizeof(BluetoothName) - 1);
-            eventData->pinReply.cod = {0x00, 0x25, 0x08};
+            std::strncpy(eventData->sspReply.name, g_proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 
@@ -170,12 +166,16 @@ namespace ams::bluetooth::core {
                 os::WaitEvent(&g_dataReadEvent);
             }
             else {
-                // Todo: set this to what it should be if we ever enable bluetooth to actually read the pincode parameter
-                PinCode pincode = {};
+                bluetooth::PinCode pincode = {};
+
+                BluetoothAdapterProperty props;
+                R_ABORT_UNLESS(btdrvGetAdapterProperties(&props));
+                // Reverse host address as pincode for wii devices
+                *reinterpret_cast<u64 *>(&pincode) = util::SwapBytes(*reinterpret_cast<u64 *>(&props.address)) >> 16;
 
                 // Fuck BTM, we're sending the pin response. What it doesn't know won't hurt it
                 auto eventData = reinterpret_cast<EventData *>(g_eventDataBuffer);
-                R_ABORT_UNLESS(btdrvRespondToPinRequest(&eventData->pinReply.address, false, &pincode, sizeof(Address)));
+                R_ABORT_UNLESS(btdrvRespondToPinRequest(&eventData->pinReply.address, false, &pincode, sizeof(bluetooth::Address)));
             }
         }
 
