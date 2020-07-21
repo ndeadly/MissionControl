@@ -61,6 +61,12 @@ namespace ams::controller {
         uint16_t    gyro_3;
     } __attribute__ ((__packed__));
 
+    struct SwitchOutputReport0x01;
+    struct SwitchOutputReport0x03;
+    struct SwitchOutputReport0x10;
+    struct SwitchOutputReport0x11;
+    struct SwitchOutputReport0x12;
+
     struct SwitchInputReport0x21 {
         uint8_t             timer;
         uint8_t             conn_info      : 4;
@@ -99,28 +105,21 @@ namespace ams::controller {
     struct SwitchInputReport0x33;
     struct SwitchInputReport0x3f;
 
-    struct SwitchOutputReport0x01;
-    struct SwitchOutputReport0x03;
-    struct SwitchOutputReport0x10;
-    struct SwitchOutputReport0x11;
-    struct SwitchOutputReport0x12;
-
     struct SwitchReportData {
         uint8_t id;
         union {
-            SwitchInputReport0x21 input0x21;
-            SwitchInputReport0x30 input0x30;
-            //SwitchInputReport0x31 input0x31;
-            //SwitchInputReport0x32 input0x32;
-            //SwitchInputReport0x33 input0x33;
-            //SwitchInputReport0x3f input0x3f;
-            /*
-            SwitchOutputReport0x01 output0x01;
-            SwitchOutputReport0x03 output0x03;
-            SwitchOutputReport0x10 output0x10;
-            SwitchOutputReport0x11 output0x11;
-            SwitchOutputReport0x12 output0x12;
-            */
+            //SwitchOutputReport0x01 output0x01;
+            //SwitchOutputReport0x03 output0x03;
+            //SwitchOutputReport0x10 output0x10;
+            //SwitchOutputReport0x11 output0x11;
+            //SwitchOutputReport0x12 output0x12;
+            SwitchInputReport0x21  input0x21;
+            SwitchInputReport0x30  input0x30;
+            //SwitchInputReport0x31  input0x31;
+            //SwitchInputReport0x32  input0x32;
+            //SwitchInputReport0x33  input0x33;
+            //SwitchInputReport0x3f  input0x3f;
+
         };
     } __attribute__ ((__packed__));
 

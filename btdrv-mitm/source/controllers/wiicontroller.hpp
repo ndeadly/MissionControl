@@ -31,6 +31,51 @@ namespace ams::controller {
 		uint8_t xyz[3];
 	} __attribute__ ((__packed__));
 
+	struct WiiOutputReport0x10 {
+		uint8_t rumble;
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x11 {
+		uint8_t leds;
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x12 {
+		uint8_t _unk;
+        uint8_t report_mode;
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x14 {
+		uint8_t : 5;
+		uint8_t speaker_enable : 1;
+		uint8_t : 0;
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x15 {
+		uint8_t _unk;
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x16 {
+		uint32_t address;
+		uint8_t  size;
+		uint8_t  data[16];
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x17 {
+		uint32_t address;
+		uint16_t size;
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x18 {
+		uint8_t size;
+		uint8_t speaker_data[20];
+	} __attribute__ ((__packed__));
+
+	struct WiiOutputReport0x19 {
+		uint8_t : 5;
+		uint8_t speaker_mute : 1;
+		uint8_t : 0;
+	} __attribute__ ((__packed__));
+
 	struct WiiInputReport0x20 {
         WiiButtonData   buttons;
 		uint8_t			led   : 4;
@@ -101,67 +146,9 @@ namespace ams::controller {
         uint8_t extension[21];
     } __attribute__ ((__packed__));
 
-	struct WiiOutputReport0x10 {
-		uint8_t rumble;
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x11 {
-		uint8_t leds;
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x12 {
-		uint8_t _unk;
-        uint8_t report_mode;
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x14 {
-		uint8_t : 5;
-		uint8_t speaker_enable : 1;
-		uint8_t : 0;
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x15 {
-		uint8_t _unk;
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x16 {
-		uint32_t address;
-		uint8_t  size;
-		uint8_t  data[16];
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x17 {
-		uint32_t address;
-		uint16_t size;
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x18 {
-		uint8_t size;
-		uint8_t speaker_data[20];
-	} __attribute__ ((__packed__));
-
-	struct WiiOutputReport0x19 {
-		uint8_t : 5;
-		uint8_t speaker_mute : 1;
-		uint8_t : 0;
-	} __attribute__ ((__packed__));
-
     struct WiiReportData {
         uint8_t id;
         union {
-			WiiInputReport0x20 input0x20;
-			WiiInputReport0x21 input0x21;
-			WiiInputReport0x22 input0x22;
-            WiiInputReport0x30 input0x30;
-            WiiInputReport0x31 input0x31;
-            WiiInputReport0x32 input0x32;
-            WiiInputReport0x33 input0x33;
-            WiiInputReport0x34 input0x34;
-            WiiInputReport0x35 input0x35;
-            WiiInputReport0x36 input0x36;
-            WiiInputReport0x37 input0x37;
-            WiiInputReport0x3d input0x3d;
-
 			WiiOutputReport0x10 output0x10;
 			WiiOutputReport0x11 output0x11;
 			WiiOutputReport0x12 output0x12;
@@ -171,7 +158,18 @@ namespace ams::controller {
 			WiiOutputReport0x17 output0x17;
 			WiiOutputReport0x18 output0x18;
 			WiiOutputReport0x19 output0x19;
-			
+			WiiInputReport0x20  input0x20;
+			WiiInputReport0x21  input0x21;
+			WiiInputReport0x22  input0x22;
+            WiiInputReport0x30  input0x30;
+            WiiInputReport0x31  input0x31;
+            WiiInputReport0x32  input0x32;
+            WiiInputReport0x33  input0x33;
+            WiiInputReport0x34  input0x34;
+            WiiInputReport0x35  input0x35;
+            WiiInputReport0x36  input0x36;
+            WiiInputReport0x37  input0x37;
+            WiiInputReport0x3d  input0x3d;
         };
 	} __attribute__ ((__packed__));
 
