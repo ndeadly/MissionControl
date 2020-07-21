@@ -21,7 +21,8 @@ namespace ams::controller {
     }
 
     Dualshock4Controller::Dualshock4Controller(const bluetooth::Address *address)
-    : FakeSwitchController(ControllerType_Dualshock4, address) {
+    : FakeSwitchController(ControllerType_Dualshock4, address), m_ledColour({0, 0, 0}) {
+    
     }
 
     Result Dualshock4Controller::initialize(void) {

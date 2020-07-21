@@ -6,9 +6,8 @@ namespace ams::controller {
      : m_type(type), 
        m_address(*address),
        m_charging(false),
-       m_battery(BATTERY_MAX) { 
-        m_switchController = (type == ControllerType_Joycon) || (type == ControllerType_SwitchPro);
-    }
+       m_battery(BATTERY_MAX),
+       m_switchController((type == ControllerType_Joycon) || (type == ControllerType_SwitchPro)) {}
 
     const bluetooth::Address& SwitchController::address(void) const {
         return m_address;
