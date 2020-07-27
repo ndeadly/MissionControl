@@ -15,9 +15,9 @@ namespace ams::bluetooth {
     };
 
     struct CircularBufferPacketHeader{
-        u8          type;           //+0x00
-        os::Tick    timestamp;      //+0x08
-        u64         size;           //+0x10
+        u8          type;
+        os::Tick    timestamp;
+        u64         size;
     };
 
     struct CircularBufferPacket{
@@ -25,9 +25,9 @@ namespace ams::bluetooth {
         BluetoothHidReportData     data;
     };
 
-    //class CircularBuffer {
-    struct CircularBuffer {
-        //public:
+    class CircularBuffer {
+
+        public:
             CircularBuffer(void);
 
             void Initialize(const char *name); // 10.0.0+, previously took event argument
@@ -40,7 +40,7 @@ namespace ams::bluetooth {
             void *Read(void);
             u64  Free(void);
 
-        //private:
+        private:
             void _setReadOffset(u32 offset);
             void _setWriteOffset(u32 offset);
             u32  _getWriteOffset(void);
@@ -49,7 +49,6 @@ namespace ams::bluetooth {
             void _updateUtilization(void);
             void *_read(void);
 
-        //private:
             os::SdkMutex    mutex;
             os::EventType   *event;
             
@@ -61,6 +60,8 @@ namespace ams::bluetooth {
             u8      _unk1;
             bool 	isInitialized;
             u8      _unk2[6];
+
+        public:
             CircularBufferType 	type;
             bool    _unk3;
             //u8      _unk3[4];

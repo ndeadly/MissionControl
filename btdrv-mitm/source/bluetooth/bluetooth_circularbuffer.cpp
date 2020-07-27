@@ -74,13 +74,11 @@ namespace ams::bluetooth {
             };
 
             if (size + sizeof(CircularBufferPacketHeader) <= this->GetWriteableSize()) {
-
                 if (size + 2*sizeof(CircularBufferPacketHeader) > BLUETOOTH_CIRCBUFFER_SIZE - this->writeOffset) {
                     R_TRY(this->_write(0xff, nullptr, (BLUETOOTH_CIRCBUFFER_SIZE - this->writeOffset) - sizeof(CircularBufferPacketHeader)));
                 }
 
                 R_TRY(this->_write(type, data, size));
-
                 this->_updateUtilization();
 
                 return 0;
