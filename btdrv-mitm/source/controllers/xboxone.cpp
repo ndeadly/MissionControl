@@ -17,6 +17,20 @@ namespace ams::controller {
 
     }
 
+    Result XboxOneController::initialize(void) {
+        R_TRY(FakeSwitchController::initialize());
+
+        // Todo: may need to check controller version to determine whether or not to send this
+        const u8 init_packet[] = {0x05, 0x20, 0x00, 0x01, 0x00};
+
+        bluetooth::HidReport hidReport = {};
+        hidReport.size = sizeof(init_packet);
+        std::memcpy(&hidReport.data, init_packet, sizeof(init_packet));
+        R_TRY(btdrvWriteHidData(&m_address, &hidReport));
+
+        return ams::ResultSuccess();
+    }
+
     void XboxOneController::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
         auto xboxReport = reinterpret_cast<const XboxOneReportData *>(&inReport->data);
         auto switchReport = reinterpret_cast<SwitchReportData *>(&outReport->data);

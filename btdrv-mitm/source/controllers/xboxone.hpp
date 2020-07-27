@@ -77,6 +77,7 @@ namespace ams::controller {
 
             XboxOneController(const bluetooth::Address *address);
 
+            Result initialize(void);
             void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
         private:
