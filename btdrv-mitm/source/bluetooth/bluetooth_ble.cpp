@@ -42,7 +42,6 @@ namespace ams::bluetooth::ble {
     }
 
     Result Initialize(Handle eventHandle) {
-        //os::AttachReadableHandleToSystemEvent(&g_btBleSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
         os::AttachReadableHandleToSystemEvent(&g_btBleSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
         R_TRY(os::CreateSystemEvent(&g_btBleSystemEventFwd, os::EventClearMode_AutoClear, true));

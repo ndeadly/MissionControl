@@ -26,39 +26,6 @@ namespace ams::bluetooth::core {
         os::SystemEventType g_btSystemEventUser;
         os::EventType       g_dataReadEvent;
 
-        /*
-        void _LogEvent(EventType type, EventData *eventData) {
-        
-            size_t dataSize;
-            switch (type) {
-                case BluetoothEvent_DeviceFound:
-                    dataSize = sizeof(eventData->deviceFound);
-                    break;
-                case BluetoothEvent_DiscoveryStateChanged:
-                    dataSize = sizeof(eventData->discoveryState);
-                    break;
-                case BluetoothEvent_PinRequest:
-                    dataSize = sizeof(eventData->pinReply);
-                    break;
-                case BluetoothEvent_SspRequest:
-                    dataSize = sizeof(eventData->sspReply);
-                    break;
-                case BluetoothEvent_BondStateChanged:
-                    if (hos::GetVersion() < hos::Version_9_0_0)
-                        dataSize = sizeof(eventData->bondState);
-                    else
-                        dataSize = sizeof(eventData->bondState.v2);                  
-                    break;
-                default:
-                    dataSize = sizeof(g_eventDataBuffer);
-                    break;
-            }
-
-            //BTDRV_LOG_DATA(eventData, dataSize);
-            BTDRV_LOG_DATA_MSG(eventData, dataSize, "[%02d] Bluetooth core event", type);
-        }
-        */
-
     }
 
     bool IsInitialized(void) {
@@ -78,7 +45,6 @@ namespace ams::bluetooth::core {
     }
 
     Result Initialize(Handle eventHandle) {
-        //os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
         os::AttachReadableHandleToSystemEvent(&g_btSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
         R_TRY(os::CreateSystemEvent(&g_btSystemEventFwd, os::EventClearMode_AutoClear, true));
@@ -145,8 +111,6 @@ namespace ams::bluetooth::core {
             }
         }
 
-        //_LogEvent(g_currentEventType, eventData);
-
         os::SignalEvent(&g_dataReadEvent);
 
         return ams::ResultSuccess();
@@ -173,16 +137,15 @@ namespace ams::bluetooth::core {
                 // Reverse host address as pincode for wii devices
                 *reinterpret_cast<u64 *>(&pincode) = util::SwapBytes(*reinterpret_cast<u64 *>(&props.address)) >> 16;
 
-                // Fuck BTM, we're sending the pin response. What it doesn't know won't hurt it
+                // Fuck BTM, we're sending the pin response ourselves if it won't.
                 auto eventData = reinterpret_cast<EventData *>(g_eventDataBuffer);
                 R_ABORT_UNLESS(btdrvRespondToPinRequest(&eventData->pinReply.address, false, &pincode, sizeof(bluetooth::Address)));
             }
         }
 
-        if (g_btSystemEventUser.state) {
+        if (g_btSystemEventUser.state)
             os::SignalSystemEvent(&g_btSystemEventUser);
-            //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
-        }
+
     }
 
 }

@@ -44,7 +44,6 @@ namespace ams::bluetooth::hid {
     }
 
     Result Initialize(Handle eventHandle) {
-        //os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
         os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
         R_TRY(os::CreateSystemEvent(&g_btHidSystemEventFwd, os::EventClearMode_AutoClear, true));
@@ -79,11 +78,11 @@ namespace ams::bluetooth::hid {
         switch (eventData->connectionState.state) {
             case HidConnectionState_Connected:
                 controller::attachDeviceHandler(&eventData->connectionState.address);
-                BTDRV_LOG_FMT("device connected");
+                //BTDRV_LOG_FMT("device connected");
                 break;
             case HidConnectionState_Disconnected:
                 controller::removeDeviceHandler(&eventData->connectionState.address);
-                BTDRV_LOG_FMT("device disconnected");
+                //BTDRV_LOG_FMT("device disconnected");
                 break;
             default:
                 break;
@@ -101,10 +100,8 @@ namespace ams::bluetooth::hid {
         os::SignalSystemEvent(&g_btHidSystemEventFwd);
         os::WaitEvent(&g_dataReadEvent);
 
-        if (g_btHidSystemEventUser.state) {
+        if (g_btHidSystemEventUser.state)
             os::SignalSystemEvent(&g_btHidSystemEventUser);
-            //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
-        }
 
         auto eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 

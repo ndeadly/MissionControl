@@ -1,7 +1,5 @@
 #include <switch.h>
 #include "bluetooth_events.hpp"
-#include "../btdrv_mitm_logging.hpp"
-
 
 namespace ams::bluetooth::events {
 
@@ -42,17 +40,14 @@ namespace ams::bluetooth::events {
                 auto signalled_holder = os::WaitAny(&g_manager);
                 switch (os::GetWaitableHolderUserData(signalled_holder)) {
                     case BtdrvEventType_BluetoothCore:
-                        //core::GetSystemEvent()->Clear();
                         os::ClearSystemEvent(core::GetSystemEvent());
                         core::HandleEvent();
                         break;
                     case BtdrvEventType_BluetoothHid:
-                        //hid::GetSystemEvent()->Clear();
                         os::ClearSystemEvent(hid::GetSystemEvent());
                         hid::HandleEvent();
                         break;
                     case BtdrvEventType_BluetoothBle:
-                        //ble::GetSystemEvent()->Clear();
                         os::ClearSystemEvent(ble::GetSystemEvent());
                         ble::HandleEvent();
                         break;
@@ -65,7 +60,6 @@ namespace ams::bluetooth::events {
     }
 
     Result Initialize(void) {
-        BTDRV_LOG_FMT("btdrv-mitm: events Initialize");
 
         R_TRY(os::CreateThread(&g_eventHandlerThread, 
             EventHandlerThreadFunc, 
