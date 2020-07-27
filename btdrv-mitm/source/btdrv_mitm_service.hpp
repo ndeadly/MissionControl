@@ -15,8 +15,6 @@ namespace ams::mitm::btdrv {
                 GetEventInfo                        = 15,
                 InitializeHid                       = 16,
                 WriteHidData                        = 19,
-                //SetHidReport                        = 21,
-                //GetHidReport                        = 22,
                 GetPairedDeviceInfo                 = 25,
                 FinalizeHid                         = 26,
                 GetHidEventInfo                     = 27,
@@ -53,8 +51,6 @@ namespace ams::mitm::btdrv {
             Result GetEventInfo(sf::Out<bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
             Result WriteHidData(bluetooth::Address address, const sf::InPointerBuffer &buffer);
-            //Result SetHidReport(bluetooth::Address address, bluetooth::HhReportType type, const sf::InPointerBuffer &buffer);
-            //Result GetHidReport(bluetooth::Address address, bluetooth::HhReportType type, u8 id);
             Result GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);            
@@ -63,11 +59,13 @@ namespace ams::mitm::btdrv {
             Result GetHidReportEventInfoDeprecated1(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result GetHidReportEventInfoDeprecated2(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result GetHidReportEventInfo(sf::OutCopyHandle out_handle);
+            /* 5.0.0+ */
             Result InitializeBle(sf::OutCopyHandle out_handle);
             Result FinalizeBle(void);
             Result GetBleManagedEventInfoDeprecated(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result GetBleManagedEventInfo(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
+            /* Extensions */
             void RedirectSystemEvents(bool redirect);
             void RedirectHidReportEvents(bool redirect);
 
@@ -78,8 +76,6 @@ namespace ams::mitm::btdrv {
                 MAKE_SERVICE_COMMAND_META(GetEventInfo),
                 MAKE_SERVICE_COMMAND_META(InitializeHid),
                 MAKE_SERVICE_COMMAND_META(WriteHidData),
-                //MAKE_SERVICE_COMMAND_META(SetHidReport),
-                //MAKE_SERVICE_COMMAND_META(GetHidReport),
                 MAKE_SERVICE_COMMAND_META(GetPairedDeviceInfo),
                 MAKE_SERVICE_COMMAND_META(FinalizeHid),
                 MAKE_SERVICE_COMMAND_META(GetHidEventInfo),

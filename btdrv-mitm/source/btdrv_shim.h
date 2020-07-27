@@ -9,8 +9,6 @@ Result btdrvInitializeBluetoothFwd(Service* srv, Handle *out_handle);
 Result btdrvFinalizeBluetoothFwd(Service* srv);
 Result btdrvInitializeHidFwd(Service* srv, Handle *out_handle, u16 version);
 Result btdrvWriteHidDataFwd(Service* srv, const BluetoothAddress *address, const BluetoothHidReport *data);
-//Result btdrvSetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, const BluetoothHidReport *data);
-//Result btdrvGetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, u8 id);
 Result btdrvGetPairedDeviceInfoFwd(Service* srv, const BluetoothAddress *address, BluetoothDevicesSettings *device);
 Result btdrvFinalizeHidFwd(Service* srv);
 Result btdrvRegisterHidReportEventFwd(Service* srv, Handle *out_handle);

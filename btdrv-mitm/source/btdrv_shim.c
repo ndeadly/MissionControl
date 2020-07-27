@@ -30,30 +30,6 @@ Result btdrvWriteHidDataFwd(Service* srv, const BluetoothAddress *address, const
     );
 }
 
-/*
-Result btdrvSetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, const BluetoothHidReport *data) {
-    const struct {
-        BluetoothAddress address;
-        BluetoothHhReportType type;
-    } in = { *address, type};
-
-    return serviceMitmDispatchIn(srv, 21, in,
-        .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_In },
-        .buffers = { {data, sizeof(BluetoothHidReport)} }
-    );
-}
-
-Result btdrvGetHidReportFwd(Service* srv, const BluetoothAddress *address, BluetoothHhReportType type, u8 id) {
-    const struct {
-        BluetoothAddress address;
-        BluetoothHhReportType type;
-        u8 id;
-    } in = { *address, type, id };
-
-    return serviceMitmDispatchIn(srv, 22, in);
-}
-*/
-
 Result btdrvGetPairedDeviceInfoFwd(Service* srv, const BluetoothAddress *address, BluetoothDevicesSettings *device) {
     const struct {
         BluetoothAddress address;

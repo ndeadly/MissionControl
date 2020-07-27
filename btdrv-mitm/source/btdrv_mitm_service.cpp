@@ -95,30 +95,6 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    /*
-    Result BtdrvMitmService::SetHidReport(bluetooth::Address address, bluetooth::HhReportType type, const sf::InPointerBuffer &buffer) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: SetHidReport");
-
-        R_TRY(btdrvSetHidReportFwd(this->forward_service.get(), 
-            &address, 
-            type, 
-            reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer())
-        ));
-
-        return ams::ResultSuccess();
-    }
-
-    Result BtdrvMitmService::GetHidReport(bluetooth::Address address, bluetooth::HhReportType type, u8 id) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: GetHidReport");
-
-        R_TRY(btdrvGetHidReportFwd(this->forward_service.get(), &address, type, id));
-
-        return ams::ResultSuccess();
-    }
-    */
-
     Result BtdrvMitmService::GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address) {
 
         BTDRV_LOG_FMT("btdrv-mitm: GetPairedDeviceInfo");
