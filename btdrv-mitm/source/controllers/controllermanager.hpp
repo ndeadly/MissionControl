@@ -8,6 +8,8 @@
 
 namespace ams::controller {
 
+    const constexpr char* proControllerName = "Pro Controller";
+
     ControllerType identifyController(uint16_t vid, uint16_t pid);
     SwitchController *locateController(const bluetooth::Address *address);
 

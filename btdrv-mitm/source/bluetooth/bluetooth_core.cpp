@@ -13,7 +13,7 @@ namespace ams::bluetooth::core {
 
     namespace {
 
-        const constexpr char* g_proControllerName = "Pro Controller";
+        //const constexpr char* g_proControllerName = "Pro Controller";
 
         std::atomic<bool> g_isInitialized(false);
 
@@ -100,19 +100,19 @@ namespace ams::bluetooth::core {
 
     void handleDeviceFoundEvent(EventData *eventData) {
         if (controller::IsController(&eventData->deviceFound.cod) && !controller::IsValidSwitchControllerName(eventData->deviceFound.name)) {
-            std::strncpy(eventData->deviceFound.name, g_proControllerName, sizeof(BluetoothName) - 1);
+            std::strncpy(eventData->deviceFound.name, controller::proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 
     void handlePinRequesEvent(EventData *eventData) {
         if (controller::IsController(&eventData->pinReply.cod) && !controller::IsValidSwitchControllerName(eventData->pinReply.name)) {
-            std::strncpy(eventData->pinReply.name, g_proControllerName, sizeof(BluetoothName) - 1);
+            std::strncpy(eventData->pinReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 
     void handleSspRequesEvent(EventData *eventData) {
         if (controller::IsController(&eventData->sspReply.cod) && !controller::IsValidSwitchControllerName(eventData->sspReply.name)) {
-            std::strncpy(eventData->sspReply.name, g_proControllerName, sizeof(BluetoothName) - 1);
+            std::strncpy(eventData->sspReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 

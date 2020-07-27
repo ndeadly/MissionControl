@@ -105,7 +105,7 @@ namespace ams::mitm::btdrv {
 
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             if (!controller::IsValidSwitchControllerName(device->name)) {
-                std::strncpy(device->name, "Pro Controller", sizeof(BluetoothLocalName) - 1);
+                std::strncpy(device->name, controller::proControllerName, sizeof(BluetoothLocalName) - 1);
             }
         }
 
