@@ -148,6 +148,9 @@ namespace ams::controller {
 
             virtual Result initialize(void);
             virtual void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {};
+            
+            virtual const bluetooth::HidReport * handleIncomingReport(const bluetooth::HidReport *report);
+            virtual const bluetooth::HidReport * handleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
             SwitchController(ControllerType type, const bluetooth::Address *address);

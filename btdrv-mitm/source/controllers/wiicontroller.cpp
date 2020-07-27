@@ -56,4 +56,14 @@ namespace ams::controller {
         return btdrvWriteHidData(&m_address, &report);
     }
 
+    Result WiiController::setPlayerLed(uint8_t led_mask) {
+        //bluetooth::HidReport report = {};
+        m_outputReport.size = sizeof(WiiOutputReport0x15) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(m_outputReport.data);
+        reportData->id = 0x11;
+        reportData->output0x11.leds = (led_mask << 4) & 0xf0;;
+
+        return ams::ResultSuccess();
+    }
+
 }

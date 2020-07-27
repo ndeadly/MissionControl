@@ -22,7 +22,15 @@ namespace ams::controller {
     }
 
     Result SwitchController::initialize(void) {
-        return 0;
+        return ams::ResultSuccess();
+    }
+
+    const bluetooth::HidReport * SwitchController::handleIncomingReport(const bluetooth::HidReport *report) {
+        return report;
+    }
+
+    const bluetooth::HidReport * SwitchController::handleOutgoingReport(const bluetooth::HidReport *report) {
+        return report;
     }
 
 }

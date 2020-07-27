@@ -28,20 +28,28 @@ namespace ams::controller {
     Result Dualshock4Controller::initialize(void) {
         R_TRY(FakeSwitchController::initialize());
 
-        u8 ind;
-        randomGet(&ind, 1);
-        auto colour = playerLedColours[ind >> 6];
+        return ams::ResultSuccess();
+    }
 
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, colour.r, colour.g, colour.b};
-        report.crc = crc32Calculate(report.data, sizeof(report.data));
+    Result Dualshock4Controller::setPlayerLed(u8 led_mask) {
+        u8 i = 0;
+        while (led_mask >>= 1) { ++i; }
+        Dualshock4LedColour colour = playerLedColours[i];
 
-        bluetooth::HidReport hidReport = {};
-        hidReport.size = sizeof(report) - 1;
-        std::memcpy(&hidReport.data, &report.data[1], hidReport.size);
+        Dualshock4OutputReport0x11 raw = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, colour.r, colour.g, colour.b};
+        raw.crc = crc32Calculate(raw.data, sizeof(raw.data));
 
-        R_TRY(btdrvWriteHidData(&m_address, &hidReport));
+        m_outputReport.size = sizeof(raw) - 1;
+        std::memcpy(&m_outputReport.data, &raw.data[1], m_outputReport.size);
+        
+        return ams::ResultSuccess();
+    }
 
-        return 0;
+    Result Dualshock4Controller::setLightbarColour(Dualshock4LedColour colour) {
+        m_ledColour = colour;
+        R_TRY(this->updateControllerState());
+
+        return ams::ResultSuccess();
     }
 
     void Dualshock4Controller::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
@@ -113,7 +121,6 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
-        //dst->input0x30.battery = (((src->report0x11.battery / 64) + 1) << 1) & 0xf ;
         m_battery = convert8bitBatteryLevel(src->input0x11.battery);
 
         packStickData(&dst->input0x30.left_stick,
@@ -156,6 +163,19 @@ namespace ams::controller {
 
         dst->input0x30.buttons.capture = src->input0x11.buttons.tpad;
         dst->input0x30.buttons.home    = src->input0x11.buttons.ps;
+    }
+
+    Result Dualshock4Controller::updateControllerState(void) {
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, m_ledColour.r, m_ledColour.g, m_ledColour.b};
+        report.crc = crc32Calculate(report.data, sizeof(report.data));
+
+        bluetooth::HidReport hidReport = {};
+        hidReport.size = sizeof(report) - 1;
+        std::memcpy(&hidReport.data, &report.data[1], hidReport.size);
+
+        R_TRY(btdrvWriteHidData(&m_address, &hidReport));
+
+        return ams::ResultSuccess();
     }
 
 }

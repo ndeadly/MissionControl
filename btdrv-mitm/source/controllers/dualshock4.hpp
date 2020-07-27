@@ -99,8 +99,9 @@ namespace ams::controller {
     struct Dualshock4ReportData {
         uint8_t id;
         union {
-            Dualshock4InputReport0x01 input0x01;
-            Dualshock4InputReport0x11 input0x11;
+            Dualshock4OutputReport0x11 output0x11;
+            Dualshock4InputReport0x01  input0x01;
+            Dualshock4InputReport0x11  input0x11;
         };
     } __attribute__((packed));
 
@@ -115,12 +116,18 @@ namespace ams::controller {
             Dualshock4Controller(const bluetooth::Address *address);
             
             Result initialize(void);
+            Result setPlayerLed(u8 led_mask);
+            Result setLightbarColour(Dualshock4LedColour colour);
             
             void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
         private:
             void handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst);
             void handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst);
+
+            Result updateControllerState(void);
+
+            Dualshock4LedColour m_ledColour; 
     };
 
 }
