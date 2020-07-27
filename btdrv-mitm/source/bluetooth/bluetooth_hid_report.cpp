@@ -181,41 +181,23 @@ namespace ams::bluetooth::hid::report {
     /* Only used for < 7.0.0. newer firmwares read straight from shared memory */ 
     Result GetEventInfo(bluetooth::HidEventType *type, u8* buffer, size_t size) {
 
-        /*
-        auto packet = reinterpret_cast<CircularBufferPacket *>(g_fakeBuffer->Read());
-        if (!packet)
-            return -1;
-        */
-
        //BTDRV_LOG_FMT("!!! GetEventInfo Called");
 
-       bluetooth::CircularBufferPacket *packet;
+        bluetooth::CircularBufferPacket *packet;
 
         while (true) {
-            if (g_fakeBuffer->readOffset == g_fakeBuffer->writeOffset)
-                continue;
 
-            // Get packet from real buffer
-            packet = reinterpret_cast<bluetooth::CircularBufferPacket *>(&g_fakeBuffer->data[g_fakeBuffer->readOffset]);
+            packet = reinterpret_cast<bluetooth::CircularBufferPacket *>(g_fakeBuffer->Read());
             if (!packet)
-                continue;
+                break;
 
-            // Move read pointer past current packet (I think this is what Free does)
-            if (g_fakeBuffer->readOffset != g_fakeBuffer->writeOffset) {
-                u32 newOffset = g_fakeBuffer->readOffset + packet->header.size + sizeof(bluetooth::CircularBufferPacketHeader);
-                if (newOffset >= BLUETOOTH_CIRCBUFFER_SIZE)
-                    newOffset = 0;
-
-                g_fakeBuffer->_setReadOffset(newOffset);
-            }
+            g_fakeBuffer->Free();
 
             if (packet->header.type == 0xff)
                 continue;
 
             break;
         }
-
-
 
         auto eventData = reinterpret_cast<bluetooth::HidEventData *>(buffer);
 
@@ -227,7 +209,6 @@ namespace ams::bluetooth::hid::report {
         std::memcpy(&eventData->getReport.report_data, &packet->data, packet->header.size);
 
         //BTDRV_LOG_DATA_MSG(&packet->data, packet->header.size, "btdrv-mitm: hid::report::GetEventInfo -> Read");
-        //g_fakeBuffer->Free();
         
         return ams::ResultSuccess();
     }
@@ -235,37 +216,17 @@ namespace ams::bluetooth::hid::report {
     void _HandleEvent() {
         bluetooth::CircularBufferPacket *realPacket;      
 
-        // Take snapshot of current write offset
-        u32 writeOffset = g_realBuffer->writeOffset;
-
         while (true) {
-            if (g_realBuffer->readOffset == writeOffset)
-                break;
-
             // Get packet from real buffer
-            //realPacket = reinterpret_cast<bluetooth::CircularBufferPacket *>(g_realBuffer->_read());
-            realPacket = reinterpret_cast<bluetooth::CircularBufferPacket *>(&g_realBuffer->data[g_realBuffer->readOffset]);
+            realPacket = reinterpret_cast<bluetooth::CircularBufferPacket *>(g_realBuffer->Read());
             if (!realPacket)
                 break;
 
-            // Move read pointer past current packet (I think this is what Free does)
-            if (g_realBuffer->readOffset != writeOffset) {
-                u32 newOffset = g_realBuffer->readOffset + realPacket->header.size + sizeof(bluetooth::CircularBufferPacketHeader);
-                if (newOffset >= BLUETOOTH_CIRCBUFFER_SIZE)
-                    newOffset = 0;
-
-                g_realBuffer->_setReadOffset(newOffset);
-            }
-            
-            //BTDRV_LOG_DATA(&realPacket->data, realPacket->header.size);
-            //BTDRV_LOG_DATA(realPacket, realPacket->header.size + sizeof(bluetooth::CircularBufferPacketHeader));
-            //BTDRV_LOG_FMT("fakeBuffer: [%d] writing %d bytes to data[%d]", realPacket->header.type, realPacket->header.size + sizeof(bluetooth::CircularBufferPacketHeader), fakeBuffer->writeOffset);
+            g_realBuffer->Free();
 
             switch (realPacket->header.type) {
                 case 0xff:
                     // Skip over packet type 0xff. This packet indicates the buffer should wrap around on next read.
-                    // Since our buffer read and write offsets can differ from the real buffer we want to write this ourselves 
-                    // when appropriate via CircularBuffer::Write()
                     continue;
                     
                 case 4:
@@ -277,7 +238,7 @@ namespace ams::bluetooth::hid::report {
                         } 
                         
                         if (device->isSwitchController()) {
-                            // Write unmodified packet directly to fake buffer (_write call will add new timestamp)
+                            // Write unmodified packet directly to fake buffer
                             g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                         }
                         else {
@@ -310,9 +271,8 @@ namespace ams::bluetooth::hid::report {
                     break;
 
                 default:
-
                     BTDRV_LOG_FMT("unknown packet received: %d", realPacket->header.type); 
-                    //g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
+                    g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
                     break;
             }
 
@@ -366,27 +326,23 @@ namespace ams::bluetooth::hid::report {
 
             default:
                 BTDRV_LOG_FMT("unknown packet received: %d", g_currentEventType); 
-                //g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, &eventData->getReport.report_length);
+                g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
                 break;
         }
     }
 
     void HandleEvent(void) {
         
-        if (hos::GetVersion() < hos::Version_7_0_0) {
+        if (hos::GetVersion() < hos::Version_7_0_0)
             _HandleEventDeprecated();
-        }
-        else {
+        else 
             _HandleEvent();
-        }
 
-        if (!g_redirectHidReportEvents) {
+        if (!g_redirectHidReportEvents)
             os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
-        }
-        else {
+        else
             os::SignalSystemEvent(&g_btHidReportSystemEventUser);
-        }
-        
+
     }
 
 }
