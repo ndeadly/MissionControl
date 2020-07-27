@@ -9,7 +9,6 @@
 namespace ams::bluetooth::events {
 
     enum BtdrvEventType {
-        //BtdrvEventType_PscPm,
         BtdrvEventType_BluetoothCore,
         BtdrvEventType_BluetoothHid,
         BtdrvEventType_BluetoothBle,

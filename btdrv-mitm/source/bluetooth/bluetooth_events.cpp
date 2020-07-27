@@ -1,7 +1,5 @@
 #include <switch.h>
 #include "bluetooth_events.hpp"
-//#include "../pscpm_module.hpp"
-
 #include "../btdrv_mitm_logging.hpp"
 
 
@@ -13,7 +11,6 @@ namespace ams::bluetooth::events {
         alignas(os::ThreadStackAlignment) u8 	g_eventHandlerThreadStack[0x2000];
         
         os::WaitableManagerType g_manager;
-        //os::WaitableHolderType 	g_holderPscPm;
         os::WaitableHolderType 	g_holderBtCore;
         os::WaitableHolderType 	g_holderBtHid;
         os::WaitableHolderType 	g_holderBtBle;
@@ -26,10 +23,6 @@ namespace ams::bluetooth::events {
             }
 
             os::InitializeWaitableManager(&g_manager);
-
-            //os::InitializeWaitableHolder(&g_holderPscPm, mitm::btdrv::GetPscPmModule()->GetEventPointer()->GetBase());
-            //os::SetWaitableHolderUserData(&g_holderPscPm, BtdrvEventType_PscPm);
-            //os::LinkWaitableHolder(&g_manager, &g_holderPscPm);
 
             os::InitializeWaitableHolder(&g_holderBtCore, core::GetSystemEvent());
             os::SetWaitableHolderUserData(&g_holderBtCore, BtdrvEventType_BluetoothCore);
@@ -48,10 +41,6 @@ namespace ams::bluetooth::events {
             while (true) {
                 auto signalled_holder = os::WaitAny(&g_manager);
                 switch (os::GetWaitableHolderUserData(signalled_holder)) {
-                    //case BtdrvEventType_PscPm:
-                        //BTDRV_LOG_FMT("btdrv-mitm: handling psc:pm event");
-                        //mitm::btdrv::HandlePscPmEvent();
-                        //break;
                     case BtdrvEventType_BluetoothCore:
                         //core::GetSystemEvent()->Clear();
                         os::ClearSystemEvent(core::GetSystemEvent());
@@ -77,8 +66,6 @@ namespace ams::bluetooth::events {
 
     Result Initialize(void) {
         BTDRV_LOG_FMT("btdrv-mitm: events Initialize");
-        // Initialise power management
-        //R_TRY(mitm::btdrv::InitializePscPmModule());
 
         R_TRY(os::CreateThread(&g_eventHandlerThread, 
             EventHandlerThreadFunc, 

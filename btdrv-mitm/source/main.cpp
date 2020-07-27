@@ -57,7 +57,6 @@ void __appInit(void) {
 
     sm::DoWithSession([&]() {
         R_ABORT_UNLESS(fsInitialize());
-        //R_ABORT_UNLESS(pscmInitialize());
         R_ABORT_UNLESS(pmdmntInitialize());
         R_ABORT_UNLESS(pminfoInitialize());
         R_ABORT_UNLESS(btdrvInitialize());
@@ -72,7 +71,6 @@ void __appExit(void) {
     btdrvExit();
     pminfoExit();
     pmdmntExit();
-    //pscmExit();
 
     fsdevUnmountAll();
     fsExit();
