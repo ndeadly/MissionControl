@@ -181,10 +181,12 @@ namespace ams::controller {
         protected:
             WiiController(ControllerType type, const bluetooth::Address *address) : FakeSwitchController(type, address) {};
 
-            Result writeMemory(const bluetooth::Address *address, uint32_t writeaddr, const uint8_t *data, uint8_t length);
-            Result setReportMode(const bluetooth::Address *address, uint8_t mode);
-            Result setPlayerLeds(const bluetooth::Address *address, uint8_t mask);
-			Result queryStatus(const bluetooth::Address *address);
+            Result writeMemory(uint32_t writeaddr, const uint8_t *data, uint8_t length);
+            Result setReportMode(uint8_t mode);
+            Result setPlayerLeds(uint8_t mask);
+			Result queryStatus(void);
+
+			Result setPlayerLed(u8 led_mask);
 
     };
 

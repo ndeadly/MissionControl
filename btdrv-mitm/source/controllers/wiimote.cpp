@@ -13,7 +13,7 @@ namespace ams::controller {
     Result WiimoteController::initialize(void) {
         R_TRY(WiiController::initialize());
 
-        R_TRY(this->setReportMode(&m_address, 0x31));
+        R_TRY(this->setReportMode(0x31));
 
         return 0;
     }

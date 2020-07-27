@@ -15,21 +15,21 @@ namespace ams::controller {
         WiiController::initialize();
         
         // This should actually probably be run in response to report 0x20
-        R_TRY(this->sendInit1(&m_address));
-        R_TRY(this->sendInit2(&m_address));
-        R_TRY(this->setReportMode(&m_address, 0x34));
+        R_TRY(this->sendInit1());
+        R_TRY(this->sendInit2());
+        R_TRY(this->setReportMode(0x34));
 
         return 0;
     }
 
-    Result WiiUProController::sendInit1(const bluetooth::Address *address) {
+    Result WiiUProController::sendInit1(void) {
         const uint8_t data[] = {0x55};
-        return this->writeMemory(address, 0x04a400f0, data, sizeof(data));
+        return this->writeMemory(0x04a400f0, data, sizeof(data));
     }
 
-    Result WiiUProController::sendInit2(const bluetooth::Address *address) {
+    Result WiiUProController::sendInit2(void) {
         const uint8_t data[] = {0x00};
-        return this->writeMemory(address, 0x04a400fb, data, sizeof(data));
+        return this->writeMemory(0x04a400fb, data, sizeof(data));
     }
 
     void WiiUProController::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {

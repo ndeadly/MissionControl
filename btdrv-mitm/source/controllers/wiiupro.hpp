@@ -49,8 +49,8 @@ namespace ams::controller {
             Result initialize(void);
 
         private:
-            Result sendInit1(const bluetooth::Address *address);
-            Result sendInit2(const bluetooth::Address *address);
+            Result sendInit1(void);
+            Result sendInit2(void);
 
             void handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);
             void handleInputReport0x34(const WiiReportData *src, SwitchReportData *dst);

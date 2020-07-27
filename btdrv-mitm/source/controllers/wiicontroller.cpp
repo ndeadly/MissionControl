@@ -10,10 +10,10 @@ namespace ams::controller {
     Result WiiController::initialize(void) {
         FakeSwitchController::initialize();
         
-        return this->setPlayerLeds(&m_address, WiiControllerLEDs_P1);   
+        return this->setPlayerLeds(WiiControllerLEDs_P1);   
     }
 
-    Result WiiController::writeMemory(const bluetooth::Address *address, uint32_t writeaddr, const uint8_t *data, uint8_t length) {
+    Result WiiController::writeMemory(uint32_t writeaddr, const uint8_t *data, uint8_t length) {
         bluetooth::HidReport report = {};
         report.size = sizeof(WiiOutputReport0x16) + 1;
         auto reportData = reinterpret_cast<WiiReportData *>(report.data);
@@ -22,10 +22,10 @@ namespace ams::controller {
         reportData->output0x16.size = length;
         std::memcpy(&reportData->output0x16.data, data, length);
 
-        return btdrvWriteHidData(address, &report);
+        return btdrvWriteHidData(&m_address, &report);
     }
 
-    Result WiiController::setReportMode(const bluetooth::Address *address, uint8_t mode) {
+    Result WiiController::setReportMode(uint8_t mode) {
         bluetooth::HidReport report = {};
         report.size = sizeof(WiiOutputReport0x12) + 1;
         auto reportData = reinterpret_cast<WiiReportData *>(report.data);
@@ -33,27 +33,27 @@ namespace ams::controller {
         reportData->output0x12._unk = 0;
         reportData->output0x12.report_mode = mode;
 
-        return btdrvWriteHidData(address, &report);
+        return btdrvWriteHidData(&m_address, &report);
     }
 
-    Result WiiController::setPlayerLeds(const bluetooth::Address *address, uint8_t mask) {
+    Result WiiController::setPlayerLeds(uint8_t mask) {
         bluetooth::HidReport report = {};
         report.size = sizeof(WiiOutputReport0x15) + 1;
         auto reportData = reinterpret_cast<WiiReportData *>(report.data);
         reportData->id = 0x11;
         reportData->output0x11.leds = mask;
 
-        return btdrvWriteHidData(address, &report);
+        return btdrvWriteHidData(&m_address, &report);
     }
 
-    Result queryStatus(const bluetooth::Address *address) {
+    Result WiiController::queryStatus(void) {
         bluetooth::HidReport report = {};
         report.size = sizeof(WiiOutputReport0x15) + 1;
         auto reportData = reinterpret_cast<WiiReportData *>(report.data);
         reportData->id = 0x15;
         reportData->output0x15._unk = 0;
         
-        return btdrvWriteHidData(address, &report);
+        return btdrvWriteHidData(&m_address, &report);
     }
 
 }
