@@ -75,7 +75,8 @@ namespace ams::controller {
                 {0x045e, 0x02fd}  // Official Xbox One S Controller
             };
 
-            XboxOneController(const bluetooth::Address *address);
+            XboxOneController(const bluetooth::Address *address) 
+                : FakeSwitchController(ControllerType_XboxOne, address) { };
 
             Result initialize(void);
             void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);

@@ -113,7 +113,8 @@ namespace ams::controller {
                 {0x054c, 0x09cc}   // Official Dualshock4 v2
             };
 
-            Dualshock4Controller(const bluetooth::Address *address);
+            Dualshock4Controller(const bluetooth::Address *address)
+                : FakeSwitchController(ControllerType_Dualshock4, address), m_ledColour({0, 0, 0}) { };
             
             Result initialize(void);
             Result setPlayerLed(u8 led_mask);

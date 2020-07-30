@@ -7,7 +7,7 @@ namespace ams::controller {
 
         public:
             FakeSwitchController(ControllerType type, const bluetooth::Address *address) 
-            : SwitchController(type, address) {};
+                : SwitchController(type, address) { };
             
             const bluetooth::HidReport * handleIncomingReport(const bluetooth::HidReport *report);
             const bluetooth::HidReport * handleOutgoingReport(const bluetooth::HidReport *report);
