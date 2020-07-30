@@ -13,8 +13,6 @@ namespace ams::bluetooth::core {
 
     namespace {
 
-        //const constexpr char* g_proControllerName = "Pro Controller";
-
         std::atomic<bool> g_isInitialized(false);
 
         os::Mutex g_eventDataLock(false);

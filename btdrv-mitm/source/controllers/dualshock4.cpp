@@ -20,13 +20,6 @@ namespace ams::controller {
 
     }
 
-
-    Result Dualshock4Controller::initialize(void) {
-        R_TRY(FakeSwitchController::initialize());
-
-        return ams::ResultSuccess();
-    }
-
     Result Dualshock4Controller::setPlayerLed(u8 led_mask) {
         u8 i = 0;
         while (led_mask >>= 1) { ++i; }
@@ -37,7 +30,7 @@ namespace ams::controller {
 
         m_outputReport.size = sizeof(raw) - 1;
         std::memcpy(&m_outputReport.data, &raw.data[1], m_outputReport.size);
-        
+
         return ams::ResultSuccess();
     }
 

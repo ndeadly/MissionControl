@@ -34,15 +34,12 @@ namespace ams::controller {
             case 0x01:
                 this->handleInputReport0x01(xboxReport, switchReport);
                 break;
-
             case 0x02:
                 this->handleInputReport0x02(xboxReport, switchReport);
                 break;
-
             case 0x04:
                 this->handleInputReport0x04(xboxReport, switchReport);
                 break;
-
             default:
                 BTDRV_LOG_FMT("XBONE: RECEIVED REPORT [0x%02x]", xboxReport->id);
                 break;

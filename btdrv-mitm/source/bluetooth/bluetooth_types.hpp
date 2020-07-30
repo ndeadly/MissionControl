@@ -30,22 +30,22 @@ namespace ams::bluetooth {
         SubCmd_GetRegulatedVoltage  = 0x50,
     };
 
-    typedef BluetoothEventType          EventType;
-    typedef BluetoothHidEventType       HidEventType;
-    typedef BluetoothBleEventType       BleEventType;
+    typedef BluetoothEventType      EventType;
+    typedef BluetoothHidEventType   HidEventType;
+    typedef BluetoothBleEventType   BleEventType;
 
-    typedef BluetoothEventData          EventData;
-    typedef BluetoothHidEventData       HidEventData;
-    typedef BluetoothBleEventData       BleEventData;
+    typedef BluetoothEventData      EventData;
+    typedef BluetoothHidEventData   HidEventData;
+    typedef BluetoothBleEventData   BleEventData;
     
     typedef BluetoothAddress        Address;
     typedef BluetoothDeviceClass    DeviceClass;
     typedef BluetoothPinCode        PinCode;
 
-    typedef BluetoothHidReport     HidReport;
-    typedef BluetoothHidReportData HidReportData;
+    typedef BluetoothHidReport      HidReport;
+    typedef BluetoothHidReportData  HidReportData;
 
-    typedef BluetoothHhReportType HhReportType;
+    typedef BluetoothHhReportType   HhReportType;
 
     struct DeviceSettings : sf::LargeData {
         BluetoothDevicesSettings device;
