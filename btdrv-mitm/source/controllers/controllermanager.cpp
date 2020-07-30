@@ -6,6 +6,8 @@
 #include <stratosphere.hpp>
 
 #include "switchcontroller.hpp"
+#include "joycon.hpp"
+#include "switchpro.hpp"
 #include "wiimote.hpp"
 #include "wiiupro.hpp"
 #include "dualshock4.hpp"
