@@ -91,7 +91,7 @@ namespace {
     };
 
     constexpr size_t MaxServers = 1;
-    constexpr size_t MaxSessions = 0x10;
+    constexpr size_t MaxSessions = 6;
     
 }
 
