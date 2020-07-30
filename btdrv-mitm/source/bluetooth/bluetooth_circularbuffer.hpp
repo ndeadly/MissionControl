@@ -7,7 +7,8 @@
 namespace ams::bluetooth {
 
     enum CircularBufferType {
-        CircularBufferType_HidReport = 0x1,
+        CircularBufferType_Other,
+        CircularBufferType_HidReport,
         CircularBufferType_Bluetooth,
         CircularBufferType_Ble,
         CircularBufferType_BleCore,
@@ -33,12 +34,12 @@ namespace ams::bluetooth {
             void Initialize(const char *name); // 10.0.0+, previously took event argument
             void Finalize(void);
             bool IsInitialized(void);
-            u64  GetWriteableSize(void);
+            u64 GetWriteableSize(void);
             void SetWriteCompleteEvent(os::EventType *event);
-            u64  Write(u8 type, void *data, size_t size);
-            void DiscardOldPackets(u8 a1, u32 a2);
-            void *Read(void);
-            u64  Free(void);
+            u64 Write(u8 type, void *data, size_t size);
+            void DiscardOldPackets(u8 type, u32 ageLimit);
+            CircularBufferPacket *Read(void);
+            u64 Free(void);
 
         private:
             void _setReadOffset(u32 offset);
@@ -47,7 +48,7 @@ namespace ams::bluetooth {
             u32  _getReadOffset(void);
             u64  _write(u8 type, void *data, size_t size);
             void _updateUtilization(void);
-            void *_read(void);
+            CircularBufferPacket *_read(void);
 
             os::SdkMutex    mutex;
             os::EventType   *event;
