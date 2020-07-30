@@ -3,8 +3,6 @@
 
 namespace ams::controller {
 
-
-
     class WiimoteController : public WiiController {
 
         public:
@@ -12,17 +10,10 @@ namespace ams::controller {
                 {0x057e, 0x0306},  // Official wiimote
             };
 
-            WiimoteController(const bluetooth::Address *address);
+            WiimoteController(const bluetooth::Address *address)
+                : WiiController(ControllerType_Wiimote, address) { };
 
             Result initialize(void);
-
-            void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
-
-        private:
-            void handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);
-            void handleInputReport0x30(const WiiReportData *src, SwitchReportData *dst);
-            void handleInputReport0x31(const WiiReportData *src, SwitchReportData *dst);
-
     };
 
 }

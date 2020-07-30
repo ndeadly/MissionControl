@@ -10,6 +10,15 @@ namespace ams::controller {
 		WiiControllerLEDs_P4 = 0x80,
 	};
 
+	enum WiiExtensionController {
+		WiiExtensionController_None,
+		WiiExtensionController_Nunchuck,
+		WiiExtensionController_Classic,
+		WiiExtensionController_ClassicPro,
+		WiiExtensionController_WiiUPro,
+		WiiExtensionController_Unsupported,
+	};
+
     struct WiiButtonData {
 		uint8_t dpad_left	: 1;
 		uint8_t dpad_right	: 1;
@@ -28,8 +37,76 @@ namespace ams::controller {
 	} __attribute__ ((__packed__));
 
 	struct WiiAccelerometerData {
-		uint8_t xyz[3];
+		uint8_t x;
+		uint8_t y;
+		uint8_t z;
 	} __attribute__ ((__packed__));
+
+	struct WiiClassicControllerButtonData {
+		uint8_t dpad_right	: 1;
+		uint8_t dpad_down	: 1;
+		uint8_t L 			: 1;
+		uint8_t minus		: 1;
+		uint8_t home 		: 1;
+		uint8_t plus 		: 1;
+		uint8_t R 			: 1;
+		uint8_t 			: 0;
+
+		uint8_t ZL 			: 1;
+		uint8_t B 			: 1;
+		uint8_t Y 			: 1;
+		uint8_t A 			: 1;
+		uint8_t X 			: 1;
+		uint8_t ZR 			: 1;
+		uint8_t dpad_left   : 1;
+		uint8_t dpad_up 	: 1;
+	} __attribute__ ((__packed__));
+
+	struct WiiNunchuckExtensionData {
+		uint8_t stick_x;
+		uint8_t stick_y;
+		uint8_t accel_x_92;
+		uint8_t accel_y_92;
+		uint8_t accel_z_92;
+
+		uint8_t accel_z_10 : 2;
+		uint8_t accel_y_10 : 2;
+		uint8_t accel_x_10 : 2;
+		uint8_t C : 1;
+		uint8_t Z : 1;
+	};
+
+	struct WiiUProButtonData {
+        uint8_t             : 1;
+        uint8_t R           : 1;
+        uint8_t plus        : 1;
+        uint8_t home        : 1;
+        uint8_t minus       : 1;
+        uint8_t L           : 1;
+        uint8_t dpad_down   : 1;
+        uint8_t dpad_right  : 1;
+
+        uint8_t dpad_up     : 1;
+        uint8_t dpad_left   : 1;
+        uint8_t ZR          : 1;
+        uint8_t X           : 1; 
+        uint8_t A           : 1;
+        uint8_t Y           : 1;
+        uint8_t B           : 1;
+        uint8_t ZL          : 1;
+
+        uint8_t rstick_press : 1;
+        uint8_t lstick_press : 1;
+        uint8_t : 0;
+    } __attribute__ ((__packed__));
+
+    struct WiiUProExtensionData {
+        uint16_t left_stick_x;
+        uint16_t right_stick_x;
+        uint16_t left_stick_y;
+        uint16_t right_stick_y;
+        WiiUProButtonData buttons;
+    } __attribute__ ((__packed__));
 
 	struct WiiOutputReport0x10 {
 		uint8_t rumble;
@@ -78,8 +155,11 @@ namespace ams::controller {
 
 	struct WiiInputReport0x20 {
         WiiButtonData   buttons;
-		uint8_t			led   : 4;
-		uint8_t 		flags : 4;
+		uint8_t			battery_critical : 1;
+		uint8_t			extension_connected : 1;
+		uint8_t			speaker_enabled : 1;
+		uint8_t			ir_enabled : 1;
+		uint8_t			led_state : 4;
 		uint8_t			_pad[2];
 		uint8_t			battery;
     } __attribute__ ((__packed__));
@@ -175,18 +255,41 @@ namespace ams::controller {
 
     class WiiController : public FakeSwitchController {
 
-        public:
-            Result initialize(void);
+		public:
+			void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
         protected:
-            WiiController(ControllerType type, const bluetooth::Address *address) : FakeSwitchController(type, address) {};
+            WiiController(ControllerType type, const bluetooth::Address *address);
 
-            Result writeMemory(uint32_t writeaddr, const uint8_t *data, uint8_t length);
+			void handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);
+			void handleInputReport0x21(const WiiReportData *src, SwitchReportData *dst);
+			void handleInputReport0x22(const WiiReportData *src, SwitchReportData *dst);
+            void handleInputReport0x30(const WiiReportData *src, SwitchReportData *dst);
+            void handleInputReport0x31(const WiiReportData *src, SwitchReportData *dst);
+            void handleInputReport0x32(const WiiReportData *src, SwitchReportData *dst);
+            void handleInputReport0x34(const WiiReportData *src, SwitchReportData *dst);
+
+            void mapButtonsHorizontalOrientation(const WiiButtonData *buttons, SwitchReportData *dst);
+            void mapButtonsVerticalOrientation(const WiiButtonData *buttons, SwitchReportData *dst);
+
+			void mapExtensionBytes(const u8 ext[], SwitchReportData *dst);
+			void mapNunchuckExtension(const u8 ext[], SwitchReportData *dst);
+			void mapClassicControllerExtension(const u8 ext[], SwitchReportData *dst);
+			void mapWiiUProControllerExtension(const u8 ext[], SwitchReportData *dst);
+
+			Result writeMemory(uint32_t writeaddr, const uint8_t *data, uint8_t size);
+			Result readMemory(uint32_t read_addr, uint16_t size);
+
             Result setReportMode(uint8_t mode);
             Result setPlayerLeds(uint8_t mask);
 			Result queryStatus(void);
 
 			Result setPlayerLed(u8 led_mask);
+
+			Result sendInit1(void);
+            Result sendInit2(void);
+
+			WiiExtensionController m_extension;
 
     };
 
