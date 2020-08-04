@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 
     auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
     
-    R_ABORT_UNLESS(server_manager->RegisterMitmServer<ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName));
+    R_ABORT_UNLESS((server_manager->RegisterMitmServer<ams::mitm::btdrv::IBtdrvMitmInterface, ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName)));
 
     R_ABORT_UNLESS(bluetooth::events::Initialize());
 
