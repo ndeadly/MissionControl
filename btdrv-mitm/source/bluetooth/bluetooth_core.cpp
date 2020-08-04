@@ -68,13 +68,13 @@ namespace ams::bluetooth::core {
         }
     }
 
-    void handlePinRequesEvent(EventData *eventData) {
+    void handlePinRequestEvent(EventData *eventData) {
         if (controller::IsController(&eventData->pinReply.cod) && !controller::IsValidSwitchControllerName(eventData->pinReply.name)) {
             std::strncpy(eventData->pinReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 
-    void handleSspRequesEvent(EventData *eventData) {
+    void handleSspRequestEvent(EventData *eventData) {
         if (controller::IsController(&eventData->sspReply.cod) && !controller::IsValidSwitchControllerName(eventData->sspReply.name)) {
             std::strncpy(eventData->sspReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
         }
@@ -94,15 +94,11 @@ namespace ams::bluetooth::core {
                 case BluetoothEvent_DeviceFound:
                     handleDeviceFoundEvent(eventData);
                     break;
-                case BluetoothEvent_DiscoveryStateChanged:
-                    break;
                 case BluetoothEvent_PinRequest:
-                    handlePinRequesEvent(eventData);
+                    handlePinRequestEvent(eventData);
                     break;
                 case BluetoothEvent_SspRequest:
-                    handleSspRequesEvent(eventData);
-                    break;
-                case BluetoothEvent_BondStateChanged:
+                    handleSspRequestEvent(eventData);
                     break;
                 default:
                     break;
