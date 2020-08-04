@@ -136,7 +136,7 @@ namespace ams::bluetooth::hid::report {
     /* Write a fake report into the circular buffer */
     Result WriteFakeHidData(const bluetooth::Address *address, const bluetooth::HidReport *report) {
 
-        BTDRV_LOG_DATA_MSG((void*)report, report->size + sizeof(report->size), "btdrv-mitm: WriteFakeHidData");
+        //BTDRV_LOG_DATA_MSG((void*)report, report->size + sizeof(report->size), "btdrv-mitm: WriteFakeHidData");
 
         u16 bufferSize = report->size + 0x11;
         u8 buffer[bufferSize] = {};
@@ -178,35 +178,34 @@ namespace ams::bluetooth::hid::report {
         return bluetooth::hid::report::WriteFakeHidData(address, report);
     }
 
-    /* Only used for < 7.0.0. newer firmwares read straight from shared memory */ 
+    /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */ 
     Result GetEventInfo(bluetooth::HidEventType *type, u8* buffer, size_t size) {
 
        //BTDRV_LOG_FMT("!!! GetEventInfo Called");
 
-        bluetooth::CircularBufferPacket *packet;
-
         while (true) {
 
-            packet = reinterpret_cast<bluetooth::CircularBufferPacket *>(g_fakeBuffer->Read());
+            auto packet = g_fakeBuffer->Read();
             if (!packet)
-                break;
+                return -1;
 
             g_fakeBuffer->Free();
 
-            if (packet->header.type == 0xff)
+            if (packet->header.type == 0xff) {
                 continue;
+            }
+            else {
+                auto eventData = reinterpret_cast<bluetooth::HidEventData *>(buffer);
 
-            break;
+                *type = static_cast<bluetooth::HidEventType>(packet->header.type);
+                std::memcpy(&eventData->getReport.address, &packet->data.address, sizeof(bluetooth::Address));
+                eventData->getReport.status = HidStatus_Ok;
+                eventData->getReport.report_length = packet->header.size;
+
+                std::memcpy(&eventData->getReport.report_data, &packet->data, packet->header.size);
+                break;
+            }      
         }
-
-        auto eventData = reinterpret_cast<bluetooth::HidEventData *>(buffer);
-
-        *type = static_cast<bluetooth::HidEventType>(packet->header.type);
-        std::memcpy(&eventData->getReport.address, &packet->data.address, sizeof(bluetooth::Address));
-        eventData->getReport.status = HidStatus_Ok;
-        eventData->getReport.report_length = packet->header.size;
-
-        std::memcpy(&eventData->getReport.report_data, &packet->data, packet->header.size);
 
         //BTDRV_LOG_DATA_MSG(&packet->data, packet->header.size, "btdrv-mitm: hid::report::GetEventInfo -> Read");
         
@@ -214,11 +213,10 @@ namespace ams::bluetooth::hid::report {
     }
 
     void _HandleEvent() {
-        bluetooth::CircularBufferPacket *realPacket;      
 
         while (true) {
             // Get packet from real buffer
-            realPacket = reinterpret_cast<bluetooth::CircularBufferPacket *>(g_realBuffer->Read());
+            auto realPacket = g_realBuffer->Read();
             if (!realPacket)
                 break;
 
@@ -262,7 +260,6 @@ namespace ams::bluetooth::hid::report {
 
                             // Translate packet to switch pro format
                             device->convertReportFormat(inReport, outReport);
-                            //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
 
                             // Write the converted report to our fake buffer
                             g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));                
@@ -316,7 +313,6 @@ namespace ams::bluetooth::hid::report {
 
                         // Translate packet to switch pro format
                         device->convertReportFormat(inReport, outReport);
-                        //BTDRV_LOG_DATA(g_fakeReportData, sizeof(g_fakeReportBuffer));
 
                         // Write the converted report to our fake buffer
                         g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));  
