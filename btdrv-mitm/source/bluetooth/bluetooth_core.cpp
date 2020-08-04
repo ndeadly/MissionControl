@@ -122,7 +122,7 @@ namespace ams::bluetooth::core {
 
         BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
 
-        if (!g_redirectEvents) {
+        if (!g_redirectCoreEvents) {
             if (g_currentEventType != BluetoothEvent_PinRequest) {
                 os::SignalSystemEvent(&g_btSystemEventFwd);
                 os::WaitEvent(&g_dataReadEvent);

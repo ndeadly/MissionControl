@@ -242,11 +242,18 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-    void BtdrvMitmService::RedirectSystemEvents(bool redirect) {
+    void BtdrvMitmService::RedirectCoreEvents(bool redirect) {
 
-        BTDRV_LOG_FMT("btdrv-mitm: RedirectSystemEvents [%s]", redirect ? "on" : "off");
+        BTDRV_LOG_FMT("btdrv-mitm: RedirectCoreEvents [%s]", redirect ? "on" : "off");
 
-        g_redirectEvents = redirect;
+        g_redirectCoreEvents = redirect;
+    }
+
+    void BtdrvMitmService::RedirectHidEvents(bool redirect) {
+
+        BTDRV_LOG_FMT("btdrv-mitm: RedirectHidEvents [%s]", redirect ? "on" : "off");
+
+        g_redirectHidEvents = redirect;
     }
 
     void BtdrvMitmService::RedirectHidReportEvents(bool redirect) {
@@ -255,5 +262,13 @@ namespace ams::mitm::btdrv {
 
         g_redirectHidReportEvents = redirect;
     }
+
+    void BtdrvMitmService::RedirectBleEvents(bool redirect) {
+
+        BTDRV_LOG_FMT("btdrv-mitm: RedirectBleEvents [%s]", redirect ? "on" : "off");
+
+        g_redirectBleEvents = redirect;
+    }
+
 
 }

@@ -30,8 +30,10 @@ namespace ams::mitm::btdrv {
                 GetBleManagedEventInfo              = 79,
 
                 /* Extensions */
-                RedirectSystemEvents                = 65000,
-                RedirectHidReportEvents             = 65001,
+                RedirectCoreEvents                  = 65000,
+                RedirectHidEvents                   = 65001,
+                RedirectHidReportEvents             = 65002,
+                RedirectBleEvents                   = 65003,
             };
 
         public:
@@ -66,8 +68,10 @@ namespace ams::mitm::btdrv {
             Result GetBleManagedEventInfo(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
             /* Extensions */
-            void RedirectSystemEvents(bool redirect);
+            void RedirectCoreEvents(bool redirect);
+            void RedirectHidEvents(bool redirect);
             void RedirectHidReportEvents(bool redirect);
+            void RedirectBleEvents(bool redirect);
 
         public:
             DEFINE_SERVICE_DISPATCH_TABLE {
@@ -89,8 +93,10 @@ namespace ams::mitm::btdrv {
                 MAKE_SERVICE_COMMAND_META(GetBleManagedEventInfoDeprecated, hos::Version_5_0_0, hos::Version_5_0_2),
                 MAKE_SERVICE_COMMAND_META(GetBleManagedEventInfo,           hos::Version_5_1_0),
 
-                MAKE_SERVICE_COMMAND_META(RedirectSystemEvents),
+                MAKE_SERVICE_COMMAND_META(RedirectCoreEvents),
+                MAKE_SERVICE_COMMAND_META(RedirectHidEvents),
                 MAKE_SERVICE_COMMAND_META(RedirectHidReportEvents),
+                MAKE_SERVICE_COMMAND_META(RedirectBleEvents),
             };
 
     };

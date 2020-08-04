@@ -80,14 +80,13 @@ namespace ams::bluetooth::ble {
 
         BTDRV_LOG_FMT("[%02d] BLE Event", g_currentEventType);
 
-        if (!g_redirectEvents) {
+        if (!g_redirectBleEvents) {
             os::SignalSystemEvent(&g_btBleSystemEventFwd);
             os::WaitEvent(&g_dataReadEvent);
         }
 
         if (g_btBleSystemEventUser.state) {
             os::SignalSystemEvent(&g_btBleSystemEventUser);
-            //os::TimedWaitEvent(&g_dataReadEvent, TimeSpan::FromMilliSeconds(500));
         }
 
     }

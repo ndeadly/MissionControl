@@ -3,7 +3,9 @@
 namespace ams {
 
     std::atomic<bool> g_preparingForSleep       = false;
-    std::atomic<bool> g_redirectEvents          = false;
+    std::atomic<bool> g_redirectCoreEvents      = false;
+    std::atomic<bool> g_redirectHidEvents       = false;
     std::atomic<bool> g_redirectHidReportEvents = false;
+    std::atomic<bool> g_redirectBleEvents       = false;
 
 }
