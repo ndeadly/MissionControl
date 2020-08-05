@@ -34,9 +34,11 @@ namespace ams::controller {
             case 0x01:
                 this->handleInputReport0x01(xboxReport, switchReport);
                 break;
+            /*
             case 0x02:
                 this->handleInputReport0x02(xboxReport, switchReport);
                 break;
+            */
             case 0x04:
                 this->handleInputReport0x04(xboxReport, switchReport);
                 break;
@@ -91,23 +93,25 @@ namespace ams::controller {
         dst->input0x30.buttons.lstick_press = src->input0x01.buttons.lstick_press;
         dst->input0x30.buttons.rstick_press = src->input0x01.buttons.rstick_press;
 
-        dst->input0x30.buttons.capture = 0;
+        dst->input0x30.buttons.capture  = 0;
+        dst->input0x30.buttons.home     = src->input0x01.buttons.guide;
     }
 
+    /*
     void XboxOneController::handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst) {
         packStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
         packStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
-        std::memset(&dst->input0x30.buttons, 0, sizeof(SwitchButtonData));
+        //std::memset(&dst->input0x30.buttons, 0, sizeof(SwitchButtonData));
 
         dst->input0x30.buttons.home = src->input0x02.guide;
     }
+    */
 
     void XboxOneController::handleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst) {
         m_battery = src->input0x04.capacity;
 
         packStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
         packStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
-        std::memset(&dst->input0x30.buttons, 0, sizeof(SwitchButtonData));
     }
 
 }

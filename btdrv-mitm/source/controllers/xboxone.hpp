@@ -20,6 +20,7 @@ namespace ams::controller {
         uint16_t y;
     } __attribute__ ((__packed__));
 
+    // Used on older firmware
     struct XboxOneButtonData {
         uint8_t      dpad;
 
@@ -37,12 +38,37 @@ namespace ams::controller {
         uint8_t              : 0;
     } __attribute__ ((__packed__));
 
+    // Used on latest firmwares
+    struct XboxOneButtonDataNew {
+        uint8_t      dpad;
+
+        uint8_t A            : 1;
+        uint8_t B            : 1;
+        uint8_t              : 1;
+        uint8_t X            : 1;
+        uint8_t Y            : 1;
+        uint8_t              : 1;
+        uint8_t LB           : 1;
+        uint8_t RB           : 1;
+
+        uint8_t              : 3;
+        uint8_t menu         : 1;
+        uint8_t guide        : 1;
+        uint8_t lstick_press : 1;
+        uint8_t rstick_press : 1;
+        uint8_t              : 0;
+
+        uint8_t view         : 1;
+        uint8_t              : 0;
+
+    } __attribute__ ((__packed__));
+
     struct XboxOneInputReport0x01 {
-        XboxOneStickData    left_stick;
-        XboxOneStickData    right_stick;
-        uint16_t            left_trigger;
-        uint16_t            right_trigger;
-        XboxOneButtonData   buttons;
+        XboxOneStickData        left_stick;
+        XboxOneStickData        right_stick;
+        uint16_t                left_trigger;
+        uint16_t                right_trigger;
+        XboxOneButtonDataNew    buttons;
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x02{
@@ -83,7 +109,7 @@ namespace ams::controller {
 
         private:
             void handleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst);
-            void handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst);
+            //void handleInputReport0x02(const XboxOneReportData *src, SwitchReportData *dst);
             void handleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst);
 
     };
