@@ -323,15 +323,17 @@ namespace ams::bluetooth::hid::report {
 
     void HandleEvent(void) {
         
-        if (hos::GetVersion() < hos::Version_7_0_0)
-            _HandleEventDeprecated();
-        else 
-            _HandleEvent();
+        if (!g_redirectHidReportEvents) {
+            if (hos::GetVersion() < hos::Version_7_0_0)
+                _HandleEventDeprecated();
+            else 
+                _HandleEvent();
 
-        if (!g_redirectHidReportEvents)
             os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
-        else
+        }
+        else {
             os::SignalSystemEvent(&g_btHidReportSystemEventUser);
+        }
 
     }
 
