@@ -53,6 +53,9 @@ namespace ams::bluetooth::hid::report {
     }
 
     SharedMemory *GetRealSharedMemory(void) {
+        if (hos::GetVersion() < hos::Version_7_0_0)
+            return nullptr;
+
         return &g_realBtShmem;
     }
 
