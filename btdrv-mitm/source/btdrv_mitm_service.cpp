@@ -270,5 +270,15 @@ namespace ams::mitm::btdrv {
         g_redirectBleEvents = redirect;
     }
 
+    Result BtdrvMitmService::GetRealSharedMemory(sf::OutCopyHandle out_handle) {
+        out_handle.SetValue(bluetooth::hid::report::GetRealSharedMemory()->handle);
+        return ams::ResultSuccess();
+    }
+
+    Result BtdrvMitmService::GetFakeSharedMemory(sf::OutCopyHandle out_handle) {
+        out_handle.SetValue(bluetooth::hid::report::GetFakeSharedMemory()->handle);
+        return ams::ResultSuccess();
+    }
+
 
 }

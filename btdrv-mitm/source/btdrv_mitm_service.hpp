@@ -30,6 +30,8 @@ namespace ams::mitm::btdrv {
             AMS_SF_METHOD_INFO(C, H, 65001, void, RedirectHidEvents,                (bool redirect)) \
             AMS_SF_METHOD_INFO(C, H, 65002, void, RedirectHidReportEvents,          (bool redirect)) \
             AMS_SF_METHOD_INFO(C, H, 65003, void, RedirectBleEvents,                (bool redirect)) \
+            AMS_SF_METHOD_INFO(C, H, 65004, Result, GetRealSharedMemory,            (sf::OutCopyHandle out_handle),                                                         hos::Version_7_0_0) \
+            AMS_SF_METHOD_INFO(C, H, 65005, Result, GetFakeSharedMemory,            (sf::OutCopyHandle out_handle)) \
 
         AMS_SF_DEFINE_MITM_INTERFACE(IBtdrvMitmInterface, AMS_BTDRV_MITM_INTERFACE_INFO)
 
@@ -70,6 +72,8 @@ namespace ams::mitm::btdrv {
             void RedirectHidEvents(bool redirect);
             void RedirectHidReportEvents(bool redirect);
             void RedirectBleEvents(bool redirect);
+            Result GetRealSharedMemory(sf::OutCopyHandle out_handle);
+            Result GetFakeSharedMemory(sf::OutCopyHandle out_handle);
 
     };
     static_assert(IsIBtdrvMitmInterface<BtdrvMitmService>);
