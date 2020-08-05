@@ -66,7 +66,7 @@ Install MissionControl to your SD card, reboot the console and then pair control
 Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please create an issue.
 
 ### How it works
-MissionControl works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating their data to convince the Switch that it's communicating with a Pro Controller.
+MissionControl works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating incoming/outgoing data to convince the Switch that it's communicating with a Pro Controller.
 
 To achieve this, the `btdrv-mitm` module obtains the handles to `bluetooth` system events and shared memory when the system attempts to initialise them over IPC via the `btm` and `hid` modules. It then creates its own secondary versions of these and passes their handles on instead of the original. This allows modifications to be made to any data buffers before notifying (or not) the system. Additionally, the `WriteHidData` IPC command is intercepted to translate or drop outgoing requests to the controller. In the case of the latter, fake responses can be written directly to the buffer in shared memory.
 
@@ -84,7 +84,7 @@ IPS patches to the `bluetooth` module are provided to (re)enable the passing of 
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device discovery cycle. Be patient and re-press the sync button on the controller if neccessary.
 * Xbox One controllers may disconnect and refuse to reconnect after initial pairing. The controller will connect normally after console is restarted.
-* Layout of Xbox One input report appears to have changed at some point. Button mapping may be incorrect on newer controller firmwares. I no longer have access to a controller to test.
+* Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.
 
 ### Credits
 * [__switchbrew__](https://switchbrew.org/wiki/Main_Page) for the extensive documention of the Switch OS.
