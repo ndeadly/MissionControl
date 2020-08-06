@@ -83,7 +83,6 @@ IPS patches to the `bluetooth` module are provided to (re)enable the passing of 
 ### Known Issues and limitations
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device discovery cycle. Be patient and re-press the sync button on the controller if neccessary.
-* Xbox One controllers may disconnect and refuse to reconnect after initial pairing. The controller will connect normally after console is restarted.
 * Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.
 
 ### Credits
