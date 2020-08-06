@@ -69,13 +69,13 @@ namespace ams::bluetooth::core {
     }
 
     void handlePinRequestEvent(EventData *eventData) {
-        if (controller::IsController(&eventData->pinReply.cod) && !controller::IsValidSwitchControllerName(eventData->pinReply.name)) {
+        if (!controller::IsValidSwitchControllerName(eventData->pinReply.name)) {
             std::strncpy(eventData->pinReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
         }
     }
 
     void handleSspRequestEvent(EventData *eventData) {
-        if (controller::IsController(&eventData->sspReply.cod) && !controller::IsValidSwitchControllerName(eventData->sspReply.name)) {
+        if (!controller::IsValidSwitchControllerName(eventData->sspReply.name)) {
             std::strncpy(eventData->sspReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
         }
     }
