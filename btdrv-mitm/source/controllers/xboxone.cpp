@@ -108,7 +108,7 @@ namespace ams::controller {
     */
 
     void XboxOneController::handleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst) {
-        m_battery = src->input0x04.capacity;
+        m_battery = src->input0x04.capacity << 1;
 
         packStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
         packStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);

@@ -76,7 +76,7 @@ namespace ams::controller {
         uint8_t         : 0; 
     } __attribute__ ((__packed__)); 
 
-    struct XboxOneInputReport0x04{
+    struct XboxOneInputReport0x04 {
         uint8_t capacity : 2;
         uint8_t mode     : 2;
         uint8_t charging : 1;
