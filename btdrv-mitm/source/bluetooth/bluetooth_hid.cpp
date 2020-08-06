@@ -97,12 +97,6 @@ namespace ams::bluetooth::hid {
 
         BTDRV_LOG_FMT("[%02d] HID Event", g_currentEventType);
 
-        os::SignalSystemEvent(&g_btHidSystemEventFwd);
-        os::WaitEvent(&g_dataReadEvent);
-
-        if (g_btHidSystemEventUser.state)
-            os::SignalSystemEvent(&g_btHidSystemEventUser);
-
         auto eventData = reinterpret_cast<HidEventData *>(g_eventDataBuffer);
 
         switch (g_currentEventType) {
@@ -110,10 +104,21 @@ namespace ams::bluetooth::hid {
             case HidEvent_ConnectionState:
                 handleConnectionStateEvent(eventData);
                 break;
-
+            case HidEvent_Unknown07:
+                // Fix for xbox one disconnection. Don't know what this value is for, but it appears to be 0 for other controllers
+                // Todo: check bd address is xbox controller
+                g_eventDataBuffer[4] = 0;
+                break;
             default:
+                BTDRV_LOG_DATA(g_eventDataBuffer, sizeof(g_eventDataBuffer));
                 break;
         }
+
+        os::SignalSystemEvent(&g_btHidSystemEventFwd);
+        os::WaitEvent(&g_dataReadEvent);
+
+        if (g_btHidSystemEventUser.state)
+            os::SignalSystemEvent(&g_btHidSystemEventUser);
 
     }
 
