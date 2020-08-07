@@ -20,6 +20,13 @@ namespace ams::controller {
 
     }
 
+    Result Dualshock4Controller::initialize(void) {
+        R_TRY(FakeSwitchController::initialize());
+        R_TRY(this->updateControllerState());
+
+        return ams::ResultSuccess();
+    }
+
     Result Dualshock4Controller::setPlayerLed(u8 led_mask) {
         u8 i = 0;
         while (led_mask >>= 1) { ++i; }
