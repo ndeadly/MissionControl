@@ -116,21 +116,18 @@ namespace ams::bluetooth::core {
             R_ABORT_UNLESS(btdrvGetEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
         }
 
-        BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
+        //BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
 
         if (!g_redirectCoreEvents) {
-            if (g_currentEventType != BluetoothEvent_PinRequest) {
-                os::SignalSystemEvent(&g_btSystemEventFwd);
-                os::WaitEvent(&g_dataReadEvent);
-            }
-            else {
+            if (g_currentEventType == BluetoothEvent_PinRequest) {
                 auto eventData = reinterpret_cast<EventData *>(g_eventDataBuffer);
 
                 bluetooth::PinCode pincode = {};
                 u8 pin_length;
 
                 // Reverse host address as pincode for wii devices
-                if (strncmp(eventData->pinReply.name, "Nintendo RVL", 12) == 0) {
+                const char *wii_prefix = "Nintendo RVL";
+                if (strncmp(eventData->pinReply.name, wii_prefix, strlen(wii_prefix)) == 0) {
                     // Fetch host adapter properties
                     BluetoothAdapterProperty props;
                     R_ABORT_UNLESS(btdrvGetAdapterProperties(&props));
@@ -146,6 +143,10 @@ namespace ams::bluetooth::core {
 
                 // Fuck BTM, we're sending the pin response ourselves if it won't.
                 R_ABORT_UNLESS(btdrvRespondToPinRequest(&eventData->pinReply.address, false, &pincode, pin_length));
+            }
+            else {
+                os::SignalSystemEvent(&g_btSystemEventFwd);
+                os::WaitEvent(&g_dataReadEvent);
             }
         }
 
