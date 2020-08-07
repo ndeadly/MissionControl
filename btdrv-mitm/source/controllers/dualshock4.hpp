@@ -125,6 +125,7 @@ namespace ams::controller {
             void handleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst);
             void handleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst);
 
+            void mapButtons(const Dualshock4ButtonData *buttons, SwitchReportData *dst);
             Result updateControllerState(void);
 
             Dualshock4LedColour m_ledColour; 
