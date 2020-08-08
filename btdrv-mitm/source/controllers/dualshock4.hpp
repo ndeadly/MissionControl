@@ -69,7 +69,7 @@ namespace ams::controller {
     } __attribute__((packed));
 
     struct Dualshock4InputReport0x11 {
-        uint8_t _unk[2];
+        uint8_t                 _unk0[2];
         Dualshock4StickData     left_stick;
         Dualshock4StickData     right_stick;
         Dualshock4ButtonData    buttons;
@@ -83,7 +83,7 @@ namespace ams::controller {
         uint16_t                acc_x;
         uint16_t                acc_y;
         uint16_t                acc_z;
-        uint32_t                _unk0;
+        uint8_t                 _unk1[5];
 
         uint8_t battery_level    : 4;
         uint8_t usb              : 1;
