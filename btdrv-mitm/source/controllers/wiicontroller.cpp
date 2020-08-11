@@ -66,7 +66,7 @@ namespace ams::controller {
             this->readMemory(0x04a400fa, 6);
         }
 
-        m_battery = convert8bitBatteryLevel(src->input0x20.battery);
+        m_battery = (src->input0x20.battery / 52) << 1;
     }
 
     void WiiController::handleInputReport0x21(const WiiReportData *src, SwitchReportData *dst) {

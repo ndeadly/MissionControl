@@ -131,10 +131,6 @@ namespace ams::controller {
         };
     }
 
-    inline uint8_t convert8bitBatteryLevel(uint8_t battery) {
-        return (battery / 52) << 1;
-    }
-
     inline bool bdcmp(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
         return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
     }
