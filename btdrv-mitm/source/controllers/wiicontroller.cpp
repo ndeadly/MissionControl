@@ -11,7 +11,12 @@ namespace ams::controller {
         : FakeSwitchController(type, address)
         , m_extension(WiiExtensionController_None) 
     {
+    namespace {
 
+        const constexpr float leftStickScaleFactor = float(UINT12_MAX) / 0x3f;
+        const constexpr float rightStickScaleFactor = float(UINT12_MAX) / 0x1f;
+
+    }
     }
 
     void WiiController::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
@@ -206,12 +211,12 @@ namespace ams::controller {
     void WiiController::mapClassicControllerExtension(const u8 ext[], SwitchReportData *dst) {
 
         packStickData(&dst->input0x30.left_stick, 
-            ext[0] & 0x3f, 
-            ext[1] & 0x3f
+            static_cast<uint16_t>(leftStickScaleFactor * ((ext[0] & 0x3f) - 0x20) + STICK_ZERO) & 0xfff, 
+            static_cast<uint16_t>(leftStickScaleFactor * ((ext[1] & 0x3f) - 0x20) + STICK_ZERO) & 0xfff
         );
         packStickData(&dst->input0x30.right_stick, 
-            ((ext[0] >> 3) & 0x18) | ((ext[1] >> 5) & 0x06) | ((ext[2] >> 7) & 0x01), 
-            ext[2] & 0x1f
+            static_cast<uint16_t>(rightStickScaleFactor * ((((ext[0] >> 3) & 0x18) | ((ext[1] >> 5) & 0x06) | ((ext[2] >> 7) & 0x01)) - 0x10) + STICK_ZERO) & 0xfff, 
+            static_cast<uint16_t>(rightStickScaleFactor * ((ext[2] & 0x1f) - 0x10) + STICK_ZERO) & 0xfff
         );
 
         auto buttons = reinterpret_cast<const WiiClassicControllerButtonData *>(&ext[4]);
