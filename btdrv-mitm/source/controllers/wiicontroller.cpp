@@ -7,16 +7,15 @@
 
 namespace ams::controller {
 
-    WiiController::WiiController(ControllerType type, const bluetooth::Address *address)  
-        : FakeSwitchController(type, address)
-        , m_extension(WiiExtensionController_None) 
-    {
     namespace {
 
         const constexpr float leftStickScaleFactor = float(UINT12_MAX) / 0x3f;
         const constexpr float rightStickScaleFactor = float(UINT12_MAX) / 0x1f;
 
     }
+
+    Result WiiController::initialize(void) {
+        return this->queryStatus();
     }
 
     void WiiController::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {

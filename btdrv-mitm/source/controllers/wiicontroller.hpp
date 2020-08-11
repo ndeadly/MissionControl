@@ -256,10 +256,13 @@ namespace ams::controller {
     class WiiController : public FakeSwitchController {
 
 		public:
+			Result initialize(void);
 			void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);
 
         protected:
-            WiiController(ControllerType type, const bluetooth::Address *address);
+			WiiController(ControllerType type, const bluetooth::Address *address)  
+				: FakeSwitchController(type, address)
+				, m_extension(WiiExtensionController_None) { };
 
 			void handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);
 			void handleInputReport0x21(const WiiReportData *src, SwitchReportData *dst);
