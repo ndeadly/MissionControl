@@ -43,23 +43,23 @@ namespace ams::controller {
 	} __attribute__ ((__packed__));
 
 	struct WiiClassicControllerButtonData {
-		uint8_t dpad_right	: 1;
-		uint8_t dpad_down	: 1;
-		uint8_t L 			: 1;
-		uint8_t minus		: 1;
-		uint8_t home 		: 1;
-		uint8_t plus 		: 1;
-		uint8_t R 			: 1;
-		uint8_t 			: 0;
+	    uint8_t             : 1;
+        uint8_t R           : 1;
+        uint8_t plus        : 1;
+        uint8_t home        : 1;
+        uint8_t minus       : 1;
+        uint8_t L           : 1;
+        uint8_t dpad_down   : 1;
+        uint8_t dpad_right  : 1;
 
-		uint8_t ZL 			: 1;
-		uint8_t B 			: 1;
-		uint8_t Y 			: 1;
-		uint8_t A 			: 1;
-		uint8_t X 			: 1;
-		uint8_t ZR 			: 1;
-		uint8_t dpad_left   : 1;
-		uint8_t dpad_up 	: 1;
+		uint8_t dpad_up     : 1;
+        uint8_t dpad_left   : 1;
+        uint8_t ZR          : 1;
+        uint8_t X           : 1; 
+        uint8_t A           : 1;
+        uint8_t Y           : 1;
+        uint8_t B           : 1;
+        uint8_t ZL          : 1;
 	} __attribute__ ((__packed__));
 
 	struct WiiNunchuckExtensionData {
