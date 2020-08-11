@@ -10,7 +10,7 @@ namespace ams::controller {
 
     const constexpr char* proControllerName = "Pro Controller";
 
-    ControllerType identifyController(uint16_t vid, uint16_t pid);
+    ControllerType identifyController(const BluetoothDevicesSettings *device);
 
     bool IsValidSwitchControllerName(const char *name);
     bool IsJoyCon(const char *name);

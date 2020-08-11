@@ -40,42 +40,47 @@ namespace ams::controller {
                std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0;
     }
 
-    ControllerType identifyController(uint16_t vid, uint16_t pid) {
+    ControllerType identifyController(const BluetoothDevicesSettings *device) {
 
         for (auto hwId : JoyconController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Joycon;
             }
         }
 
         for (auto hwId : SwitchProController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_SwitchPro;
             }
         }
 
         for (auto hwId : WiiUProController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_WiiUPro;
             }
         }
 
         for (auto hwId : WiimoteController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Wiimote;
             }
         }
 
         for (auto hwId : Dualshock4Controller::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Dualshock4;
             }
         }
 
         for (auto hwId : XboxOneController::hardwareIds) {
-            if ( (vid == hwId.vid) && (pid == hwId.pid) ) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_XboxOne;
             }
+        }
+
+        // Handle the case where joycons have been assigned random hardware ids when paired via rails
+        if (IsJoyCon(device->name)) {
+            return ControllerType_Joycon;;
         }
 
         return ControllerType_Unknown;
@@ -100,43 +105,30 @@ namespace ams::controller {
         BluetoothDevicesSettings device;
         R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(address, &device));
 
-        switch (identifyController(device.vid, device.pid)) {
+        switch (identifyController(&device)) {
             case ControllerType_Joycon:
                 g_controllers.push_back(std::make_unique<JoyconController>(address));
-                BTDRV_LOG_FMT("[+] Joycon controller connected");
+                BTDRV_LOG_FMT("Attached handler for JoyCon");
                 break;
             case ControllerType_SwitchPro:
                 g_controllers.push_back(std::make_unique<SwitchProController>(address));
-                BTDRV_LOG_FMT("[+] Switch pro controller connected");
+                BTDRV_LOG_FMT("Attached handler for Switch Pro Controller");
                 break;
             case ControllerType_Wiimote:
                 g_controllers.push_back(std::make_unique<WiimoteController>(address));
-                BTDRV_LOG_FMT("[+] Wiimote controller connected");
+                BTDRV_LOG_FMT("Attached handler for Wiimote");
                 break;
             case ControllerType_WiiUPro:
                 g_controllers.push_back(std::make_unique<WiiUProController>(address));
-                BTDRV_LOG_FMT("[+] Wii U pro controller connected");
                 break;
             case ControllerType_Dualshock4:
                 g_controllers.push_back(std::make_unique<Dualshock4Controller>(address));
-                BTDRV_LOG_FMT("[+] Dualshock4 controller connected");
                 break;
             case ControllerType_XboxOne:
                 g_controllers.push_back(std::make_unique<XboxOneController>(address));
-                BTDRV_LOG_FMT("[+] Xbox one controller connected");
                 break;
             default:
-                // Handle the case where joycons have been assigned random hardware ids when paired via rails
-                if (IsJoyCon(device.name)) {
-                    g_controllers.push_back(std::make_unique<JoyconController>(address));
-                    BTDRV_LOG_FMT("[+] Joycon controller connected");
-                    break;
-                }
-
                 BTDRV_LOG_FMT("[?] Unknown controller [%04x:%04x | %s]", device.vid, device.pid, device.name);
-                // Disconnect unknown controller
-                //btdrvCloseHidConnection(address);
-                //btdrvRemoveBond(address);
                 return;
         }
 
