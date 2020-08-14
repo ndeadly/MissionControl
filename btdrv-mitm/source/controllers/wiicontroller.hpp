@@ -74,7 +74,7 @@ namespace ams::controller {
 		uint8_t accel_x_10 : 2;
 		uint8_t accel_y_10 : 2;
 		uint8_t accel_z_10 : 2;	
-	};
+	} __attribute__ ((__packed__));
 
 	struct WiiUProButtonData {
         uint8_t             : 1;

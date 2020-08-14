@@ -1,4 +1,5 @@
 #include "wiicontroller.hpp"
+#include <algorithm>
 #include <cstring>
 #include <switch.h>
 #include <vapours.hpp>
@@ -9,6 +10,7 @@ namespace ams::controller {
 
     namespace {
 
+        const constexpr float nunchuckStickScaleFactor = float(0x7ff / 92);
         const constexpr float leftStickScaleFactor = float(UINT12_MAX) / 0x3f;
         const constexpr float rightStickScaleFactor = float(UINT12_MAX) / 0x1f;
 
@@ -78,28 +80,31 @@ namespace ams::controller {
         //u8 size = src->input0x21.size + 1;
 
         if (read_addr == 0x00fa) {
-            // Identify extension controller
-            u64 extension_id = util::SwapBytes(*reinterpret_cast<const u64 *>(&src->input0x21.data)) >> 16;
+            // Identify extension controller by ID
+            u64 extension_id = (util::SwapBytes(*reinterpret_cast<const u64 *>(&src->input0x21.data)) >> 16);
+            
             switch (extension_id) {
-                case 0x0000A4200000:
+                case 0x0000A4200000ULL:
+                case 0xFF00A4200000ULL:
                     m_extension = WiiExtensionController_Nunchuck;
                     this->setReportMode(0x32);
                     break;
-                case 0x0000A4200101:
+                case 0x0000A4200101ULL:
                     m_extension = WiiExtensionController_Classic;
                     this->setReportMode(0x32);
                     break;
-                case 0x0100A4200101:
+                case 0x0100A4200101ULL:
                     m_extension = WiiExtensionController_ClassicPro;
                     this->setReportMode(0x32);
                     break;
-                case 0x0000a4200120:
+                case 0x0000a4200120ULL:
                     m_extension = WiiExtensionController_WiiUPro;
                     this->setReportMode(0x34);
                     break;
                 default:
                     m_extension = WiiExtensionController_Unsupported;
                     this->setReportMode(0x31);
+                    BTDRV_LOG_FMT("Unsupported Wii extension connected: 0x%012x", extension_id);
                     break;
             }
         }
@@ -126,7 +131,9 @@ namespace ams::controller {
     }
 
     void WiiController::handleInputReport0x32(const WiiReportData *src, SwitchReportData *dst) {
-        if (m_extension == WiiExtensionController_Nunchuck) {
+        if ((m_extension == WiiExtensionController_Nunchuck) 
+         || (m_extension == WiiExtensionController_Classic)
+         || (m_extension == WiiExtensionController_ClassicPro)) {
             this->mapButtonsVerticalOrientation(&src->input0x32.buttons, dst);
         }
 
@@ -134,7 +141,9 @@ namespace ams::controller {
     }
 
     void WiiController::handleInputReport0x34(const WiiReportData *src, SwitchReportData *dst) {
-        if (m_extension == WiiExtensionController_Nunchuck) {
+        if ((m_extension == WiiExtensionController_Nunchuck) 
+         || (m_extension == WiiExtensionController_Classic)
+         || (m_extension == WiiExtensionController_ClassicPro)) {
             this->mapButtonsVerticalOrientation(&src->input0x34.buttons, dst);
         }
 
@@ -199,8 +208,8 @@ namespace ams::controller {
         auto extension = reinterpret_cast<const WiiNunchuckExtensionData *>(ext);
 
         packStickData(&dst->input0x30.left_stick, 
-            extension->stick_x, 
-            extension->stick_y
+            std::clamp<uint16_t>(static_cast<uint16_t>(nunchuckStickScaleFactor * (extension->stick_x - 0x80) + STICK_ZERO), 0, 0xfff), 
+            std::clamp<uint16_t>(static_cast<uint16_t>(nunchuckStickScaleFactor * (extension->stick_y - 0x80) + STICK_ZERO), 0, 0xfff)
         );
 
         dst->input0x30.buttons.L  = !extension->C;
