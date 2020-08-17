@@ -16,13 +16,12 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 ### Supported Controllers
  Currently, the following controllers are supported. If you have a third-party variant of one of the below, or a Bluetooth controller that isn't listed, consider submitting an issue with the controller details, including vid/pid, to request support.
 
-* __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro)__*
+* __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro)__
 * __Nintendo WiiU Pro Controller__
 * __Sony DualShock4 Controller__
-* __Microsoft Xbox One S Controller__**
+* __Microsoft Xbox One S Controller__*
 
-**Extension Controllers remain untested since I don't actually own any. Please report any issues. Motion Plus not currently supported.*
-***Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
+**Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
 ### Requirements
 * Hackable Nintendo Switch running the latest [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere/releases) CFW
@@ -89,7 +88,7 @@ IPS patches to the `bluetooth` module are provided to (re)enable the passing of 
 * [__switchbrew__](https://switchbrew.org/wiki/Main_Page) for the extensive documention of the Switch OS.
 * [__devkitPro__](https://devkitpro.org/) for the homebrew compiler toolchain.
 * __SciresM__ for his dedicated work on the [Atmosphère](https://github.com/Atmosphere-NX) project, libstratosphere and general helpfulness with all things Switch related.
-* Everyone else over at the __ReSwitched__ discord server for answering development related questions and helping with testing.
 * __misson20000__ for his handy debug monitor [Twili](https://github.com/misson20000/twili) and IPC logger [Ilia](https://github.com/misson20000/ilia)
 * __dekuNukem__, __CTCaer__, __shinyquagsire23__ and others for their work in reversing and documenting the switch controller communication protocol.
-* __COVID-19__ for giving me the break from social commitments required to finish this project.
+* __friedkeenan__ for helping to test Wii extension controller support.
+* Everyone else over at the __ReSwitched__ discord server who helped answering technical questions.
