@@ -89,6 +89,14 @@ namespace ams::bluetooth::hid {
         }
     }
 
+    void handleUnknown07Event(HidEventData *eventData) {
+        // Fix for xbox one disconnection. Don't know what this value is for, but it appears to be 0 for other controllers
+        if (hos::GetVersion() < hos::Version_9_0_0)
+            eventData->unknown07._unk1 = 0;
+        else
+            eventData->unknown07.v2._unk1 = 0;
+    }
+
     void HandleEvent(void) {
         {
             std::scoped_lock lk(g_eventDataLock);
@@ -105,9 +113,7 @@ namespace ams::bluetooth::hid {
                 handleConnectionStateEvent(eventData);
                 break;
             case HidEvent_Unknown07:
-                // Fix for xbox one disconnection. Don't know what this value is for, but it appears to be 0 for other controllers
-                // Todo: check bd address is xbox controller
-                g_eventDataBuffer[4] = 0;
+                handleUnknown07Event(eventData);
                 break;
             default:
                 BTDRV_LOG_DATA(g_eventDataBuffer, sizeof(g_eventDataBuffer));
