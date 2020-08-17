@@ -30,6 +30,8 @@ namespace ams::controller {
             Result subCmdEnableImu(const bluetooth::HidReport *report);
             Result subCmdEnableVibration(const bluetooth::HidReport *report);
 
+            Result fakeSubCmdResponse(const u8 response[], size_t size);
+
             bluetooth::HidReport m_inputReport;
             bluetooth::HidReport m_outputReport;
     };

@@ -21,7 +21,6 @@ namespace ams::bluetooth::hid::report {
     Result InitializeReportBuffer(void);
 
     Result WriteFakeHidData(const bluetooth::Address *address, const bluetooth::HidReport *data);
-    Result FakeSubCmdResponse(const bluetooth::Address *address, const u8 response[], size_t size);
 
     Result GetEventInfo(bluetooth::HidEventType *type, u8* buffer, size_t size);
     void HandleEvent(void);

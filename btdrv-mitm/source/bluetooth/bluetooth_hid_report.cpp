@@ -36,9 +36,6 @@ namespace ams::bluetooth::hid::report {
         u8 g_fakeReportBuffer[0x42] = {};
         bluetooth::HidReportData *g_fakeReportData = reinterpret_cast<bluetooth::HidReportData *>(g_fakeReportBuffer);
 
-        // Buffer for hid report responses. Might be able to replace the above
-        bluetooth::HidReport g_hidReport = {};
-
         void EventThreadFunc(void *arg) {
             while (true) {
                 os::WaitSystemEvent(&g_systemEvent);
@@ -150,26 +147,6 @@ namespace ams::bluetooth::hid::report {
         os::SignalSystemEvent(&g_systemEventFwd);
 
         return ams::ResultSuccess();
-    }
-
-    /* Write a fake subcommand response into buffer */
-    Result FakeSubCmdResponse(const bluetooth::Address *address, const u8 response[], size_t size) {
-        auto report = &g_hidReport;
-        auto reportData = reinterpret_cast<controller::SwitchReportData *>(&report->data);
-        report->size = sizeof(controller::SwitchInputReport0x21);
-        reportData->id   = 0x21;
-        reportData->input0x21.conn_info   = 0;
-        reportData->input0x21.battery     = 8;
-        reportData->input0x21.buttons     = {0x00, 0x00, 0x00};
-        reportData->input0x21.left_stick  = {0x0b, 0xb8, 0x78};
-        reportData->input0x21.right_stick = {0xd9, 0xd7, 0x81};
-        reportData->input0x21.vibrator    = 0;
-        std::memcpy(&reportData->input0x21.subcmd, response, size);
-
-        reportData->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-
-        // Todo: change types so we don't have to cast
-        return bluetooth::hid::report::WriteFakeHidData(address, report);
     }
 
     /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */ 
