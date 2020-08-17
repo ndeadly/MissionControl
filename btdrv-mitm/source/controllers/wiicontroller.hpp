@@ -1,5 +1,5 @@
 #pragma once
-#include "fakeswitchcontroller.hpp"
+#include "emulatedswitchcontroller.hpp"
 
 namespace ams::controller {
 
@@ -253,7 +253,7 @@ namespace ams::controller {
         };
 	} __attribute__ ((__packed__));
 
-    class WiiController : public FakeSwitchController {
+    class WiiController : public EmulatedSwitchController {
 
 		public:
 			Result initialize(void);
@@ -261,7 +261,7 @@ namespace ams::controller {
 
         protected:
 			WiiController(ControllerType type, const bluetooth::Address *address)  
-				: FakeSwitchController(type, address)
+				: EmulatedSwitchController(type, address)
 				, m_extension(WiiExtensionController_None) { };
 
 			void handleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);

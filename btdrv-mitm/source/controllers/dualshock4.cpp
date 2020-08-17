@@ -21,7 +21,7 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::initialize(void) {
-        R_TRY(FakeSwitchController::initialize());
+        R_TRY(EmulatedSwitchController::initialize());
         R_TRY(this->updateControllerState());
 
         return ams::ResultSuccess();

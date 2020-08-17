@@ -13,7 +13,7 @@ namespace ams::controller {
     }
 
     Result XboxOneController::initialize(void) {
-        R_TRY(FakeSwitchController::initialize());
+        R_TRY(EmulatedSwitchController::initialize());
 
         // Todo: may need to check controller version to determine whether or not to send this
         const u8 init_packet[] = {0x05, 0x20, 0x00, 0x01, 0x00};

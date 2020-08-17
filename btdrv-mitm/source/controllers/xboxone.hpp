@@ -1,5 +1,5 @@
 #pragma once
-#include "fakeswitchcontroller.hpp"
+#include "emulatedswitchcontroller.hpp"
 
 namespace ams::controller {
 
@@ -93,16 +93,16 @@ namespace ams::controller {
         };
     } __attribute__ ((__packed__));
 
-    class XboxOneController : public FakeSwitchController {
+    class XboxOneController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardwareIds[] = { 
-                {0x045e, 0x02e0}, // Official Xbox One S Controller (old FW?)
+                {0x045e, 0x02e0}, // Official Xbox One S Controller
                 {0x045e, 0x02fd}  // Official Xbox One S Controller
             };
 
             XboxOneController(const bluetooth::Address *address) 
-                : FakeSwitchController(ControllerType_XboxOne, address) { };
+                : EmulatedSwitchController(ControllerType_XboxOne, address) { };
 
             Result initialize(void);
             void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport);

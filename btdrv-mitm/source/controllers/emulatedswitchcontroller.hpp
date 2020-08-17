@@ -3,10 +3,10 @@
 
 namespace ams::controller {
 
-    class FakeSwitchController : public SwitchController {
+    class EmulatedSwitchController : public SwitchController {
 
         public:
-            FakeSwitchController(ControllerType type, const bluetooth::Address *address) 
+            EmulatedSwitchController(ControllerType type, const bluetooth::Address *address) 
                 : SwitchController(type, address) { };
             
             const bluetooth::HidReport * handleIncomingReport(const bluetooth::HidReport *report);

@@ -1,5 +1,5 @@
 #pragma once
-#include "fakeswitchcontroller.hpp"
+#include "emulatedswitchcontroller.hpp"
 
 namespace ams::controller {
 
@@ -105,7 +105,7 @@ namespace ams::controller {
         };
     } __attribute__((packed));
 
-    class Dualshock4Controller : public FakeSwitchController {
+    class Dualshock4Controller : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardwareIds[] = { 
@@ -114,7 +114,7 @@ namespace ams::controller {
             };
 
             Dualshock4Controller(const bluetooth::Address *address)
-                : FakeSwitchController(ControllerType_Dualshock4, address), m_ledColour({0, 0, 0}) { };
+                : EmulatedSwitchController(ControllerType_Dualshock4, address), m_ledColour({0, 0, 0}) { };
             
             Result initialize(void);
             Result setPlayerLed(u8 led_mask);
