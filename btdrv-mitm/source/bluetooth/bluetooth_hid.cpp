@@ -20,9 +20,9 @@ namespace ams::bluetooth::hid {
         u8 g_eventDataBuffer[0x480];
         HidEventType g_currentEventType;
 
-        os::SystemEventType g_btHidSystemEvent;
-        os::SystemEventType g_btHidSystemEventFwd;
-        os::SystemEventType g_btHidSystemEventUser;
+        os::SystemEventType g_systemEvent;
+        os::SystemEventType g_systemEventFwd;
+        os::SystemEventType g_systemEventUserFwd;
         os::EventType       g_dataReadEvent;
 
     }
@@ -32,22 +32,22 @@ namespace ams::bluetooth::hid {
     }
 
     os::SystemEventType *GetSystemEvent(void) {
-        return &g_btHidSystemEvent;
+        return &g_systemEvent;
     }
 
     os::SystemEventType *GetForwardEvent(void) {
-        return &g_btHidSystemEventFwd;
+        return &g_systemEventFwd;
     }
 
     os::SystemEventType *GetUserForwardEvent(void) {
-        return &g_btHidSystemEventUser;
+        return &g_systemEventUserFwd;
     }
 
     Result Initialize(Handle eventHandle) {
-        os::AttachReadableHandleToSystemEvent(&g_btHidSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
+        os::AttachReadableHandleToSystemEvent(&g_systemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
-        R_TRY(os::CreateSystemEvent(&g_btHidSystemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_btHidSystemEventUser, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_systemEventFwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_systemEventUserFwd, os::EventClearMode_AutoClear, true));
         os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);
 
         g_isInitialized = true;
@@ -57,8 +57,8 @@ namespace ams::bluetooth::hid {
 
     void Finalize(void) {
         os::FinalizeEvent(&g_dataReadEvent);
-        os::DestroySystemEvent(&g_btHidSystemEventUser);
-        os::DestroySystemEvent(&g_btHidSystemEventFwd); 
+        os::DestroySystemEvent(&g_systemEventUserFwd);
+        os::DestroySystemEvent(&g_systemEventFwd); 
 
         g_isInitialized = false;           
     }
@@ -120,11 +120,11 @@ namespace ams::bluetooth::hid {
                 break;
         }
 
-        os::SignalSystemEvent(&g_btHidSystemEventFwd);
+        os::SignalSystemEvent(&g_systemEventFwd);
         os::WaitEvent(&g_dataReadEvent);
 
-        if (g_btHidSystemEventUser.state)
-            os::SignalSystemEvent(&g_btHidSystemEventUser);
+        if (g_systemEventUserFwd.state)
+            os::SignalSystemEvent(&g_systemEventUserFwd);
 
     }
 

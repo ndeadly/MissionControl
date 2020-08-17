@@ -29,9 +29,9 @@ namespace ams::bluetooth::hid::report {
         bluetooth::CircularBuffer *g_realBuffer;
         bluetooth::CircularBuffer *g_fakeBuffer;
 
-        os::SystemEventType g_btHidReportSystemEvent;
-        os::SystemEventType g_btHidReportSystemEventFwd;
-        os::SystemEventType g_btHidReportSystemEventUser;
+        os::SystemEventType g_systemEvent;
+        os::SystemEventType g_systemEventFwd;
+        os::SystemEventType g_systemEventUserFwd;
 
         u8 g_fakeReportBuffer[0x42] = {};
         bluetooth::HidReportData *g_fakeReportData = reinterpret_cast<bluetooth::HidReportData *>(g_fakeReportBuffer);
@@ -41,7 +41,7 @@ namespace ams::bluetooth::hid::report {
 
         void EventThreadFunc(void *arg) {
             while (true) {
-                os::WaitSystemEvent(&g_btHidReportSystemEvent);
+                os::WaitSystemEvent(&g_systemEvent);
                 HandleEvent();
             }
         }
@@ -64,22 +64,22 @@ namespace ams::bluetooth::hid::report {
     }
 
     os::SystemEventType *GetSystemEvent(void) {
-        return &g_btHidReportSystemEvent;
+        return &g_systemEvent;
     }
 
     os::SystemEventType *GetForwardEvent(void) {
-        return &g_btHidReportSystemEventFwd;
+        return &g_systemEventFwd;
     }
 
     os::SystemEventType *GetUserForwardEvent(void) {
-        return &g_btHidReportSystemEventUser;
+        return &g_systemEventUserFwd;
     }
 
     Result Initialize(Handle eventHandle) {
-        os::AttachReadableHandleToSystemEvent(&g_btHidReportSystemEvent, eventHandle, false, os::EventClearMode_AutoClear);
+        os::AttachReadableHandleToSystemEvent(&g_systemEvent, eventHandle, false, os::EventClearMode_AutoClear);
 
-        R_TRY(os::CreateSystemEvent(&g_btHidReportSystemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_btHidReportSystemEventUser, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_systemEventFwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_systemEventUserFwd, os::EventClearMode_AutoClear, true));
 
         R_TRY(os::CreateThread(&g_eventHandlerThread, 
             EventThreadFunc, 
@@ -99,8 +99,8 @@ namespace ams::bluetooth::hid::report {
     void Finalize(void) {
         os::DestroyThread(&g_eventHandlerThread);
 
-        os::DestroySystemEvent(&g_btHidReportSystemEventUser);
-        os::DestroySystemEvent(&g_btHidReportSystemEventFwd); 
+        os::DestroySystemEvent(&g_systemEventUserFwd);
+        os::DestroySystemEvent(&g_systemEventFwd); 
 
         g_isInitialized = false;
     }
@@ -147,7 +147,7 @@ namespace ams::bluetooth::hid::report {
         }
 
         g_fakeBuffer->Write(4, fakeReportData, bufferSize); 
-        os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
+        os::SignalSystemEvent(&g_systemEventFwd);
 
         return ams::ResultSuccess();
     }
@@ -329,10 +329,10 @@ namespace ams::bluetooth::hid::report {
             else 
                 _HandleEvent();
 
-            os::SignalSystemEvent(&g_btHidReportSystemEventFwd);
+            os::SignalSystemEvent(&g_systemEventFwd);
         }
         else {
-            os::SignalSystemEvent(&g_btHidReportSystemEventUser);
+            os::SignalSystemEvent(&g_systemEventUserFwd);
         }
 
     }

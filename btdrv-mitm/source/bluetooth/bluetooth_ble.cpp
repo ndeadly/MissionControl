@@ -18,9 +18,9 @@ namespace ams::bluetooth::ble {
         u8 g_eventDataBuffer[0x400];
         BleEventType g_currentEventType;
 
-        os::SystemEventType g_btBleSystemEvent;
-        os::SystemEventType g_btBleSystemEventFwd;
-        os::SystemEventType g_btBleSystemEventUser;
+        os::SystemEventType g_systemEvent;
+        os::SystemEventType g_systemEventFwd;
+        os::SystemEventType g_systemEventUserFwd;
         os::EventType       g_dataReadEvent;
 
     }
@@ -30,22 +30,22 @@ namespace ams::bluetooth::ble {
     }
 
     os::SystemEventType *GetSystemEvent(void) {
-        return &g_btBleSystemEvent;
+        return &g_systemEvent;
     }
 
     os::SystemEventType *GetForwardEvent(void) {
-        return &g_btBleSystemEventFwd;
+        return &g_systemEventFwd;
     }
 
     os::SystemEventType *GetUserForwardEvent(void) {
-        return &g_btBleSystemEventUser;
+        return &g_systemEventUserFwd;
     }
 
     Result Initialize(Handle eventHandle) {
-        os::AttachReadableHandleToSystemEvent(&g_btBleSystemEvent, eventHandle, false, os::EventClearMode_ManualClear);
+        os::AttachReadableHandleToSystemEvent(&g_systemEvent, eventHandle, false, os::EventClearMode_ManualClear);
 
-        R_TRY(os::CreateSystemEvent(&g_btBleSystemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_btBleSystemEventUser, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_systemEventFwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_systemEventUserFwd, os::EventClearMode_AutoClear, true));
         os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);
 
         g_isInitialized = true;
@@ -55,8 +55,8 @@ namespace ams::bluetooth::ble {
 
     void Finalize(void) {
         os::FinalizeEvent(&g_dataReadEvent);
-        os::DestroySystemEvent(&g_btBleSystemEventUser);
-        os::DestroySystemEvent(&g_btBleSystemEventFwd);
+        os::DestroySystemEvent(&g_systemEventUserFwd);
+        os::DestroySystemEvent(&g_systemEventFwd);
 
         g_isInitialized = false;
     }
@@ -81,12 +81,11 @@ namespace ams::bluetooth::ble {
         BTDRV_LOG_FMT("[%02d] BLE Event", g_currentEventType);
 
         if (!g_redirectBleEvents) {
-            os::SignalSystemEvent(&g_btBleSystemEventFwd);
+            os::SignalSystemEvent(&g_systemEventFwd);
             os::WaitEvent(&g_dataReadEvent);
         }
 
-        if (g_btBleSystemEventUser.state) {
-            os::SignalSystemEvent(&g_btBleSystemEventUser);
+        if (g_systemEventUserFwd.state) {
         }
 
     }
