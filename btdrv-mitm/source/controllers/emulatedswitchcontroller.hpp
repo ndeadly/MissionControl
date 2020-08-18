@@ -3,11 +3,25 @@
 
 namespace ams::controller {
 
+    inline bool bdcmp(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
+        return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
+    }
+
+    inline void packStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
+        *stick = (SwitchStickData){
+            static_cast<uint8_t>(x & 0xff), 
+            static_cast<uint8_t>((x >> 8) | ((y & 0xff) << 4)), 
+            static_cast<uint8_t>((y >> 4) & 0xff)
+        };
+    }
+
     class EmulatedSwitchController : public SwitchController {
 
         public:
             EmulatedSwitchController(ControllerType type, const bluetooth::Address *address) 
-                : SwitchController(type, address) { };
+                : SwitchController(type, address)           
+                , m_charging(false)
+                , m_battery(BATTERY_MAX) { };
             
             const bluetooth::HidReport * handleIncomingReport(const bluetooth::HidReport *report);
             const bluetooth::HidReport * handleOutgoingReport(const bluetooth::HidReport *report);
@@ -32,6 +46,8 @@ namespace ams::controller {
 
             Result fakeSubCmdResponse(const u8 response[], size_t size);
 
+            bool    m_charging;
+            uint8_t m_battery;
             bluetooth::HidReport m_inputReport;
             bluetooth::HidReport m_outputReport;
     };

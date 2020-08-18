@@ -123,18 +123,6 @@ namespace ams::controller {
         };
     } __attribute__ ((__packed__));
 
-    inline void packStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
-        *stick = (SwitchStickData){
-            static_cast<uint8_t>(x & 0xff), 
-            static_cast<uint8_t>((x >> 8) | ((y & 0xff) << 4)), 
-            static_cast<uint8_t>((y >> 4) & 0xff)
-        };
-    }
-
-    inline bool bdcmp(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
-        return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
-    }
-
     class SwitchController {
 
         public: 
@@ -152,15 +140,11 @@ namespace ams::controller {
             SwitchController(ControllerType type, const bluetooth::Address *address)
                 : m_type(type)
                 , m_address(*address)
-                , m_charging(false)
-                , m_battery(BATTERY_MAX)
                 , m_switchController((type == ControllerType_Joycon) || (type == ControllerType_SwitchPro)) { };
 
             ControllerType m_type;
             bluetooth::Address m_address;
-            bool    m_charging;
-            uint8_t m_battery;
-        
+                    
             bool m_switchController;
 
     };
