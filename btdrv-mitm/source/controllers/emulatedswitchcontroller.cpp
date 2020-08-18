@@ -187,7 +187,7 @@ namespace ams::controller {
         report->size = sizeof(controller::SwitchInputReport0x21);
         reportData->id   = 0x21;
         reportData->input0x21.conn_info   = 0;
-        reportData->input0x21.battery     = 8;
+        reportData->input0x21.battery     = m_battery | m_charging;
         reportData->input0x21.buttons     = {0x00, 0x00, 0x00};
         reportData->input0x21.left_stick  = {0x0b, 0xb8, 0x78};
         reportData->input0x21.right_stick = {0xd9, 0xd7, 0x81};
