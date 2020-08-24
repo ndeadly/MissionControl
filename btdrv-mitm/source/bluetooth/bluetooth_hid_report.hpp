@@ -20,7 +20,7 @@ namespace ams::bluetooth::hid::report {
     Result MapRemoteSharedMemory(Handle handle);
     Result InitializeReportBuffer(void);
 
-    Result WriteFakeHidData(const bluetooth::Address *address, const bluetooth::HidReport *data);
+    Result WriteHidReportBuffer(const bluetooth::Address *address, const bluetooth::HidReport *report);
 
     Result GetEventInfo(bluetooth::HidEventType *type, u8* buffer, size_t size);
     void HandleEvent(void);

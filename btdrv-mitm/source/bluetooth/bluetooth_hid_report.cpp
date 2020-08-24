@@ -1,5 +1,4 @@
 #include "bluetooth_hid_report.hpp"
-
 #include <atomic>
 #include <mutex>
 #include <cstring>
@@ -16,12 +15,15 @@ namespace ams::bluetooth::hid::report {
         std::atomic<bool> g_isInitialized(false);
 
         os::ThreadType g_eventHandlerThread;
-        alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x2000];
+        alignas(os::ThreadStackAlignment) u8 g_eventHandlerThreadStack[0x1000];
 
         // This is only required  on fw < 7.0.0
-        os::Mutex g_eventDataLock(false);
         u8 g_eventDataBuffer[0x480];
         bluetooth::HidEventType g_currentEventType;
+
+        os::SystemEventType g_systemEvent;
+        os::SystemEventType g_systemEventFwd;
+        os::SystemEventType g_systemEventUserFwd;
 
         SharedMemory g_realBtShmem;
         SharedMemory g_fakeBtShmem;
@@ -29,12 +31,7 @@ namespace ams::bluetooth::hid::report {
         bluetooth::CircularBuffer *g_realBuffer;
         bluetooth::CircularBuffer *g_fakeBuffer;
 
-        os::SystemEventType g_systemEvent;
-        os::SystemEventType g_systemEventFwd;
-        os::SystemEventType g_systemEventUserFwd;
-
-        u8 g_fakeReportBuffer[0x42] = {};
-        bluetooth::HidReportData *g_fakeReportData = reinterpret_cast<bluetooth::HidReportData *>(g_fakeReportBuffer);
+        bluetooth::HidReportData g_fakeReportData;
 
         void EventThreadFunc(void *arg) {
             while (true) {
@@ -124,26 +121,18 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    /* Write a fake report into the circular buffer */
-    Result WriteFakeHidData(const bluetooth::Address *address, const bluetooth::HidReport *report) {
-
-        //BTDRV_LOG_DATA_MSG((void*)report, report->size + sizeof(report->size), "btdrv-mitm: WriteFakeHidData");
-
-        u16 bufferSize = report->size + 0x11;
-        u8 buffer[bufferSize] = {};
-        auto fakeReportData = reinterpret_cast<bluetooth::HidReportData *>(buffer);
-
+    Result WriteHidReportBuffer(const bluetooth::Address *address, const bluetooth::HidReport *report) {
         if (hos::GetVersion() < hos::Version_9_0_0) {
-            fakeReportData->size = bufferSize;
-            std::memcpy(&fakeReportData->address, address, sizeof(bluetooth::Address));
-            std::memcpy(&fakeReportData->report, report, report->size + sizeof(report->size));
+            g_fakeReportData.size = g_fakeReportData.report.size + 0x11;
+            std::memcpy(&g_fakeReportData.address, address, sizeof(bluetooth::Address));
         }
         else {
-            std::memcpy(&fakeReportData->v2.address, address, sizeof(bluetooth::Address));
-            std::memcpy(&fakeReportData->v2.report, report, report->size + sizeof(report->size));
+            std::memcpy(&g_fakeReportData.v2.address, address, sizeof(bluetooth::Address));
         }
+        std::memcpy(&g_fakeReportData.report, report, report->size + sizeof(report->size));
 
-        g_fakeBuffer->Write(4, fakeReportData, bufferSize); 
+        g_fakeBuffer->Write(HidEvent_GetReport, &g_fakeReportData, g_fakeReportData.report.size + 0x11); 
+
         os::SignalSystemEvent(&g_systemEventFwd);
 
         return ams::ResultSuccess();
@@ -155,7 +144,6 @@ namespace ams::bluetooth::hid::report {
        //BTDRV_LOG_FMT("!!! GetEventInfo Called");
 
         while (true) {
-
             auto packet = g_fakeBuffer->Read();
             if (!packet)
                 return -1;
@@ -183,135 +171,57 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    void _HandleEvent() {
-
-        while (true) {
-            // Get packet from real buffer
-            auto realPacket = g_realBuffer->Read();
-            if (!realPacket)
-                break;
-
-            g_realBuffer->Free();
-
-            switch (realPacket->header.type) {
-                case 0xff:
-                    // Skip over packet type 0xff. This packet indicates the buffer should wrap around on next read.
-                    continue;
-                    
-                case 4:
-                    {
-                        // Locate the controller that sent the report
-                        auto device = controller::locateController(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
-                        if (!device) {
-                            continue;
-                        } 
-                        
-                        if (device->isSwitchController()) {
-                            // Write unmodified packet directly to fake buffer
-                            g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
-                        }
-                        else {
-                            const bluetooth::HidReport *inReport;
-                            bluetooth::HidReport *outReport;
-                            // copy address and stuff over
-                            if (hos::GetVersion() < hos::Version_9_0_0) {
-                                g_fakeReportData->size = 0x42;
-                                std::memcpy(&g_fakeReportData->address, &realPacket->data.address, sizeof(bluetooth::Address));
-                                inReport = &realPacket->data.report;
-                                outReport = &g_fakeReportData->report;
-                            }
-                            else {
-                                std::memcpy(&g_fakeReportData->v2.address, &realPacket->data.v2.address, sizeof(bluetooth::Address));
-                                inReport = &realPacket->data.v2.report;
-                                outReport = &g_fakeReportData->v2.report;
-                            }
-
-                            auto switchData = reinterpret_cast<controller::SwitchReportData *>(&outReport->data);
-                            switchData->input0x30.timer = os::ConvertToTimeSpan(realPacket->header.timestamp).GetMilliSeconds() & 0xff;
-
-                            // Translate packet to switch pro format
-                            device->convertReportFormat(inReport, outReport);
-
-                            // Write the converted report to our fake buffer
-                            g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));                
-                        }
-                    }
-                    break;
-
-                default:
-                    BTDRV_LOG_FMT("unknown packet received: %d", realPacket->header.type); 
-                    g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
-                    break;
-            }
-
-        } 
-    }
-
-    void _HandleEventDeprecated(void) {
-
-        std::scoped_lock lk(g_eventDataLock);
-        R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
-
-        auto eventData = reinterpret_cast<bluetooth::HidEventData *>(g_eventDataBuffer);
-
-        //BTDRV_LOG_FMT("hid report event [%02d]", g_currentEventType);
-
-        switch (g_currentEventType) {
-
-            case HidEvent_GetReport:
-                {
-                    // Locate the controller that sent the report
-                    auto device = controller::locateController(&eventData->getReport.address);
-                    if (!device) {
-                        return;
-                    }
-                    
-                    if (device->isSwitchController()) {
-                        //BTDRV_LOG_DATA_MSG(&eventData->getReport.report_data, eventData->getReport.report_length, "Switch controller -> Write");
-                        g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
-                    }
-                    else {
-                        const bluetooth::HidReport *inReport;
-                        bluetooth::HidReport *outReport;
-
-                        g_fakeReportData->size = 0x42; // Todo: check size is correct for report 0x30
-                        std::memcpy(&g_fakeReportData->address, &eventData->getReport.address, sizeof(bluetooth::Address));
-                        inReport = &eventData->getReport.report_data.report;
-                        outReport = &g_fakeReportData->report;
-
-                        auto switchData = reinterpret_cast<controller::SwitchReportData *>(&outReport->data);
-                        switchData->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-
-                        // Translate packet to switch pro format
-                        device->convertReportFormat(inReport, outReport);
-
-                        // Write the converted report to our fake buffer
-                        g_fakeBuffer->Write(4, g_fakeReportData, sizeof(g_fakeReportBuffer));  
-                    }
-                }
-                break;
-
-            default:
-                BTDRV_LOG_FMT("unknown packet received: %d", g_currentEventType); 
-                g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
-                break;
-        }
-    }
-
     void HandleEvent(void) {
-        
         if (!g_redirectHidReportEvents) {
-            if (hos::GetVersion() < hos::Version_7_0_0)
-                _HandleEventDeprecated();
-            else 
-                _HandleEvent();
+            if (hos::GetVersion() < hos::Version_7_0_0) {
+                auto eventData = reinterpret_cast<bluetooth::HidEventData *>(g_eventDataBuffer);
+                R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
 
-            os::SignalSystemEvent(&g_systemEventFwd);
+                switch (g_currentEventType) {
+                    case HidEvent_GetReport:
+                        {
+                            auto device = controller::locateHandler(&eventData->getReport.address);
+                            if (!device)
+                                return;
+
+                            device->handleIncomingReport(&eventData->getReport.report_data.report);
+                        }
+                        break;
+                    default:
+                        g_fakeBuffer->Write(g_currentEventType, &eventData->getReport.report_data, eventData->getReport.report_length);
+                        break;
+                }
+            }
+            else {
+                while (true) {
+                    auto realPacket = g_realBuffer->Read();
+                    if (!realPacket)
+                        break;
+
+                    g_realBuffer->Free();
+
+                    switch (realPacket->header.type) {
+                        case 0xff:
+                            continue;
+                        case HidEvent_GetReport:
+                            {
+                                auto device = controller::locateHandler(hos::GetVersion() < hos::Version_9_0_0 ? &realPacket->data.address : &realPacket->data.v2.address);
+                                if (!device)
+                                    continue;
+
+                                device->handleIncomingReport(&realPacket->data.report);
+                            }
+                            break;
+                        default:
+                            g_fakeBuffer->Write(realPacket->header.type, &realPacket->data, realPacket->header.size);
+                            break;
+                    }
+                } 
+            }
         }
         else {
             os::SignalSystemEvent(&g_systemEventUserFwd);
         }
-
     }
 
 }
