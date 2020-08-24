@@ -1,25 +1,10 @@
 #include "switchcontroller.hpp"
+#include "../bluetooth/bluetooth_hid_report.hpp"
 
 namespace ams::controller {
 
-    const bluetooth::Address& SwitchController::address(void) const {
-        return m_address;
-    }
-
-    ControllerType SwitchController::type(void) {
-        return m_type;
-    }
-
-    bool SwitchController::isSwitchController(void) {
-        return m_switchController;
-    }
-
-    Result SwitchController::initialize(void) {
-        return ams::ResultSuccess();
-    }
-
-    const bluetooth::HidReport * SwitchController::handleIncomingReport(const bluetooth::HidReport *report) {
-        return report;
+    Result SwitchController::handleIncomingReport(const bluetooth::HidReport *report) {
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, report);
     }
 
     const bluetooth::HidReport * SwitchController::handleOutgoingReport(const bluetooth::HidReport *report) {

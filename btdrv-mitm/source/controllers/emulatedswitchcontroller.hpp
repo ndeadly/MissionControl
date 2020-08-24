@@ -23,12 +23,14 @@ namespace ams::controller {
                 , m_charging(false)
                 , m_battery(BATTERY_MAX) { };
             
-            const bluetooth::HidReport * handleIncomingReport(const bluetooth::HidReport *report);
+            Result handleIncomingReport(const bluetooth::HidReport *report);
             const bluetooth::HidReport * handleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
-            virtual Result setVibration(void);
-            virtual Result setPlayerLed(u8 led_mask);
+            virtual void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {};
+
+            virtual Result setVibration(void) { return ams::ResultSuccess(); };
+            virtual Result setPlayerLed(u8 led_mask) { return ams::ResultSuccess(); };
 
             Result handleSubCmdReport(const bluetooth::HidReport *report);
             Result subCmdRequestDeviceInfo(const bluetooth::HidReport *report);

@@ -126,27 +126,21 @@ namespace ams::controller {
     class SwitchController {
 
         public: 
-            const bluetooth::Address& address(void) const;
-            ControllerType type(void);
-            bool isSwitchController(void);
+            const bluetooth::Address& address(void) const { return m_address; };
+            ControllerType type(void) { return m_type; };
 
-            virtual Result initialize(void);
-            virtual void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {};
+            virtual Result initialize(void) { return ams::ResultSuccess(); };
             
-            virtual const bluetooth::HidReport * handleIncomingReport(const bluetooth::HidReport *report);
+            virtual Result handleIncomingReport(const bluetooth::HidReport *report);
             virtual const bluetooth::HidReport * handleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
             SwitchController(ControllerType type, const bluetooth::Address *address)
                 : m_type(type)
-                , m_address(*address)
-                , m_switchController((type == ControllerType_Joycon) || (type == ControllerType_SwitchPro)) { };
+                , m_address(*address) { };
 
             ControllerType m_type;
             bluetooth::Address m_address;
-                    
-            bool m_switchController;
-
     };
 
 }

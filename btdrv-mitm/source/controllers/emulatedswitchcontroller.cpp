@@ -6,26 +6,11 @@
 
 namespace ams::controller {
 
-    Result EmulatedSwitchController::setVibration(void) {
+    Result EmulatedSwitchController::handleIncomingReport(const bluetooth::HidReport *report) {
+        this->convertReportFormat(report, &m_inputReport);
+        bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_inputReport);
 
         return ams::ResultSuccess();
-    }
-
-    Result EmulatedSwitchController::setPlayerLed(u8 led_mask) {
-
-        return ams::ResultSuccess();
-    }
-
-    const bluetooth::HidReport * EmulatedSwitchController::handleIncomingReport(const bluetooth::HidReport *report) {
-        m_inputReport.size = 0;
-
-        u8 cmdId = report->data[0];
-        switch (cmdId) {
-            default:
-                break;
-        }
-
-        return &m_inputReport;;
     }
 
     const bluetooth::HidReport * EmulatedSwitchController::handleOutgoingReport(const bluetooth::HidReport *report) {
@@ -99,7 +84,7 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::subCmdSpiFlashRead(const bluetooth::HidReport *report) {
-        // Official Pro Controller reads these
+        // These are read from official Pro Controller
         // @ 0x00006000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff                            <= Serial 
         // @ 0x00006050: 32 32 32 ff ff ff ff ff ff ff ff ff                                        <= RGB colours (body, buttons, left grip, right grip)
         // @ 0x00006080: 50 fd 00 00 c6 0f 0f 30 61 ae 90 d9 d4 14 54 41 15 54 c7 79 9c 33 36 63    <= Factory Sensor and Stick device parameters
@@ -180,12 +165,10 @@ namespace ams::controller {
         return this->fakeSubCmdResponse(response, sizeof(response));
     }
 
-    /* Write a fake subcommand response into buffer */
     Result EmulatedSwitchController::fakeSubCmdResponse(const u8 response[], size_t size) {
-        auto report = &m_inputReport;
-        auto reportData = reinterpret_cast<controller::SwitchReportData *>(&report->data);
-        report->size = sizeof(controller::SwitchInputReport0x21);
-        reportData->id   = 0x21;
+        auto reportData = reinterpret_cast<controller::SwitchReportData *>(&m_inputReport.data);
+        m_inputReport.size = sizeof(controller::SwitchInputReport0x21);
+        reportData->id = 0x21;
         reportData->input0x21.conn_info   = 0;
         reportData->input0x21.battery     = m_battery | m_charging;
         reportData->input0x21.buttons     = {0x00, 0x00, 0x00};
@@ -196,7 +179,8 @@ namespace ams::controller {
 
         reportData->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
-        return bluetooth::hid::report::WriteFakeHidData(&m_address, report);
+        //Write a fake response into the report buffer
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_inputReport);
     }
 
 }
