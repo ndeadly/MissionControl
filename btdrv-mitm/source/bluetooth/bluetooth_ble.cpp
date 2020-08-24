@@ -86,6 +86,7 @@ namespace ams::bluetooth::ble {
         }
 
         if (g_systemEventUserFwd.state) {
+            os::SignalSystemEvent(&g_systemEventUserFwd);
         }
 
     }

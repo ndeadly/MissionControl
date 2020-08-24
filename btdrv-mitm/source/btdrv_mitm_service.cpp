@@ -78,7 +78,7 @@ namespace ams::mitm::btdrv {
         auto requestData = reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer());
 
         if (this->client_info.program_id == ncm::SystemProgramId::Hid) {
-            auto device = controller::locateController(&address);
+            auto device = controller::locateHandler(&address);
             if (device) {
                 requestData = device->handleOutgoingReport(requestData);
             }

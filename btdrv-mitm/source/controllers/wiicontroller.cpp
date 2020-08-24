@@ -2,17 +2,17 @@
 #include <algorithm>
 #include <cstring>
 #include <switch.h>
-#include <vapours.hpp>
 
 #include "../btdrv_mitm_logging.hpp"
+#include <stratosphere.hpp>
 
 namespace ams::controller {
 
     namespace {
 
-        const constexpr float nunchuckStickScaleFactor = float(0x7ff / 92);
-        const constexpr float leftStickScaleFactor = float(UINT12_MAX) / 0x3f;
-        const constexpr float rightStickScaleFactor = float(UINT12_MAX) / 0x1f;
+        const constexpr float nunchuckStickScaleFactor  = float(UINT12_MAX) / 0xb8;
+        const constexpr float leftStickScaleFactor      = float(UINT12_MAX) / 0x3f;
+        const constexpr float rightStickScaleFactor     = float(UINT12_MAX) / 0x1f;
 
     }
 
@@ -51,7 +51,7 @@ namespace ams::controller {
                 break;
         }
 
-        outReport->size = 0x31;
+        outReport->size = sizeof(SwitchInputReport0x30) + 1;
         switchReport->id = 0x30;
         switchReport->input0x30.conn_info = 0x0;
         switchReport->input0x30.battery = m_battery | m_charging;

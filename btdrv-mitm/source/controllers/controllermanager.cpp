@@ -86,7 +86,7 @@ namespace ams::controller {
         return ControllerType_Unknown;
     }
 
-    SwitchController *locateController(const bluetooth::Address *address) {
+    SwitchController *locateHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controllerLock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
@@ -98,7 +98,7 @@ namespace ams::controller {
         return nullptr;
     }
 
-    void attachDeviceHandler(const bluetooth::Address *address) {
+    void attachHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controllerLock);
 
         // Retrieve information about paired device
@@ -135,7 +135,7 @@ namespace ams::controller {
         g_controllers.back()->initialize();
     }
 
-    void removeDeviceHandler(const bluetooth::Address *address) {
+    void removeHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controllerLock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {

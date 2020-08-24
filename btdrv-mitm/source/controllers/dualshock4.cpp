@@ -43,9 +43,7 @@ namespace ams::controller {
 
     Result Dualshock4Controller::setLightbarColour(Dualshock4LedColour colour) {
         m_ledColour = colour;
-        R_TRY(this->updateControllerState());
-
-        return ams::ResultSuccess();
+        return this->updateControllerState();
     }
 
     void Dualshock4Controller::convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {
@@ -64,7 +62,7 @@ namespace ams::controller {
                 break;
         }
 
-        outReport->size = 0x31;
+        outReport->size = sizeof(SwitchInputReport0x30) + 1;
         switchReport->id = 0x30;
         switchReport->input0x30.conn_info = 0x0;
         switchReport->input0x30.battery = m_battery | m_charging;

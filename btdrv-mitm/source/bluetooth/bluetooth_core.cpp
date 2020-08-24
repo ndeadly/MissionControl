@@ -138,7 +138,7 @@ namespace ams::bluetooth::core {
                 else {
                     // This is what the bluetooth sysmodule hardcodes
                     *reinterpret_cast<u32 *>(&pincode) = 0x30303030;
-                    pin_length = 4;
+                    pin_length = sizeof(u32);
                 }
 
                 // Fuck BTM, we're sending the pin response ourselves if it won't.

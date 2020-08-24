@@ -77,12 +77,10 @@ namespace ams::bluetooth::hid {
     void handleConnectionStateEvent(HidEventData *eventData) {
         switch (eventData->connectionState.state) {
             case HidConnectionState_Connected:
-                controller::attachDeviceHandler(&eventData->connectionState.address);
-                //BTDRV_LOG_FMT("device connected");
+                controller::attachHandler(&eventData->connectionState.address);
                 break;
             case HidConnectionState_Disconnected:
-                controller::removeDeviceHandler(&eventData->connectionState.address);
-                //BTDRV_LOG_FMT("device disconnected");
+                controller::removeHandler(&eventData->connectionState.address);
                 break;
             default:
                 break;

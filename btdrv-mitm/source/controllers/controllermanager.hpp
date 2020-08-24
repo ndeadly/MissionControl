@@ -15,10 +15,9 @@ namespace ams::controller {
     bool IsValidSwitchControllerName(const char *name);
     bool IsJoyCon(const char *name);
 
-    SwitchController *locateController(const bluetooth::Address *address);
-
-    void attachDeviceHandler(const bluetooth::Address *address);
-    void removeDeviceHandler(const bluetooth::Address *address);
+    SwitchController *locateHandler(const bluetooth::Address *address);
+    void attachHandler(const bluetooth::Address *address);
+    void removeHandler(const bluetooth::Address *address);
 
     inline bool IsController(const bluetooth::DeviceClass *cod) {
         return ( (((uint8_t *)cod)[1] & 0x0f) == BTM_COD_MAJOR_PERIPHERAL) &&

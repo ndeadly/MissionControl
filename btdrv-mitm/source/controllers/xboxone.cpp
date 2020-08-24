@@ -47,7 +47,7 @@ namespace ams::controller {
                 break;
         }
 
-        outReport->size = 0x31;
+        outReport->size = sizeof(SwitchInputReport0x30) + 1;
         switchReport->id = 0x30;
         switchReport->input0x30.conn_info = 0x0;
         switchReport->input0x30.battery = m_battery | m_charging;
