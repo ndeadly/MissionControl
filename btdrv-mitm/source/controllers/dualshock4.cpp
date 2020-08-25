@@ -23,7 +23,7 @@ namespace ams::controller {
     Result Dualshock4Controller::initialize(void) {
         R_TRY(EmulatedSwitchController::initialize());
         R_TRY(this->updateControllerState());
-
+        
         return ams::ResultSuccess();
     }
 
@@ -31,14 +31,7 @@ namespace ams::controller {
         u8 i = 0;
         while (led_mask >>= 1) { ++i; }
         Dualshock4LedColour colour = playerLedColours[i];
-
-        Dualshock4OutputReport0x11 raw = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, colour.r, colour.g, colour.b};
-        raw.crc = crc32Calculate(raw.data, sizeof(raw.data));
-
-        m_outputReport.size = sizeof(raw) - 1;
-        std::memcpy(&m_outputReport.data, &raw.data[1], m_outputReport.size);
-
-        return ams::ResultSuccess();
+        return this->setLightbarColour(colour);
     }
 
     Result Dualshock4Controller::setLightbarColour(Dualshock4LedColour colour) {
@@ -140,11 +133,10 @@ namespace ams::controller {
         Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, m_ledColour.r, m_ledColour.g, m_ledColour.b};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 
-        bluetooth::HidReport hidReport = {};
-        hidReport.size = sizeof(report) - 1;
-        std::memcpy(&hidReport.data, &report.data[1], hidReport.size);
+        m_outputReport.size = sizeof(report) - 1;
+        std::memcpy(m_outputReport.data, &report.data[1], m_outputReport.size);
 
-        R_TRY(btdrvWriteHidData(&m_address, &hidReport));
+        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport));
 
         return ams::ResultSuccess();
     }

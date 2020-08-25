@@ -13,20 +13,19 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    const bluetooth::HidReport * EmulatedSwitchController::handleOutgoingReport(const bluetooth::HidReport *report) {
-        m_outputReport.size = 0;
-
+    Result EmulatedSwitchController::handleOutgoingReport(const bluetooth::HidReport *report) {
         u8 cmdId = report->data[0];
         switch (cmdId) {
             case 0x01:  // Subcmd
-                this->handleSubCmdReport(report);
+                R_TRY(this->handleSubCmdReport(report));
                 break;
             case 0x10:  // Rumble
+                // Todo: add rumble support
             default:
                 break;
         }
 
-        return &m_outputReport;
+        return ams::ResultSuccess();
     }
 
     Result EmulatedSwitchController::handleSubCmdReport(const bluetooth::HidReport *report) {

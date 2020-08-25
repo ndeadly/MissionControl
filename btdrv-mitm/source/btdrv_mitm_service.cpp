@@ -72,23 +72,19 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
-
     Result BtdrvMitmService::WriteHidData(bluetooth::Address address, const sf::InPointerBuffer &buffer) {
-
-        auto requestData = reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer());
+        auto report = reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer());
 
         if (this->client_info.program_id == ncm::SystemProgramId::Hid) {
             auto device = controller::locateHandler(&address);
             if (device) {
-                requestData = device->handleOutgoingReport(requestData);
+                device->handleOutgoingReport(report);
             }
         }
-
-        // Above handler sets size to 0 if we shouldn't send any data to the controller
-        if (requestData->size > 0) {
+        else {
             R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), 
                 &address,
-                requestData
+                report
             ));
         }
 
@@ -150,7 +146,7 @@ namespace ams::mitm::btdrv {
         if (!bluetooth::hid::report::IsInitialized()) {
             Handle handle = INVALID_HANDLE;
             R_TRY(btdrvRegisterHidReportEventFwd(this->forward_service.get(), &handle));
-            R_TRY(bluetooth::hid::report::Initialize(handle));
+            R_TRY(bluetooth::hid::report::Initialize(handle, this->forward_service.get(), os::GetThreadId(os::GetCurrentThread())));
             out_handle.SetValue(os::GetReadableHandleOfSystemEvent(bluetooth::hid::report::GetForwardEvent()));
         }
         else {

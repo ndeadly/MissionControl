@@ -3,6 +3,7 @@
 #include <mutex>
 #include <cstring>
 #include "bluetooth_circularbuffer.hpp"
+#include "../btdrv_shim.h"
 #include "../btdrv_mitm_flags.hpp"
 #include "../controllers/controllermanager.hpp"
 
@@ -32,6 +33,9 @@ namespace ams::bluetooth::hid::report {
         bluetooth::CircularBuffer *g_fakeBuffer;
 
         bluetooth::HidReportData g_fakeReportData;
+
+        Service *g_forwardService;
+        os::ThreadId g_mainThreadId;
 
         void EventThreadFunc(void *arg) {
             while (true) {
@@ -69,7 +73,7 @@ namespace ams::bluetooth::hid::report {
         return &g_systemEventUserFwd;
     }
 
-    Result Initialize(Handle eventHandle) {
+    Result Initialize(Handle eventHandle, Service *forwardService, os::ThreadId mainThreadId) {
         os::AttachReadableHandleToSystemEvent(&g_systemEvent, eventHandle, false, os::EventClearMode_AutoClear);
 
         R_TRY(os::CreateSystemEvent(&g_systemEventFwd, os::EventClearMode_AutoClear, true));
@@ -82,6 +86,9 @@ namespace ams::bluetooth::hid::report {
             sizeof(g_eventHandlerThreadStack), 
             -10
         ));
+
+        g_forwardService = forwardService;
+        g_mainThreadId = mainThreadId;
 
         os::StartThread(&g_eventHandlerThread); 
 
@@ -138,11 +145,17 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
+    Result SendHidReport(const bluetooth::Address *address, const bluetooth::HidReport *report) {
+        if (os::GetThreadId(os::GetCurrentThread()) == g_mainThreadId)
+            R_TRY(btdrvWriteHidDataFwd(g_forwardService, address, report));
+        else
+            R_TRY(btdrvWriteHidData(address, report));
+
+        return ams::ResultSuccess();
+    }
+
     /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */ 
     Result GetEventInfo(bluetooth::HidEventType *type, u8* buffer, size_t size) {
-
-       //BTDRV_LOG_FMT("!!! GetEventInfo Called");
-
         while (true) {
             auto packet = g_fakeBuffer->Read();
             if (!packet)

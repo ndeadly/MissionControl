@@ -15,13 +15,11 @@ namespace ams::controller {
     Result XboxOneController::initialize(void) {
         R_TRY(EmulatedSwitchController::initialize());
 
-        // Todo: may need to check controller version to determine whether or not to send this
         const u8 init_packet[] = {0x05, 0x20, 0x00, 0x01, 0x00};
 
-        bluetooth::HidReport hidReport = {};
-        hidReport.size = sizeof(init_packet);
-        std::memcpy(&hidReport.data, init_packet, sizeof(init_packet));
-        R_TRY(btdrvWriteHidData(&m_address, &hidReport));
+        m_outputReport.size = sizeof(init_packet);
+        std::memcpy(m_outputReport.data, init_packet, sizeof(init_packet));
+        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport));
 
         return ams::ResultSuccess();
     }

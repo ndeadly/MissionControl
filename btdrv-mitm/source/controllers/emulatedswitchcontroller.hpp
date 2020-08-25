@@ -24,7 +24,7 @@ namespace ams::controller {
                 , m_battery(BATTERY_MAX) { };
             
             Result handleIncomingReport(const bluetooth::HidReport *report);
-            const bluetooth::HidReport * handleOutgoingReport(const bluetooth::HidReport *report);
+            Result handleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
             virtual void convertReportFormat(const bluetooth::HidReport *inReport, bluetooth::HidReport *outReport) {};

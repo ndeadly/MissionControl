@@ -1,5 +1,6 @@
 #pragma once
 #include "../bluetooth/bluetooth_types.hpp"
+#include "../bluetooth/bluetooth_hid_report.hpp"
 
 #define UINT12_MAX 0xfff
 #define STICK_ZERO 0x800
@@ -132,7 +133,7 @@ namespace ams::controller {
             virtual Result initialize(void) { return ams::ResultSuccess(); };
             
             virtual Result handleIncomingReport(const bluetooth::HidReport *report);
-            virtual const bluetooth::HidReport * handleOutgoingReport(const bluetooth::HidReport *report);
+            virtual Result handleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
             SwitchController(ControllerType type, const bluetooth::Address *address)
