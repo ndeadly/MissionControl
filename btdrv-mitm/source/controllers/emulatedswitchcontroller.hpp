@@ -50,8 +50,9 @@ namespace ams::controller {
 
             bool    m_charging;
             uint8_t m_battery;
-            bluetooth::HidReport m_inputReport;
-            bluetooth::HidReport m_outputReport;
+
+            static bluetooth::HidReport s_inputReport;
+            static bluetooth::HidReport s_outputReport;
     };
 
 }

@@ -17,9 +17,9 @@ namespace ams::controller {
 
         const u8 init_packet[] = {0x05, 0x20, 0x00, 0x01, 0x00};
 
-        m_outputReport.size = sizeof(init_packet);
-        std::memcpy(m_outputReport.data, init_packet, sizeof(init_packet));
-        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport));
+        s_outputReport.size = sizeof(init_packet);
+        std::memcpy(s_outputReport.data, init_packet, sizeof(init_packet));
+        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport));
 
         return ams::ResultSuccess();
     }

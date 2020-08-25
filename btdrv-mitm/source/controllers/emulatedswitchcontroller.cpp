@@ -6,9 +6,12 @@
 
 namespace ams::controller {
 
+    bluetooth::HidReport EmulatedSwitchController::s_inputReport;
+    bluetooth::HidReport EmulatedSwitchController::s_outputReport;
+
     Result EmulatedSwitchController::handleIncomingReport(const bluetooth::HidReport *report) {
-        this->convertReportFormat(report, &m_inputReport);
-        bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_inputReport);
+        this->convertReportFormat(report, &s_inputReport);
+        bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_inputReport);
 
         return ams::ResultSuccess();
     }
@@ -165,8 +168,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::fakeSubCmdResponse(const u8 response[], size_t size) {
-        auto reportData = reinterpret_cast<controller::SwitchReportData *>(&m_inputReport.data);
-        m_inputReport.size = sizeof(controller::SwitchInputReport0x21);
+        auto reportData = reinterpret_cast<controller::SwitchReportData *>(&s_inputReport.data);
+        s_inputReport.size = sizeof(controller::SwitchInputReport0x21);
         reportData->id = 0x21;
         reportData->input0x21.conn_info   = 0;
         reportData->input0x21.battery     = m_battery | m_charging;
@@ -179,7 +182,7 @@ namespace ams::controller {
         reportData->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_inputReport);
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_inputReport);
     }
 
 }

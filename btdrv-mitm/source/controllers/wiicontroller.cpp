@@ -287,61 +287,61 @@ namespace ams::controller {
     }
 
     Result WiiController::writeMemory(uint32_t write_addr, const uint8_t *data, uint8_t size) {
-        m_outputReport.size = sizeof(WiiOutputReport0x16) + 1;
-        auto reportData = reinterpret_cast<WiiReportData *>(m_outputReport.data);
+        s_outputReport.size = sizeof(WiiOutputReport0x16) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(s_outputReport.data);
         reportData->id = 0x16;
         reportData->output0x16.address = ams::util::SwapBytes(write_addr);
         reportData->output0x16.size = size;
         std::memcpy(&reportData->output0x16.data, data, size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport);
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport);
     }
 
     Result WiiController::readMemory(uint32_t read_addr, uint16_t size) {
-        m_outputReport.size = sizeof(WiiOutputReport0x17) + 1;
-        auto reportData = reinterpret_cast<WiiReportData *>(m_outputReport.data);
+        s_outputReport.size = sizeof(WiiOutputReport0x17) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(s_outputReport.data);
         reportData->id = 0x17;
         reportData->output0x17.address = ams::util::SwapBytes(read_addr);
         reportData->output0x17.size = ams::util::SwapBytes(size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport);
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport);
     }
 
     Result WiiController::setReportMode(uint8_t mode) {
-        m_outputReport.size = sizeof(WiiOutputReport0x12) + 1;
-        auto reportData = reinterpret_cast<WiiReportData *>(m_outputReport.data);
+        s_outputReport.size = sizeof(WiiOutputReport0x12) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(s_outputReport.data);
         reportData->id = 0x12;
         reportData->output0x12._unk = 0;
         reportData->output0x12.report_mode = mode;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport);
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport);
     }
 
     Result WiiController::setPlayerLeds(uint8_t mask) {
-        m_outputReport.size = sizeof(WiiOutputReport0x15) + 1;
-        auto reportData = reinterpret_cast<WiiReportData *>(m_outputReport.data);
+        s_outputReport.size = sizeof(WiiOutputReport0x15) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(s_outputReport.data);
         reportData->id = 0x11;
         reportData->output0x11.leds = mask;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport);
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport);
     }
 
     Result WiiController::queryStatus(void) {
-        m_outputReport.size = sizeof(WiiOutputReport0x15) + 1;
-        auto reportData = reinterpret_cast<WiiReportData *>(m_outputReport.data);
+        s_outputReport.size = sizeof(WiiOutputReport0x15) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(s_outputReport.data);
         reportData->id = 0x15;
         reportData->output0x15._unk = 0;
         
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport);
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport);
     }
 
     Result WiiController::setPlayerLed(uint8_t led_mask) {        
-        m_outputReport.size = sizeof(WiiOutputReport0x15) + 1;
-        auto reportData = reinterpret_cast<WiiReportData *>(m_outputReport.data);
+        s_outputReport.size = sizeof(WiiOutputReport0x15) + 1;
+        auto reportData = reinterpret_cast<WiiReportData *>(s_outputReport.data);
         reportData->id = 0x11;
         reportData->output0x11.leds = (led_mask << 4) & 0xf0;;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport);
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport);
     }
 
     Result WiiController::sendInit1(void) {

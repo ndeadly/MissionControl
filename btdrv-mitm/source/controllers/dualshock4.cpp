@@ -133,10 +133,10 @@ namespace ams::controller {
         Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, m_ledColour.r, m_ledColour.g, m_ledColour.b};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 
-        m_outputReport.size = sizeof(report) - 1;
-        std::memcpy(m_outputReport.data, &report.data[1], m_outputReport.size);
+        s_outputReport.size = sizeof(report) - 1;
+        std::memcpy(s_outputReport.data, &report.data[1], s_outputReport.size);
 
-        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &m_outputReport));
+        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &s_outputReport));
 
         return ams::ResultSuccess();
     }
