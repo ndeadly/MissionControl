@@ -14,7 +14,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * Supports all firmware versions
 * Pair Bluetooth controllers natively via `Change Grip/Order` screen
 * Native button remapping (firmware 10.0.0+)
-* `btdrv-mitm` module also allows for interacting with the `bluetooth` process without interfering with/interference from the system. 
+* `btdrv-mitm` sysmodule adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system. 
 
 ### Supported Controllers
  Currently, the following controllers are supported. If you have a third-party variant of one of the below, or a Bluetooth controller that isn't listed, consider submitting an issue with the controller details, including vid/pid, to request support.
