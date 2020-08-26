@@ -14,23 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <cstring>
-#include <switch.h>
 #include "btdrv_mitm_service.hpp"
 #include "btdrv_mitm_flags.hpp"
 #include "btdrv_shim.h"
-
 #include "bluetooth/bluetooth_events.hpp"
-#include "controllers/controllermanager.hpp"
-
-#include "btdrv_mitm_logging.hpp"
+#include "controllers/controller_management.hpp"
+#include <switch.h>
+#include <cstring>
 
 namespace ams::mitm::btdrv {
 
     Result BtdrvMitmService::InitializeBluetooth(sf::OutCopyHandle out_handle) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: InitializeBluetooth");
-
         if (!bluetooth::core::IsInitialized()) {
             Handle handle = INVALID_HANDLE;
             R_TRY(btdrvInitializeBluetoothFwd(this->forward_service.get(), &handle));
@@ -46,9 +40,6 @@ namespace ams::mitm::btdrv {
     }
 
     Result BtdrvMitmService::FinalizeBluetooth(void) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: FinalizeBluetooth");
-
         // Only btm should be able to make this call
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             R_TRY(btdrvFinalizeBluetoothFwd(this->forward_service.get()));
@@ -58,12 +49,9 @@ namespace ams::mitm::btdrv {
     }
 
     Result BtdrvMitmService::GetEventInfo(sf::Out<bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: GetEventInfo");
-
         R_TRY(bluetooth::core::GetEventInfo(this->client_info.program_id,
             out_type.GetPointer(),
-            static_cast<u8 *>(out_buffer.GetPointer()), 
+            static_cast<uint8_t *>(out_buffer.GetPointer()), 
             static_cast<size_t>(out_buffer.GetSize())
         ));
 
@@ -71,9 +59,6 @@ namespace ams::mitm::btdrv {
     }
 
     Result BtdrvMitmService::InitializeHid(sf::OutCopyHandle out_handle, u16 version) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: InitializeHid");
-
         if (!bluetooth::hid::IsInitialized()) {
             Handle handle = INVALID_HANDLE;
             R_TRY(btdrvInitializeHidFwd(this->forward_service.get(), &handle, version));
@@ -92,32 +77,26 @@ namespace ams::mitm::btdrv {
         auto report = reinterpret_cast<const bluetooth::HidReport *>(buffer.GetPointer());
 
         if (this->client_info.program_id == ncm::SystemProgramId::Hid) {
-            auto device = controller::locateHandler(&address);
+            auto device = controller::LocateHandler(&address);
             if (device) {
-                device->handleOutgoingReport(report);
+                device->HandleOutgoingReport(report);
             }
         }
         else {
-            R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), 
-                &address,
-                report
-            ));
+            R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), &address, report));
         }
 
         return ams::ResultSuccess();
     }
 
     Result BtdrvMitmService::GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: GetPairedDeviceInfo");
-
         auto device = reinterpret_cast<BluetoothDevicesSettings *>(out.GetPointer());
 
         R_TRY(btdrvGetPairedDeviceInfoFwd(this->forward_service.get(), &address, device));
 
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
-            if (!controller::IsValidSwitchControllerName(device->name)) {
-                std::strncpy(device->name, controller::proControllerName, sizeof(BluetoothLocalName) - 1);
+            if (!controller::IsOfficialSwitchControllerName(device->name)) {
+                std::strncpy(device->name, controller::pro_controller_name, sizeof(BluetoothLocalName) - 1);
             }
         }
 
@@ -125,9 +104,6 @@ namespace ams::mitm::btdrv {
     }
         
     Result BtdrvMitmService::FinalizeHid(void) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: FinalizeHid");
-
         // Only btm should be able to make this call
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             R_TRY(btdrvFinalizeHidFwd(this->forward_service.get()));
@@ -137,12 +113,9 @@ namespace ams::mitm::btdrv {
     }
 
     Result BtdrvMitmService::GetHidEventInfo(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: GetHidEventInfo");
-
         R_TRY(bluetooth::hid::GetEventInfo(this->client_info.program_id,
             out_type.GetPointer(), 
-            static_cast<u8 *>(out_buffer.GetPointer()),
+            static_cast<uint8_t *>(out_buffer.GetPointer()),
             static_cast<size_t>(out_buffer.GetSize())
         ));
 
@@ -156,9 +129,6 @@ namespace ams::mitm::btdrv {
 
     /* 4.0.0+ */
     Result BtdrvMitmService::RegisterHidReportEvent(sf::OutCopyHandle out_handle) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: RegisterHidReportEvent");
-
         if (!bluetooth::hid::report::IsInitialized()) {
             Handle handle = INVALID_HANDLE;
             R_TRY(btdrvRegisterHidReportEventFwd(this->forward_service.get(), &handle));
@@ -174,11 +144,8 @@ namespace ams::mitm::btdrv {
 
     /* 1.0.0 - 6.2.0 */
     Result _GetHidReportEventInfoDeprecated(Service *srv, sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-
-        //BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo (deprecated)");
-
         R_TRY(bluetooth::hid::report::GetEventInfo(out_type.GetPointer(), 
-            static_cast<u8 *>(out_buffer.GetPointer()),
+            static_cast<uint8_t *>(out_buffer.GetPointer()),
             static_cast<size_t>(out_buffer.GetSize())
         ));
 
@@ -197,9 +164,6 @@ namespace ams::mitm::btdrv {
 
     /* 7.0.0+ */
     Result BtdrvMitmService::GetHidReportEventInfo(sf::OutCopyHandle out_handle) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: GetHidReportEventInfo");
-
         Handle handle = INVALID_HANDLE;
         R_TRY(btdrvGetHidReportEventInfoFwd(this->forward_service.get(), &handle));
         R_TRY(bluetooth::hid::report::MapRemoteSharedMemory(handle));
@@ -209,9 +173,6 @@ namespace ams::mitm::btdrv {
     }
 
     Result BtdrvMitmService::InitializeBle(sf::OutCopyHandle out_handle) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: InitializeBle");
-
         if (!bluetooth::ble::IsInitialized()) {
             Handle handle = INVALID_HANDLE;
             R_TRY(btdrvInitializeBleFwd(this->forward_service.get(), &handle));
@@ -227,9 +188,6 @@ namespace ams::mitm::btdrv {
     }
 
     Result BtdrvMitmService::FinalizeBle(void) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: FinalizeBle");
-
         if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
             R_TRY(btdrvFinalizeBleFwd(this->forward_service.get()));
         }
@@ -241,45 +199,14 @@ namespace ams::mitm::btdrv {
         return GetBleManagedEventInfo(out_type, out_buffer);
     }
     
-    Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        
-        BTDRV_LOG_FMT("btdrv-mitm: GetBleManagedEventInfo");
-        
+    Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {        
         R_TRY(bluetooth::ble::GetEventInfo(this->client_info.program_id,
             out_type.GetPointer(), 
-            static_cast<u8 *>(out_buffer.GetPointer()),
+            static_cast<uint8_t *>(out_buffer.GetPointer()),
             static_cast<size_t>(out_buffer.GetSize())
         ));
 
         return ams::ResultSuccess();
-    }
-
-    void BtdrvMitmService::RedirectCoreEvents(bool redirect) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: RedirectCoreEvents [%s]", redirect ? "on" : "off");
-
-        g_redirectCoreEvents = redirect;
-    }
-
-    void BtdrvMitmService::RedirectHidEvents(bool redirect) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: RedirectHidEvents [%s]", redirect ? "on" : "off");
-
-        g_redirectHidEvents = redirect;
-    }
-
-    void BtdrvMitmService::RedirectHidReportEvents(bool redirect) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: RedirectHidReportEvents [%s]", redirect ? "on" : "off");
-
-        g_redirectHidReportEvents = redirect;
-    }
-
-    void BtdrvMitmService::RedirectBleEvents(bool redirect) {
-
-        BTDRV_LOG_FMT("btdrv-mitm: RedirectBleEvents [%s]", redirect ? "on" : "off");
-
-        g_redirectBleEvents = redirect;
     }
 
     Result BtdrvMitmService::GetRealSharedMemory(sf::OutCopyHandle out_handle) {
@@ -292,5 +219,20 @@ namespace ams::mitm::btdrv {
         return ams::ResultSuccess();
     }
 
+    void BtdrvMitmService::RedirectCoreEvents(bool redirect) {
+        g_redirect_core_events = redirect;
+    }
+
+    void BtdrvMitmService::RedirectHidEvents(bool redirect) {
+        g_redirect_hid_events = redirect;
+    }
+
+    void BtdrvMitmService::RedirectHidReportEvents(bool redirect) {
+        g_redirect_hid_report_events = redirect;
+    }
+
+    void BtdrvMitmService::RedirectBleEvents(bool redirect) {
+        g_redirect_ble_events = redirect;
+    }
 
 }

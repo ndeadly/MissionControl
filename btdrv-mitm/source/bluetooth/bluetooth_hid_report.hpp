@@ -30,7 +30,7 @@ namespace ams::bluetooth::hid::report {
     os::SystemEventType *GetForwardEvent(void);
     os::SystemEventType *GetUserForwardEvent(void);
 
-    Result Initialize(Handle eventHandle, Service *forwardService, os::ThreadId mainThreadId);
+    Result Initialize(Handle event_handle, Service *forward_service, os::ThreadId main_thread_id);
     void Finalize(void);
 
     Result MapRemoteSharedMemory(Handle handle);
@@ -39,7 +39,7 @@ namespace ams::bluetooth::hid::report {
     Result WriteHidReportBuffer(const bluetooth::Address *address, const bluetooth::HidReport *report);
     Result SendHidReport(const bluetooth::Address *address, const bluetooth::HidReport *report);
 
-    Result GetEventInfo(bluetooth::HidEventType *type, u8* buffer, size_t size);
+    Result GetEventInfo(bluetooth::HidEventType *type, uint8_t* buffer, size_t size);
     void HandleEvent(void);
 
 }

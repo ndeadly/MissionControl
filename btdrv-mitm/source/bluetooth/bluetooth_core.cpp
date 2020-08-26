@@ -15,160 +15,133 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "bluetooth_core.hpp"
-
+#include "../btdrv_mitm_flags.hpp"
+#include "../controllers/controller_management.hpp"
 #include <atomic>
 #include <mutex>
 #include <cstring>
-
-#include "../btdrv_mitm_flags.hpp"
-#include "../controllers/controllermanager.hpp"
-
-#include "../btdrv_mitm_logging.hpp"
 
 namespace ams::bluetooth::core {
 
     namespace {
 
-        std::atomic<bool> g_isInitialized(false);
+        std::atomic<bool> g_is_initialized(false);
 
-        os::Mutex g_eventDataLock(false);
-        u8 g_eventDataBuffer[0x400];
-        EventType g_currentEventType;
+        os::Mutex g_event_data_lock(false);
+        uint8_t   g_event_data_buffer[0x400];
+        EventType g_current_event_type;
 
-        os::SystemEventType g_systemEvent;
-        os::SystemEventType g_systemEventFwd;
-        os::SystemEventType g_systemEventUserFwd;
-        os::EventType       g_dataReadEvent;
+        os::SystemEventType g_system_event;
+        os::SystemEventType g_system_event_fwd;
+        os::SystemEventType g_system_event_user_fwd;
+        os::EventType       g_data_read_event;
 
     }
 
     bool IsInitialized(void) {
-        return g_isInitialized;
+        return g_is_initialized;
     }
 
     os::SystemEventType *GetSystemEvent(void) {
-        return &g_systemEvent;
+        return &g_system_event;
     }
 
     os::SystemEventType *GetForwardEvent(void) {
-        return &g_systemEventFwd;
+        return &g_system_event_fwd;
     }
 
     os::SystemEventType *GetUserForwardEvent(void) {
-        return &g_systemEventUserFwd;
+        return &g_system_event_user_fwd;
     }
 
-    Result Initialize(Handle eventHandle) {
-        os::AttachReadableHandleToSystemEvent(&g_systemEvent, eventHandle, false, os::EventClearMode_ManualClear);
+    Result Initialize(Handle event_handle) {
+        os::AttachReadableHandleToSystemEvent(&g_system_event, event_handle, false, os::EventClearMode_ManualClear);
 
-        R_TRY(os::CreateSystemEvent(&g_systemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_systemEventUserFwd, os::EventClearMode_AutoClear, true)); 
-        os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);
+        R_TRY(os::CreateSystemEvent(&g_system_event_fwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_system_event_user_fwd, os::EventClearMode_AutoClear, true)); 
+        os::InitializeEvent(&g_data_read_event, false, os::EventClearMode_AutoClear);
 
-        g_isInitialized = true;
+        g_is_initialized = true;
 
         return ams::ResultSuccess();
     }
 
     void Finalize(void) {
-        os::FinalizeEvent(&g_dataReadEvent);
-        os::DestroySystemEvent(&g_systemEventUserFwd);
-        os::DestroySystemEvent(&g_systemEventFwd);
+        os::FinalizeEvent(&g_data_read_event);
+        os::DestroySystemEvent(&g_system_event_user_fwd);
+        os::DestroySystemEvent(&g_system_event_fwd);
 
-        g_isInitialized = false;
+        g_is_initialized = false;
     }
 
-    void handleDeviceFoundEvent(EventData *eventData) {
-        if (controller::IsController(&eventData->deviceFound.cod) && !controller::IsValidSwitchControllerName(eventData->deviceFound.name)) {
-            std::strncpy(eventData->deviceFound.name, controller::proControllerName, sizeof(BluetoothName) - 1);
-        }
-    }
+    Result GetEventInfo(ncm::ProgramId program_id, EventType *type, uint8_t* buffer, size_t size) {
+        std::scoped_lock lk(g_event_data_lock);
 
-    void handlePinRequestEvent(EventData *eventData) {
-        if (!controller::IsValidSwitchControllerName(eventData->pinReply.name)) {
-            std::strncpy(eventData->pinReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
-        }
-    }
+        *type = g_current_event_type;
+        std::memcpy(buffer, g_event_data_buffer, size);
 
-    void handleSspRequestEvent(EventData *eventData) {
-        if (!controller::IsValidSwitchControllerName(eventData->sspReply.name)) {
-            std::strncpy(eventData->sspReply.name, controller::proControllerName, sizeof(BluetoothName) - 1);
-        }
-    }
-
-    Result GetEventInfo(ncm::ProgramId program_id, EventType *type, u8* buffer, size_t size) {
-        std::scoped_lock lk(g_eventDataLock);
-
-        *type = g_currentEventType;
-        std::memcpy(buffer, g_eventDataBuffer, size);
-
-        auto eventData = reinterpret_cast<EventData *>(buffer);
-
+        auto event_data = reinterpret_cast<EventData *>(buffer);
         if (program_id == ncm::SystemProgramId::Btm) {
-            
-            switch (g_currentEventType) {
+            switch (g_current_event_type) {
                 case BluetoothEvent_DeviceFound:
-                    handleDeviceFoundEvent(eventData);
+                    if (controller::IsGamepad(&event_data->deviceFound.cod) && !controller::IsOfficialSwitchControllerName(event_data->deviceFound.name)) {
+                        std::strncpy(event_data->deviceFound.name, controller::pro_controller_name, sizeof(BluetoothName) - 1);
+                    }
                     break;
                 case BluetoothEvent_PinRequest:
-                    handlePinRequestEvent(eventData);
+                    if (!controller::IsOfficialSwitchControllerName(event_data->pinReply.name)) {
+                        std::strncpy(event_data->pinReply.name, controller::pro_controller_name, sizeof(BluetoothName) - 1);
+                    }
                     break;
                 case BluetoothEvent_SspRequest:
-                    handleSspRequestEvent(eventData);
+                    if (!controller::IsOfficialSwitchControllerName(event_data->sspReply.name)) {
+                        std::strncpy(event_data->sspReply.name, controller::pro_controller_name, sizeof(BluetoothName) - 1);
+                    }
                     break;
                 default:
                     break;
             }
         }
 
-        os::SignalEvent(&g_dataReadEvent);
+        os::SignalEvent(&g_data_read_event);
 
         return ams::ResultSuccess();
     }
 
     void HandleEvent(void) {
         {
-            std::scoped_lock lk(g_eventDataLock);
-            R_ABORT_UNLESS(btdrvGetEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+            std::scoped_lock lk(g_event_data_lock);
+            R_ABORT_UNLESS(btdrvGetEventInfo(&g_current_event_type, g_event_data_buffer, sizeof(g_event_data_buffer)));
         }
 
-        //BTDRV_LOG_FMT("[%02d] Core Event", g_currentEventType);
+        if (!g_redirect_core_events) {
+            if (g_current_event_type == BluetoothEvent_PinRequest) {
+                auto event_data = reinterpret_cast<EventData *>(g_event_data_buffer);
 
-        if (!g_redirectCoreEvents) {
-            if (g_currentEventType == BluetoothEvent_PinRequest) {
-                auto eventData = reinterpret_cast<EventData *>(g_eventDataBuffer);
+                bluetooth::PinCode pin_code = {0x30, 0x30, 0x30, 0x30};
+                uint8_t pin_length = sizeof(uint32_t);;
 
-                bluetooth::PinCode pincode = {};
-                u8 pin_length;
-
-                // Reverse host address as pincode for wii devices
-                const char *wii_prefix = "Nintendo RVL";
-                if (strncmp(eventData->pinReply.name, wii_prefix, strlen(wii_prefix)) == 0) {
+                // Reverse host address as pin code for wii devices
+                if (std::strncmp(event_data->pinReply.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
                     // Fetch host adapter properties
-                    BluetoothAdapterProperty props;
-                    R_ABORT_UNLESS(btdrvGetAdapterProperties(&props));
+                    BluetoothAdapterProperty properties;
+                    R_ABORT_UNLESS(btdrvGetAdapterProperties(&properties));
                     // Reverse host address
-                    *reinterpret_cast<u64 *>(&pincode) = util::SwapBytes(*reinterpret_cast<u64 *>(&props.address)) >> 16;
+                    *reinterpret_cast<uint64_t *>(&pin_code) = util::SwapBytes(*reinterpret_cast<uint64_t *>(&properties.address)) >> 16;
                     pin_length = sizeof(bluetooth::Address);
-                }
-                else {
-                    // This is what the bluetooth sysmodule hardcodes
-                    *reinterpret_cast<u32 *>(&pincode) = 0x30303030;
-                    pin_length = sizeof(u32);
                 }
 
                 // Fuck BTM, we're sending the pin response ourselves if it won't.
-                R_ABORT_UNLESS(btdrvRespondToPinRequest(&eventData->pinReply.address, false, &pincode, pin_length));
+                R_ABORT_UNLESS(btdrvRespondToPinRequest(&event_data->pinReply.address, false, &pin_code, pin_length));
             }
             else {
-                os::SignalSystemEvent(&g_systemEventFwd);
-                os::WaitEvent(&g_dataReadEvent);
+                os::SignalSystemEvent(&g_system_event_fwd);
+                os::WaitEvent(&g_data_read_event);
             }
         }
 
-        if (g_systemEventUserFwd.state)
-            os::SignalSystemEvent(&g_systemEventUserFwd);
-
+        if (g_system_event_user_fwd.state)
+            os::SignalSystemEvent(&g_system_event_user_fwd);
     }
 
 }

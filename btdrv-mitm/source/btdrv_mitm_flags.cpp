@@ -18,9 +18,9 @@
 
 namespace ams {
 
-    std::atomic<bool> g_redirectCoreEvents      = false;
-    std::atomic<bool> g_redirectHidEvents       = false;
-    std::atomic<bool> g_redirectHidReportEvents = false;
-    std::atomic<bool> g_redirectBleEvents       = false;
+    std::atomic<bool> g_redirect_core_events       = false;
+    std::atomic<bool> g_redirect_hid_events        = false;
+    std::atomic<bool> g_redirect_hid_report_events = false;
+    std::atomic<bool> g_redirect_ble_events        = false;
 
 }

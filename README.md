@@ -1,9 +1,12 @@
 <p align="left">
 <img alt="GitHub" src="https://img.shields.io/github/license/ndeadly/MissionControl">
 <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total">
+<a href="https://ko-fi.com/J3J01BZZ6">
+    <img border="0" alt="ko-fi" src="https://www.ko-fi.com/img/githubbutton_sm.svg" align="right">
+</a>
 </p>
 
-# MissionControl [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J01BZZ6)
+# MissionControl
 
 Use controllers from other consoles natively on your Nintendo Switch via Bluetooth. No dongles or other external hardware neccessary.
 
@@ -32,6 +35,20 @@ Download the latest release .zip and extract to the root of your SD card. A cons
 
 *__Note: Currently a modified boot2 is required to launch btdrv-mitm early enough to intercept Bluetooth initialisation. This will get overwritten any time Atmosphère is updated on SD, and will need to be replaced.__*
 
+### Usage
+Install MissionControl to your SD card, reboot the console and then pair controllers as you normally would via the `Controllers->Change Grip/Order` screen. Once paired, controllers will reconnect automatically when woken up.
+
+Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please create an issue.
+
+### How it works
+MissionControl works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating incoming/outgoing data to convince the Switch that it's communicating with an official Pro Controller.
+
+To achieve this, the `btdrv-mitm` module obtains the handles to `bluetooth` system events and shared memory when the system attempts to initialise them over IPC via the `btm` and `hid` modules. It then creates its own secondary versions of these and passes their handles on instead of the original. This allows modifications to be made to any data buffers before notifying (or not) the system. Additionally, the `WriteHidData` IPC command is intercepted to translate or drop outgoing requests to the controller. In the case of the latter, fake responses can be written directly to the buffer in shared memory.
+
+Intercepting initialisation IPC commands also allows homebrew to properly make use of the `bluetooth` service. Normally, calling any of the IPC commands that would initialise or finalise system events would either crash the console, or invalidate the event handles held by system processes. With `btdrv-mitm` we are able to hand out alternative event handles when homebrew attempts to initialise an interface, and redirect the real system events to those instead of the events held by system processes.
+
+IPS patches to the `bluetooth` module are provided to (re)enable the passing of abitrary pincodes when Bluetooth legacy pairing is used (Nintendo hardcodes a value of `'0000'`, ignoring IPC arguments). This enables Wii(U) devices to be paired with the console.
+
 ### Building from source
 First, clone the repository to your local machine
 ```
@@ -57,21 +74,7 @@ cd ..
 make dist
 ```
 
-The resulting package can be installed as described in the above section.
-
-### Usage
-Install MissionControl to your SD card, reboot the console and then pair controllers as you normally would via the `Controllers->Change Grip/Order` screen. Once paired, controllers will reconnect automatically when woken up.
-
-Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please create an issue.
-
-### How it works
-MissionControl works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating incoming/outgoing data to convince the Switch that it's communicating with a Pro Controller.
-
-To achieve this, the `btdrv-mitm` module obtains the handles to `bluetooth` system events and shared memory when the system attempts to initialise them over IPC via the `btm` and `hid` modules. It then creates its own secondary versions of these and passes their handles on instead of the original. This allows modifications to be made to any data buffers before notifying (or not) the system. Additionally, the `WriteHidData` IPC command is intercepted to translate or drop outgoing requests to the controller. In the case of the latter, fake responses can be written directly to the buffer in shared memory.
-
-Intercepting initialisation IPC commands also allows homebrew to properly make use of the `bluetooth` service. Normally, calling any of the IPC commands that would initialise or finalise system events would either crash the console, or invalidate the event handles held by system processes. With `btdrv-mitm` we are able to hand out alternative event handles when homebrew attempts to initialise an interface, and redirect the real system events to those instead of the events held by system processes.
-
-IPS patches to the `bluetooth` module are provided to (re)enable the passing of abitrary pincodes when Bluetooth legacy pairing is used (Nintendo hardcodes a value of `'0000'`, ignoring IPC arguments). This enables Wii(U) devices to be paired with the console.
+The resulting package can be installed as described above.
 
 ### Planned Features
 * Controller management application
@@ -81,6 +84,7 @@ IPS patches to the `bluetooth` module are provided to (re)enable the passing of 
 
 ### Known Issues and limitations
 * Non-Switch controllers cannot be used to wake the system from sleep.
+* Controllers that haven't had their hardware ID whitelisted for identification will not be recognised as connected. This can include some official Switch controllers. They will however still pair with the console and store their details to the database. If you encounter such a controller, please create an issue requesting support. 
 * Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device discovery cycle. Be patient and re-press the sync button on the controller if neccessary.
 * Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.
 

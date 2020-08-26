@@ -15,96 +15,89 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "bluetooth_ble.hpp"
-
+#include "../btdrv_mitm_flags.hpp"
 #include <atomic>
 #include <mutex>
 #include <cstring>
-
-#include "../btdrv_mitm_flags.hpp"
-
-#include "../btdrv_mitm_logging.hpp"
 
 namespace ams::bluetooth::ble {
 
     namespace {
 
-        std::atomic<bool> g_isInitialized(false);
+        std::atomic<bool> g_is_initialized(false);
 
-        os::Mutex g_eventDataLock(false);
-        u8 g_eventDataBuffer[0x400];
-        BleEventType g_currentEventType;
+        os::Mutex    g_event_data_lock(false);
+        uint8_t      g_event_data_buffer[0x400];
+        BleEventType g_current_event_type;
 
-        os::SystemEventType g_systemEvent;
-        os::SystemEventType g_systemEventFwd;
-        os::SystemEventType g_systemEventUserFwd;
-        os::EventType       g_dataReadEvent;
+        os::SystemEventType g_system_event;
+        os::SystemEventType g_system_event_fwd;
+        os::SystemEventType g_system_event_user_fwd;
+        os::EventType       g_data_read_event;
 
     }
 
     bool IsInitialized(void) {
-        return g_isInitialized;
+        return g_is_initialized;
     }
 
     os::SystemEventType *GetSystemEvent(void) {
-        return &g_systemEvent;
+        return &g_system_event;
     }
 
     os::SystemEventType *GetForwardEvent(void) {
-        return &g_systemEventFwd;
+        return &g_system_event_fwd;
     }
 
     os::SystemEventType *GetUserForwardEvent(void) {
-        return &g_systemEventUserFwd;
+        return &g_system_event_user_fwd;
     }
 
-    Result Initialize(Handle eventHandle) {
-        os::AttachReadableHandleToSystemEvent(&g_systemEvent, eventHandle, false, os::EventClearMode_ManualClear);
+    Result Initialize(Handle event_handle) {
+        os::AttachReadableHandleToSystemEvent(&g_system_event, event_handle, false, os::EventClearMode_ManualClear);
 
-        R_TRY(os::CreateSystemEvent(&g_systemEventFwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_systemEventUserFwd, os::EventClearMode_AutoClear, true));
-        os::InitializeEvent(&g_dataReadEvent, false, os::EventClearMode_AutoClear);
+        R_TRY(os::CreateSystemEvent(&g_system_event_fwd, os::EventClearMode_AutoClear, true));
+        R_TRY(os::CreateSystemEvent(&g_system_event_user_fwd, os::EventClearMode_AutoClear, true));
+        os::InitializeEvent(&g_data_read_event, false, os::EventClearMode_AutoClear);
 
-        g_isInitialized = true;
+        g_is_initialized = true;
 
         return ams::ResultSuccess();
     }
 
     void Finalize(void) {
-        os::FinalizeEvent(&g_dataReadEvent);
-        os::DestroySystemEvent(&g_systemEventUserFwd);
-        os::DestroySystemEvent(&g_systemEventFwd);
+        os::FinalizeEvent(&g_data_read_event);
+        os::DestroySystemEvent(&g_system_event_user_fwd);
+        os::DestroySystemEvent(&g_system_event_fwd);
 
-        g_isInitialized = false;
+        g_is_initialized = false;
     }
 
-    Result GetEventInfo(ncm::ProgramId program_id, BleEventType *type, u8* buffer, size_t size) {
-        std::scoped_lock lk(g_eventDataLock); 
+    Result GetEventInfo(ncm::ProgramId program_id, BleEventType *type, uint8_t* buffer, size_t size) {
+        std::scoped_lock lk(g_event_data_lock); 
 
-        *type = g_currentEventType;
-        std::memcpy(buffer, g_eventDataBuffer, size);
+        *type = g_current_event_type;
+        std::memcpy(buffer, g_event_data_buffer, size);
 
-        os::SignalEvent(&g_dataReadEvent);
+        os::SignalEvent(&g_data_read_event);
         
         return ams::ResultSuccess();
     }
 
     void HandleEvent(void) {
         {
-            std::scoped_lock lk(g_eventDataLock); 
-            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_currentEventType, g_eventDataBuffer, sizeof(g_eventDataBuffer)));
+            std::scoped_lock lk(g_event_data_lock); 
+            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_current_event_type, g_event_data_buffer, sizeof(g_event_data_buffer)));
         }
 
-        BTDRV_LOG_FMT("[%02d] BLE Event", g_currentEventType);
-
-        if (!g_redirectBleEvents) {
-            os::SignalSystemEvent(&g_systemEventFwd);
-            os::WaitEvent(&g_dataReadEvent);
+        if (!g_redirect_ble_events) {
+            os::SignalSystemEvent(&g_system_event_fwd);
+            os::WaitEvent(&g_data_read_event);
         }
 
-        if (g_systemEventUserFwd.state) {
-            os::SignalSystemEvent(&g_systemEventUserFwd);
+        if (g_system_event_user_fwd.state) {
+            os::SignalSystemEvent(&g_system_event_user_fwd);
         }
-
     }
 
 }

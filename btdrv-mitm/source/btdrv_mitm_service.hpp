@@ -18,8 +18,6 @@
 #include <stratosphere.hpp>
 #include "bluetooth/bluetooth_types.hpp"
 
-#include "btdrv_mitm_logging.hpp"
-
 namespace ams::mitm::btdrv {
 
     namespace {
@@ -42,13 +40,13 @@ namespace ams::mitm::btdrv {
             AMS_SF_METHOD_INFO(C, H, 49, Result, FinalizeBle,                       (void),                                                                                 hos::Version_5_0_0) \
             AMS_SF_METHOD_INFO(C, H, 78, Result, GetBleManagedEventInfoDeprecated,  (sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer),    hos::Version_5_0_0, hos::Version_5_0_2) \
             AMS_SF_METHOD_INFO(C, H, 79, Result, GetBleManagedEventInfo,            (sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer),    hos::Version_5_1_0) \
-            AMS_SF_METHOD_INFO(C, H, 65000, void, RedirectCoreEvents,               (bool redirect)) \
-            AMS_SF_METHOD_INFO(C, H, 65001, void, RedirectHidEvents,                (bool redirect)) \
-            AMS_SF_METHOD_INFO(C, H, 65002, void, RedirectHidReportEvents,          (bool redirect)) \
-            AMS_SF_METHOD_INFO(C, H, 65003, void, RedirectBleEvents,                (bool redirect)) \
-            AMS_SF_METHOD_INFO(C, H, 65004, Result, GetRealSharedMemory,            (sf::OutCopyHandle out_handle),                                                         hos::Version_7_0_0) \
-            AMS_SF_METHOD_INFO(C, H, 65005, Result, GetFakeSharedMemory,            (sf::OutCopyHandle out_handle)) \
-
+            AMS_SF_METHOD_INFO(C, H, 65000, Result, GetRealSharedMemory,            (sf::OutCopyHandle out_handle),                                                         hos::Version_7_0_0) \
+            AMS_SF_METHOD_INFO(C, H, 65001, Result, GetFakeSharedMemory,            (sf::OutCopyHandle out_handle)) \
+            AMS_SF_METHOD_INFO(C, H, 65002, void, RedirectCoreEvents,               (bool redirect)) \
+            AMS_SF_METHOD_INFO(C, H, 65003, void, RedirectHidEvents,                (bool redirect)) \
+            AMS_SF_METHOD_INFO(C, H, 65004, void, RedirectHidReportEvents,          (bool redirect)) \
+            AMS_SF_METHOD_INFO(C, H, 65005, void, RedirectBleEvents,                (bool redirect)) \
+            
         AMS_SF_DEFINE_MITM_INTERFACE(IBtdrvMitmInterface, AMS_BTDRV_MITM_INTERFACE_INFO)
 
     }
@@ -84,13 +82,12 @@ namespace ams::mitm::btdrv {
             Result GetBleManagedEventInfo(sf::Out<bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 
             /* Extensions */
+            Result GetRealSharedMemory(sf::OutCopyHandle out_handle);
+            Result GetFakeSharedMemory(sf::OutCopyHandle out_handle);
             void RedirectCoreEvents(bool redirect);
             void RedirectHidEvents(bool redirect);
             void RedirectHidReportEvents(bool redirect);
             void RedirectBleEvents(bool redirect);
-            Result GetRealSharedMemory(sf::OutCopyHandle out_handle);
-            Result GetFakeSharedMemory(sf::OutCopyHandle out_handle);
-
     };
     static_assert(IsIBtdrvMitmInterface<BtdrvMitmService>);
 

@@ -14,12 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <memory>
 #include <switch.h>
 #include <stratosphere.hpp>
-
 #include "btdrv_mitm_service.hpp"
 #include "bluetooth/bluetooth_events.hpp"
+#include <memory>
 
 extern "C" {
 
@@ -55,7 +54,6 @@ namespace ams {
 }
 
 using namespace ams;
-
 
 void __libnx_initheap(void) {
     void*  addr = nx_inner_heap;
@@ -112,13 +110,9 @@ namespace {
 }
 
 int main(int argc, char **argv) {
-
     auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
-    
     R_ABORT_UNLESS((server_manager->RegisterMitmServer<ams::mitm::btdrv::IBtdrvMitmInterface, ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName)));
-
     R_ABORT_UNLESS(bluetooth::events::Initialize());
-
     server_manager->LoopProcess();
 
     return 0;

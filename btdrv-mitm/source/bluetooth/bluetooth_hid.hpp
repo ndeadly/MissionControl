@@ -27,10 +27,10 @@ namespace ams::bluetooth::hid {
     os::SystemEventType *GetForwardEvent(void);
     os::SystemEventType *GetUserForwardEvent(void);
 
-    Result Initialize(Handle eventHandle);
+    Result Initialize(Handle event_handle);
     void Finalize(void);
 
-    Result GetEventInfo(ncm::ProgramId program_id, HidEventType *type, u8* buffer, size_t size);
+    Result GetEventInfo(ncm::ProgramId program_id, HidEventType *type, uint8_t* buffer, size_t size);
     void HandleEvent(void);
 
 }

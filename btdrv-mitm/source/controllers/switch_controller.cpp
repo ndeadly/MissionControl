@@ -14,14 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
-#include <atomic>
+#include "switch_controller.hpp"
 
-namespace ams {
+namespace ams::controller {
 
-    extern std::atomic<bool> g_redirect_core_events;
-    extern std::atomic<bool> g_redirect_hid_events;
-    extern std::atomic<bool> g_redirect_hid_report_events;
-    extern std::atomic<bool> g_redirect_ble_events;
+    Result SwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, report);
+    }
+
+    Result SwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
+        return bluetooth::hid::report::SendHidReport(&m_address, report);
+    }
 
 }
