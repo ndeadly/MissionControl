@@ -1,5 +1,6 @@
 <p align="left">
 <img alt="GitHub" src="https://img.shields.io/github/license/ndeadly/MissionControl">
+<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/ndeadly/MissionControl">
 <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total">
 <a href="https://ko-fi.com/J3J01BZZ6">
     <img border="0" alt="ko-fi" src="https://www.ko-fi.com/img/githubbutton_sm.svg" align="right">
@@ -50,9 +51,10 @@ Intercepting initialisation IPC commands also allows homebrew to properly make u
 IPS patches to the `bluetooth` module are provided to (re)enable the passing of abitrary pincodes when Bluetooth legacy pairing is used (Nintendo hardcodes a value of `'0000'`, ignoring IPC arguments). This enables Wii(U) devices to be paired with the console.
 
 ### Building from source
-First, clone the repository to your local machine
+First, clone the repository to your local machine and switch to the newly cloned directory
 ```
 git clone --recurse-submodules https://github.com/ndeadly/MissionControl.git
+cd MissionControl
 ```
 
 MissionControl uses a custom fork of `libnx` that adds Bluetooth service wrappers and type definitions. This needs to be built and installed first
