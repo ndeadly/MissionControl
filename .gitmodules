@@ -1,0 +1,12 @@
+[submodule "libnx"]
+	path = libnx
+	url = https://github.com/ndeadly/libnx.git
+[submodule "Atmosphere-libs"]
+	path = Atmosphere-libs
+	url = https://github.com/Atmosphere-NX/Atmosphere-libs.git
+[submodule "borealis"]
+	path = borealis
+	url = https://github.com/natinusala/borealis.git
+[submodule "Atmosphere"]
+	path = Atmosphere
+	url = https://github.com/ndeadly/Atmosphere.git
