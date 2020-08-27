@@ -41,6 +41,19 @@ Install MissionControl to your SD card, reboot the console and then pair control
 
 Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please create an issue.
 
+### Pairing controllers
+The supported controllers each have their own methods to enter pairing/sync mode. Below are instructions on entering this mode for each supported type
+##### Wii(U) Controllers
+Press the red sync button on the back of the controller. The controller LEDs will blink rapidly
+
+##### Dualshock4 Controllers
+Press and hold the `PS` + `share` buttons simultaneously until the lightbar starts blinking. When done correctly the blink pattern will resemble a heartbeat, otherwise it will blink periodically.
+
+##### Xbox One Controllers
+Press andle hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
+
+You should also ensure your controller firmware is up to date, as old firmwares were known to have flakey bluetooth.
+
 ### How it works
 MissionControl works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating incoming/outgoing data to convince the Switch that it's communicating with an official Pro Controller.
 
@@ -89,6 +102,7 @@ The resulting package can be installed as described above.
 * Controllers that haven't had their hardware ID whitelisted for identification will not be recognised as connected. This can include some official Switch controllers. They will however still pair with the console and store their details to the database. If you encounter such a controller, please create an issue requesting support. 
 * Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device discovery cycle. Be patient and re-press the sync button on the controller if neccessary.
 * Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.
+* Games with motion controls experience a drift on non-switch controllers when motion controls are enabled. I will fix this in a future release. For now most games should allow you to disable motion controls as a workaround.
 
 ### Credits
 * [__switchbrew__](https://switchbrew.org/wiki/Main_Page) for the extensive documention of the Switch OS.
