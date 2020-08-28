@@ -50,7 +50,7 @@ Press the red sync button on the back of the controller. The controller LEDs wil
 Press and hold the `PS` + `share` buttons simultaneously until the lightbar starts blinking. When done correctly the blink pattern will resemble a heartbeat, otherwise it will blink periodically.
 
 ##### Xbox One Controllers
-Press andle hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
+Press and hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
 
 You should also ensure your controller firmware is up to date, as old firmwares were known to have flakey bluetooth.
 
