@@ -113,7 +113,7 @@ Many 3rd-party controllers also use garbage hardware IDs, making them difficult 
 ***Can you add support for PS3 controllers?***
 It's on my list of things to look into. The pairing process is non-standard and may require modifications to the bluetooth driver. If it can be done non-destructively I will add support eventually.
 
-***Can you add support for Xbox 360 controllers***
+***Can you add support for Xbox 360 controllers?***
 No. These don't use Bluetooth. Try sys-con with a wireless USB adapter.
 
 ***Can you add bluetooth audio support?***
