@@ -20,7 +20,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 ### Supported Controllers
  Currently, the following controllers are supported. If you have a third-party variant of one of the below, or a Bluetooth controller that isn't listed, consider submitting an issue with the controller details, including vid/pid, to request support.
 
-* __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro)__
+* __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro, SNES Mini)__
 * __Nintendo WiiU Pro Controller__
 * __Sony DualShock4 Controller__
 * __Microsoft Xbox One S Controller__*
