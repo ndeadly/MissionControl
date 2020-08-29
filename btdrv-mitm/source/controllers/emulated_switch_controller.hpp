@@ -49,6 +49,7 @@ namespace ams::controller {
             Result SubCmdSetMcuConfig(const bluetooth::HidReport *report);
             Result SubCmdSetMcuState(const bluetooth::HidReport *report);
             Result SubCmdSetPlayerLeds(const bluetooth::HidReport *report);
+            Result SubCmdSetHomeLed(const bluetooth::HidReport *report);
             Result SubCmdEnableImu(const bluetooth::HidReport *report);
             Result SubCmdEnableVibration(const bluetooth::HidReport *report);
 

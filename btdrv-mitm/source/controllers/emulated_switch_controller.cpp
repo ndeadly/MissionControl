@@ -87,6 +87,9 @@ namespace ams::controller {
             case bluetooth::SubCmd_SetPlayerLeds:
                 R_TRY(this->SubCmdSetPlayerLeds(report));
                 break;
+            case bluetooth::SubCmd_SetHomeLed:
+                R_TRY(this->SubCmdSetHomeLed(report));
+                break;
             case bluetooth::SubCmd_EnableImu:
                 R_TRY(this->SubCmdEnableImu(report));
                 break;
@@ -174,6 +177,11 @@ namespace ams::controller {
         R_TRY(this->SetPlayerLed(led_mask));
 
         const uint8_t response[] = {0x80, bluetooth::SubCmd_SetPlayerLeds};
+        return this->FakeSubCmdResponse(response, sizeof(response));
+    }
+
+    Result EmulatedSwitchController::SubCmdSetHomeLed(const bluetooth::HidReport *report) {
+        const uint8_t response[] = {0x80, bluetooth::SubCmd_SetHomeLed};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
