@@ -72,17 +72,17 @@ namespace ams::controller {
         dst->input0x30.buttons.Y = src->input0x07.buttons.U;
 
         dst->input0x30.buttons.R  = src->input0x07.buttons.RB;
-        dst->input0x30.buttons.ZR = src->input0x07.buttons.right_trigger;
+        dst->input0x30.buttons.ZR = src->input0x07.buttons.RT;
         dst->input0x30.buttons.L  = src->input0x07.buttons.LB;
-        dst->input0x30.buttons.ZL = src->input0x07.buttons.left_trigger;
+        dst->input0x30.buttons.ZL = src->input0x07.buttons.LT;
 
-        dst->input0x30.buttons.minus = 0; //src->input0x07.buttons.share;
-        dst->input0x30.buttons.plus  = 0; //src->input0x07.buttons.options;
+        dst->input0x30.buttons.minus = 0;
+        dst->input0x30.buttons.plus  = 0;
 
         dst->input0x30.buttons.lstick_press = src->input0x07.buttons.LS;
         dst->input0x30.buttons.rstick_press = src->input0x07.buttons.RS;
 
-        dst->input0x30.buttons.capture = 0; //src->input0x07.buttons.tpad;
+        dst->input0x30.buttons.capture = 0;
         dst->input0x30.buttons.home    = src->input0x07.buttons.center_hold;
     }
 

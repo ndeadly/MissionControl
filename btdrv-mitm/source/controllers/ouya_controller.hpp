@@ -38,8 +38,8 @@ namespace ams::controller {
         uint8_t dpad_down     : 1;
         uint8_t dpad_left     : 1;
         uint8_t dpad_right    : 1;
-        uint8_t left_trigger  : 1;
-        uint8_t right_trigger : 1;
+        uint8_t LT            : 1;
+        uint8_t RT            : 1;
         uint8_t center_press  : 1;
         uint8_t center_hold   : 1;
     } __attribute__ ((__packed__));;
