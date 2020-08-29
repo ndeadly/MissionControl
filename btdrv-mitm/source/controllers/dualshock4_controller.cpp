@@ -88,12 +88,12 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::HandleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
-        if (!src->input0x11.usb || src->input0x11.battery_level > 10)
-            m_charging = false;
-        else
+        if (src->input0x11.usb && src->input0x11.battery_level < 11)
             m_charging = true;
+        else
+            m_charging = false;
 
-        m_battery = src->input0x11.battery_level & 0xe;
+        m_battery = src->input0x11.battery_level * 9 / 10;
 
         this->PackStickData(&dst->input0x30.left_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.left_stick.x) & 0xfff,
