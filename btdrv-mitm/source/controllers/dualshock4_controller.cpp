@@ -94,7 +94,13 @@ namespace ams::controller {
         else
             m_charging = true;
 
-        m_battery = src->input0x11.battery_level & 0xe;
+        uint8_t battery_level = src->input0x11.battery_level;
+        if (!src->input0x11.usb)
+            battery_level++;
+        if (battery_level > 10)
+            battery_level = 10;
+
+        m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
 
         this->PackStickData(&dst->input0x30.left_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.left_stick.x) & 0xfff,
