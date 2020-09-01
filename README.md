@@ -28,13 +28,15 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
 ### Requirements
-* Hackable Nintendo Switch running the latest [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere/releases) CFW
+* Hackable Nintendo Switch running the ***latest*** [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere/releases) CFW (0.14.1 at the time of writing)
 * Compatible Bluetooth controller
 
 ### Installation
-Download the latest release .zip and extract to the root of your SD card. A console reboot is required in order for MissionControl to become active.
+Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for MissionControl to become active.
 
-*__Note: Currently a modified boot2 is required to launch btdrv-mitm early enough to intercept Bluetooth initialisation. This will get overwritten any time Atmosphère is updated on SD, and will need to be replaced.__*
+It is recommended after rebooting to also disconnect any physically connected controllers from the console, delete the pairing database, and re-pair via bluetooth to make sure your existing Switch controllers have the correct hardware ID stored and can be recognised properly. To delete the database, navigate to `System Settings->Controllers and Sensors->Disconnect Controllers`
+
+*__Note: Currently a modified boot2 is required to launch btdrv-mitm early enough to intercept Bluetooth initialisation. You must make sure you opt to overwrite any existing files or else this file will not be installed. This will also get overwritten any time Atmosphère is updated on SD, and will need to be replaced.__*
 
 ### Usage
 Install MissionControl to your SD card, reboot the console and then pair controllers as you normally would via the `Controllers->Change Grip/Order` screen. Once paired, controllers will reconnect automatically when woken up.
