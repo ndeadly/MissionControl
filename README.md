@@ -99,6 +99,13 @@ The resulting package can be installed as described above.
 * Motion support
 * Keyboard and mouse support
 
+### Known Issues and Limitations
+* Non-Switch controllers cannot be used to wake the system from sleep.
+* Controllers that haven't had their hardware ID whitelisted for identification will not be recognised as connected. This can include some official Switch controllers. They will however still pair with the console and store their details to the database. If you encounter such a controller, please create an issue requesting support. 
+* Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device discovery cycle. Be patient and re-press the sync button on the controller if neccessary.
+* Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.
+* Games with motion controls experience a drift on non-switch controllers when motion controls are enabled. I will fix this in a future release. For now most games should allow you to disable motion controls as a workaround.
+
 ### Frequently Asked Questions
 ***Does this support USB controllers?***
 No. MissionControl is Bluetooth-only for now.
@@ -106,11 +113,20 @@ No. MissionControl is Bluetooth-only for now.
 ***Does this work with sys-con installed?***
 Yes, I have had several reports from users that the two can be used together without issue.
 
+***Installing this bricked my console!!!!!11!!1!11***
+No. If you are seeing errors about title `0100000000000008` upon rebooting your console you are almost certainly using an outdated Atmosphere version. Install the latest version from the [official github release](https://github.com/Atmosphere-NX/Atmosphere/releases) and follow the MissionControl [installation instructions](https://github.com/ndeadly/MissionControl#installation) again.
+
+***How can I use this with multiple sysNAND/emuMMC launch configs?***
+Pairing controllers across multiple unique HOS installations requires multiple pairing databases and is essentially the same as pairing with two different consoles. The only exception being the case where you paired the controller(s) prior to making sysNAND copies. For now you will have to re-pair your controllers when switching back and forth. In the future I hope to include an option to load/store the database on the SD card to avoid this issue.
+
 ***Why have my official Joycon/Switch Pro Controllers stopped working over Bluetooth after installing MissionControl?***
-It is possible to pair these controllers via the Joycon rails or a USB connection. In these cases a garbage hardware ID gets stored to the pairing database and the controller fails to be identified. This issue can be resolved by using the `Disconnect Controllers` option in System Settings with the controller disconnected from the system, and then re-pairing via bluetooth in the `Change Grip/Order` screen.
+It is possible to pair these controllers via the Joycon rails or a USB connection. In these cases a garbage hardware ID gets stored to the pairing database and the controller fails to be identified. Failure to identify a controller means I don't know how its input data should be handled, so I ignore it. This issue can be resolved by physicall disconnecting the controller from the console, deleting the pairing database with the `System Settings->Controllers and Sensors->Disconnect Controllers` option, and then re-pairing via bluetooth in the `Change Grip/Order` screen.
 
 ***Why doesn't my 3rd-party knockoff controller work?***
 Many 3rd-party controllers also use garbage hardware IDs, making them difficult to identify reliably. If a controller can't be identified, I ignore it, since I have no idea how to process the incoming data. I am currently trying to find an alternate way to identifying them without creating problems elsewhere.
+
+***My Xbox One Controller buttons are mapped incorrectly. Can you fix it?***
+You didn't read the [Known Issues and Limitations](https://github.com/ndeadly/MissionControl#known-issues-and-limitations) section, did you? You need to update your controller firmware to the latest version. This can be done on Windows using the [Xbox Accessories](https://www.microsoft.com/en-us/p/xbox-accessories/9nblggh30xj3?activetab=pivot:overviewtab) app. You can also do this on the Xbox itself.
 
 ***Can you add support for PS3 controllers?***
 It's on my list of things to look into. The pairing process is non-standard and may require modifications to the bluetooth driver. If it can be done non-destructively I will add support eventually.
@@ -121,12 +137,6 @@ No. These don't use Bluetooth. Try sys-con with a wireless USB adapter.
 ***Can you add bluetooth audio support?***
 No. The bluetooth module on the switch only implements a small set of services required to make hid controllers work. Of this small set of services, only a handful of high-level functions are exposed to the rest of the system. Adding audio support would require implementing the services neccessary for audio transport, for which any sane person would require an open-source re-implementation of the bluetooth module in order to have access the low-level functions required to pull it off.
 
-### Known Issues and limitations
-* Non-Switch controllers cannot be used to wake the system from sleep.
-* Controllers that haven't had their hardware ID whitelisted for identification will not be recognised as connected. This can include some official Switch controllers. They will however still pair with the console and store their details to the database. If you encounter such a controller, please create an issue requesting support. 
-* Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device discovery cycle. Be patient and re-press the sync button on the controller if neccessary.
-* Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.
-* Games with motion controls experience a drift on non-switch controllers when motion controls are enabled. I will fix this in a future release. For now most games should allow you to disable motion controls as a workaround.
 
 ### Credits
 * [__switchbrew__](https://switchbrew.org/wiki/Main_Page) for the extensive documention of the Switch OS.
