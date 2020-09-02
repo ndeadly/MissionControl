@@ -69,6 +69,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : GamestickController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Gamestick;
+            }
+        }
+
         // Handle the case where joycons have been assigned random hardware ids when paired via rails
         if (IsJoyCon(device->name)) {
             return ControllerType_Switch;;
@@ -119,6 +125,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Ouya:
                 g_controllers.push_back(std::make_unique<OuyaController>(address));
+                break;
+            case ControllerType_Gamestick:
+                g_controllers.push_back(std::make_unique<GamestickController>(address));
                 break;
             default:
                 return;
