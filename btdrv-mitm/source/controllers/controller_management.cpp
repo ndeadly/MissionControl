@@ -69,6 +69,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : XiaomiController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Xiaomi;
+            }
+        }
+        
         // Handle the case where joycons have been assigned random hardware ids when paired via rails
         if (IsJoyCon(device->name)) {
             return ControllerType_Switch;;
