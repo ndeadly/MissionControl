@@ -23,6 +23,7 @@ dist: all
 	
 	mkdir -p dist/atmosphere/contents/$(BTDRVMITM_TID)
 	cp btdrv-mitm/btdrv-mitm.nsp dist/atmosphere/contents/$(BTDRVMITM_TID)/exefs.nsp
+	cp toolbox.json dist/atmosphere/contents/$(BTDRVMITM_TID)/toolbox.json
 	mkdir -p dist/atmosphere/contents/0100000000000008/
 	cp Atmosphere/stratosphere/boot2/boot2.nsp dist/atmosphere/contents/0100000000000008/exefs.nsp
 	#mkdir -p dist/atmosphere/contents/$(BTDRVMITM_TID)/flags
