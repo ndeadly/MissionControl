@@ -19,8 +19,60 @@
 
 namespace ams::controller {
 
+    enum XiaomiDPadDirection {
+        XiaomiDPad_N,
+        XiaomiDPad_NE,
+        XiaomiDPad_E,
+        XiaomiDPad_SE,
+        XiaomiDPad_S,
+        XiaomiDPad_SW,
+        XiaomiDPad_W,
+        XiaomiDPad_NW,
+        XiaomiDPad_Released = 0x0f
+    };
+
+    struct XiaomiStickData {
+        uint8_t x;
+        uint8_t y;
+    } __attribute__((packed));
+
+    struct XiaomiButtonData {
+        uint8_t B            : 1;
+        uint8_t A            : 1;
+        uint8_t              : 1;
+        uint8_t Y            : 1;
+        uint8_t X            : 1;
+        uint8_t              : 1;
+        uint8_t L1           : 1;
+        uint8_t R1           : 1;
+
+        uint8_t L2           : 1;
+        uint8_t R2           : 1;
+        uint8_t back         : 1;
+        uint8_t menu         : 1;
+        uint8_t              : 1;
+        uint8_t lstick_press : 1;
+        uint8_t rstick_press : 1;
+        uint8_t              : 0;
+
+        uint8_t _unk;
+        uint8_t dpad;
+    } __attribute__((packed));
+
+    struct XiaomiInputReport0x04 {
+        XiaomiButtonData buttons;
+        XiaomiStickData left_stick;
+        XiaomiStickData right_stick;
+        uint8_t _unk0[2];
+        uint8_t left_trigger;
+        uint8_t right_trigger;
+    } __attribute__((packed));
+
     struct XiaomiReportData{
         uint8_t id;
+        union {
+            XiaomiInputReport0x04 input0x04;
+        };
     } __attribute__((packed));
 
     class XiaomiController : public EmulatedSwitchController {
@@ -36,6 +88,7 @@ namespace ams::controller {
             void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
 
         private:
+            void HandleInputReport0x04(const XiaomiReportData *src, SwitchReportData *dst);
 
     };
 
