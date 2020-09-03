@@ -48,7 +48,10 @@ namespace ams::controller {
     }
 
     void OuyaController::HandleInputReport0x03(const OuyaReportData *src, SwitchReportData *dst) {
-        
+        m_battery = src->input0x03.battery / 52 << 1;
+
+        this->PackStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
+        this->PackStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
     }
     
     void OuyaController::HandleInputReport0x07(const OuyaReportData *src, SwitchReportData *dst) {
