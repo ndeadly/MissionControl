@@ -81,6 +81,7 @@ namespace ams::controller {
         dst->input0x30.buttons.X = src->input0x03.buttons.Y;
         dst->input0x30.buttons.Y = src->input0x03.buttons.X;
 
+        /*
         dst->input0x30.buttons.ZR = src->input0x03.buttons.start && src->input0x03.buttons.R;
         dst->input0x30.buttons.ZL = src->input0x03.buttons.start && src->input0x03.buttons.L;
         
@@ -92,11 +93,25 @@ namespace ams::controller {
 
         if (!(dst->input0x30.buttons.ZR || dst->input0x30.buttons.ZL))
             dst->input0x30.buttons.plus  = src->input0x03.buttons.start;
+        */
+        dst->input0x30.buttons.L = src->input0x03.buttons.L;
+        dst->input0x30.buttons.R = src->input0x03.buttons.R;
+
+        // Combos for ZL/ZR
+        if (dst->input0x30.buttons.dpad_down) {
+            dst->input0x30.buttons.ZL = src->input0x03.buttons.L;
+            dst->input0x30.buttons.ZR = src->input0x03.buttons.R;
+            dst->input0x30.buttons.dpad_down = !(dst->input0x30.buttons.ZL || dst->input0x30.buttons.ZR);
+            dst->input0x30.buttons.L = !dst->input0x30.buttons.ZL;
+            dst->input0x30.buttons.R = !dst->input0x30.buttons.ZR;
+        }
+
+        dst->input0x30.buttons.plus  = src->input0x03.buttons.start;
 
         dst->input0x30.buttons.lstick_press = src->input0x03.buttons.lstick_press;
         dst->input0x30.buttons.rstick_press = src->input0x03.buttons.rstick_press;
 
-        dst->input0x30.buttons.capture  = 0;
+        dst->input0x30.buttons.capture  = 0;        
     }
 
 }
