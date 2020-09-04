@@ -85,6 +85,8 @@ namespace ams::controller {
             XiaomiController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
+            Result Initialize(void);
+
             void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
 
         private:

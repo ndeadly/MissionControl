@@ -21,10 +21,20 @@ namespace ams::controller {
 
     namespace {
 
+        constexpr uint8_t init_packet[] = {0x20, 0x00, 0x00};  // packet to init vibration apparently
+
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
+    Result XiaomiController::Initialize(void) {
+        R_TRY(EmulatedSwitchController::Initialize());
+        s_output_report.size = sizeof(init_packet);
+        std::memcpy(s_output_report.data, init_packet, sizeof(init_packet));
+        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &s_output_report));
+        return ams::ResultSuccess();    
+    }
+    
     void XiaomiController::ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report) {
         auto xiaomi_report = reinterpret_cast<const XiaomiReportData *>(&in_report->data);
         auto switch_report = reinterpret_cast<SwitchReportData *>(&out_report->data);
