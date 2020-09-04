@@ -55,6 +55,8 @@ namespace ams::controller {
     }
 
     void XiaomiController::HandleInputReport0x04(const XiaomiReportData *src, SwitchReportData *dst) {
+        m_battery = src->input0x04.battery / 52 << 1;
+
         this->PackStickData(&dst->input0x30.left_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x04.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x04.left_stick.y)) & 0xfff
@@ -94,7 +96,7 @@ namespace ams::controller {
         dst->input0x30.buttons.rstick_press = src->input0x04.buttons.rstick_press;    
 
         dst->input0x30.buttons.capture  = 0;
-        dst->input0x30.buttons.home     = 0;                                
+        dst->input0x30.buttons.home     = src->input0x04.home;                                
     }
 
 }

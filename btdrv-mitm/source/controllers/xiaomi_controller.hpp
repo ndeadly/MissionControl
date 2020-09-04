@@ -66,6 +66,11 @@ namespace ams::controller {
         uint8_t _unk0[2];
         uint8_t left_trigger;
         uint8_t right_trigger;
+        uint16_t accel_x;
+        uint16_t accel_y;
+        uint16_t accel_z;
+        uint8_t battery;
+        uint8_t home;
     } __attribute__((packed));
 
     struct XiaomiReportData{
