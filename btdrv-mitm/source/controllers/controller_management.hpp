@@ -22,6 +22,7 @@
 #include "xbox_one_controller.hpp"
 #include "ouya_controller.hpp"
 #include "gamestick_controller.hpp"
+#include "gembox_controller.hpp"
 
 namespace ams::controller {
 
@@ -35,6 +36,7 @@ namespace ams::controller {
         ControllerType_XboxOne,
         ControllerType_Ouya,
         ControllerType_Gamestick,
+        ControllerType_Gembox,
         ControllerType_Unknown,
     };
 

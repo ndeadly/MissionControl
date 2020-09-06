@@ -75,6 +75,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : GemboxController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Gembox;
+            }
+        }
+
         // Handle the case where joycons have been assigned random hardware ids when paired via rails
         if (IsJoyCon(device->name)) {
             return ControllerType_Switch;;
