@@ -59,9 +59,8 @@ namespace ams::controller {
     } __attribute__((packed));
 
     struct IpegaInputReport0x02 {
-        uint8_t         : 6;
+        uint8_t         : 7;
         uint8_t home    : 1;
-        uint8_t         : 0;
     } __attribute__((packed));
 
     struct IpegaInputReport0x07 {
