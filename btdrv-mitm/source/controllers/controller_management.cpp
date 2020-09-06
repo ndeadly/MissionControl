@@ -126,6 +126,9 @@ namespace ams::controller {
             case ControllerType_Ouya:
                 g_controllers.push_back(std::make_unique<OuyaController>(address));
                 break;
+            case ControllerType_Ipega:
+                g_controllers.push_back(std::make_unique<IpegaController>(address));
+                break;
             default:
                 return;
         }
