@@ -102,9 +102,8 @@ namespace ams::controller {
         SwitchStickData     right_stick;
         uint8_t             vibrator;
 
-        Switch6AxisData     imu_0ms;
-        Switch6AxisData     imu_5ms;
-        Switch6AxisData     imu_10ms;
+        // IMU samples at 0, 5 and 10ms
+        Switch6AxisData     motion[3];
     } __attribute__ ((__packed__));
 
     struct SwitchInputReport0x31;
