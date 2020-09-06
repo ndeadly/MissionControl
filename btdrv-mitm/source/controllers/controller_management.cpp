@@ -135,6 +135,9 @@ namespace ams::controller {
             case ControllerType_Gamestick:
                 g_controllers.push_back(std::make_unique<GamestickController>(address));
                 break;
+            case ControllerType_Gembox:
+                g_controllers.push_back(std::make_unique<GemboxController>(address));
+                break;
             default:
                 return;
         }
