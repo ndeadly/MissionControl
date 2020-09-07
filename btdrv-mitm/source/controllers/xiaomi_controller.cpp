@@ -97,7 +97,7 @@ namespace ams::controller {
         dst->input0x30.buttons.rstick_press = src->input0x04.buttons.rstick_press;    
 
         dst->input0x30.buttons.capture  = 0;
-        dst->input0x30.buttons.home     = src->input0x04.home;                                
+        dst->input0x30.buttons.home     = src->input0x04.home;
     }
 
 }

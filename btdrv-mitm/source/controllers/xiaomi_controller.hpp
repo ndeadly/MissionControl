@@ -56,21 +56,23 @@ namespace ams::controller {
         uint8_t              : 0;
 
         uint8_t _unk;
+        
         uint8_t dpad;
     } __attribute__((packed));
 
     struct XiaomiInputReport0x04 {
         XiaomiButtonData buttons;
-        XiaomiStickData left_stick;
-        XiaomiStickData right_stick;
-        uint8_t _unk0[2];
-        uint8_t left_trigger;
-        uint8_t right_trigger;
+        XiaomiStickData  left_stick;
+        XiaomiStickData  right_stick;
+        uint8_t  _unk0[2];
+        uint8_t  left_trigger;
+        uint8_t  right_trigger;
         uint16_t accel_x;
         uint16_t accel_y;
         uint16_t accel_z;
-        uint8_t battery;
-        uint8_t home;
+        uint8_t  battery;
+        uint8_t  home   : 1;
+        uint8_t         : 0;
     } __attribute__((packed));
 
     struct XiaomiReportData{
