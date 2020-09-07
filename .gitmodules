@@ -7,6 +7,3 @@
 [submodule "borealis"]
 	path = borealis
 	url = https://github.com/natinusala/borealis.git
-[submodule "Atmosphere"]
-	path = Atmosphere
-	url = https://github.com/ndeadly/Atmosphere.git
