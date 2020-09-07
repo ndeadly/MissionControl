@@ -72,14 +72,20 @@ namespace ams::controller {
         for (auto hwId : GamestickController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Gamestick;
-            }
-        }
-		
+			}
+		}
+				
         for (auto hwId : IpegaController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Ipega;
             }
-        }       
+        }  
+
+        for (auto hwId : XiaomiController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Xiaomi;
+            }
+        }
 
         // Handle the case where joycons have been assigned random hardware ids when paired via rails
         if (IsJoyCon(device->name)) {
@@ -137,6 +143,9 @@ namespace ams::controller {
 				break;
             case ControllerType_Ipega:
                 g_controllers.push_back(std::make_unique<IpegaController>(address));
+				break;
+            case ControllerType_Xiaomi:
+                g_controllers.push_back(std::make_unique<XiaomiController>(address));
                 break;
             default:
                 return;

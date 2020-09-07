@@ -23,6 +23,7 @@
 #include "ouya_controller.hpp"
 #include "gamestick_controller.hpp"
 #include "ipega_controller.hpp"
+#include "xiaomi_controller.hpp"
 
 namespace ams::controller {
 
@@ -37,6 +38,7 @@ namespace ams::controller {
         ControllerType_Ouya,
         ControllerType_Gamestick,
         ControllerType_Ipega,
+        ControllerType_Xiaomi,
         ControllerType_Unknown,
     };
 
