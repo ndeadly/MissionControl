@@ -30,7 +30,7 @@ namespace ams::controller {
         auto switch_report = reinterpret_cast<SwitchReportData *>(&out_report->data);
 
         switch(gembox_report->id) {
-            case 0x03:
+            case 0x02:
                 this->HandleInputReport0x02(gembox_report, switch_report);
                 break;
             case 0x07:
