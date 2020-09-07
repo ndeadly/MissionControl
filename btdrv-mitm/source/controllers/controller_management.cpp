@@ -74,6 +74,12 @@ namespace ams::controller {
                 return ControllerType_Gamestick;
 			}
 		}
+
+        for (auto hwId : GemboxController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Gembox;
+            }
+        }
 				
         for (auto hwId : IpegaController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
@@ -141,6 +147,9 @@ namespace ams::controller {
             case ControllerType_Gamestick:
                 g_controllers.push_back(std::make_unique<GamestickController>(address));
 				break;
+            case ControllerType_Gembox:
+                g_controllers.push_back(std::make_unique<GemboxController>(address));
+                break;
             case ControllerType_Ipega:
                 g_controllers.push_back(std::make_unique<IpegaController>(address));
 				break;
