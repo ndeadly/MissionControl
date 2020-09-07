@@ -51,6 +51,9 @@ namespace ams::controller {
     void GemboxController::HandleInputReport0x02(const GemboxReportData *src, SwitchReportData *dst) {
         dst->input0x30.buttons.minus = src->input0x02.back;
 
+        dst->input0x30.buttons.home = src->input0x02.buttons == 0;
+
+
         this->PackStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
         this->PackStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
     }

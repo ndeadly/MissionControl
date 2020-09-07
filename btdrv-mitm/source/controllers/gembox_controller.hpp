@@ -55,9 +55,15 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct GemboxInputReport0x02 {
-        uint8_t         : 2;
-        uint8_t back    : 1;
-        uint8_t         : 0;
+        union {
+            struct {
+                uint8_t         : 6;
+                uint8_t back    : 1;
+                uint8_t         : 0;
+            };
+
+            uint8_t buttons;
+        };
     } __attribute__((packed));
 
     struct GemboxInputReport0x07 {
