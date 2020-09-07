@@ -57,12 +57,12 @@ namespace ams::controller {
 
     void GemboxController::HandleInputReport0x07(const GemboxReportData *src, SwitchReportData *dst) {
         this->PackStickData(&dst->input0x30.left_stick,
-            static_cast<uint16_t>(stick_scale_factor * static_cast<int8_t>(~src->input0x07.left_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - static_cast<int8_t>(~src->input0x07.left_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x07.left_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x07.left_stick.y + 1)) + 0x7ff) & 0xfff
         );
         this->PackStickData(&dst->input0x30.right_stick,
-            static_cast<uint16_t>(stick_scale_factor * static_cast<int8_t>(~src->input0x07.right_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - static_cast<int8_t>(~src->input0x07.right_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x07.right_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x07.right_stick.y + 1)) + 0x7ff) & 0xfff
         );
 
         dst->input0x30.buttons.dpad_down   = (src->input0x07.dpad == GemboxDPad_S)  ||
