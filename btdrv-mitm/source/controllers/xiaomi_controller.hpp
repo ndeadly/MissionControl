@@ -37,11 +37,11 @@ namespace ams::controller {
     } __attribute__((packed));
 
     struct XiaomiButtonData {
-        uint8_t B            : 1;
         uint8_t A            : 1;
+        uint8_t B            : 1;
         uint8_t              : 1;
-        uint8_t Y            : 1;
         uint8_t X            : 1;
+        uint8_t Y            : 1;
         uint8_t              : 1;
         uint8_t L1           : 1;
         uint8_t R1           : 1;
