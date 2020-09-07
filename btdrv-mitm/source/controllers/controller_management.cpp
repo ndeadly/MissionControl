@@ -39,6 +39,7 @@ namespace ams::controller {
     }
 
     ControllerType Identify(const BluetoothDevicesSettings *device) {
+
         for (auto hwId : SwitchController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Switch;
@@ -92,11 +93,10 @@ namespace ams::controller {
                 return ControllerType_Xiaomi;
             }
         }
-
-        // Handle the case where joycons have been assigned random hardware ids when paired via rails
-        if (IsJoyCon(device->name)) {
-            return ControllerType_Switch;;
-        }
+        
+        // Check for third party switch controllers or official switch controllers that have been assigned garbage IDs
+        if (IsOfficialSwitchControllerName(device->name))
+            return ControllerType_Switch;
 
         return ControllerType_Unknown;
     }
@@ -104,11 +104,6 @@ namespace ams::controller {
     bool IsGamepad(const bluetooth::DeviceClass *cod) {
         return ((cod->cod[1] & 0x0f) == cod_major_peripheral) &&
                (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick));
-    }
-
-    bool IsJoyCon(const char *name) {
-        return std::strncmp(name, "Joy-Con (L)", 		sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0;
     }
 
     bool IsOfficialSwitchControllerName(const char *name) {

@@ -46,7 +46,6 @@ namespace ams::controller {
 
     ControllerType Identify(const BluetoothDevicesSettings *device);
     bool IsGamepad(const bluetooth::DeviceClass *cod);
-    bool IsJoyCon(const char *name);
     bool IsOfficialSwitchControllerName(const char *name);
     
     void AttachHandler(const bluetooth::Address *address);
