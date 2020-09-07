@@ -157,7 +157,8 @@ namespace ams::controller {
                 g_controllers.push_back(std::make_unique<XiaomiController>(address));
                 break;
             default:
-                return;
+                g_controllers.push_back(std::make_unique<DefaultController>(address));
+                break;
         }
 
         g_controllers.back()->Initialize();

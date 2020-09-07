@@ -16,6 +16,7 @@
  */
 #pragma once
 #include <switch.h>
+#include "default_controller.hpp"
 #include "switch_controller.hpp"
 #include "wii_controller.hpp"
 #include "dualshock4_controller.hpp"
