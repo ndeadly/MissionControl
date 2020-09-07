@@ -73,7 +73,6 @@ void __appInit(void) {
         R_ABORT_UNLESS(fsInitialize());
         R_ABORT_UNLESS(pmdmntInitialize());
         R_ABORT_UNLESS(pminfoInitialize());
-        R_ABORT_UNLESS(btdrvInitialize());
     });
 
     R_ABORT_UNLESS(fsdevMountSdmc());
@@ -110,9 +109,10 @@ namespace {
 }
 
 int main(int argc, char **argv) {
+    R_ABORT_UNLESS(bluetooth::events::Initialize());
+
     auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
     R_ABORT_UNLESS((server_manager->RegisterMitmServer<ams::mitm::btdrv::IBtdrvMitmInterface, ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName)));
-    R_ABORT_UNLESS(bluetooth::events::Initialize());
     server_manager->LoopProcess();
 
     return 0;

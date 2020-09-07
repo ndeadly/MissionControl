@@ -36,19 +36,24 @@ namespace ams::bluetooth::events {
                 svc::SleepThread(1'000'000ul);
             }
 
+            // Initialise the btdrv service now that we can be sure the MITM is up and running
+            sm::DoWithSession([&]() {
+                R_ABORT_UNLESS(btdrvInitialize());
+            });
+
             os::InitializeWaitableManager(&g_manager);
 
             os::InitializeWaitableHolder(&g_holder_bt_core, core::GetSystemEvent());
             os::SetWaitableHolderUserData(&g_holder_bt_core, BtdrvEventType_BluetoothCore);
             os::LinkWaitableHolder(&g_manager, &g_holder_bt_core);
 
-            os::InitializeWaitableHolder(&g_holder_bt_hid,  hid::GetSystemEvent());
-            os::SetWaitableHolderUserData(&g_holder_bt_hid,  BtdrvEventType_BluetoothHid);
+            os::InitializeWaitableHolder(&g_holder_bt_hid, hid::GetSystemEvent());
+            os::SetWaitableHolderUserData(&g_holder_bt_hid, BtdrvEventType_BluetoothHid);
             os::LinkWaitableHolder(&g_manager, &g_holder_bt_hid);
 
             if (hos::GetVersion() >= hos::Version_5_0_0) {
-                os::InitializeWaitableHolder(&g_holder_bt_ble,  ble::GetSystemEvent());
-                os::SetWaitableHolderUserData(&g_holder_bt_ble,  BtdrvEventType_BluetoothBle);
+                os::InitializeWaitableHolder(&g_holder_bt_ble, ble::GetSystemEvent());
+                os::SetWaitableHolderUserData(&g_holder_bt_ble, BtdrvEventType_BluetoothBle);
                 os::LinkWaitableHolder(&g_manager, &g_holder_bt_ble);
             }
 
