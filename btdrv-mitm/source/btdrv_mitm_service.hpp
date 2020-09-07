@@ -28,7 +28,6 @@ namespace ams::mitm::btdrv {
             AMS_SF_METHOD_INFO(C, H, 15, Result, GetEventInfo,                      (sf::Out<bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer)) \
             AMS_SF_METHOD_INFO(C, H, 16, Result, InitializeHid,                     (sf::OutCopyHandle out_handle, u16 version)) \
             AMS_SF_METHOD_INFO(C, H, 19, Result, WriteHidData,                      (bluetooth::Address address, const sf::InPointerBuffer &buffer)) \
-            AMS_SF_METHOD_INFO(C, H, 25, Result, GetPairedDeviceInfo,               (sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address)) \
             AMS_SF_METHOD_INFO(C, H, 26, Result, FinalizeHid,                       (void)) \
             AMS_SF_METHOD_INFO(C, H, 27, Result, GetHidEventInfo,                   (sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer)) \
             AMS_SF_METHOD_INFO(C, H, 36, Result, RegisterHidReportEventDeprecated,  (sf::OutCopyHandle out_handle),                                                         hos::Version_1_0_0, hos::Version_3_0_2) \
@@ -67,7 +66,6 @@ namespace ams::mitm::btdrv {
             Result GetEventInfo(sf::Out<bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
             Result WriteHidData(bluetooth::Address address, const sf::InPointerBuffer &buffer);
-            Result GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address);
             Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);            
             Result RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle);

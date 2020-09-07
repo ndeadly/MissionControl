@@ -63,8 +63,4 @@ namespace ams::bluetooth {
 
     typedef BluetoothHhReportType   HhReportType;
 
-    struct DeviceSettings : sf::LargeData {
-        BluetoothDevicesSettings device;
-    };
-
 }
