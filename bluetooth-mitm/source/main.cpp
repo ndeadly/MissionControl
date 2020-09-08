@@ -16,8 +16,9 @@
  */
 #include <switch.h>
 #include <stratosphere.hpp>
-#include "btdrv_mitm_service.hpp"
-#include "bluetooth/bluetooth_events.hpp"
+#include "btdrv_mitm/btdrv_mitm_service.hpp"
+#include "btm_mitm/btm_mitm_service.hpp"
+#include "btdrv_mitm/bluetooth/bluetooth_events.hpp"
 #include <memory>
 
 extern "C" {

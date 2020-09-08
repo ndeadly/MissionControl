@@ -1,5 +1,5 @@
 {
-	"name":	"btdrv.mitm",
+	"name":	"bluetooth.mitm",
 	"title_id":	"0x010000000000bd00",
 	"title_id_range_min":	"0x010000000000bd00",
 	"title_id_range_max":	"0x010000000000bd00",
