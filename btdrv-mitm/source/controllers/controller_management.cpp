@@ -40,11 +40,8 @@ namespace ams::controller {
 
     ControllerType Identify(const BluetoothDevicesSettings *device) {
 
-        for (auto hwId : SwitchController::hardware_ids) {
-            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
-                return ControllerType_Switch;
-            }
-        }
+        if (IsOfficialSwitchControllerName(device->name))
+            return ControllerType_Switch;
 
         for (auto hwId : WiiController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
@@ -94,10 +91,6 @@ namespace ams::controller {
             }
         }
         
-        // Check for third party switch controllers or official switch controllers that have been assigned garbage IDs
-        if (IsOfficialSwitchControllerName(device->name))
-            return ControllerType_Switch;
-
         return ControllerType_Unknown;
     }
 
