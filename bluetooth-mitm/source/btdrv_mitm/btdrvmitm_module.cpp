@@ -36,7 +36,7 @@ namespace ams::mitm::btdrv {
         constexpr size_t MaxSessions = 6;
 
         os::ThreadType g_btdrv_mitm_thread;
-        alignas(os::ThreadStackAlignment) u8 g_btdrv_mitm_thread_stack[0x4000];
+        alignas(os::ThreadStackAlignment) u8 g_btdrv_mitm_thread_stack[0x2000];
         constexpr s32 g_btdrv_mitm_thread_priority = 16;
 
         void BtdrvMitmThreadFunction(void *arg) {
