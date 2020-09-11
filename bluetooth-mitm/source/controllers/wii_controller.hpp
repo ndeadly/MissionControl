@@ -305,7 +305,6 @@ namespace ams::controller {
 			Result ReadMemory(uint32_t read_addr, uint16_t size);
 
             Result SetReportMode(uint8_t mode);
-            Result SetPlayerLeds(uint8_t mask);
 			Result QueryStatus(void);
 
 			Result SetPlayerLed(uint8_t led_mask);
