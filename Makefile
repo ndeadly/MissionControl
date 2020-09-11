@@ -1,33 +1,28 @@
 PROJECT_NAME := MissionControl
-BTDRVMITM_TID := 010000000000bd00
+BLUETOOTH_MITM_TID := 010000000000bd00
 
-TARGETS := boot2 btdrv-mitm
+TARGETS := bluetooth-mitm
 
 all: $(TARGETS)
 
-boot2:
-	$(MAKE) -C Atmosphere/libraries all
-	$(MAKE) -C Atmosphere/stratosphere/boot2 all
-
-btdrv-mitm:
+bluetooth-mitm:
 	$(MAKE) -C $@
 
 clean:
 	$(MAKE) -C Atmosphere/libraries clean
-	$(MAKE) -C Atmosphere/stratosphere/boot2 clean
-	$(MAKE) -C btdrv-mitm clean
+	$(MAKE) -C bluetooth-mitm clean
 	rm -rf dist
 
 dist: all
 	rm -rf dist
 	
-	mkdir -p dist/atmosphere/contents/$(BTDRVMITM_TID)
-	cp btdrv-mitm/btdrv-mitm.nsp dist/atmosphere/contents/$(BTDRVMITM_TID)/exefs.nsp
-	mkdir -p dist/atmosphere/contents/0100000000000008/
-	cp Atmosphere/stratosphere/boot2/boot2.nsp dist/atmosphere/contents/0100000000000008/exefs.nsp
-	#mkdir -p dist/atmosphere/contents/$(BTDRVMITM_TID)/flags
-	#touch dist/atmosphere/contents/$(BTDRVMITM_TID)/flags/boot2.flag
-	#echo "btdrv" > mitm.lst
+	mkdir -p dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)
+	cp bluetooth-mitm/bluetooth-mitm.nsp dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/exefs.nsp
+	echo "btdrv" >> dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/mitm.lst
+	echo "btm" >> dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/mitm.lst
+
+	mkdir -p dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags
+	touch dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags/boot2.flag
 	
 	cp -r exefs_patches dist/atmosphere/
 	
