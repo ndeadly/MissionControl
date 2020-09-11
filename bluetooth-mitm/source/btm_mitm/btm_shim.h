@@ -21,7 +21,10 @@
 extern "C" {
 #endif
 
-Result btmGetDeviceConditionFwd(Service* s, BtmDeviceCondition *condition);
+Result btmGetDeviceConditionDeprecated1Fwd(Service* s, BtmDeviceConditionV100 *condition);
+Result btmGetDeviceConditionDeprecated2Fwd(Service* s, BtmDeviceConditionV510 *condition);
+Result btmGetDeviceConditionDeprecated3Fwd(Service* s, BtmDeviceConditionV800 *condition);
+Result btmGetDeviceConditionFwd(Service* s, BtmDeviceConditionV900 *condition);
 Result btmGetDeviceInfoFwd(Service* s, BtmDeviceInfo *devices);
 
 #ifdef __cplusplus

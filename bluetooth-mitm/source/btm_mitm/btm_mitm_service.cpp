@@ -16,21 +16,49 @@
  */
 #include "btm_mitm_service.hpp"
 #include "btm_shim.h"
+#include "../btdrv_mitm/controllers/controller_management.hpp"
 #include <cstring>
 
 namespace ams::mitm::btm {
 
-    Result BtmMitmService::GetDeviceCondition(sf::Out<btm::DeviceCondition> out) {
-        auto device_condition = reinterpret_cast<BtmDeviceCondition *>(out.GetPointer());
-        R_TRY(btmGetDeviceConditionFwd(this->forward_service.get(), device_condition));
+    namespace {
 
-        for (unsigned int i = 0; i < device_condition->connected_count; ++i) {
-            auto device = &device_condition->devices[i];
-            if (!IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
-                std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+        void RenameConnectedDevices(BtmConnectedDevice devices[], size_t count) {
+            for (unsigned int i = 0; i < count; ++i) {
+                auto device = &devices[i];
+                if (!IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
+                    std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                }
             }
         }
 
+    }
+
+    Result BtmMitmService::GetDeviceConditionDeprecated1(sf::Out<DeviceConditionV100> out) {
+        auto device_condition = reinterpret_cast<BtmDeviceConditionV100 *>(out.GetPointer());
+        R_TRY(btmGetDeviceConditionDeprecated1Fwd(this->forward_service.get(), device_condition));
+        RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
+        return ams::ResultSuccess();
+    }
+
+    Result BtmMitmService::GetDeviceConditionDeprecated2(sf::Out<DeviceConditionV510> out) {
+        auto device_condition = reinterpret_cast<BtmDeviceConditionV510 *>(out.GetPointer());
+        R_TRY(btmGetDeviceConditionDeprecated2Fwd(this->forward_service.get(), device_condition));
+        RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
+        return ams::ResultSuccess();
+    }
+
+    Result BtmMitmService::GetDeviceConditionDeprecated3(sf::Out<DeviceConditionV800> out) {
+        auto device_condition = reinterpret_cast<BtmDeviceConditionV800 *>(out.GetPointer());
+        R_TRY(btmGetDeviceConditionDeprecated1Fwd(this->forward_service.get(), device_condition));
+        RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
+        return ams::ResultSuccess();
+    }
+
+    Result BtmMitmService::GetDeviceCondition(sf::Out<btm::DeviceCondition> out) {
+        auto device_condition = reinterpret_cast<BtmDeviceConditionV900 *>(out.GetPointer());
+        R_TRY(btmGetDeviceConditionFwd(this->forward_service.get(), device_condition));
+        RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
         return ams::ResultSuccess();
     }
 

@@ -20,8 +20,20 @@
 
 namespace ams::mitm::btm {
 
+    struct DeviceConditionV100 : sf::LargeData {
+        BtmDeviceConditionV100 condition;
+    };
+
+    struct DeviceConditionV510 : sf::LargeData {
+        BtmDeviceConditionV510 condition;
+    };
+
+    struct DeviceConditionV800 : sf::LargeData {
+        BtmDeviceConditionV800 condition;
+    };
+
     struct DeviceCondition : sf::LargeData {
-        BtmDeviceCondition condition;
+        BtmDeviceConditionV900 condition;
     };
 
     struct DeviceInfo : sf::LargeData {

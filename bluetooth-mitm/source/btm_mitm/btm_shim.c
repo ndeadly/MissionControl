@@ -17,10 +17,31 @@
 #include "btm_shim.h"
 #include <stratosphere/sf/sf_mitm_dispatch.h>
 
-Result btmGetDeviceConditionFwd(Service* s, BtmDeviceCondition *condition) {
+Result btmGetDeviceConditionDeprecated1Fwd(Service* s, BtmDeviceConditionV100 *condition) {
     return serviceMitmDispatch(s, 3,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
-        .buffers = { {condition, sizeof(BtmDeviceCondition)} }
+        .buffers = { {condition, sizeof(BtmDeviceConditionV100)} }
+    );
+}
+
+Result btmGetDeviceConditionDeprecated2Fwd(Service* s, BtmDeviceConditionV510 *condition) {
+    return serviceMitmDispatch(s, 3,
+        .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {condition, sizeof(BtmDeviceConditionV510)} }
+    );
+}
+
+Result btmGetDeviceConditionDeprecated3Fwd(Service* s, BtmDeviceConditionV800 *condition) {
+    return serviceMitmDispatch(s, 3,
+        .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {condition, sizeof(BtmDeviceConditionV800)} }
+    );
+}
+
+Result btmGetDeviceConditionFwd(Service* s, BtmDeviceConditionV900 *condition) {
+    return serviceMitmDispatch(s, 3,
+        .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {condition, sizeof(BtmDeviceConditionV900)} }
     );
 }
 
