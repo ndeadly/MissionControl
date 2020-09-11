@@ -4,7 +4,7 @@
 	"title_id_range_min":	"0x010000000000bd00",
 	"title_id_range_max":	"0x010000000000bd00",
     "main_thread_stack_size": "0x1000",
-    "main_thread_priority": 22,
+    "main_thread_priority": 42,
     "default_cpu_id": 3,
     "process_category": 1,
     "is_retail": true,

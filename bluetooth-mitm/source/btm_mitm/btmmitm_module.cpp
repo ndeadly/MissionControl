@@ -36,7 +36,7 @@ namespace ams::mitm::btm {
 
         os::ThreadType g_btm_mitm_thread;
         alignas(os::ThreadStackAlignment) u8 g_btm_mitm_thread_stack[0x2000];
-        constexpr s32 g_btm_mitm_thread_priority = 18;
+        constexpr s32 g_btm_mitm_thread_priority = 34;
 
         void BtmMitmThreadFunction(void *arg) {
             auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
