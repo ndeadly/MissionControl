@@ -16,7 +16,7 @@
  */
 #pragma once
 #include <stratosphere.hpp>
-#include "btm_types.hpp"
+#include "btm/btm_types.hpp"
 
 namespace ams::mitm::btm {
 

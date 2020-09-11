@@ -16,7 +16,7 @@
  */
 #include "btm_mitm_service.hpp"
 #include "btm_shim.h"
-#include "../btdrv_mitm/controllers/controller_management.hpp"
+#include "../controllers/controller_management.hpp"
 #include <cstring>
 
 namespace ams::mitm::btm {
@@ -26,7 +26,7 @@ namespace ams::mitm::btm {
         void RenameConnectedDevices(BtmConnectedDevice devices[], size_t count) {
             for (unsigned int i = 0; i < count; ++i) {
                 auto device = &devices[i];
-                if (!IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
+                if (!controller::IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
                     std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
                 }
             }
@@ -68,7 +68,7 @@ namespace ams::mitm::btm {
 
         for (unsigned int i = 0; i < device_info->count; ++i) {
             auto device = &device_info->devices[i];
-            if (!IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
+            if (!controller::IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
                 std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
             }
         }

@@ -32,35 +32,36 @@ namespace ams::mitm::btm {
         };
 
         constexpr size_t MaxServers = 1;
-        constexpr size_t MaxSessions = 8;
+        constexpr size_t MaxSessions = 6;
 
         os::ThreadType g_btm_mitm_thread;
         alignas(os::ThreadStackAlignment) u8 g_btm_mitm_thread_stack[0x4000];
-        constexpr s32 g_btm_mitm_thread_priority = 36;
+        constexpr s32 g_btm_mitm_thread_priority = 18;
+
+        void BtmMitmThreadFunction(void *arg) {
+            auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
+            R_ABORT_UNLESS((server_manager->RegisterMitmServer<ams::mitm::btm::IBtmMitmInterface, ams::mitm::btm::BtmMitmService>(MitmServiceName)));
+            server_manager->LoopProcess();
+        }
 
     }
 
-    void BtmMitmThreadFunction(void *arg) {
-        auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
-        R_ABORT_UNLESS((server_manager->RegisterMitmServer<ams::mitm::btm::IBtmMitmInterface, ams::mitm::btm::BtmMitmService>(MitmServiceName)));
-        server_manager->LoopProcess();
-    }
-
-    void Launch(void) {
-        os::CreateThread(&g_btm_mitm_thread,
+    Result Launch(void) {
+        R_TRY(os::CreateThread(&g_btm_mitm_thread,
             BtmMitmThreadFunction,
             nullptr,
             g_btm_mitm_thread_stack,
             sizeof(g_btm_mitm_thread_stack),
             g_btm_mitm_thread_priority
-        );
+        ));
         
         os::StartThread(&g_btm_mitm_thread);
+
+        return ams::ResultSuccess();
     }
 
     void WaitFinished(void) {
         os::WaitThread(&g_btm_mitm_thread);
     }
-
 
 }

@@ -26,7 +26,7 @@ extern "C" {
     u32 __nx_applet_type = AppletType_None;
     u32 __nx_fs_num_sessions = 1;
 
-    #define INNER_HEAP_SIZE 0x10000
+    #define INNER_HEAP_SIZE 0x80000
     size_t nx_inner_heap_size = INNER_HEAP_SIZE;
     char   nx_inner_heap[INNER_HEAP_SIZE];
 
@@ -92,9 +92,10 @@ void __libnx_exception_handler(ThreadExceptionDump* ctx) {
     ams::CrashHandler(ctx);
 }
 
-void LaunchModules(void) {
-    ams::mitm::btdrv::Launch();
-    ams::mitm::btm::Launch();
+ams::Result LaunchModules(void) {
+    R_TRY(ams::mitm::btdrv::Launch());
+    R_TRY(ams::mitm::btm::Launch());
+    return ams::ResultSuccess();
 }
 
 void WaitModules(void) {
@@ -103,7 +104,7 @@ void WaitModules(void) {
 }
 
 int main(int argc, char **argv) {
-    LaunchModules();
+    R_ABORT_UNLESS(LaunchModules());
     WaitModules();
     
     return 0;

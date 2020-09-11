@@ -16,7 +16,7 @@
  */
 #include "bluetooth_core.hpp"
 #include "../btdrv_mitm_flags.hpp"
-#include "../controllers/controller_management.hpp"
+#include "../../controllers/controller_management.hpp"
 #include <atomic>
 #include <mutex>
 #include <cstring>
