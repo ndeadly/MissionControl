@@ -54,46 +54,46 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleSubCmdReport(const bluetooth::HidReport *report) {
         const uint8_t *subcmd = &report->data[10];
-        auto subcmd_id = static_cast<bluetooth::SubCmdType>(subcmd[0]);
+        auto subcmd_id = static_cast<SubCmdType>(subcmd[0]);
 
         switch (subcmd_id) {
-            case bluetooth::SubCmd_RequestDeviceInfo:
+            case SubCmd_RequestDeviceInfo:
                 R_TRY(this->SubCmdRequestDeviceInfo(report));
                 break;
-            case bluetooth::SubCmd_SpiFlashRead:
+            case SubCmd_SpiFlashRead:
                 R_TRY(this->SubCmdSpiFlashRead(report));
                 break;
-            case bluetooth::SubCmd_SpiFlashWrite:
+            case SubCmd_SpiFlashWrite:
                 R_TRY(this->SubCmdSpiFlashWrite(report));
                 break;
-            case bluetooth::SubCmd_SpiSectorErase:
+            case SubCmd_SpiSectorErase:
                 R_TRY(this->SubCmdSpiSectorErase(report));
                 break;
-            case bluetooth::SubCmd_SetInputReportMode:
+            case SubCmd_SetInputReportMode:
                 R_TRY(this->SubCmdSetInputReportMode(report));
                 break;
-            case bluetooth::SubCmd_TriggersElapsedTime:
+            case SubCmd_TriggersElapsedTime:
                 R_TRY(this->SubCmdTriggersElapsedTime(report));
                 break;
-            case bluetooth::SubCmd_SetShipPowerState:
+            case SubCmd_SetShipPowerState:
                 R_TRY(this->SubCmdSetShipPowerState(report));
                 break;
-            case bluetooth::SubCmd_SetMcuConfig:
+            case SubCmd_SetMcuConfig:
                 R_TRY(this->SubCmdSetMcuConfig(report));
                 break;
-            case bluetooth::SubCmd_SetMcuState:
+            case SubCmd_SetMcuState:
                 R_TRY(this->SubCmdSetMcuState(report));
                 break;
-            case bluetooth::SubCmd_SetPlayerLeds:
+            case SubCmd_SetPlayerLeds:
                 R_TRY(this->SubCmdSetPlayerLeds(report));
                 break;
-            case bluetooth::SubCmd_SetHomeLed:
+            case SubCmd_SetHomeLed:
                 R_TRY(this->SubCmdSetHomeLed(report));
                 break;
-            case bluetooth::SubCmd_EnableImu:
+            case SubCmd_EnableImu:
                 R_TRY(this->SubCmdEnableImu(report));
                 break;
-            case bluetooth::SubCmd_EnableVibration:
+            case SubCmd_EnableVibration:
                 R_TRY(this->SubCmdEnableVibration(report));
                 break;
             default:
@@ -121,7 +121,7 @@ namespace ams::controller {
         uint32_t read_addr = *(uint32_t *)(&report->data[11]);
         uint8_t  read_size = report->data[15];
 
-        const uint8_t prefix[] = {0x90, bluetooth::SubCmd_SpiFlashRead, report->data[11], report->data[12], report->data[13], report->data[14], report->data[15]};
+        const uint8_t prefix[] = {0x90, SubCmd_SpiFlashRead, report->data[11], report->data[12], report->data[13], report->data[14], report->data[15]};
 
         int response_size = read_size + sizeof(prefix);
         auto response = std::make_unique<uint8_t[]>(response_size);
@@ -137,37 +137,37 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSpiFlashWrite(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_SpiFlashWrite, 0x01};
+        const uint8_t response[] = {0x80, SubCmd_SpiFlashWrite, 0x01};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdSpiSectorErase(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_SpiSectorErase, 0x01};
+        const uint8_t response[] = {0x80, SubCmd_SpiSectorErase, 0x01};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_SetInputReportMode};
+        const uint8_t response[] = {0x80, SubCmd_SetInputReportMode};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x83, bluetooth::SubCmd_TriggersElapsedTime};
+        const uint8_t response[] = {0x83, SubCmd_TriggersElapsedTime};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_SetShipPowerState, 0x00};
+        const uint8_t response[] = {0x80, SubCmd_SetShipPowerState, 0x00};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuConfig(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0xa0, bluetooth::SubCmd_SetMcuConfig, 0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5c};
+        const uint8_t response[] = {0xa0, SubCmd_SetMcuConfig, 0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5c};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuState(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_SetMcuState};
+        const uint8_t response[] = {0x80, SubCmd_SetMcuState};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
@@ -176,22 +176,22 @@ namespace ams::controller {
         uint8_t led_mask = subCmd[1];
         R_TRY(this->SetPlayerLed(led_mask));
 
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_SetPlayerLeds};
+        const uint8_t response[] = {0x80, SubCmd_SetPlayerLeds};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdSetHomeLed(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_SetHomeLed};
+        const uint8_t response[] = {0x80, SubCmd_SetHomeLed};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdEnableImu(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_EnableImu};
+        const uint8_t response[] = {0x80, SubCmd_EnableImu};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, bluetooth::SubCmd_EnableVibration};
+        const uint8_t response[] = {0x80, SubCmd_EnableVibration};
         return this->FakeSubCmdResponse(response, sizeof(response));
     }
 

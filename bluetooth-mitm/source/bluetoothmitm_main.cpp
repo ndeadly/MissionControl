@@ -16,9 +16,8 @@
  */
 #include <switch.h>
 #include <stratosphere.hpp>
-#include "btdrv_mitm_service.hpp"
-#include "bluetooth/bluetooth_events.hpp"
-#include <memory>
+#include "btdrv_mitm/btdrvmitm_module.hpp"
+#include "btm_mitm/btmmitm_module.hpp"
 
 extern "C" {
 
@@ -93,27 +92,20 @@ void __libnx_exception_handler(ThreadExceptionDump* ctx) {
     ams::CrashHandler(ctx);
 }
 
-namespace {
+ams::Result LaunchModules(void) {
+    R_TRY(ams::mitm::btdrv::Launch());
+    R_TRY(ams::mitm::btm::Launch());
+    return ams::ResultSuccess();
+}
 
-    constexpr sm::ServiceName BtdrvMitmServiceName = sm::ServiceName::Encode("btdrv");
-
-    struct ServerOptions {
-        static constexpr size_t PointerBufferSize = 0x1000;
-        static constexpr size_t MaxDomains = 0;
-        static constexpr size_t MaxDomainObjects = 0;
-    };
-
-    constexpr size_t MaxServers = 1;
-    constexpr size_t MaxSessions = 6;
-    
+void WaitModules(void) {
+    ams::mitm::btm::WaitFinished();
+    ams::mitm::btdrv::WaitFinished();
 }
 
 int main(int argc, char **argv) {
-    R_ABORT_UNLESS(bluetooth::events::Initialize());
-
-    auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
-    R_ABORT_UNLESS((server_manager->RegisterMitmServer<ams::mitm::btdrv::IBtdrvMitmInterface, ams::mitm::btdrv::BtdrvMitmService>(BtdrvMitmServiceName)));
-    server_manager->LoopProcess();
-
+    R_ABORT_UNLESS(LaunchModules());
+    WaitModules();
+    
     return 0;
 }

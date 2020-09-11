@@ -46,17 +46,6 @@ Result btdrvWriteHidDataFwd(Service* srv, const BluetoothAddress *address, const
     );
 }
 
-Result btdrvGetPairedDeviceInfoFwd(Service* srv, const BluetoothAddress *address, BluetoothDevicesSettings *device) {
-    const struct {
-        BluetoothAddress address;
-    } in = { *address };
-
-    return serviceMitmDispatchIn(srv, 25, in,
-        .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
-        .buffers = { {device, sizeof(BluetoothDevicesSettings)} }
-    );
-}
-
 Result btdrvFinalizeHidFwd(Service* srv) {
     return serviceMitmDispatch(srv, 26);
 }

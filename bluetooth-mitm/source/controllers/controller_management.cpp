@@ -39,11 +39,9 @@ namespace ams::controller {
     }
 
     ControllerType Identify(const BluetoothDevicesSettings *device) {
-        for (auto hwId : SwitchController::hardware_ids) {
-            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
-                return ControllerType_Switch;
-            }
-        }
+
+        if (IsOfficialSwitchControllerName(device->name, sizeof(device->name)))
+            return ControllerType_Switch;
 
         for (auto hwId : WiiController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
@@ -92,12 +90,7 @@ namespace ams::controller {
                 return ControllerType_Xiaomi;
             }
         }
-
-        // Handle the case where joycons have been assigned random hardware ids when paired via rails
-        if (IsJoyCon(device->name)) {
-            return ControllerType_Switch;;
-        }
-
+        
         return ControllerType_Unknown;
     }
 
@@ -106,20 +99,15 @@ namespace ams::controller {
                (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick));
     }
 
-    bool IsJoyCon(const char *name) {
-        return std::strncmp(name, "Joy-Con (L)", 		sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0;
-    }
-
-    bool IsOfficialSwitchControllerName(const char *name) {
-        return std::strncmp(name, "Joy-Con (L)", 		sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "Joy-Con (R)", 		sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "Pro Controller", 	sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "Lic Pro Controller", sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "NES Controller", 	sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "HVC Controller", 	sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "SNES Controller", 	sizeof(BluetoothName)) == 0 ||
-               std::strncmp(name, "NintendoGamepad", 	sizeof(BluetoothName)) == 0 ;
+    bool IsOfficialSwitchControllerName(const char *name, size_t size) {
+        return std::strncmp(name, "Joy-Con (L)",        size) == 0 ||
+               std::strncmp(name, "Joy-Con (R)",        size) == 0 ||
+               std::strncmp(name, "Pro Controller",     size) == 0 ||
+               std::strncmp(name, "Lic Pro Controller", size) == 0 ||
+               std::strncmp(name, "NES Controller",     size) == 0 ||
+               std::strncmp(name, "HVC Controller",     size) == 0 ||
+               std::strncmp(name, "SNES Controller",    size) == 0 ||
+               std::strncmp(name, "NintendoGamepad",    size) == 0 ;
     }
 
     void AttachHandler(const bluetooth::Address *address) {

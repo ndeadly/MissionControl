@@ -18,7 +18,7 @@
 #include "btdrv_mitm_flags.hpp"
 #include "btdrv_shim.h"
 #include "bluetooth/bluetooth_events.hpp"
-#include "controllers/controller_management.hpp"
+#include "../controllers/controller_management.hpp"
 #include <switch.h>
 #include <cstring>
 
@@ -84,20 +84,6 @@ namespace ams::mitm::btdrv {
         }
         else {
             R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), &address, report));
-        }
-
-        return ams::ResultSuccess();
-    }
-
-    Result BtdrvMitmService::GetPairedDeviceInfo(sf::Out<bluetooth::DeviceSettings> out, bluetooth::Address address) {
-        auto device = reinterpret_cast<BluetoothDevicesSettings *>(out.GetPointer());
-
-        R_TRY(btdrvGetPairedDeviceInfoFwd(this->forward_service.get(), &address, device));
-
-        if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
-            if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                std::strncpy(device->name, controller::pro_controller_name, sizeof(BluetoothLocalName) - 1);
-            }
         }
 
         return ams::ResultSuccess();

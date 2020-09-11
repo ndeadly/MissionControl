@@ -3,7 +3,7 @@
 .patches/
 tests/
 dist/
-btdrv-mitm/build/
+bluetooth-mitm/build/
 *.log
 *.elf
 *.nro
