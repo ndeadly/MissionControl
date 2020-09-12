@@ -26,6 +26,7 @@
 #include "gembox_controller.hpp"
 #include "ipega_controller.hpp"
 #include "xiaomi_controller.hpp"
+#include "steelseries_controller.hpp"
 
 namespace ams::controller {
 
@@ -42,6 +43,7 @@ namespace ams::controller {
         ControllerType_Gembox,
         ControllerType_Ipega,
         ControllerType_Xiaomi,
+        ControllerType_Steelseries,
         ControllerType_Unknown,
     };
 
