@@ -27,6 +27,7 @@
 #include "ipega_controller.hpp"
 #include "xiaomi_controller.hpp"
 #include "gamesir_controller.hpp"
+#include "steelseries_controller.hpp"
 
 namespace ams::controller {
 
@@ -44,6 +45,7 @@ namespace ams::controller {
         ControllerType_Ipega,
         ControllerType_Xiaomi,
         ControllerType_Gamesir,
+        ControllerType_Steelseries,
         ControllerType_Unknown,
     };
 

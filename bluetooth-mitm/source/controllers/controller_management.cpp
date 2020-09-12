@@ -96,7 +96,13 @@ namespace ams::controller {
                 return ControllerType_Gamesir;
             }
         }
-        
+
+        for (auto hwId : SteelseriesController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Steelseries;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -152,6 +158,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Gamesir:
                 g_controllers.push_back(std::make_unique<GamesirController>(address));
+				break;
+            case ControllerType_Steelseries:
+                g_controllers.push_back(std::make_unique<SteelseriesController>(address));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<DefaultController>(address));
