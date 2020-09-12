@@ -19,8 +19,51 @@
 
 namespace ams::controller {
 
-    struct SteelseriesReportData {
+    enum SteelseriesDPadDirection {
+        SteelseriesDPad_N,
+        SteelseriesDPad_NE,
+        SteelseriesDPad_E,
+        SteelseriesDPad_SE,
+        SteelseriesDPad_S,
+        SteelseriesDPad_SW,
+        SteelseriesDPad_W,
+        SteelseriesDPad_NW,
+        SteelseriesDPad_Released = 0x0f
+    };
+	
+	struct SteelseriesStickData {
+        uint8_t x;
+        uint8_t y;
+    } __attribute__ ((__packed__));
+
+    struct SteelseriesButtonData {
+        uint8_t A       : 1;
+        uint8_t B       : 1;
+        uint8_t         : 1;
+        uint8_t X       : 1;
+        uint8_t Y       : 1;
+        uint8_t         : 1;
+        uint8_t L       : 1;
+        uint8_t R       : 1;
+
+        uint8_t         : 3;
+        uint8_t start   : 1;
+        uint8_t select  : 1;
+        uint8_t         : 0;
+    } __attribute__ ((__packed__));
+	
+	struct SteelseriesInputReport0x01 {
+        uint8_t                 dpad;
+        SteelseriesStickData    left_stick;
+        SteelseriesStickData    right_stick;
+        SteelseriesButtonData   buttons;
+    } __attribute__((packed));
+	
+	struct SteelseriesReportData {
         uint8_t id;
+        union {
+            SteelseriesInputReport0x01  input0x01;
+        };
     } __attribute__((packed));
 
     class SteelseriesController : public EmulatedSwitchController {
@@ -36,6 +79,7 @@ namespace ams::controller {
             void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
 
         private:
+            void HandleInputReport0x01(const SteelseriesReportData *src, SwitchReportData *dst);
 
     };
 
