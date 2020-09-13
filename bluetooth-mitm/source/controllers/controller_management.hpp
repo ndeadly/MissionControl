@@ -28,6 +28,7 @@
 #include "xiaomi_controller.hpp"
 #include "gamesir_controller.hpp"
 #include "steelseries_controller.hpp"
+#include "8bitdo_controller.hpp"
 
 namespace ams::controller {
 
@@ -46,6 +47,7 @@ namespace ams::controller {
         ControllerType_Xiaomi,
         ControllerType_Gamesir,
         ControllerType_Steelseries,
+        ControllerType_8BitDo,
         ControllerType_Unknown,
     };
 

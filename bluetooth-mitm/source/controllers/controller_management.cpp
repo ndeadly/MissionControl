@@ -103,6 +103,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : EightBitDoController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_8BitDo;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -161,6 +167,9 @@ namespace ams::controller {
 				break;
             case ControllerType_Steelseries:
                 g_controllers.push_back(std::make_unique<SteelseriesController>(address));
+                break;
+            case ControllerType_8BitDo:
+                g_controllers.push_back(std::make_unique<EightBitDoController>(address));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<DefaultController>(address));
