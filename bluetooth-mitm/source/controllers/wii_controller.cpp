@@ -28,6 +28,7 @@ namespace ams::controller {
         constexpr uint8_t init_data2[] = {0x00};
 
         constexpr float nunchuck_stick_scale_factor  = float(UINT12_MAX) / 0xb8;
+        constexpr float wiiu_scale_factor            = 1.5;
         constexpr float left_stick_scale_factor      = float(UINT12_MAX) / 0x3f;
         constexpr float right_stick_scale_factor     = float(UINT12_MAX) / 0x1f;
 
@@ -271,12 +272,12 @@ namespace ams::controller {
         auto extension = reinterpret_cast<const WiiUProExtensionData *>(ext);
 
         this->PackStickData(&dst->input0x30.left_stick,
-            ((3 * (extension->left_stick_x - STICK_ZERO)) >> 1) + STICK_ZERO, 
-            ((3 * (extension->left_stick_y - STICK_ZERO)) >> 1) + STICK_ZERO
+            std::clamp<uint16_t>(((wiiu_scale_factor * (extension->left_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff), 
+            std::clamp<uint16_t>(((wiiu_scale_factor * (extension->left_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
         );
         this->PackStickData(&dst->input0x30.right_stick,
-            ((3 * (extension->right_stick_x - STICK_ZERO)) >> 1) + STICK_ZERO,
-            ((3 * (extension->right_stick_y - STICK_ZERO)) >> 1) + STICK_ZERO
+            std::clamp<uint16_t>(((wiiu_scale_factor * (extension->right_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff),
+            std::clamp<uint16_t>(((wiiu_scale_factor * (extension->right_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
         );
 
         dst->input0x30.buttons.dpad_down   = !extension->buttons.dpad_down;
