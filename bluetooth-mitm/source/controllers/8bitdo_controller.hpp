@@ -19,6 +19,18 @@
 
 namespace ams::controller {
 
+    enum EightBitDoDPadDirection : uint16_t {
+        EightBitDoDPad_Released = 0x0000,
+        EightBitDoDPad_N        = 0x0052,
+        EightBitDoDPad_NE       = 0x524f,
+        EightBitDoDPad_E        = 0x004f,
+        EightBitDoDPad_SE       = 0x4f51,
+        EightBitDoDPad_S        = 0x0051,
+        EightBitDoDPad_SW       = 0x5150,
+        EightBitDoDPad_W        = 0x0050,   
+        EightBitDoDPad_NW       = 0x5250,     
+    };
+
     struct EightBitDoStickData {
         uint8_t x;
         uint8_t y;
@@ -42,8 +54,8 @@ namespace ams::controller {
 
     struct EightBitDoInputReport0x01 {
         uint8_t _unk0[2];
-        uint8_t dpad;
-        uint8_t _unk1[5];
+        uint16_t dpad;
+        uint8_t _unk1[4];
     } __attribute__((packed));
 
     struct EightBitDoInputReport0x03 {

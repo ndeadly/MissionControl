@@ -43,6 +43,18 @@ namespace ams::controller {
     }
 
     void EightBitDoController::HandleInputReport0x01(const EightBitDoReportData *src, SwitchReportData *dst) {
+        dst->input0x30.buttons.dpad_down   = (src->input0x01.dpad == EightBitDoDPad_S)  ||
+                                             (src->input0x01.dpad == EightBitDoDPad_SE) ||
+                                             (src->input0x01.dpad == EightBitDoDPad_SW);
+        dst->input0x30.buttons.dpad_up     = (src->input0x01.dpad == EightBitDoDPad_N)  ||
+                                             (src->input0x01.dpad == EightBitDoDPad_NE) ||
+                                             (src->input0x01.dpad == EightBitDoDPad_NW);
+        dst->input0x30.buttons.dpad_right  = (src->input0x01.dpad == EightBitDoDPad_E)  ||
+                                             (src->input0x01.dpad == EightBitDoDPad_NE) ||
+                                             (src->input0x01.dpad == EightBitDoDPad_SE);
+        dst->input0x30.buttons.dpad_left   = (src->input0x01.dpad == EightBitDoDPad_W)  ||
+                                             (src->input0x01.dpad == EightBitDoDPad_NW) ||
+                                             (src->input0x01.dpad == EightBitDoDPad_SW);
 
     }
 
@@ -57,6 +69,15 @@ namespace ams::controller {
 
         dst->input0x30.buttons.minus = src->input0x03.buttons.select;
         dst->input0x30.buttons.plus  = src->input0x03.buttons.start;
+
+        // Home combo
+        dst->input0x30.buttons.home = dst->input0x30.buttons.R && dst->input0x30.buttons.L && dst->input0x30.buttons.minus && dst->input0x30.buttons.plus;
+        if (dst->input0x30.buttons.home) {
+            dst->input0x30.buttons.R = 0;
+            dst->input0x30.buttons.L = 0;
+            dst->input0x30.buttons.minus = 0;
+            dst->input0x30.buttons.plus = 0;
+        }
     }
 
 }
