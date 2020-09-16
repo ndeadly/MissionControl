@@ -3,9 +3,7 @@
 <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/ndeadly/MissionControl">
 <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total">
 <img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total">
-<a href="https://ko-fi.com/J3J01BZZ6">
-    <img border="0" alt="ko-fi" src="https://www.ko-fi.com/img/githubbutton_sm.svg" align="right">
-</a>
+<img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin">
 </p>
 
 # MissionControl
@@ -13,9 +11,9 @@
 Use controllers from other consoles natively on your Nintendo Switch via Bluetooth. No dongles or other external hardware neccessary.
 
 ### Features
-* Supports all firmware versions
-* Pair Bluetooth controllers natively via `Change Grip/Order` screen
-* Native button remapping (firmware 10.0.0+)
+* Connect up to 8 non-switch Bluetooth controllers simultaneously without any additional hardware.
+* Make use of native HOS menus for controller pairing, button remapping (firmware 10.0.0+) etc.
+* Supports all Switch firmware versions
 * `btdrv-mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system. 
 
 ### Supported Controllers
@@ -24,17 +22,20 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro, SNES Mini)__
 * __Nintendo WiiU Pro Controller__
 * __Sony DualShock4 Controller__
-* __Microsoft Xbox One S Controller__*
+* __Microsoft Xbox One S/X Controller__*
 * __Ouya Controller__
 * __Gamestick Controller__
 * __Gembox Controller__
-* __Ipega Controllers (9062S, 9023 confirmed working. Others may also work)__
+* __Ipega Controllers (9062S, 9023, 9096 confirmed working. Others may also work)__
 * __Xiaomi Mi Controller__
+* __Steelseries Free Controller__
+* __GameSir G3s Controller__
+* __Hori Onyx Controller__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
 ### Requirements
-* Hackable Nintendo Switch running ***at least*** version 0.14.2 of [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere/releases) custom firmware. Other custom firmwares are not supported.
+* Hackable Nintendo Switch running ***at least*** version 0.14.2 of [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere/releases) custom firmware. Other custom firmwares are ***not supported***.
 * Compatible Bluetooth controller
 
 ### Installation
@@ -42,11 +43,13 @@ Download the [latest release](https://github.com/ndeadly/MissionControl/releases
 
 It is recommended after rebooting to also disconnect any physically connected controllers from the console, delete the pairing database, and re-pair via bluetooth to make sure your existing Switch controllers have the correct hardware ID stored and can be recognised properly. To delete the database, navigate to `System Settings->Controllers and Sensors->Disconnect Controllers`
 
-***IMPORTANT: Atmosphère >= 0.14.2 is required to run this version. Older versions will hang at the Nintendo logo during boot. 
-Users upgrading from the previous version of MissionControl are also advised to wipe their pairing database and re-pair controllers running v0.2.0. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
+***IMPORTANT: Atmosphère >= 0.14.2 is required to run the latest release of MissionControl. Older Atmosphere versions will cause a hang at the Nintendo logo during boot. 
+Users upgrading from version 0.1.0 of MissionControl are also advised to wipe their pairing database and re-pair controllers running 0.2.0 or greater. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
 
 ### Usage
-Install MissionControl to your SD card, reboot the console and then pair controllers as you normally would via the `Controllers->Change Grip/Order` screen. Once paired, controllers will reconnect automatically when woken up.
+Install MissionControl to your SD card and reboot the console.
+
+MissionControl runs as a background process and makes use of the system's native UI to handle controllers. The controller pairing dialog can be accessed from the home screen via  `Controllers->Change Grip/Order`. While sitting on this screen, place your controller in pairing mode (see below) and wait for it to connect to the console. Once paired, controllers will reconnect automatically when woken up. There is no need to re-pair them every time.
 
 Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please create an issue.
 
@@ -114,8 +117,7 @@ The resulting package can be installed as described above.
 ### Known Issues and Limitations
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Controllers that haven't had their hardware ID whitelisted for identification will not be recognised as connected. They will however still store their details to the database if they are able to successfully sync. If you encounter such a controller, please create an issue requesting support. 
-* Wii(U) controllers can take a while to pair with the console. For some reason they are only detected at the end of a device discovery cycle. Be patient and re-press the sync button on the controller if neccessary.
-* Some Dualshock4 v1 controllers may appear to not be working with the console. Users have reported that repeatedly attempting to pair may eventually cause them to sync up. Once synced they should work as usual.
+* Xbox One, Wii/WiiU and (especially) some Dualshock v1 controllers can take some time to be detected and subsequently pair with the Console. Be patient and re-enter the sync mode of the controller several times if neccessary. Once synced, controllers should work as usual.
 * Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.
 
 ### Frequently Asked Questions
@@ -129,7 +131,7 @@ No. MissionControl is Bluetooth-only for now.
 Yes, I have had several reports from users that the two can be used together without issue.
 
 ***Installing this bricked my console!!!!!11!!1!11***
-No. If you are seeing errors about title `0100000000000008` upon rebooting your console you are almost certainly using an outdated Atmosphere version. Install the latest version from the [official github release](https://github.com/Atmosphere-NX/Atmosphere/releases) and follow the MissionControl [installation instructions](https://github.com/ndeadly/MissionControl#installation) again.
+~~No. If you are seeing errors about title `0100000000000008` upon rebooting your console you are almost certainly using an outdated Atmosphere version. Install the latest version from the [official github release](https://github.com/Atmosphere-NX/Atmosphere/releases) and follow the MissionControl [installation instructions](https://github.com/ndeadly/MissionControl#installation) again.~~ Custom boot2 was dropped in v0.2.0. `0100000000000008` errors should be a thing of the past.
 
 ***How can I use this with multiple sysNAND/emuMMC launch configs?***
 Pairing controllers across multiple unique HOS installations requires multiple pairing databases and is essentially the same as pairing with two different consoles. The only exception being the case where you paired the controller(s) prior to making sysNAND copies. For now you will have to re-pair your controllers when switching back and forth. In the future I hope to include an option to load/store the database on the SD card to avoid this issue.
@@ -149,6 +151,9 @@ It's on my list of things to look into. The pairing process is non-standard and 
 ***Can you add support for Xbox 360 controllers?***
 No. These don't use Bluetooth. Try sys-con with a wireless USB adapter.
 
+***Can you add support for wake from sleep?***
+Probably not. As far as I know, wake from sleep involves a controller sending a special control command to the Switch Bluetooth hardware. There is no way to make a non-switch controller send the command recognised by the Switch without modifying its hardware/firmware.
+
 ***Can you add bluetooth audio support?***
 No. The bluetooth module on the switch only implements a small set of services required to make hid controllers work. Of this small set of services, only a handful of high-level functions are exposed to the rest of the system. Adding audio support would require implementing the services neccessary for audio transport, for which any sane person would require an open-source re-implementation of the bluetooth module in order to have access the low-level functions required to pull it off.
 
@@ -161,3 +166,7 @@ No. The bluetooth module on the switch only implements a small set of services r
 * __dekuNukem__, __CTCaer__, __shinyquagsire23__ and others for their work in reversing and documenting the switch controller communication protocol.
 * __friedkeenan__ for helping to test Wii extension controller support.
 * Everyone else over at the __ReSwitched__ discord server who helped answering technical questions.
+
+<a href="https://ko-fi.com/J3J01BZZ6">
+    <img border="0" alt="ko-fi" src="https://www.ko-fi.com/img/githubbutton_sm.svg" align="left">
+</a>
