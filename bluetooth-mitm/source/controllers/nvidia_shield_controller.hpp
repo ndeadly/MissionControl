@@ -58,6 +58,9 @@ namespace ams::controller {
         uint16_t right_trigger;
         NvidiaShieldStickData left_stick;
         NvidiaShieldStickData right_stick;
+        uint8_t home    : 1;
+        uint8_t back    : 1;
+        uint8_t         : 0;
     } __attribute__((packed));
 
     struct NvidiaShieldInputReport0x03 {

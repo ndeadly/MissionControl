@@ -77,22 +77,22 @@ namespace ams::controller {
         dst->input0x30.buttons.Y = src->input0x01.buttons.X;
 
         dst->input0x30.buttons.R  = src->input0x01.buttons.RB;
-        //dst->input0x30.buttons.ZR = src->input0x01.buttons.R2;
+        dst->input0x30.buttons.ZR = src->input0x01.right_trigger > 0;
         dst->input0x30.buttons.L  = src->input0x01.buttons.LB;
-        //dst->input0x30.buttons.ZL = src->input0x01.buttons.L2; 
+        dst->input0x30.buttons.ZL = src->input0x01.left_trigger > 0;
 
-        //dst->input0x30.buttons.minus = src->input0x01.buttons.back;
+        dst->input0x30.buttons.minus = src->input0x01.back;
         dst->input0x30.buttons.plus  = src->input0x01.buttons.start;
 
         dst->input0x30.buttons.lstick_press = src->input0x01.buttons.L3;
         dst->input0x30.buttons.rstick_press = src->input0x01.buttons.R3;    
 
         dst->input0x30.buttons.capture  = 0;
-        dst->input0x30.buttons.home     = 0; //src->input0x01.home;
+        dst->input0x30.buttons.home     = src->input0x01.home;
     }
 
     void NvidiaShieldController::HandleInputReport0x03(const NvidiaShieldReportData *src, SwitchReportData *dst) {
-        // Set home button
+
     }
 
 
