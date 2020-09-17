@@ -58,6 +58,19 @@ namespace ams::controller {
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
 
+        dst->input0x30.buttons.dpad_down   = (src->input0x01.dpad == NvidiaShieldDPad_S)  ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_SE) ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_SW);
+        dst->input0x30.buttons.dpad_up     = (src->input0x01.dpad == NvidiaShieldDPad_N)  ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_NE) ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_NW);
+        dst->input0x30.buttons.dpad_right  = (src->input0x01.dpad == NvidiaShieldDPad_E)  ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_NE) ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_SE);
+        dst->input0x30.buttons.dpad_left   = (src->input0x01.dpad == NvidiaShieldDPad_W)  ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_NW) ||
+                                             (src->input0x01.dpad == NvidiaShieldDPad_SW);
+
         dst->input0x30.buttons.A = src->input0x01.buttons.B;
         dst->input0x30.buttons.B = src->input0x01.buttons.A;
         dst->input0x30.buttons.X = src->input0x01.buttons.Y;

@@ -37,10 +37,10 @@ namespace ams::controller {
     } __attribute__((packed));
 
     struct NvidiaShieldButtonData {
-        uint8_t B       : 1;
         uint8_t A       : 1;
-        uint8_t Y       : 1;
+        uint8_t B       : 1;
         uint8_t X       : 1;
+        uint8_t Y       : 1;
         uint8_t LB      : 1;
         uint8_t RB      : 1;
         uint8_t L3      : 1;
