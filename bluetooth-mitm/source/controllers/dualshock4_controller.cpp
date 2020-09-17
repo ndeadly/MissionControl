@@ -26,10 +26,10 @@ namespace ams::controller {
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
         const Dualshock4LedColour player_led_colours[] = {
-            {0x00, 0x00, 0x7f}, // blue
-            {0x7f, 0x00, 0x00}, // red
-            {0x00, 0x7f, 0x00}, // green
-            {0x7f, 0x00, 0x7f}  // pink
+            {0x00, 0x00, 0x3f}, // blue
+            {0x3f, 0x00, 0x00}, // red
+            {0x00, 0x3f, 0x00}, // green
+            {0x3f, 0x00, 0x3f}  // pink
         };
 
     }
