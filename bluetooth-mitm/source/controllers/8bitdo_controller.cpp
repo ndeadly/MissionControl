@@ -71,12 +71,10 @@ namespace ams::controller {
         dst->input0x30.buttons.plus  = src->input0x03.buttons.start;
 
         // Home combo
-        dst->input0x30.buttons.home = dst->input0x30.buttons.R && dst->input0x30.buttons.L && dst->input0x30.buttons.minus && dst->input0x30.buttons.plus;
+        dst->input0x30.buttons.home = dst->input0x30.buttons.minus && dst->input0x30.buttons.dpad_down;
         if (dst->input0x30.buttons.home) {
-            dst->input0x30.buttons.R = 0;
-            dst->input0x30.buttons.L = 0;
             dst->input0x30.buttons.minus = 0;
-            dst->input0x30.buttons.plus = 0;
+            dst->input0x30.buttons.dpad_down = 0;
         }
     }
 
