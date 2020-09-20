@@ -106,6 +106,12 @@ namespace ams::controller {
         for (auto hwId : NvidiaShieldController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_NvidiaShield;
+			}
+		}
+		
+        for (auto hwId : EightBitDoController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_8BitDo;
             }
         }
 
@@ -170,6 +176,9 @@ namespace ams::controller {
                 break;
             case ControllerType_NvidiaShield:
                 g_controllers.push_back(std::make_unique<NvidiaShieldController>(address));
+				break;
+            case ControllerType_8BitDo:
+                g_controllers.push_back(std::make_unique<EightBitDoController>(address));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<DefaultController>(address));
