@@ -28,6 +28,7 @@ namespace ams::controller {
         constexpr auto cod_major_peripheral  = 0x05;
         constexpr auto cod_minor_gamepad     = 0x08;
         constexpr auto cod_minor_joystick    = 0x04;
+        constexpr auto cod_minor_keyboard    = 0x40;
 
         os::Mutex g_controller_lock(false);
         std::vector<std::unique_ptr<SwitchController>> g_controllers;
@@ -118,9 +119,9 @@ namespace ams::controller {
         return ControllerType_Unknown;
     }
 
-    bool IsGamepad(const bluetooth::DeviceClass *cod) {
+    bool IsAllowedDevice(const bluetooth::DeviceClass *cod) {
         return ((cod->cod[1] & 0x0f) == cod_major_peripheral) &&
-               (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick));
+               (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick) || ((cod->cod[2] & 0x40) == cod_minor_keyboard));
     }
 
     bool IsOfficialSwitchControllerName(const char *name, size_t size) {
