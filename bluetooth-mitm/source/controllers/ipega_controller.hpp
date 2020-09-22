@@ -83,7 +83,8 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x1949, 0x0402}
+                {0x1949, 0x0402},
+                {0x1949, 0x0403}
             };  
 
             IpegaController(const bluetooth::Address *address) 
