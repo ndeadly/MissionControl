@@ -116,7 +116,8 @@ namespace ams::controller {
                 {0x045e, 0x02e0},   // Official Xbox One S Controller
                 {0x045e, 0x02fd},   // Official Xbox One S Controller
                 {0x045e, 0x0b00},   // Official Xbox One Elite 2 Controller
-                {0x045e, 0x0b05}    // Official Xbox One Elite 2 Controller
+                {0x045e, 0x0b05},   // Official Xbox One Elite 2 Controller
+                {0x045e, 0x0b0a}    // Official Xbox Adaptive Controller
             };  
 
             XboxOneController(const bluetooth::Address *address) 
