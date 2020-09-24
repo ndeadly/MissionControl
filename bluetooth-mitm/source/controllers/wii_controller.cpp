@@ -121,6 +121,10 @@ namespace ams::controller {
                     m_extension = WiiExtensionController_WiiUPro;
                     this->SetReportMode(0x34);
                     break;
+                case 0x0000a4200111ULL:
+                    m_extension = WiiExtensionController_TaTaCon;
+                    this->SetReportMode(0x32);
+                    break;
                 default:
                     m_extension = WiiExtensionController_Unsupported;
                     this->SetReportMode(0x31);
@@ -152,7 +156,8 @@ namespace ams::controller {
     void WiiController::HandleInputReport0x32(const WiiReportData *src, SwitchReportData *dst) {
         if ((m_extension == WiiExtensionController_Nunchuck) 
          || (m_extension == WiiExtensionController_Classic)
-         || (m_extension == WiiExtensionController_ClassicPro)) {
+         || (m_extension == WiiExtensionController_ClassicPro)
+         || (m_extension == WiiExtensionController_TaTaCon)) {
             this->MapButtonsVerticalOrientation(&src->input0x32.buttons, dst);
         }
 
@@ -217,6 +222,9 @@ namespace ams::controller {
                 break;
             case WiiExtensionController_WiiUPro:
                 this->MapWiiUProControllerExtension(ext, dst);
+                break;
+            case WiiExtensionController_TaTaCon:
+                this->MapTaTaConExtension(ext, dst);
                 break;
             default:
                 break;
@@ -302,6 +310,15 @@ namespace ams::controller {
         dst->input0x30.buttons.rstick_press = !extension->buttons.rstick_press;
 
         dst->input0x30.buttons.home = !extension->buttons.home;
+    }
+
+    void WiiController::MapTaTaConExtension(const uint8_t ext[], SwitchReportData *dst) {
+        auto extension = reinterpret_cast<const TaTaConExtensionData *>(ext);
+
+        dst->input0x30.buttons.X            = !extension->R_rim;
+        dst->input0x30.buttons.Y            = !extension->R_center;
+        dst->input0x30.buttons.dpad_up      = !extension->L_rim;
+        dst->input0x30.buttons.dpad_right   = !extension->L_center;
     }
 
     Result WiiController::WriteMemory(uint32_t write_addr, const uint8_t *data, uint8_t size) {
