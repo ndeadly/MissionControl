@@ -115,7 +115,8 @@ namespace ams::controller {
             static constexpr const HardwareID hardware_ids[] = { 
                 {0x045e, 0x02e0},   // Official Xbox One S Controller
                 {0x045e, 0x02fd},   // Official Xbox One S Controller
-                {0x045e, 0x0b00}    // Official Xbox One Elite 2 Controller
+                {0x045e, 0x0b00},   // Official Xbox One Elite 2 Controller
+                {0x045e, 0x0b05}    // Official Xbox One Elite 2 Controller
             };  
 
             XboxOneController(const bluetooth::Address *address) 
