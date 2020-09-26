@@ -116,6 +116,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : PowerAController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_PowerA;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -180,6 +186,9 @@ namespace ams::controller {
 				break;
             case ControllerType_8BitDo:
                 g_controllers.push_back(std::make_unique<EightBitDoController>(address));
+                break;
+            case ControllerType_PowerA:
+                g_controllers.push_back(std::make_unique<PowerAController>(address));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<DefaultController>(address));
