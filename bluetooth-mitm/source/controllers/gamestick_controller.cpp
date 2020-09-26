@@ -40,13 +40,6 @@ namespace ams::controller {
             default:
                 break;
         }
-
-        out_report->size = sizeof(SwitchInputReport0x30) + 1;
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
     void GamestickController::HandleInputReport0x01(const GamestickReportData *src, SwitchReportData *dst) {

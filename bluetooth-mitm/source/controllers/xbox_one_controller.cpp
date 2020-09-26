@@ -50,13 +50,6 @@ namespace ams::controller {
             default:
                 break;
         }
-
-        out_report->size = sizeof(SwitchInputReport0x30) + 1;
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
     void XboxOneController::HandleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst) {
@@ -105,9 +98,6 @@ namespace ams::controller {
     void XboxOneController::HandleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst) {
         m_battery = src->input0x04.capacity << 1;
         m_charging = src->input0x04.charging;
-
-        this->PackStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
-        this->PackStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
     }
 
 }

@@ -39,13 +39,6 @@ namespace ams::controller {
             default:
                 break;
         }
-
-        out_report->size = sizeof(SwitchInputReport0x30) + 1;
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
     void NvidiaShieldController::HandleInputReport0x01(const NvidiaShieldReportData *src, SwitchReportData *dst) {
@@ -87,8 +80,7 @@ namespace ams::controller {
         dst->input0x30.buttons.lstick_press = src->input0x01.buttons.L3;
         dst->input0x30.buttons.rstick_press = src->input0x01.buttons.R3;    
 
-        dst->input0x30.buttons.capture  = 0;
-        dst->input0x30.buttons.home     = src->input0x01.home;
+        dst->input0x30.buttons.home = src->input0x01.home;
     }
 
     void NvidiaShieldController::HandleInputReport0x03(const NvidiaShieldReportData *src, SwitchReportData *dst) {

@@ -22,19 +22,20 @@ namespace ams::controller {
     bluetooth::HidReport EmulatedSwitchController::s_input_report;
     bluetooth::HidReport EmulatedSwitchController::s_output_report;
 
-    void EmulatedSwitchController::PackStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
-        *stick = (SwitchStickData){
-            static_cast<uint8_t>(x & 0xff), 
-            static_cast<uint8_t>((x >> 8) | ((y & 0xff) << 4)), 
-            static_cast<uint8_t>((y >> 4) & 0xff)
-        };
-    }
-
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
+        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
+        switch_report->id = 0x30;
+        switch_report->input0x30.conn_info = 0x0;
+        switch_report->input0x30.battery = m_battery | m_charging;
+        std::memset(&switch_report->input0x30.buttons, 0, sizeof(switch_report->input0x30.buttons));
+        this->PackStickData(&switch_report->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
+        this->PackStickData(&switch_report->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
+        std::memset(&switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
         this->ConvertReportFormat(report, &s_input_report);
-        bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
-        return ams::ResultSuccess();
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
     }
 
     Result EmulatedSwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {

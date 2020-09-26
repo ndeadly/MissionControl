@@ -36,13 +36,6 @@ namespace ams::controller {
             default:
                 break;
         }
-
-        out_report->size = sizeof(SwitchInputReport0x30) + 1;
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
     void SteelseriesController::HandleInputReport0x01(const SteelseriesReportData *src, SwitchReportData *dst) {
@@ -78,8 +71,6 @@ namespace ams::controller {
 
         dst->input0x30.buttons.minus    = src->input0x01.buttons.select;
         dst->input0x30.buttons.plus     = src->input0x01.buttons.start;
-
-        dst->input0x30.buttons.capture  = 0;
 
         // Home button combo
         dst->input0x30.buttons.home = dst->input0x30.buttons.dpad_down & dst->input0x30.buttons.minus;

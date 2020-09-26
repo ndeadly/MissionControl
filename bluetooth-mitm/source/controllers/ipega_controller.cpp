@@ -39,20 +39,10 @@ namespace ams::controller {
             default:
                 break;
         }
-
-        out_report->size = sizeof(SwitchInputReport0x30) + 1;
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
     void IpegaController::HandleInputReport0x02(const IpegaReportData *src, SwitchReportData *dst) {
         dst->input0x30.buttons.home = src->input0x02.home;
-
-        this->PackStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
-        this->PackStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
     }
 
     void IpegaController::HandleInputReport0x07(const IpegaReportData *src, SwitchReportData *dst) {

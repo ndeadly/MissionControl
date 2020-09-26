@@ -36,7 +36,13 @@ namespace ams::controller {
             virtual Result SetVibration(void) { return ams::ResultSuccess(); };
             virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };
 
-            void PackStickData(SwitchStickData *stick, uint16_t x, uint16_t y);
+            constexpr void PackStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
+                *stick = (SwitchStickData){
+                    static_cast<uint8_t>(x & 0xff), 
+                    static_cast<uint8_t>((x >> 8) | ((y & 0xff) << 4)), 
+                    static_cast<uint8_t>((y >> 4) & 0xff)
+                };
+            }
 
             Result HandleSubCmdReport(const bluetooth::HidReport *report);
             Result SubCmdRequestDeviceInfo(const bluetooth::HidReport *report);
