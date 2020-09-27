@@ -17,6 +17,7 @@
 #include "btdrvmitm_module.hpp"
 #include "btdrv_mitm_service.hpp"
 #include "bluetooth/bluetooth_events.hpp"
+#include "../bluetoothmitm_utils.hpp"
 #include <stratosphere.hpp>
 #include <memory>
 
@@ -37,7 +38,7 @@ namespace ams::mitm::btdrv {
 
         os::ThreadType g_btdrv_mitm_thread;
         alignas(os::ThreadStackAlignment) u8 g_btdrv_mitm_thread_stack[0x2000];
-        constexpr s32 g_btdrv_mitm_thread_priority = 16;
+        s32 g_btdrv_mitm_thread_priority = utils::ConvertToUserPriority(17);
 
         void BtdrvMitmThreadFunction(void *arg) {
             R_ABORT_UNLESS(bluetooth::events::Initialize());
