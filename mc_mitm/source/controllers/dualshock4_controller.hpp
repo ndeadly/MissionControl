@@ -62,6 +62,11 @@ namespace ams::controller {
         uint8_t counter    : 6;
     } __attribute__((packed));
 
+    struct Dualshock4RumbleData {
+        uint8_t amp_motor_left;
+        uint8_t amp_motor_right;
+    } __attribute__((packed));
+
     struct Dualshock4OutputReport0x11  {
         struct {
             uint8_t data[75];
@@ -125,12 +130,15 @@ namespace ams::controller {
             };
 
             Dualshock4Controller(const bluetooth::Address *address)
-                : EmulatedSwitchController(address), m_led_colour({0, 0, 0}) { };
+                : EmulatedSwitchController(address)
+                , m_led_colour({0, 0, 0})
+                , m_rumble_state({0, 0}) { };
             
             Result Initialize(void);
+            Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right);
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(RGBColour colour);
-            
+     
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
@@ -142,6 +150,7 @@ namespace ams::controller {
             Result PushRumbleLedState(void);
 
             RGBColour m_led_colour; 
+            Dualshock4RumbleData m_rumble_state; 
     };
 
 }
