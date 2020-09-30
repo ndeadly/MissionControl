@@ -64,7 +64,8 @@ namespace ams::controller {
                 R_TRY(this->HandleSubCmdReport(report));
                 break;
             case 0x10:  // Rumble
-                // Todo: add rumble support
+                R_TRY(this->HandleRumbleReport(report));
+                break;
             default:
                 break;
         }
@@ -120,6 +121,11 @@ namespace ams::controller {
         }
 
         return ams::ResultSuccess();
+    }
+
+    Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
+        auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
+        return this->SetVibration(&report_data->output0x10.left_motor, &report_data->output0x10.right_motor);
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {

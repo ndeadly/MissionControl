@@ -32,7 +32,7 @@ namespace ams::controller {
             void ClearControllerState(void);
             virtual void UpdateControllerState(const bluetooth::HidReport *report) {};
 
-            virtual Result SetVibration(void) { return ams::ResultSuccess(); };
+            virtual Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) { return ams::ResultSuccess(); };
             virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };
 
             constexpr SwitchStickData PackStickData(uint16_t x, uint16_t y) {
@@ -44,6 +44,8 @@ namespace ams::controller {
             }
 
             Result HandleSubCmdReport(const bluetooth::HidReport *report);
+            Result HandleRumbleReport(const bluetooth::HidReport *report);
+
             Result SubCmdRequestDeviceInfo(const bluetooth::HidReport *report);
             Result SubCmdSpiFlashRead(const bluetooth::HidReport *report);
             Result SubCmdSpiFlashWrite(const bluetooth::HidReport *report);

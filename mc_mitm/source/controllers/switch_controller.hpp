@@ -92,6 +92,13 @@ namespace ams::controller {
         uint16_t    gyro_3;
     } __attribute__ ((__packed__));
 
+    struct SwitchRumbleData {
+        uint8_t high_band_freq;
+        uint8_t high_band_amp;
+        uint8_t low_band_freq;
+        uint8_t low_band_amp;
+    } __attribute__ ((__packed__));
+
     enum SubCmdType : uint8_t {
         SubCmd_GetControllerState   = 0x00,
         SubCmd_ManualPair           = 0x01,
@@ -178,7 +185,13 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct SwitchOutputReport0x03;
-    struct SwitchOutputReport0x10;
+
+    struct SwitchOutputReport0x10 {
+        uint8_t          timer;
+        SwitchRumbleData left_motor;
+        SwitchRumbleData right_motor;
+    }__attribute__ ((__packed__));
+
     struct SwitchOutputReport0x11;
     struct SwitchOutputReport0x12;
 
@@ -218,7 +231,7 @@ namespace ams::controller {
         union {
             SwitchOutputReport0x01 output0x01;
             //SwitchOutputReport0x03 output0x03;
-            //SwitchOutputReport0x10 output0x10;
+            SwitchOutputReport0x10 output0x10;
             //SwitchOutputReport0x11 output0x11;
             //SwitchOutputReport0x12 output0x12;
             SwitchInputReport0x21  input0x21;
