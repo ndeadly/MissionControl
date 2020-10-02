@@ -136,15 +136,19 @@ namespace ams::controller {
 	} __attribute__ ((__packed__));
 
 	struct WiiOutputReport0x10 {
-		uint8_t rumble;
+		uint8_t rumble	: 1;
+		uint8_t			: 0;
 	} __attribute__ ((__packed__));
 
 	struct WiiOutputReport0x11 {
-		uint8_t leds;
+		uint8_t rumble	: 1;
+		uint8_t			: 3;
+		uint8_t leds	: 4;
 	} __attribute__ ((__packed__));
 
 	struct WiiOutputReport0x12 {
-		uint8_t _unk;
+		uint8_t rumble	: 1;
+		uint8_t			: 0;
         uint8_t report_mode;
 	} __attribute__ ((__packed__));
 
@@ -155,7 +159,8 @@ namespace ams::controller {
 	} __attribute__ ((__packed__));
 
 	struct WiiOutputReport0x15 {
-		uint8_t _unk;
+		uint8_t rumble	: 1;
+		uint8_t			: 0;
 	} __attribute__ ((__packed__));
 
 	struct WiiOutputReport0x16 {
@@ -290,9 +295,12 @@ namespace ams::controller {
 
 			WiiController(const bluetooth::Address *address)    
 				: EmulatedSwitchController(address)
-				, m_extension(WiiExtensionController_None) { };
+				, m_extension(WiiExtensionController_None)
+				, m_rumble_state(0) { };
 
 			Result Initialize(void);
+			Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right);
+			Result SetPlayerLed(uint8_t led_mask);
 			void UpdateControllerState(const bluetooth::HidReport *report);
 
         protected:
@@ -319,9 +327,8 @@ namespace ams::controller {
             Result SetReportMode(uint8_t mode);
 			Result QueryStatus(void);
 
-			Result SetPlayerLed(uint8_t led_mask);
-
 			WiiExtensionController m_extension;
+			bool m_rumble_state;
     };
 
 }

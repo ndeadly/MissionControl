@@ -332,7 +332,7 @@ namespace ams::controller {
         s_output_report.size = sizeof(WiiOutputReport0x12) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
         report_data->id = 0x12;
-        report_data->output0x12._unk = 0;
+        report_data->output0x12.rumble = m_rumble_state;
         report_data->output0x12.report_mode = mode;
 
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
@@ -342,16 +342,28 @@ namespace ams::controller {
         s_output_report.size = sizeof(WiiOutputReport0x15) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
         report_data->id = 0x15;
-        report_data->output0x15._unk = 0;
+        report_data->output0x15.rumble = m_rumble_state;
         
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
 
+    Result WiiController::SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) {
+        m_rumble_state = left->low_band_amp || left->high_band_amp || right->low_band_amp || right->high_band_amp;
+
+        s_output_report.size = sizeof(WiiOutputReport0x10) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        report_data->id = 0x10;
+        report_data->output0x10.rumble = m_rumble_state;
+
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+    }
+
     Result WiiController::SetPlayerLed(uint8_t led_mask) {        
-        s_output_report.size = sizeof(WiiOutputReport0x15) + 1;
+        s_output_report.size = sizeof(WiiOutputReport0x11) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
         report_data->id = 0x11;
-        report_data->output0x11.leds = (led_mask << 4) & 0xf0;
+        report_data->output0x11.rumble = m_rumble_state;
+        report_data->output0x11.leds = (led_mask << 4) & 0xf0;;
 
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
