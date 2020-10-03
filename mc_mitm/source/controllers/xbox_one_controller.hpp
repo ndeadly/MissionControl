@@ -78,6 +78,11 @@ namespace ams::controller {
 
     } __attribute__ ((__packed__));
 
+    struct XboxOneRumbleData {
+        uint8_t amp_motor_left;
+        uint8_t amp_motor_right;
+    } __attribute__((packed));
+
     struct XboxOneInputReport0x01 {
         XboxOneStickData        left_stick;
         XboxOneStickData        right_stick;
@@ -120,13 +125,19 @@ namespace ams::controller {
             };  
 
             XboxOneController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+                : EmulatedSwitchController(address)
+                , m_output_packet_counter(0)
+                , m_rumble_state({0, 0}) { };
 
+            Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right);
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
             void HandleInputReport0x01(const XboxOneReportData *src);
             void HandleInputReport0x04(const XboxOneReportData *src);
+
+            uint8_t m_output_packet_counter;
+            XboxOneRumbleData m_rumble_state; 
 
     };
 

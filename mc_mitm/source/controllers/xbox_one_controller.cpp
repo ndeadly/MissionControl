@@ -20,13 +20,21 @@
 namespace ams::controller {
 
     namespace {
-
-        constexpr uint8_t init_packet[] = {0x05, 0x20, 0x00, 0x01, 0x00};
         
         constexpr float stick_scale_factor = float(UINT12_MAX) / UINT16_MAX;
 
     }
 
+    }
+
+    Result XboxOneController::SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) {
+        m_rumble_state.amp_motor_left = left->low_band_amp;
+        m_rumble_state.amp_motor_right = right->high_band_amp;
+
+        uint8_t rumble_packet[] = {0x09, 0x00, m_output_packet_counter++, 0x09, 0x00, 0x0f, 0x00, 0x00, m_rumble_state.amp_motor_left, m_rumble_state.amp_motor_right, 0xff, 0x00, 0xff};
+        s_output_report.size = sizeof(rumble_packet);
+        std::memcpy(s_output_report.data, rumble_packet, sizeof(rumble_packet));
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     void XboxOneController::UpdateControllerState(const bluetooth::HidReport *report) {
         auto xbox_report = reinterpret_cast<const XboxOneReportData *>(&report->data);
 
