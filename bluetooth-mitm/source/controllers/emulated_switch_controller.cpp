@@ -44,11 +44,11 @@ namespace ams::controller {
         auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
         switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        switch_report->input0x30.buttons = m_buttons;
-        switch_report->input0x30.left_stick = m_left_stick;
-        switch_report->input0x30.right_stick = m_right_stick;
+        switch_report->input0x30.conn_info      = 0;
+        switch_report->input0x30.battery        = m_battery | m_charging;
+        switch_report->input0x30.buttons        = m_buttons;
+        switch_report->input0x30.left_stick     = m_left_stick;
+        switch_report->input0x30.right_stick    = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
         
@@ -219,12 +219,11 @@ namespace ams::controller {
         report_data->id = 0x21;
         report_data->input0x21.conn_info   = 0;
         report_data->input0x21.battery     = m_battery | m_charging;
-        report_data->input0x21.buttons     = {0x00, 0x00, 0x00};
-        report_data->input0x21.left_stick  = {0x0b, 0xb8, 0x78};
-        report_data->input0x21.right_stick = {0xd9, 0xd7, 0x81};
+        report_data->input0x21.buttons     = m_buttons;
+        report_data->input0x21.left_stick  = m_left_stick;
+        report_data->input0x21.right_stick = m_right_stick;
         report_data->input0x21.vibrator    = 0;
         std::memcpy(&report_data->input0x21.subcmd, response, size);
-
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer
