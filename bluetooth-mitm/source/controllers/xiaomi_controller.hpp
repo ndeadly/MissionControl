@@ -94,10 +94,10 @@ namespace ams::controller {
 
             Result Initialize(void);
 
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x04(const XiaomiReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x04(const XiaomiReportData *src);
 
     };
 

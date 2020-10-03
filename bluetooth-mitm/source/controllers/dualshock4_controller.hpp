@@ -137,13 +137,13 @@ namespace ams::controller {
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(Dualshock4LedColour colour);
             
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x01(const Dualshock4ReportData *src);
+            void HandleInputReport0x11(const Dualshock4ReportData *src);
 
-            void MapButtons(const Dualshock4ButtonData *buttons, SwitchReportData *dst);
+            void MapButtons(const Dualshock4ButtonData *buttons);
             Result UpdateControllerState(void);
 
             Dualshock4LedColour m_led_colour; 

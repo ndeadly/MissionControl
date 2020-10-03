@@ -22,19 +22,32 @@ namespace ams::controller {
     bluetooth::HidReport EmulatedSwitchController::s_input_report;
     bluetooth::HidReport EmulatedSwitchController::s_output_report;
 
+    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
+    : SwitchController(address)           
+    , m_charging(false)
+    , m_battery(BATTERY_MAX) { 
+        std::memset(&m_buttons, 0, sizeof(m_buttons));
+        this->PackStickData(&m_left_stick, STICK_ZERO, STICK_ZERO);
+        this->PackStickData(&m_right_stick, STICK_ZERO, STICK_ZERO);
+        std::memset(&m_motion_data, 0, sizeof(m_motion_data));
+    };
+
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
+        // Update controller state
+        this->UpdateControllerState(report);
+
+        // Prepare Switch report
         auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
         switch_report->id = 0x30;
         switch_report->input0x30.conn_info = 0x0;
         switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(&switch_report->input0x30.buttons, 0, sizeof(switch_report->input0x30.buttons));
-        this->PackStickData(&switch_report->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
-        this->PackStickData(&switch_report->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
-        std::memset(&switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        this->ConvertReportFormat(report, &s_input_report);
+        switch_report->input0x30.buttons = m_buttons;
+        switch_report->input0x30.left_stick = m_left_stick;
+        switch_report->input0x30.right_stick = m_right_stick;
+        std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-
+        
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
     }
 

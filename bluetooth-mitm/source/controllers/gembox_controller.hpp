@@ -93,11 +93,11 @@ namespace ams::controller {
             GemboxController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x02(const GemboxReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x07(const GemboxReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x02(const GemboxReportData *src);
+            void HandleInputReport0x07(const GemboxReportData *src);
 
     };
 

@@ -94,11 +94,11 @@ namespace ams::controller {
             GamesirController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x12(const GamesirReportData *src, SwitchReportData *dst);
-            void HandleInputReport0xc4(const GamesirReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x12(const GamesirReportData *src);
+            void HandleInputReport0xc4(const GamesirReportData *src);
 
     };
 

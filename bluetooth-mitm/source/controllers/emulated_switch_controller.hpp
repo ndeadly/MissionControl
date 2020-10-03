@@ -22,16 +22,13 @@ namespace ams::controller {
     class EmulatedSwitchController : public SwitchController {
 
         public:
-            EmulatedSwitchController(const bluetooth::Address *address) 
-                : SwitchController(address)           
-                , m_charging(false)
-                , m_battery(BATTERY_MAX) { };
+            EmulatedSwitchController(const bluetooth::Address *address);
             
             Result HandleIncomingReport(const bluetooth::HidReport *report);
             Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
-            virtual void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report) {};
+            virtual void UpdateControllerState(const bluetooth::HidReport *report) {};
 
             virtual Result SetVibration(void) { return ams::ResultSuccess(); };
             virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };
@@ -63,6 +60,10 @@ namespace ams::controller {
 
             bool    m_charging;
             uint8_t m_battery;
+            SwitchButtonData m_buttons;
+            SwitchStickData  m_left_stick;
+            SwitchStickData  m_right_stick;
+            Switch6AxisData  m_motion_data[3];
 
             static bluetooth::HidReport s_input_report;
             static bluetooth::HidReport s_output_report;
