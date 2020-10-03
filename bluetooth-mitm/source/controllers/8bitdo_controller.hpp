@@ -84,11 +84,11 @@ namespace ams::controller {
             EightBitDoController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const EightBitDoReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x03(const EightBitDoReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x01(const EightBitDoReportData *src);
+            void HandleInputReport0x03(const EightBitDoReportData *src);
 
     };
 

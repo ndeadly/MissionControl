@@ -124,11 +124,11 @@ namespace ams::controller {
                 : EmulatedSwitchController(address) { };
 
             Result Initialize(void);
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const XboxOneReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x04(const XboxOneReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x01(const XboxOneReportData *src);
+            void HandleInputReport0x04(const XboxOneReportData *src);
 
     };
 

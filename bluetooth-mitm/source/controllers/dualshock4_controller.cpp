@@ -53,43 +53,35 @@ namespace ams::controller {
         return this->UpdateControllerState();
     }
 
-    void Dualshock4Controller::ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report) {
-        auto ds4_report = reinterpret_cast<const Dualshock4ReportData *>(&in_report->data);
-        auto switch_report = reinterpret_cast<SwitchReportData *>(&out_report->data);
+    void Dualshock4Controller::UpdateControllerState(const bluetooth::HidReport *report) {
+        auto ds4_report = reinterpret_cast<const Dualshock4ReportData *>(&report->data);
 
         switch(ds4_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(ds4_report, switch_report);
+                this->HandleInputReport0x01(ds4_report);
                 break;
             case 0x11:
-                this->HandleInputReport0x11(ds4_report, switch_report);
+                this->HandleInputReport0x11(ds4_report);
                 break;
             default:
                 break;
         }
-
-        out_report->size = sizeof(SwitchInputReport0x30) + 1;
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
-    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst) {       
-        this->PackStickData(&dst->input0x30.left_stick,
+    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {       
+        this->PackStickData(&m_left_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
-        this->PackStickData(&dst->input0x30.right_stick,
+        this->PackStickData(&m_right_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
 
-        this->MapButtons(&src->input0x01.buttons, dst);
+        this->MapButtons(&src->input0x01.buttons);
     }
 
-    void Dualshock4Controller::HandleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst) {
+    void Dualshock4Controller::HandleInputReport0x11(const Dualshock4ReportData *src) {
         if (!src->input0x11.usb || src->input0x11.battery_level > 10)
             m_charging = false;
         else
@@ -103,50 +95,50 @@ namespace ams::controller {
 
         m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
 
-        this->PackStickData(&dst->input0x30.left_stick,
+        this->PackStickData(&m_left_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x11.left_stick.y)) & 0xfff
         );
-        this->PackStickData(&dst->input0x30.right_stick,
+        this->PackStickData(&m_right_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x11.right_stick.y)) & 0xfff
         );
 
-        this->MapButtons(&src->input0x11.buttons, dst);
+        this->MapButtons(&src->input0x11.buttons);
     }
 
-    void Dualshock4Controller::MapButtons(const Dualshock4ButtonData *buttons, SwitchReportData *dst) {
-        dst->input0x30.buttons.dpad_down   = (buttons->dpad == Dualshock4DPad_S)  ||
-                                             (buttons->dpad == Dualshock4DPad_SE) ||
-                                             (buttons->dpad == Dualshock4DPad_SW);
-        dst->input0x30.buttons.dpad_up     = (buttons->dpad == Dualshock4DPad_N)  ||
-                                             (buttons->dpad == Dualshock4DPad_NE) ||
-                                             (buttons->dpad == Dualshock4DPad_NW);
-        dst->input0x30.buttons.dpad_right  = (buttons->dpad == Dualshock4DPad_E)  ||
-                                             (buttons->dpad == Dualshock4DPad_NE) ||
-                                             (buttons->dpad == Dualshock4DPad_SE);
-        dst->input0x30.buttons.dpad_left   = (buttons->dpad == Dualshock4DPad_W)  ||
-                                             (buttons->dpad == Dualshock4DPad_NW) ||
-                                             (buttons->dpad == Dualshock4DPad_SW);
+    void Dualshock4Controller::MapButtons(const Dualshock4ButtonData *buttons) {
+        m_buttons.dpad_down   = (buttons->dpad == Dualshock4DPad_S)  ||
+                                (buttons->dpad == Dualshock4DPad_SE) ||
+                                (buttons->dpad == Dualshock4DPad_SW);
+        m_buttons.dpad_up     = (buttons->dpad == Dualshock4DPad_N)  ||
+                                (buttons->dpad == Dualshock4DPad_NE) ||
+                                (buttons->dpad == Dualshock4DPad_NW);
+        m_buttons.dpad_right  = (buttons->dpad == Dualshock4DPad_E)  ||
+                                (buttons->dpad == Dualshock4DPad_NE) ||
+                                (buttons->dpad == Dualshock4DPad_SE);
+        m_buttons.dpad_left   = (buttons->dpad == Dualshock4DPad_W)  ||
+                                (buttons->dpad == Dualshock4DPad_NW) ||
+                                (buttons->dpad == Dualshock4DPad_SW);
 
-        dst->input0x30.buttons.A = buttons->circle;
-        dst->input0x30.buttons.B = buttons->cross;
-        dst->input0x30.buttons.X = buttons->triangle;
-        dst->input0x30.buttons.Y = buttons->square;
+        m_buttons.A = buttons->circle;
+        m_buttons.B = buttons->cross;
+        m_buttons.X = buttons->triangle;
+        m_buttons.Y = buttons->square;
 
-        dst->input0x30.buttons.R  = buttons->R1;
-        dst->input0x30.buttons.ZR = buttons->R2;
-        dst->input0x30.buttons.L  = buttons->L1;
-        dst->input0x30.buttons.ZL = buttons->L2;
+        m_buttons.R  = buttons->R1;
+        m_buttons.ZR = buttons->R2;
+        m_buttons.L  = buttons->L1;
+        m_buttons.ZL = buttons->L2;
 
-        dst->input0x30.buttons.minus = buttons->share;
-        dst->input0x30.buttons.plus  = buttons->options;
+        m_buttons.minus = buttons->share;
+        m_buttons.plus  = buttons->options;
 
-        dst->input0x30.buttons.lstick_press = buttons->L3;
-        dst->input0x30.buttons.rstick_press = buttons->R3;
+        m_buttons.lstick_press = buttons->L3;
+        m_buttons.rstick_press = buttons->R3;
 
-        dst->input0x30.buttons.capture = buttons->tpad;
-        dst->input0x30.buttons.home    = buttons->ps;
+        m_buttons.capture = buttons->tpad;
+        m_buttons.home    = buttons->ps;
     }
 
     Result Dualshock4Controller::UpdateControllerState(void) {
@@ -156,9 +148,7 @@ namespace ams::controller {
         s_output_report.size = sizeof(report) - 1;
         std::memcpy(s_output_report.data, &report.data[1], s_output_report.size);
 
-        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &s_output_report));
-
-        return ams::ResultSuccess();
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
 
 }
