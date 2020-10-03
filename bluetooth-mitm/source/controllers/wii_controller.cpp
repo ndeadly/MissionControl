@@ -89,7 +89,6 @@ namespace ams::controller {
 
     void WiiController::HandleInputReport0x21(const WiiReportData *src) {
         uint16_t read_addr = util::SwapBytes(src->input0x21.address);
-        //uint8_t size = src->input0x21.size + 1;
 
         if (read_addr == 0x00fa) {
             // Identify extension controller by ID
@@ -123,6 +122,8 @@ namespace ams::controller {
                     break;
             }
         }
+
+        this->ClearControllerState();
     }
 
     void WiiController::HandleInputReport0x22(const WiiReportData *src) {

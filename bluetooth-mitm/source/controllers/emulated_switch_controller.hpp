@@ -29,6 +29,7 @@ namespace ams::controller {
 
         protected:
             virtual void UpdateControllerState(const bluetooth::HidReport *report) {};
+            void ClearControllerState(void);
 
             virtual Result SetVibration(void) { return ams::ResultSuccess(); };
             virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };

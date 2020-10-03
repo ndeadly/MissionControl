@@ -26,11 +26,15 @@ namespace ams::controller {
     : SwitchController(address)           
     , m_charging(false)
     , m_battery(BATTERY_MAX) { 
+        this->ClearControllerState();
+    };
+
+    void EmulatedSwitchController::ClearControllerState(void) {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
         this->PackStickData(&m_left_stick, STICK_ZERO, STICK_ZERO);
         this->PackStickData(&m_right_stick, STICK_ZERO, STICK_ZERO);
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
-    };
+    }
 
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
         // Update controller state
