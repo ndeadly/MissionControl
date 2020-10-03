@@ -33,6 +33,7 @@ namespace ams::controller {
             virtual void UpdateControllerState(const bluetooth::HidReport *report) {};
 
             virtual Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) { return ams::ResultSuccess(); };
+            virtual Result CancelVibration(void) { return ams::ResultSuccess(); };
             virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };
 
             constexpr SwitchStickData PackStickData(uint16_t x, uint16_t y) {

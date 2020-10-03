@@ -130,6 +130,7 @@ namespace ams::controller {
                 , m_rumble_state({0, 0}) { };
 
             Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right);
+            Result CancelVibration(void);
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:

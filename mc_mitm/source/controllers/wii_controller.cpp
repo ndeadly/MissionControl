@@ -358,6 +358,17 @@ namespace ams::controller {
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
 
+    Result WiiController::CancelVibration(void) {
+        m_rumble_state = 0;
+
+        s_output_report.size = sizeof(WiiOutputReport0x10) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        report_data->id = 0x10;
+        report_data->output0x10.rumble = m_rumble_state;
+
+        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+    }
+
     Result WiiController::SetPlayerLed(uint8_t led_mask) {        
         s_output_report.size = sizeof(WiiOutputReport0x11) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);

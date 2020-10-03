@@ -52,6 +52,12 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
+    Result Dualshock4Controller::CancelVibration(void) {
+        m_rumble_state.amp_motor_left = 0;
+        m_rumble_state.amp_motor_right = 0;
+        return this->UpdateControllerState();
+    }
+
     Result Dualshock4Controller::SetPlayerLed(uint8_t led_mask) {
         uint8_t player_number;
         R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
