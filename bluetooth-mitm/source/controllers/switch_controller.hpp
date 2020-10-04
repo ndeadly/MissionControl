@@ -28,6 +28,19 @@ namespace ams::controller {
         uint16_t vid;
         uint16_t pid;
     };
+
+    struct RGBColour {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+    } __attribute__ ((__packed__));
+
+    struct ProControllerColours {
+        RGBColour body;
+        RGBColour buttons;
+        RGBColour left_grip;
+        RGBColour right_grip;
+    } __attribute__ ((__packed__));
         
     struct SwitchStickData {
         uint8_t xy[3];

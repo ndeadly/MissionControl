@@ -28,8 +28,8 @@ namespace ams::controller {
             Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
-            virtual void UpdateControllerState(const bluetooth::HidReport *report) {};
             void ClearControllerState(void);
+            virtual void UpdateControllerState(const bluetooth::HidReport *report) {};
 
             virtual Result SetVibration(void) { return ams::ResultSuccess(); };
             virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };
@@ -65,6 +65,8 @@ namespace ams::controller {
             SwitchStickData  m_left_stick;
             SwitchStickData  m_right_stick;
             Switch6AxisData  m_motion_data[3];
+
+            ProControllerColours m_colours;
 
             static bluetooth::HidReport s_input_report;
             static bluetooth::HidReport s_output_report;

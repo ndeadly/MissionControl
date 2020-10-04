@@ -191,7 +191,7 @@ namespace ams::controller {
                 g_controllers.push_back(std::make_unique<PowerAController>(address));
                 break;
             default:
-                g_controllers.push_back(std::make_unique<DefaultController>(address));
+                g_controllers.push_back(std::make_unique<UnknownController>(address));
                 break;
         }
 

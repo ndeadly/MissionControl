@@ -23,10 +23,15 @@ namespace ams::controller {
     bluetooth::HidReport EmulatedSwitchController::s_output_report;
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
-    : SwitchController(address)           
+    : SwitchController(address)
     , m_charging(false)
     , m_battery(BATTERY_MAX) { 
         this->ClearControllerState();
+
+        m_colours.body       = {0x32, 0x32, 0x32};
+        m_colours.buttons    = {0xe6, 0xe6, 0xe6};
+        m_colours.left_grip  = {0x46, 0x46, 0x46};
+        m_colours.right_grip = {0x46, 0x46, 0x46};
     };
 
     void EmulatedSwitchController::ClearControllerState(void) {
@@ -37,7 +42,6 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
-        // Update controller state
         this->UpdateControllerState(report);
 
         // Prepare Switch report
@@ -146,9 +150,9 @@ namespace ams::controller {
         std::memcpy(response.get(), prefix, sizeof(prefix));
         std::memset(response.get() + sizeof(prefix), 0xff, read_size); // Console doesn't seem to mind if response is uninitialised data (0xff)
 
-        // Set default controller body colour
+        // Set controller colours
         if (read_addr == 0x6050) {
-            std::memset(response.get() + sizeof(prefix), 0x32, 3);
+            std::memcpy(response.get() + sizeof(prefix), &m_colours, sizeof(m_colours));
         }
 
         return this->FakeSubCmdResponse(response.get(), response_size);    

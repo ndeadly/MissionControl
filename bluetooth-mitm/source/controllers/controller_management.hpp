@@ -16,7 +16,6 @@
  */
 #pragma once
 #include <switch.h>
-#include "default_controller.hpp"
 #include "switch_controller.hpp"
 #include "wii_controller.hpp"
 #include "dualshock4_controller.hpp"
@@ -53,6 +52,14 @@ namespace ams::controller {
         ControllerType_8BitDo,
         ControllerType_PowerA,
         ControllerType_Unknown,
+    };
+
+    class UnknownController : public EmulatedSwitchController{
+        public:
+            UnknownController(const bluetooth::Address *address) 
+            : EmulatedSwitchController(address) { 
+                m_colours.buttons = {0xff, 0x00, 0x00};
+            };
     };
 
     ControllerType Identify(const BluetoothDevicesSettings *device);
