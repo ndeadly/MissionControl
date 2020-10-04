@@ -25,7 +25,7 @@ namespace ams::controller {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
-        const Dualshock4LedColour player_led_colours[] = {
+        const RGBColour player_led_colours[] = {
             {0x00, 0x00, 0x3f}, // blue
             {0x3f, 0x00, 0x00}, // red
             {0x00, 0x3f, 0x00}, // green
@@ -44,11 +44,11 @@ namespace ams::controller {
     Result Dualshock4Controller::SetPlayerLed(uint8_t led_mask) {
         uint8_t i = 0;
         while (led_mask >>= 1) { ++i; }
-        Dualshock4LedColour colour = player_led_colours[i];
+        RGBColour colour = player_led_colours[i];
         return this->SetLightbarColour(colour);
     }
 
-    Result Dualshock4Controller::SetLightbarColour(Dualshock4LedColour colour) {
+    Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
         m_led_colour = colour;
         return this->UpdateControllerState();
     }
