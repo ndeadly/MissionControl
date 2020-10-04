@@ -14,20 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
-#include "emulated_switch_controller.hpp"
+#include <stratosphere.hpp>
 
-namespace ams::controller {
+namespace ams::mitm::utils {
 
-    class DefaultController : public EmulatedSwitchController {
-
-        public:
-            DefaultController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
-
-            Result Initialize(void);
-            Result HandleIncomingReport(const bluetooth::HidReport *report) override;
-
-    };
+    s32 ConvertToHorizonPriority(s32 user_priority);
+    s32 ConvertToUserPriority(s32 horizon_priority);
 
 }

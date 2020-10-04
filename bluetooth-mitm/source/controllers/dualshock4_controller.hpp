@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    struct Dualshock4LedColour {
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
-    };
-
     enum Dualshock4ControllerVariant {
         Dualshock4ControllerVariant_V1,
         Dualshock4ControllerVariant_V2,
@@ -134,18 +128,18 @@ namespace ams::controller {
             
             Result Initialize(void);
             Result SetPlayerLed(uint8_t led_mask);
-            Result SetLightbarColour(Dualshock4LedColour colour);
+            Result SetLightbarColour(RGBColour colour);
             
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const Dualshock4ReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x11(const Dualshock4ReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x01(const Dualshock4ReportData *src);
+            void HandleInputReport0x11(const Dualshock4ReportData *src);
 
-            void MapButtons(const Dualshock4ButtonData *buttons, SwitchReportData *dst);
+            void MapButtons(const Dualshock4ButtonData *buttons);
             Result UpdateControllerState(void);
 
-            Dualshock4LedColour m_led_colour; 
+            RGBColour m_led_colour; 
     };
 
 }

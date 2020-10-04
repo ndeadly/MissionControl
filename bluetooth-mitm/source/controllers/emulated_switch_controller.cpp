@@ -21,19 +21,59 @@ namespace ams::controller {
     bluetooth::HidReport EmulatedSwitchController::s_input_report;
     bluetooth::HidReport EmulatedSwitchController::s_output_report;
 
-    void EmulatedSwitchController::PackStickData(SwitchStickData *stick, uint16_t x, uint16_t y) {
-        *stick = (SwitchStickData){
-            static_cast<uint8_t>(x & 0xff), 
-            static_cast<uint8_t>((x >> 8) | ((y & 0xff) << 4)), 
-            static_cast<uint8_t>((y >> 4) & 0xff)
-        };
+    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
+    : SwitchController(address)
+    , m_charging(false)
+    , m_battery(BATTERY_MAX) { 
+        this->ClearControllerState();
+
+        m_colours.body       = {0x32, 0x32, 0x32};
+        m_colours.buttons    = {0xe6, 0xe6, 0xe6};
+        m_colours.left_grip  = {0x46, 0x46, 0x46};
+        m_colours.right_grip = {0x46, 0x46, 0x46};
+    };
+
+    void EmulatedSwitchController::ClearControllerState(void) {
+        std::memset(&m_buttons, 0, sizeof(m_buttons));
+        this->PackStickData(&m_left_stick, STICK_ZERO, STICK_ZERO);
+        this->PackStickData(&m_right_stick, STICK_ZERO, STICK_ZERO);
+        std::memset(&m_motion_data, 0, sizeof(m_motion_data));
+    }
+
+    void EmulatedSwitchController::ApplyButtonCombos(SwitchButtonData *buttons) {
+        // Home combo = MINUS + DPAD_DOWN
+        if (buttons->minus && buttons->dpad_down) {
+            buttons->home = 1;
+            buttons->minus = 0;
+            buttons->dpad_down = 0;
+        }
+
+        // Capture combo = MINUS + DPAD_UP
+        if (buttons->minus && buttons->dpad_up) {
+            buttons->capture = 1;
+            buttons->minus = 0;
+            buttons->dpad_up = 0;
+        }
     }
 
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
-        this->ConvertReportFormat(report, &s_input_report);
-        bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+        this->UpdateControllerState(report);
 
-        return ams::ResultSuccess();
+        // Prepare Switch report
+        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
+        switch_report->id = 0x30;
+        switch_report->input0x30.conn_info      = 0;
+        switch_report->input0x30.battery        = m_battery | m_charging;
+        switch_report->input0x30.buttons        = m_buttons;
+        switch_report->input0x30.left_stick     = m_left_stick;
+        switch_report->input0x30.right_stick    = m_right_stick;
+        std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
+
+        this->ApplyButtonCombos(&switch_report->input0x30.buttons);
+
+        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
     }
 
     Result EmulatedSwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
@@ -116,7 +156,7 @@ namespace ams::controller {
         // @ 0x00008010: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    <= User Analog sticks calibration
         // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Left analog stick calibration
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
-        
+
         uint32_t read_addr = *(uint32_t *)(&report->data[11]);
         uint8_t  read_size = report->data[15];
 
@@ -127,9 +167,9 @@ namespace ams::controller {
         std::memcpy(response.get(), prefix, sizeof(prefix));
         std::memset(response.get() + sizeof(prefix), 0xff, read_size); // Console doesn't seem to mind if response is uninitialised data (0xff)
 
-        // Set default controller body colour
+        // Set controller colours
         if (read_addr == 0x6050) {
-            std::memset(response.get() + sizeof(prefix), 0x32, 3);
+            std::memcpy(response.get() + sizeof(prefix), &m_colours, sizeof(m_colours));
         }
 
         return this->FakeSubCmdResponse(response.get(), response_size);    
@@ -200,12 +240,11 @@ namespace ams::controller {
         report_data->id = 0x21;
         report_data->input0x21.conn_info   = 0;
         report_data->input0x21.battery     = m_battery | m_charging;
-        report_data->input0x21.buttons     = {0x00, 0x00, 0x00};
-        report_data->input0x21.left_stick  = {0x0b, 0xb8, 0x78};
-        report_data->input0x21.right_stick = {0xd9, 0xd7, 0x81};
+        report_data->input0x21.buttons     = m_buttons;
+        report_data->input0x21.left_stick  = m_left_stick;
+        report_data->input0x21.right_stick = m_right_stick;
         report_data->input0x21.vibrator    = 0;
         std::memcpy(&report_data->input0x21.subcmd, response, size);
-
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer

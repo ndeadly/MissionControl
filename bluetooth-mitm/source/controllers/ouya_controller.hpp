@@ -75,11 +75,11 @@ namespace ams::controller {
             OuyaController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
-            void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+            void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x03(const OuyaReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x07(const OuyaReportData *src, SwitchReportData *dst);
+            void HandleInputReport0x03(const OuyaReportData *src);
+            void HandleInputReport0x07(const OuyaReportData *src);
 
     };
 

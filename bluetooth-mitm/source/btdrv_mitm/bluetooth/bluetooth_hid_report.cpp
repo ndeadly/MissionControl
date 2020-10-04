@@ -17,6 +17,7 @@
 #include "bluetooth_circular_buffer.hpp"
 #include "../btdrv_shim.h"
 #include "../btdrv_mitm_flags.hpp"
+#include "../../bluetoothmitm_utils.hpp"
 #include "../../controllers/controller_management.hpp"
 #include <atomic>
 #include <mutex>
@@ -32,6 +33,7 @@ namespace ams::bluetooth::hid::report {
 
         os::ThreadType                            g_event_handler_thread;
         alignas(os::ThreadStackAlignment) uint8_t g_event_handler_thread_stack[0x1000];
+        s32 g_event_handler_thread_priority = mitm::utils::ConvertToUserPriority(17);
 
         // This is only required  on fw < 7.0.0
         uint8_t                 g_event_data_buffer[0x480];
@@ -99,7 +101,7 @@ namespace ams::bluetooth::hid::report {
             nullptr, 
             g_event_handler_thread_stack, 
             sizeof(g_event_handler_thread_stack), 
-            -10
+            g_event_handler_thread_priority
         ));
 
         g_forward_service = forward_service;

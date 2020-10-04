@@ -16,6 +16,7 @@
  */
 #include "btmmitm_module.hpp"
 #include "btm_mitm_service.hpp"
+#include "../bluetoothmitm_utils.hpp"
 #include <stratosphere.hpp>
 #include <memory>
 
@@ -36,7 +37,7 @@ namespace ams::mitm::btm {
 
         os::ThreadType g_btm_mitm_thread;
         alignas(os::ThreadStackAlignment) u8 g_btm_mitm_thread_stack[0x2000];
-        constexpr s32 g_btm_mitm_thread_priority = 34;
+        s32 g_btm_mitm_thread_priority = utils::ConvertToUserPriority(37);
 
         void BtmMitmThreadFunction(void *arg) {
             auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();

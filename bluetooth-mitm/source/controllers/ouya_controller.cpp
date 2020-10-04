@@ -25,69 +25,57 @@ namespace ams::controller {
 
     }
 
-    void OuyaController::ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report) {
-        auto ouya_report = reinterpret_cast<const OuyaReportData *>(&in_report->data);
-        auto switch_report = reinterpret_cast<SwitchReportData *>(&out_report->data);
+    void OuyaController::UpdateControllerState(const bluetooth::HidReport *report) {
+        auto ouya_report = reinterpret_cast<const OuyaReportData *>(&report->data);
 
         switch(ouya_report->id) {
             case 0x03:
-                this->HandleInputReport0x03(ouya_report, switch_report);
+                this->HandleInputReport0x03(ouya_report);
                 break;
             case 0x07:
-                this->HandleInputReport0x07(ouya_report, switch_report);
+                this->HandleInputReport0x07(ouya_report);
                 break;
             default:
                 break;
         }
-
-        out_report->size = sizeof(SwitchInputReport0x30) + 1;
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = 0x0;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        std::memset(switch_report->input0x30.motion, 0, sizeof(switch_report->input0x30.motion));
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
     }
 
-    void OuyaController::HandleInputReport0x03(const OuyaReportData *src, SwitchReportData *dst) {
+    void OuyaController::HandleInputReport0x03(const OuyaReportData *src) {
         m_battery = src->input0x03.battery / 52 << 1;
-
-        this->PackStickData(&dst->input0x30.left_stick, STICK_ZERO, STICK_ZERO);
-        this->PackStickData(&dst->input0x30.right_stick, STICK_ZERO, STICK_ZERO);
     }
     
-    void OuyaController::HandleInputReport0x07(const OuyaReportData *src, SwitchReportData *dst) {
-        this->PackStickData(&dst->input0x30.left_stick,
+    void OuyaController::HandleInputReport0x07(const OuyaReportData *src) {
+        this->PackStickData(&m_left_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x07.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x07.left_stick.y)) & 0xfff
         );
-        this->PackStickData(&dst->input0x30.right_stick,
+        this->PackStickData(&m_right_stick,
             static_cast<uint16_t>(stick_scale_factor * src->input0x07.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x07.right_stick.y)) & 0xfff
         );
         
-        dst->input0x30.buttons.dpad_down    = src->input0x07.buttons.dpad_down;
-        dst->input0x30.buttons.dpad_up      = src->input0x07.buttons.dpad_up;
-        dst->input0x30.buttons.dpad_right   = src->input0x07.buttons.dpad_right;
-        dst->input0x30.buttons.dpad_left    = src->input0x07.buttons.dpad_left;
+        m_buttons.dpad_down    = src->input0x07.buttons.dpad_down;
+        m_buttons.dpad_up      = src->input0x07.buttons.dpad_up;
+        m_buttons.dpad_right   = src->input0x07.buttons.dpad_right;
+        m_buttons.dpad_left    = src->input0x07.buttons.dpad_left;
         
-        dst->input0x30.buttons.A = src->input0x07.buttons.A;
-        dst->input0x30.buttons.B = src->input0x07.buttons.O;
-        dst->input0x30.buttons.X = src->input0x07.buttons.Y;
-        dst->input0x30.buttons.Y = src->input0x07.buttons.U;
+        m_buttons.A = src->input0x07.buttons.A;
+        m_buttons.B = src->input0x07.buttons.O;
+        m_buttons.X = src->input0x07.buttons.Y;
+        m_buttons.Y = src->input0x07.buttons.U;
 
-        dst->input0x30.buttons.R  = src->input0x07.buttons.RB;
-        dst->input0x30.buttons.ZR = src->input0x07.buttons.RT;
-        dst->input0x30.buttons.L  = src->input0x07.buttons.LB;
-        dst->input0x30.buttons.ZL = src->input0x07.buttons.LT;
+        m_buttons.R  = src->input0x07.buttons.RB;
+        m_buttons.ZR = src->input0x07.buttons.RT;
+        m_buttons.L  = src->input0x07.buttons.LB;
+        m_buttons.ZL = src->input0x07.buttons.LT;
 
-        dst->input0x30.buttons.minus = 0;
-        dst->input0x30.buttons.plus  = 0;
+        m_buttons.minus = 0;
+        m_buttons.plus  = 0;
 
-        dst->input0x30.buttons.lstick_press = src->input0x07.buttons.LS;
-        dst->input0x30.buttons.rstick_press = src->input0x07.buttons.RS;
+        m_buttons.lstick_press = src->input0x07.buttons.LS;
+        m_buttons.rstick_press = src->input0x07.buttons.RS;
 
-        dst->input0x30.buttons.capture = 0;
-        dst->input0x30.buttons.home    = src->input0x07.buttons.center_hold;
+        m_buttons.home    = src->input0x07.buttons.center_hold;
     }
 
 }

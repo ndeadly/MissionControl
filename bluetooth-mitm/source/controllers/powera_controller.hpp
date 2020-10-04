@@ -19,67 +19,71 @@
 
 namespace ams::controller {
 
-    enum SteelseriesDPadDirection {
-        SteelseriesDPad_N,
-        SteelseriesDPad_NE,
-        SteelseriesDPad_E,
-        SteelseriesDPad_SE,
-        SteelseriesDPad_S,
-        SteelseriesDPad_SW,
-        SteelseriesDPad_W,
-        SteelseriesDPad_NW,
-        SteelseriesDPad_Released = 0x0f
+    enum PowerADPadDirection {
+        PowerADPad_N,
+        PowerADPad_NE,
+        PowerADPad_E,
+        PowerADPad_SE,
+        PowerADPad_S,
+        PowerADPad_SW,
+        PowerADPad_W,
+        PowerADPad_NW,
+        PowerADPad_Released = 0x0f
     };
-	
-	struct SteelseriesStickData {
+
+    struct PowerAStickData {
         uint8_t x;
         uint8_t y;
-    } __attribute__ ((__packed__));
+    } __attribute__((packed));
 
-    struct SteelseriesButtonData {
+    struct PowerAButtonData {
+        uint8_t dpad    : 4;
         uint8_t A       : 1;
         uint8_t B       : 1;
-        uint8_t         : 1;
         uint8_t X       : 1;
         uint8_t Y       : 1;
-        uint8_t         : 1;
-        uint8_t L       : 1;
-        uint8_t R       : 1;
 
-        uint8_t         : 3;
-        uint8_t start   : 1;
+        uint8_t L1      : 1;
+        uint8_t R1      : 1;
         uint8_t select  : 1;
+        uint8_t start   : 1;
+        uint8_t L3      : 1;
+        uint8_t R3      : 1;
         uint8_t         : 0;
-    } __attribute__ ((__packed__));
-	
-	struct SteelseriesInputReport0x01 {
-        uint8_t                 dpad;
-        SteelseriesStickData    left_stick;
-        SteelseriesStickData    right_stick;
-        SteelseriesButtonData   buttons;
     } __attribute__((packed));
-	
-	struct SteelseriesReportData {
+
+    struct PowerAInputReport0x03 {
+        PowerAStickData left_stick;
+        PowerAStickData right_stick;
+        PowerAButtonData buttons;
+        uint8_t L2;
+        uint8_t R2;
+        uint8_t battery;
+        uint8_t _unk;
+    } __attribute__((packed));
+
+    struct PowerAReportData{
         uint8_t id;
         union {
-            SteelseriesInputReport0x01  input0x01;
+            PowerAInputReport0x03 input0x03;
         };
     } __attribute__((packed));
 
-    class SteelseriesController : public EmulatedSwitchController {
+    class PowerAController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x1038, 0x1412} 
+                {0x20d6, 0x89e5},   // Moga Hero Controller
+                {0x20d6, 0x6271}    // Moga Pro 2 Controller
             };  
 
-            SteelseriesController(const bluetooth::Address *address) 
+            PowerAController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const SteelseriesReportData *src);
+            void HandleInputReport0x03(const PowerAReportData *src);
 
     };
 

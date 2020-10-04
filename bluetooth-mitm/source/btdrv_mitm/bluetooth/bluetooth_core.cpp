@@ -83,7 +83,7 @@ namespace ams::bluetooth::core {
         if (program_id == ncm::SystemProgramId::Btm) {
             switch (g_current_event_type) {
                 case BluetoothEvent_DeviceFound:
-                    if (controller::IsGamepad(&event_data->deviceFound.cod) && !controller::IsOfficialSwitchControllerName(event_data->deviceFound.name, sizeof(BluetoothName))) {
+                    if (controller::IsAllowedDevice(&event_data->deviceFound.cod) && !controller::IsOfficialSwitchControllerName(event_data->deviceFound.name, sizeof(BluetoothName))) {
                         std::strncpy(event_data->deviceFound.name, controller::pro_controller_name, sizeof(BluetoothName) - 1);
                     }
                     break;

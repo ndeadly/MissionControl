@@ -27,6 +27,7 @@ namespace ams::controller {
         constexpr auto cod_major_peripheral  = 0x05;
         constexpr auto cod_minor_gamepad     = 0x08;
         constexpr auto cod_minor_joystick    = 0x04;
+        constexpr auto cod_minor_keyboard    = 0x40;
 
         os::Mutex g_controller_lock(false);
         std::vector<std::unique_ptr<SwitchController>> g_controllers;
@@ -102,12 +103,30 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : NvidiaShieldController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_NvidiaShield;
+			}
+		}
+		
+        for (auto hwId : EightBitDoController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_8BitDo;
+            }
+        }
+
+        for (auto hwId : PowerAController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_PowerA;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
-    bool IsGamepad(const bluetooth::DeviceClass *cod) {
+    bool IsAllowedDevice(const bluetooth::DeviceClass *cod) {
         return ((cod->cod[1] & 0x0f) == cod_major_peripheral) &&
-               (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick));
+               (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick) || ((cod->cod[2] & 0x40) == cod_minor_keyboard));
     }
 
     bool IsOfficialSwitchControllerName(const char *name, size_t size) {
@@ -161,8 +180,17 @@ namespace ams::controller {
             case ControllerType_Steelseries:
                 g_controllers.push_back(std::make_unique<SteelseriesController>(address));
                 break;
+            case ControllerType_NvidiaShield:
+                g_controllers.push_back(std::make_unique<NvidiaShieldController>(address));
+				break;
+            case ControllerType_8BitDo:
+                g_controllers.push_back(std::make_unique<EightBitDoController>(address));
+                break;
+            case ControllerType_PowerA:
+                g_controllers.push_back(std::make_unique<PowerAController>(address));
+                break;
             default:
-                g_controllers.push_back(std::make_unique<DefaultController>(address));
+                g_controllers.push_back(std::make_unique<UnknownController>(address));
                 break;
         }
 

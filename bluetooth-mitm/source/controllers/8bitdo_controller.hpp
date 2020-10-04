@@ -19,24 +19,24 @@
 
 namespace ams::controller {
 
-    enum SteelseriesDPadDirection {
-        SteelseriesDPad_N,
-        SteelseriesDPad_NE,
-        SteelseriesDPad_E,
-        SteelseriesDPad_SE,
-        SteelseriesDPad_S,
-        SteelseriesDPad_SW,
-        SteelseriesDPad_W,
-        SteelseriesDPad_NW,
-        SteelseriesDPad_Released = 0x0f
+    enum EightBitDoDPadDirection : uint16_t {
+        EightBitDoDPad_Released = 0x0000,
+        EightBitDoDPad_N        = 0x0052,
+        EightBitDoDPad_NE       = 0x524f,
+        EightBitDoDPad_E        = 0x004f,
+        EightBitDoDPad_SE       = 0x4f51,
+        EightBitDoDPad_S        = 0x0051,
+        EightBitDoDPad_SW       = 0x5150,
+        EightBitDoDPad_W        = 0x0050,   
+        EightBitDoDPad_NW       = 0x5250,     
     };
-	
-	struct SteelseriesStickData {
+
+    struct EightBitDoStickData {
         uint8_t x;
         uint8_t y;
-    } __attribute__ ((__packed__));
+    } __attribute__((packed));
 
-    struct SteelseriesButtonData {
+    struct EightBitDoButtonData {
         uint8_t A       : 1;
         uint8_t B       : 1;
         uint8_t         : 1;
@@ -46,41 +46,51 @@ namespace ams::controller {
         uint8_t L       : 1;
         uint8_t R       : 1;
 
-        uint8_t         : 3;
-        uint8_t start   : 1;
+        uint8_t         : 2;
         uint8_t select  : 1;
+        uint8_t start   : 1;
         uint8_t         : 0;
-    } __attribute__ ((__packed__));
-	
-	struct SteelseriesInputReport0x01 {
-        uint8_t                 dpad;
-        SteelseriesStickData    left_stick;
-        SteelseriesStickData    right_stick;
-        SteelseriesButtonData   buttons;
+    }__attribute__((packed));
+
+    struct EightBitDoInputReport0x01 {
+        uint8_t _unk0[2];
+        uint16_t dpad;
+        uint8_t _unk1[4];
     } __attribute__((packed));
-	
-	struct SteelseriesReportData {
+
+    struct EightBitDoInputReport0x03 {
+        uint8_t dpad;
+        EightBitDoStickData left_stick;
+        EightBitDoStickData right_stick;
+        uint8_t _unk[3];
+        EightBitDoButtonData buttons;
+    } __attribute__((packed));
+
+    struct EightBitDoReportData{
         uint8_t id;
         union {
-            SteelseriesInputReport0x01  input0x01;
+            EightBitDoInputReport0x01 input0x01;
+            EightBitDoInputReport0x03 input0x03;
         };
     } __attribute__((packed));
 
-    class SteelseriesController : public EmulatedSwitchController {
+    class EightBitDoController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x1038, 0x1412} 
+                {0x05a0, 0x3232}    // 8BitDo Zero
             };  
 
-            SteelseriesController(const bluetooth::Address *address) 
+            EightBitDoController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const SteelseriesReportData *src);
+            void HandleInputReport0x01(const EightBitDoReportData *src);
+            void HandleInputReport0x03(const EightBitDoReportData *src);
 
     };
+
 
 }

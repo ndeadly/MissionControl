@@ -15,7 +15,6 @@
  */
 #pragma once
 #include <switch.h>
-#include "default_controller.hpp"
 #include "switch_controller.hpp"
 #include "wii_controller.hpp"
 #include "dualshock4_controller.hpp"
@@ -27,6 +26,9 @@
 #include "xiaomi_controller.hpp"
 #include "gamesir_controller.hpp"
 #include "steelseries_controller.hpp"
+#include "nvidia_shield_controller.hpp"
+#include "8bitdo_controller.hpp"
+#include "powera_controller.hpp"
 
 namespace ams::controller {
 
@@ -45,11 +47,22 @@ namespace ams::controller {
         ControllerType_Xiaomi,
         ControllerType_Gamesir,
         ControllerType_Steelseries,
+        ControllerType_NvidiaShield,
+        ControllerType_8BitDo,
+        ControllerType_PowerA,
         ControllerType_Unknown,
     };
 
+    class UnknownController : public EmulatedSwitchController{
+        public:
+            UnknownController(const bluetooth::Address *address) 
+            : EmulatedSwitchController(address) { 
+                m_colours.buttons = {0xff, 0x00, 0x00};
+            };
+    };
+
     ControllerType Identify(const BluetoothDevicesSettings *device);
-    bool IsGamepad(const bluetooth::DeviceClass *cod);
+    bool IsAllowedDevice(const bluetooth::DeviceClass *cod);
     bool IsOfficialSwitchControllerName(const char *name, size_t size);
     
     void AttachHandler(const bluetooth::Address *address);

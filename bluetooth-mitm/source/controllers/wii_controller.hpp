@@ -31,6 +31,7 @@ namespace ams::controller {
 		WiiExtensionController_Classic,
 		WiiExtensionController_ClassicPro,
 		WiiExtensionController_WiiUPro,
+		WiiExtensionController_TaTaCon,
 		WiiExtensionController_Unsupported,
 	};
 
@@ -122,6 +123,17 @@ namespace ams::controller {
         uint16_t right_stick_y;
         WiiUProButtonData buttons;
     } __attribute__ ((__packed__));
+
+	struct TaTaConExtensionData {
+		uint8_t _unk0[5];
+
+		uint8_t 			: 3;
+		uint8_t R_rim		: 1;
+		uint8_t R_center	: 1;
+		uint8_t L_rim		: 1;
+		uint8_t L_center	: 1;
+		uint8_t 			: 0;
+	} __attribute__ ((__packed__));
 
 	struct WiiOutputReport0x10 {
 		uint8_t rumble;
@@ -281,24 +293,25 @@ namespace ams::controller {
 				, m_extension(WiiExtensionController_None) { };
 
 			Result Initialize(void);
-			void ConvertReportFormat(const bluetooth::HidReport *in_report, bluetooth::HidReport *out_report);
+			void UpdateControllerState(const bluetooth::HidReport *report);
 
         protected:
-			void HandleInputReport0x20(const WiiReportData *src, SwitchReportData *dst);
-			void HandleInputReport0x21(const WiiReportData *src, SwitchReportData *dst);
-			void HandleInputReport0x22(const WiiReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x30(const WiiReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x31(const WiiReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x32(const WiiReportData *src, SwitchReportData *dst);
-            void HandleInputReport0x34(const WiiReportData *src, SwitchReportData *dst);
+			void HandleInputReport0x20(const WiiReportData *src);
+			void HandleInputReport0x21(const WiiReportData *src);
+			void HandleInputReport0x22(const WiiReportData *src);
+            void HandleInputReport0x30(const WiiReportData *src);
+            void HandleInputReport0x31(const WiiReportData *src);
+            void HandleInputReport0x32(const WiiReportData *src);
+            void HandleInputReport0x34(const WiiReportData *src);
 
-            void MapButtonsHorizontalOrientation(const WiiButtonData *buttons, SwitchReportData *dst);
-            void MapButtonsVerticalOrientation(const WiiButtonData *buttons, SwitchReportData *dst);
+            void MapButtonsHorizontalOrientation(const WiiButtonData *buttons);
+            void MapButtonsVerticalOrientation(const WiiButtonData *buttons);
 
-			void MapExtensionBytes(const uint8_t ext[], SwitchReportData *dst);
-			void MapNunchuckExtension(const uint8_t ext[], SwitchReportData *dst);
-			void MapClassicControllerExtension(const uint8_t ext[], SwitchReportData *dst);
-			void MapWiiUProControllerExtension(const uint8_t ext[], SwitchReportData *dst);
+			void MapExtensionBytes(const uint8_t ext[]);
+			void MapNunchuckExtension(const uint8_t ext[]);
+			void MapClassicControllerExtension(const uint8_t ext[]);
+			void MapWiiUProControllerExtension(const uint8_t ext[]);
+			void MapTaTaConExtension(const uint8_t ext[]);
 
 			Result WriteMemory(uint32_t write_addr, const uint8_t *data, uint8_t size);
 			Result ReadMemory(uint32_t read_addr, uint16_t size);
