@@ -90,7 +90,6 @@ namespace ams::controller {
         m_buttons.lstick_press = src->input0x01.buttons.lstick_press;
         m_buttons.rstick_press = src->input0x01.buttons.rstick_press;
 
-        m_buttons.capture  = 0;
         m_buttons.home     = src->input0x01.buttons.guide;
     }
 

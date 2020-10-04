@@ -74,19 +74,6 @@ namespace ams::controller {
         m_buttons.X = src->input0x03.buttons.Y;
         m_buttons.Y = src->input0x03.buttons.X;
 
-        /*
-        m_buttons.ZR = src->input0x03.buttons.start && src->input0x03.buttons.R;
-        m_buttons.ZL = src->input0x03.buttons.start && src->input0x03.buttons.L;
-        
-        if (!m_buttons.ZR)
-            m_buttons.R = src->input0x03.buttons.R;
-
-        if (!m_buttons.ZL)
-            m_buttons.L = src->input0x03.buttons.L;
-
-        if (!(m_buttons.ZR || m_buttons.ZL))
-            m_buttons.plus  = src->input0x03.buttons.start;
-        */
         m_buttons.L = src->input0x03.buttons.L;
         m_buttons.R = src->input0x03.buttons.R;
 

@@ -42,7 +42,7 @@ namespace ams::controller {
 
     void GemboxController::HandleInputReport0x02(const GemboxReportData *src) {
         m_buttons.minus = src->input0x02.back;
-        m_buttons.home = src->input0x02.buttons == 0;
+        //m_buttons.home = src->input0x02.buttons == 0;
     }
 
     void GemboxController::HandleInputReport0x07(const GemboxReportData *src) {
@@ -82,8 +82,6 @@ namespace ams::controller {
 
         m_buttons.lstick_press = src->input0x07.buttons.L3;
         m_buttons.rstick_press = src->input0x07.buttons.R3;
-
-        //m_buttons.home     = 0;
     }
 
 }

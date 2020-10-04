@@ -41,6 +41,22 @@ namespace ams::controller {
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
     }
 
+    void EmulatedSwitchController::ApplyButtonCombos(SwitchButtonData *buttons) {
+        // Home combo = MINUS + DPAD_DOWN
+        if (buttons->minus && buttons->dpad_down) {
+            buttons->home = 1;
+            buttons->minus = 0;
+            buttons->dpad_down = 0;
+        }
+
+        // Capture combo = MINUS + DPAD_UP
+        if (buttons->minus && buttons->dpad_up) {
+            buttons->capture = 1;
+            buttons->minus = 0;
+            buttons->dpad_up = 0;
+        }
+    }
+
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
         this->UpdateControllerState(report);
 
@@ -54,8 +70,10 @@ namespace ams::controller {
         switch_report->input0x30.left_stick     = m_left_stick;
         switch_report->input0x30.right_stick    = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
+
+        this->ApplyButtonCombos(&switch_report->input0x30.buttons);
+
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-        
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
     }
 
@@ -139,7 +157,7 @@ namespace ams::controller {
         // @ 0x00008010: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    <= User Analog sticks calibration
         // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Left analog stick calibration
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
-        
+
         uint32_t read_addr = *(uint32_t *)(&report->data[11]);
         uint8_t  read_size = report->data[15];
 

@@ -60,13 +60,6 @@ namespace ams::controller {
 
         m_buttons.minus = src->input0x03.buttons.select;
         m_buttons.plus  = src->input0x03.buttons.start;
-
-        // Home combo
-        m_buttons.home = m_buttons.minus && m_buttons.dpad_down;
-        if (m_buttons.home) {
-            m_buttons.minus = 0;
-            m_buttons.dpad_down = 0;
-        }
     }
 
 }
