@@ -122,6 +122,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : MadCatzController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_MadCatz;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -189,6 +195,9 @@ namespace ams::controller {
                 break;
             case ControllerType_PowerA:
                 g_controllers.push_back(std::make_unique<PowerAController>(address));
+                break;
+            case ControllerType_MadCatz:
+                g_controllers.push_back(std::make_unique<MadCatzController>(address));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<UnknownController>(address));
