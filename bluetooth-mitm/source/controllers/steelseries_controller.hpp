@@ -70,7 +70,8 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x1038, 0x1412} 
+                {0x1038, 0x1412},   // Steelseries Free
+                {0x0111, 0x1420}    // Steelseries Nimbus
             };  
 
             SteelseriesController(const bluetooth::Address *address) 
