@@ -18,12 +18,13 @@ dist: all
 	
 	mkdir -p dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)
 	cp bluetooth-mitm/bluetooth-mitm.nsp dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/exefs.nsp
-  	cp toolbox.json dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/toolbox.json
 	echo "btdrv" >> dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/mitm.lst
 	echo "btm" >> dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/mitm.lst
 
 	mkdir -p dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags
 	touch dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags/boot2.flag
+	
+  	cp toolbox.json dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/toolbox.json
 	
 	cp -r exefs_patches dist/atmosphere/
 	
