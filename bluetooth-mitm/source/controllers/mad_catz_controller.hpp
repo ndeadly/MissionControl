@@ -50,10 +50,10 @@ namespace ams::controller {
         uint8_t start   : 1;
         uint8_t L3      : 1;
         uint8_t R3      : 1;
+        uint8_t home    : 1;
         uint8_t         : 0;
 
-        uint8_t dpad    : 4;
-        uint8_t         : 0;
+        uint8_t dpad;
     } __attribute__ ((__packed__));
 
     struct MadCatzInputReport0x01{
