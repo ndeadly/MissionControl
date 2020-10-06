@@ -36,7 +36,7 @@ namespace ams::controller {
 
     Result Dualshock4Controller::Initialize(void) {
         R_TRY(EmulatedSwitchController::Initialize());
-        R_TRY(this->UpdateControllerState());
+        R_TRY(this->PushRumbleLedState());
 
         return ams::ResultSuccess();
     }
@@ -50,7 +50,7 @@ namespace ams::controller {
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
         m_led_colour = colour;
-        return this->UpdateControllerState();
+        return this->PushRumbleLedState();
     }
 
     void Dualshock4Controller::UpdateControllerState(const bluetooth::HidReport *report) {
@@ -141,7 +141,7 @@ namespace ams::controller {
         m_buttons.home    = buttons->ps;
     }
 
-    Result Dualshock4Controller::UpdateControllerState(void) {
+    Result Dualshock4Controller::PushRumbleLedState(void) {
         Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, m_led_colour.r, m_led_colour.g, m_led_colour.b};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 
