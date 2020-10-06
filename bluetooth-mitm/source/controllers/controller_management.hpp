@@ -30,6 +30,7 @@
 #include "nvidia_shield_controller.hpp"
 #include "8bitdo_controller.hpp"
 #include "powera_controller.hpp"
+#include "mad_catz_controller.hpp"
 
 namespace ams::controller {
 
@@ -51,6 +52,7 @@ namespace ams::controller {
         ControllerType_NvidiaShield,
         ControllerType_8BitDo,
         ControllerType_PowerA,
+        ControllerType_MadCatz,
         ControllerType_Unknown,
     };
 
