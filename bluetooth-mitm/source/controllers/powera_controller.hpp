@@ -74,6 +74,7 @@ namespace ams::controller {
         public:
             static constexpr const HardwareID hardware_ids[] = { 
                 {0x20d6, 0x89e5},   // Moga Hero Controller
+                {0x20d6, 0x0dad},   // Moga Pro Controller
                 {0x20d6, 0x6271}    // Moga Pro 2 Controller
             };  
 
