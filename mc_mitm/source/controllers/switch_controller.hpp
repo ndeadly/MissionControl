@@ -32,6 +32,12 @@ namespace ams::controller {
         SwitchPlayerNumber_Seven,
         SwitchPlayerNumber_Eight,
         SwitchPlayerNumber_Unknown = 0xf
+	};
+		
+    enum SwitchControllerType : uint8_t {
+        SwitchControllerType_LeftJoyCon     = 1,
+        SwitchControllerType_RightJoyCon    = 2,
+        SwitchControllerType_ProController  = 3,
     };
 
     struct HardwareID {
