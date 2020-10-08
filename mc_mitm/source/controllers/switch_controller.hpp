@@ -63,7 +63,8 @@ namespace ams::controller {
         uint8_t X              : 1;
         uint8_t B              : 1;
         uint8_t A              : 1;
-        uint8_t                : 2; // SR, SL (Right Joy)
+        uint8_t SR_R           : 1;
+        uint8_t SL_R           : 1;
         uint8_t R              : 1;
         uint8_t ZR             : 1;
 
@@ -79,7 +80,8 @@ namespace ams::controller {
         uint8_t dpad_up        : 1;
         uint8_t dpad_right     : 1;
         uint8_t dpad_left      : 1;
-        uint8_t                : 2; // SR, SL (Left Joy)
+        uint8_t SR_L           : 1;
+        uint8_t SL_L           : 1;
         uint8_t L              : 1;
         uint8_t ZL             : 1;
     } __attribute__ ((__packed__));
