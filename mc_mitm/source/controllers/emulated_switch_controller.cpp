@@ -82,6 +82,7 @@ namespace ams::controller {
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
     : SwitchController(address)
+    , m_emulated_type(SwitchControllerType_ProController)
     , m_charging(false)
     , m_battery(BATTERY_MAX) { 
         this->ClearControllerState();
@@ -118,6 +119,54 @@ namespace ams::controller {
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
 
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
+
+        // Fixup for identifying as horizontal joycon
+        switch (m_emulated_type) {
+            case SwitchControllerType_RightJoyCon:
+                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
+                    this->PackStickData(&switch_report->input0x30.right_stick,
+                        m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_up ? 0 : STICK_ZERO),
+                        m_buttons.dpad_right ? UINT12_MAX : (m_buttons.dpad_left ? 0 : STICK_ZERO)
+                    );
+                }
+                else {
+                    uint16_t x;
+                    uint16_t y;
+                    this->UnpackStickData(&m_left_stick, &x, &y);
+                    this->PackStickData(&switch_report->input0x30.right_stick, -y, x);
+                }
+
+                switch_report->input0x30.buttons.SL_R = m_buttons.L | m_buttons.ZL;
+                switch_report->input0x30.buttons.SR_R = m_buttons.R | m_buttons.ZR;
+                switch_report->input0x30.buttons.A = m_buttons.B;
+                switch_report->input0x30.buttons.B = m_buttons.Y;
+                switch_report->input0x30.buttons.X = m_buttons.A;
+                switch_report->input0x30.buttons.Y = m_buttons.X;
+                break;
+            case SwitchControllerType_LeftJoyCon:
+                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
+                    this->PackStickData(&switch_report->input0x30.left_stick,
+                        m_buttons.dpad_up ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_ZERO),
+                        m_buttons.dpad_left ? UINT12_MAX : (m_buttons.dpad_right ? 0 : STICK_ZERO)
+                    );
+                }
+                else {
+                    uint16_t x;
+                    uint16_t y;
+                    this->UnpackStickData(&m_left_stick, &x, &y);
+                    this->PackStickData(&switch_report->input0x30.left_stick, y, -x);
+                }
+
+                switch_report->input0x30.buttons.SL_L = m_buttons.L | m_buttons.ZL;
+                switch_report->input0x30.buttons.SR_L = m_buttons.R | m_buttons.ZR;
+                switch_report->input0x30.buttons.dpad_down = m_buttons.A;
+                switch_report->input0x30.buttons.dpad_left = m_buttons.B;
+                switch_report->input0x30.buttons.dpad_up = m_buttons.Y;
+                switch_report->input0x30.buttons.dpad_right = m_buttons.X;
+                break;
+            default:
+                break;
+        }
 
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
@@ -209,7 +258,7 @@ namespace ams::controller {
                     .major = 0x03,
                     .minor = 0x48
                 },
-                .type = 0x03, 
+                .type = m_emulated_type, 
                 ._unk0 = 0x02, 
                 .address = m_address, 
                 ._unk1 = 0x01, 

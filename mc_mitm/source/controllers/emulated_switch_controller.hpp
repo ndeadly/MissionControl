@@ -39,6 +39,11 @@ namespace ams::controller {
             virtual Result CancelVibration(void) { return ams::ResultSuccess(); };
             virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };
 
+            inline void UnpackStickData(const SwitchStickData *stick, uint16_t *x, uint16_t *y) {
+                *x = stick->xy[0] | ((stick->xy[1] & 0xf) << 8);
+                *y = (stick->xy[1] >> 4) | (stick->xy[2] << 4);
+            }
+
             Result HandleSubCmdReport(const bluetooth::HidReport *report);
             Result HandleRumbleReport(const bluetooth::HidReport *report);
 
@@ -58,6 +63,8 @@ namespace ams::controller {
 
             Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
 
+            SwitchControllerType m_emulated_type;
+            
             bool m_charging;
             uint8_t m_battery;
             SwitchButtonData m_buttons;
