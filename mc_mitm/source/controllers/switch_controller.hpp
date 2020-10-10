@@ -40,6 +40,11 @@ namespace ams::controller {
         SwitchControllerType_ProController  = 3,
     };
 
+    struct FirmwareVersion {
+        uint8_t major;
+        uint8_t minor;
+    };
+
     struct HardwareID {
         uint16_t vid;
         uint16_t pid;
@@ -248,6 +253,9 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
+	
+    constexpr const FirmwareVersion joycon_fw_version         = {0x04, 0x06};
+    constexpr const FirmwareVersion pro_controller_fw_version = {0x03, 0x48};
 
     class SwitchController {
 
