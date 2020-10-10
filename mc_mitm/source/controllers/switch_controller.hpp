@@ -254,7 +254,7 @@ namespace ams::controller {
 
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
 	
-    constexpr const FirmwareVersion joycon_fw_version         = {0x04, 0x06};
+    constexpr const FirmwareVersion joycon_fw_version         = {0x04, 0x07};
     constexpr const FirmwareVersion pro_controller_fw_version = {0x03, 0x48};
 
     class SwitchController {
