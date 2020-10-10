@@ -102,6 +102,8 @@ namespace ams::controller {
         m_left_stick.SetData(STICK_ZERO, STICK_ZERO);
         m_right_stick.SetData(STICK_ZERO, STICK_ZERO);
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
+
+        std::memset(&m_buttons_previous, 0, sizeof(m_buttons_previous));
     }
 
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
@@ -167,6 +169,8 @@ namespace ams::controller {
             default:
                 break;
         }
+
+        m_buttons_previous = m_buttons;
 
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);

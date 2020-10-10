@@ -76,6 +76,7 @@ namespace ams::controller {
 
             ProControllerColours m_colours;
             bool m_enable_rumble;
+            SwitchButtonData m_buttons_previous;
 
     };
 
