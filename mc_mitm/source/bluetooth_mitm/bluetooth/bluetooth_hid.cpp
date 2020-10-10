@@ -59,12 +59,34 @@ namespace ams::bluetooth::hid {
     os::SystemEvent *GetUserForwardEvent(void) {
         return &g_system_event_user_fwd;
     }
-
-    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size) {
+	
+	void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size) {
         g_current_event_type = type;
         std::memcpy(&g_event_info, data, size);
 
         g_system_event_fwd.Signal();
+    }
+
+    Result VirtualReconnect(const bluetooth::Address *address) {
+        auto event_data = reinterpret_cast<HidEventData *>(g_event_data_buffer);
+        event_data->connectionState.address = *address;
+
+        // Signal fake disconnection event
+        g_current_event_type = HidEvent_ConnectionState;
+        event_data->connectionState.state = HidConnectionState_Disconnected;
+        os::SignalSystemEvent(&g_system_event_fwd);
+        os::WaitEvent(&g_data_read_event);
+
+        // If we don't wait a bit the console disconnects the controller for real
+        svcSleepThread(100'000'000ULL);
+
+        // Signal fake connection event
+        g_current_event_type = HidEvent_ConnectionState;
+        event_data->connectionState.state = HidConnectionState_Connected;
+        os::SignalSystemEvent(&g_system_event_fwd);
+        os::WaitEvent(&g_data_read_event);
+
+        return ams::ResultSuccess();
     }
 
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size) {
