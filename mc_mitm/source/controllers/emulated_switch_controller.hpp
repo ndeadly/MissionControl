@@ -63,6 +63,8 @@ namespace ams::controller {
 
             Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
 
+            Result SetEmulatedControllerType(SwitchControllerType type);
+
             SwitchControllerType m_emulated_type;
             
             bool m_charging;

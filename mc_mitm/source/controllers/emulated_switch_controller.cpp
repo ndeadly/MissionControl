@@ -436,4 +436,9 @@ namespace ams::controller {
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
     }
 
+    Result EmulatedSwitchController::SetEmulatedControllerType(SwitchControllerType type) {
+        m_emulated_type = type;
+        return bluetooth::hid::VirtualReconnect(&m_address);
+    }
+
 }
