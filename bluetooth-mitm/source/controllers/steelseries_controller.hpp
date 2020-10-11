@@ -51,6 +51,30 @@ namespace ams::controller {
         uint8_t select  : 1;
         uint8_t         : 0;
     } __attribute__ ((__packed__));
+
+    struct SteelseriesMfiButtonData {
+        uint8_t dpad_up;
+        uint8_t dpad_right;
+        uint8_t dpad_down;
+        uint8_t dpad_left;
+        uint8_t A;
+        uint8_t B;
+        uint8_t X;
+        uint8_t Y;
+        uint8_t L1;
+        uint8_t R1;
+        uint8_t L2;
+        uint8_t R2;
+
+        uint8_t menu : 1;
+        uint8_t      : 0;
+    } __attribute__ ((__packed__));
+
+    struct SteelseriesMfiInputReport {
+        SteelseriesMfiButtonData buttons;
+        SteelseriesStickData     left_stick;
+        SteelseriesStickData     right_stick;
+    } __attribute__((packed));
 	
 	struct SteelseriesInputReport0x01 {
         uint8_t                 dpad;
@@ -60,9 +84,15 @@ namespace ams::controller {
     } __attribute__((packed));
 	
 	struct SteelseriesReportData {
-        uint8_t id;
         union {
-            SteelseriesInputReport0x01  input0x01;
+            struct {
+                uint8_t id;
+                union {
+                    SteelseriesInputReport0x01  input0x01;
+                };
+            };
+
+            SteelseriesMfiInputReport input_mfi;
         };
     } __attribute__((packed));
 
@@ -81,7 +111,7 @@ namespace ams::controller {
 
         private:
             void HandleInputReport0x01(const SteelseriesReportData *src);
-
+            void HandleMfiInputReport(const SteelseriesReportData *src);
     };
 
 }
