@@ -352,7 +352,7 @@ namespace ams::controller {
         s_output_report.size = sizeof(WiiOutputReport0x15) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
         report_data->id = 0x11;
-        report_data->output0x11.leds = (led_mask << 4) & 0xf0;;
+        report_data->output0x11.leds = (led_mask << 4) & 0xf0;
 
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }

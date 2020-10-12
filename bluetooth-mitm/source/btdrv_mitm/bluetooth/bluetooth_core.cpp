@@ -119,7 +119,7 @@ namespace ams::bluetooth::core {
                 auto event_data = reinterpret_cast<EventData *>(g_event_data_buffer);
 
                 bluetooth::PinCode pin_code = {0x30, 0x30, 0x30, 0x30};
-                uint8_t pin_length = sizeof(uint32_t);;
+                uint8_t pin_length = sizeof(uint32_t);
 
                 // Reverse host address as pin code for wii devices
                 if (std::strncmp(event_data->pinReply.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
