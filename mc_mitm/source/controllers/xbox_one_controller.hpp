@@ -78,10 +78,16 @@ namespace ams::controller {
 
     } __attribute__ ((__packed__));
 
-    struct XboxOneRumbleData {
-        uint8_t amp_motor_left;
-        uint8_t amp_motor_right;
-    } __attribute__((packed));
+    struct XboxOneOutputReport0x03 {
+        uint8_t enable;
+        uint8_t magnitude_left;
+        uint8_t magnitude_right;
+        uint8_t magnitude_strong;
+        uint8_t magnitude_weak;
+        uint8_t pulse_sustain_10ms;
+        uint8_t pulse_release_10ms;
+        uint8_t loop_count;
+    } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x01 {
         XboxOneStickData        left_stick;
@@ -94,7 +100,7 @@ namespace ams::controller {
     struct XboxOneInputReport0x02{
         uint8_t guide   : 1;
         uint8_t         : 0; 
-    } __attribute__ ((__packed__)); 
+    } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x04 {
         uint8_t capacity : 2;
@@ -107,9 +113,10 @@ namespace ams::controller {
     struct XboxOneReportData {
         uint8_t id;
         union {
-            XboxOneInputReport0x01 input0x01;
-            XboxOneInputReport0x02 input0x02;
-            XboxOneInputReport0x04 input0x04;
+            XboxOneOutputReport0x03 output0x03;
+            XboxOneInputReport0x01  input0x01;
+            XboxOneInputReport0x02  input0x02;
+            XboxOneInputReport0x04  input0x04;
         };
     } __attribute__ ((__packed__));
 
@@ -125,20 +132,14 @@ namespace ams::controller {
             };  
 
             XboxOneController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address)
-                , m_output_packet_counter(0)
-                , m_rumble_state({0, 0}) { };
+                : EmulatedSwitchController(address) { };
 
             Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right);
-            Result CancelVibration(void);
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
             void HandleInputReport0x01(const XboxOneReportData *src);
             void HandleInputReport0x04(const XboxOneReportData *src);
-
-            uint8_t m_output_packet_counter;
-            XboxOneRumbleData m_rumble_state; 
 
     };
 

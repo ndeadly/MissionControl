@@ -28,17 +28,16 @@ namespace ams::controller {
     }
 
     Result XboxOneController::SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) {
-        m_rumble_state.amp_motor_left = left->low_band_amp;
-        m_rumble_state.amp_motor_right = right->high_band_amp;
+        auto report = reinterpret_cast<XboxOneReportData *>(s_output_report.data);
+        s_output_report.size = sizeof(XboxOneOutputReport0x03) + 1;
+        report->id = 0x03;
+        report->output0x03.enable                = 0x3;
+        report->output0x03.magnitude_strong      = static_cast<uint8_t>(100 * (float(left->low_band_amp) / UINT8_MAX));
+        report->output0x03.magnitude_weak        = static_cast<uint8_t>(100 * (float(right->high_band_amp) / UINT8_MAX));
+        report->output0x03.pulse_sustain_10ms    = 1;
+        report->output0x03.pulse_release_10ms    = 0;
+        report->output0x03.loop_count            = 0;
 
-        uint8_t rumble_packet[] = {0x09, 0x00, m_output_packet_counter++, 0x09, 0x00, 0x0f, 0x00, 0x00, m_rumble_state.amp_motor_left, m_rumble_state.amp_motor_right, 0xff, 0x00, 0xff};
-        s_output_report.size = sizeof(rumble_packet);
-        std::memcpy(s_output_report.data, rumble_packet, sizeof(rumble_packet));
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
-    Result XboxOneController::CancelVibration(void) {
-        uint8_t rumble_packet[] = {0x09, 0x00, m_output_packet_counter++, 0x09, 0x00, 0x0f, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff};
-        s_output_report.size = sizeof(rumble_packet);
-        std::memcpy(s_output_report.data, rumble_packet, sizeof(rumble_packet));
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
 
