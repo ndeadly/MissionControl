@@ -237,7 +237,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::FakeSubCmdResponse(const uint8_t response[], size_t size) {
         auto report_data = reinterpret_cast<controller::SwitchReportData *>(&s_input_report.data);
-        s_input_report.size = sizeof(controller::SwitchInputReport0x21);
+        s_input_report.size = sizeof(SwitchInputReport0x21) + 1;
         report_data->id = 0x21;
         report_data->input0x21.conn_info   = 0;
         report_data->input0x21.battery     = m_battery | m_charging;
