@@ -87,6 +87,7 @@ namespace ams::controller {
         SubCmd_RequestDeviceInfo 	= 0x02,
         SubCmd_SetInputReportMode	= 0x03,
         SubCmd_TriggersElapsedTime	= 0x04,
+        SubCmd_GetPageListState     = 0x05,
         SubCmd_SetHciState          = 0x06,
         SubCmd_ResetPairingInfo     = 0x07,
         SubCmd_SetShipPowerState    = 0x08,
@@ -105,6 +106,8 @@ namespace ams::controller {
         SubCmd_ReadImuRegisters     = 0x43,
         SubCmd_EnableVibration		= 0x48,
         SubCmd_GetRegulatedVoltage  = 0x50,
+        SubCmd_SetGpioPinValue      = 0x51,
+        SubCmd_GetGpioPinValue      = 0x52,
     };
 
     struct SwitchOutputReport0x01;
