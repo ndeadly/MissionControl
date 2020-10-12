@@ -81,7 +81,7 @@ namespace ams::controller {
         uint16_t    gyro_3;
     } __attribute__ ((__packed__));
 
-    enum SubCmdType : u8 {
+    enum SubCmdType : uint8_t {
         SubCmd_GetControllerState   = 0x00,
         SubCmd_ManualPair           = 0x01,
         SubCmd_RequestDeviceInfo 	= 0x02,
@@ -110,6 +110,12 @@ namespace ams::controller {
         SubCmd_GetGpioPinValue      = 0x52,
     };
 
+    struct SwitchSubcommandResponse {
+        uint8_t         ack;
+        uint8_t         id;
+        uint8_t         data[0x23];
+    } __attribute__ ((__packed__));
+
     struct SwitchOutputReport0x01;
     struct SwitchOutputReport0x03;
     struct SwitchOutputReport0x10;
@@ -117,20 +123,14 @@ namespace ams::controller {
     struct SwitchOutputReport0x12;
 
     struct SwitchInputReport0x21 {
-        uint8_t             timer;
-        uint8_t             conn_info      : 4;
-        uint8_t             battery        : 4;
-        SwitchButtonData    buttons;
-        SwitchStickData     left_stick;
-        SwitchStickData     right_stick;
-        uint8_t             vibrator;
-        
-        struct {
-            uint8_t         ack;
-            uint8_t         id;
-            uint8_t         reply;
-            uint8_t         data[0x22];
-        } subcmd;
+        uint8_t                     timer;
+        uint8_t                     conn_info      : 4;
+        uint8_t                     battery        : 4;
+        SwitchButtonData            buttons;
+        SwitchStickData             left_stick;
+        SwitchStickData             right_stick;
+        uint8_t                     vibrator;
+        SwitchSubcommandResponse    response;
     } __attribute__ ((__packed__));
 
     struct SwitchInputReport0x23;
