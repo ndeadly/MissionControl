@@ -55,7 +55,7 @@ namespace ams::controller {
     Result Dualshock4Controller::CancelVibration(void) {
         m_rumble_state.amp_motor_left = 0;
         m_rumble_state.amp_motor_right = 0;
-        return this->UpdateControllerState();
+        return this->PushRumbleLedState();
     }
 
     Result Dualshock4Controller::SetPlayerLed(uint8_t led_mask) {
