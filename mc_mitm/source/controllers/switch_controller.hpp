@@ -187,9 +187,9 @@ namespace ams::controller {
     struct SwitchOutputReport0x03;
 
     struct SwitchOutputReport0x10 {
-        uint8_t          timer;
-        SwitchRumbleData left_motor;
-        SwitchRumbleData right_motor;
+        uint8_t timer;
+        uint8_t left_motor[4];
+        uint8_t right_motor[4];
     }__attribute__ ((__packed__));
 
     struct SwitchOutputReport0x11;

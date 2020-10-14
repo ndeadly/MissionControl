@@ -18,6 +18,32 @@
 
 namespace ams::controller {
 
+    namespace {
+
+        const uint8_t rumble_amp_lut[] = {
+            0x00, 0x02, 0x03, 0x04, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0a, 0x0c, 0x0e,
+            0x11, 0x14, 0x18, 0x1d, 0x1e, 0x1f, 0x21, 0x22, 0x24, 0x25, 0x27, 0x29,
+            0x2a, 0x2c, 0x2e, 0x30, 0x32, 0x35, 0x37, 0x39, 0x3b, 0x3c, 0x3d, 0x3f,
+            0x40, 0x41, 0x43, 0x44, 0x46, 0x47, 0x49, 0x4a, 0x4c, 0x4e, 0x4f, 0x51,
+            0x53, 0x55, 0x57, 0x58, 0x5a, 0x5c, 0x5e, 0x60, 0x63, 0x65, 0x67, 0x69,
+            0x6c, 0x6e, 0x70, 0x73, 0x75, 0x78, 0x7a, 0x7d, 0x80, 0x83, 0x86, 0x88,
+            0x8b, 0x8e, 0x92, 0x95, 0x98, 0x9b, 0x9f, 0xa2, 0xa6, 0xa9, 0xad, 0xb1,
+            0xb5, 0xb9, 0xbd, 0xc1, 0xc5, 0xca, 0xce, 0xd2, 0xd7, 0xdc, 0xe1, 0xe5,
+            0xeb, 0xf0, 0xf5, 0xfa, 0xff
+        };
+
+        inline void DecodeRumbleValues(const uint8_t enc[], SwitchRumbleData *dec) {
+            uint8_t hi_amp_ind = (enc[1] & 0xfe) >> 1;
+            uint8_t lo_amp_ind = ((enc[3] - 0x40) << 1) + ((enc[2] & 0x80) >> 7);
+
+            dec->high_band_freq = 0;
+            dec->high_band_amp  = rumble_amp_lut[hi_amp_ind];;
+            dec->low_band_freq  = 0;
+            dec->low_band_amp   = rumble_amp_lut[lo_amp_ind];
+        }
+
+    }
+
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
     : SwitchController(address)
     , m_charging(false)
@@ -125,7 +151,14 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
         auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
-        return this->SetVibration(&report_data->output0x10.left_motor, &report_data->output0x10.right_motor);
+        
+        SwitchRumbleData left_motor;
+        DecodeRumbleValues(report_data->output0x10.left_motor, &left_motor);
+
+        SwitchRumbleData right_motor;
+        DecodeRumbleValues(report_data->output0x10.left_motor, &left_motor);
+
+        return this->SetVibration(&left_motor, &right_motor);
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
