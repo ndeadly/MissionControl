@@ -26,10 +26,16 @@ namespace ams::controller {
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
         const RGBColour player_led_colours[] = {
-            {0x00, 0x00, 0x3f}, // blue
-            {0x3f, 0x00, 0x00}, // red
-            {0x00, 0x3f, 0x00}, // green
-            {0x3f, 0x00, 0x3f}  // pink
+            // Same colours used by PS4
+            {0x00, 0x00, 0x40}, // blue
+            {0x40, 0x00, 0x00}, // red
+            {0x00, 0x40, 0x00}, // green
+            {0x20, 0x00, 0x20}, // pink
+            // New colours for controllers 5-8
+            {0x00, 0x20, 0x20}, // cyan
+            {0x30, 0x10, 0x00}, // orange
+            {0x20, 0x20, 0x00}, // yellow
+            {0x10, 0x00, 0x30}  // purple
         };
 
     }
