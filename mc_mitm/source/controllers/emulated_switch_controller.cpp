@@ -181,7 +181,7 @@ namespace ams::controller {
         DecodeRumbleValues(report_data->output0x10.left_motor, &left_motor);
 
         SwitchRumbleData right_motor;
-        DecodeRumbleValues(report_data->output0x10.left_motor, &left_motor);
+        DecodeRumbleValues(report_data->output0x10.right_motor, &right_motor);
 
         return this->SetVibration(&left_motor, &right_motor);
     }
