@@ -47,8 +47,8 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) {
-        m_rumble_state.amp_motor_left = left->low_band_amp;
-        m_rumble_state.amp_motor_right = right->high_band_amp;
+        m_rumble_state.amp_motor_left  = (left->low_band_amp + left->high_band_amp) >> 1;
+        m_rumble_state.amp_motor_right = (right->low_band_amp + right->high_band_amp) >> 1;
         return this->PushRumbleLedState();
     }
 
