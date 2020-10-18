@@ -48,9 +48,9 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetPlayerLed(uint8_t led_mask) {
-        uint8_t i = 0;
-        while (led_mask >>= 1) { ++i; }
-        RGBColour colour = player_led_colours[i];
+        uint8_t player_number;
+        R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
+        RGBColour colour = player_led_colours[player_number];
         return this->SetLightbarColour(colour);
     }
 

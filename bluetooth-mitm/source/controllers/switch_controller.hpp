@@ -24,6 +24,18 @@ namespace ams::controller {
     constexpr auto STICK_ZERO  = 0x800;
     constexpr auto BATTERY_MAX = 8;
 
+    enum SwitchPlayerNumber : uint8_t {
+        SwitchPlayerNumber_One,
+        SwitchPlayerNumber_Two,
+        SwitchPlayerNumber_Three,
+        SwitchPlayerNumber_Four,
+        SwitchPlayerNumber_Five,
+        SwitchPlayerNumber_Six,
+        SwitchPlayerNumber_Seven,
+        SwitchPlayerNumber_Eight,
+        SwitchPlayerNumber_Unknown = 0xf
+    };
+
     struct HardwareID {
         uint16_t vid;
         uint16_t pid;
@@ -170,6 +182,8 @@ namespace ams::controller {
 
         };
     } __attribute__ ((__packed__));
+
+    Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
 
     class SwitchController {
 
