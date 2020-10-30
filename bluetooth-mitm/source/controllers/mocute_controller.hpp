@@ -31,6 +31,18 @@ namespace ams::controller {
         MocuteDPad_Released = 0x0f
     };
 
+    enum MocuteDPadDirection2 {
+        MocuteDPad2_Released = 0x00,
+        MocuteDPad2_N,
+        MocuteDPad2_NE,
+        MocuteDPad2_E,
+        MocuteDPad2_SE,
+        MocuteDPad2_S,
+        MocuteDPad2_SW,
+        MocuteDPad2_W,
+        MocuteDPad2_NW
+    };
+
     struct MocuteStickData {
         uint8_t x;
         uint8_t y;
@@ -53,7 +65,7 @@ namespace ams::controller {
         uint8_t R2      : 1;
     } __attribute__ ((__packed__));
 
-    struct MocuteInputReport0x04 {
+    struct MocuteInputReport0x01 {
         MocuteStickData left_stick;
         MocuteStickData right_stick;
         MocuteButtonData buttons;
@@ -61,9 +73,12 @@ namespace ams::controller {
         uint8_t right_trigger;
     } __attribute__ ((__packed__)); 
 
+    typedef MocuteInputReport0x01 MocuteInputReport0x04;
+
     struct MocuteReportData {
         uint8_t id;
         union {
+            MocuteInputReport0x01 input0x01;
             MocuteInputReport0x04 input0x04;
         };
     } __attribute__((packed));
@@ -81,6 +96,7 @@ namespace ams::controller {
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
+            void HandleInputReport0x01(const MocuteReportData *src);
             void HandleInputReport0x04(const MocuteReportData *src);
 
     };
