@@ -17,6 +17,8 @@
 #include "../mcmitm_config.hpp"
 #include <memory>
 
+#include "../btdrv_mitm/bluetooth/bluetooth_hid.hpp"
+
 namespace ams::controller {
 
     namespace {
@@ -121,6 +123,12 @@ namespace ams::controller {
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
 
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
+
+        // Toggle controller type
+        if ((m_buttons.plus && !m_buttons_previous.plus) && m_buttons.minus) {
+            SwitchControllerType type = (m_emulated_type == SwitchControllerType_ProController) ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController;
+            this->SetEmulatedControllerType(type);
+        }
 
         // Fixup for identifying as horizontal joycon
         switch (m_emulated_type) {
@@ -254,19 +262,21 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
+        const FirmwareVersion fw = (m_emulated_type == SwitchControllerType_ProController) ? pro_controller_fw_version : joycon_fw_version;
+        //const FirmwareVersion fw = {0xff, 0xff}; // Max possible firmware value so we never get prompted to update
         const SwitchSubcommandResponse response = {
             .ack = 0x82, 
             .id = SubCmd_RequestDeviceInfo,
             .device_info = {
                 .fw_ver = {
-                    .major = 0x03,
-                    .minor = 0x48
+                    .major = fw.major,
+                    .minor = fw.minor
                 },
                 .type = m_emulated_type, 
                 ._unk0 = 0x02, 
                 .address = m_address, 
-                ._unk1 = 0x01, 
-                ._unk2 = 0x02
+                ._unk1 = (m_emulated_type == SwitchControllerType_ProController) ? 0x01 : 0x03, 
+                ._unk2 = (m_emulated_type == SwitchControllerType_ProController) ? 0x02 : 0x01
             }
         };
         
@@ -296,7 +306,12 @@ namespace ams::controller {
             }
         };
 
-        if (read_addr == 0x6050) {
+        if (read_addr == 0x6000) {
+            if (m_emulated_type != SwitchControllerType_ProController) {
+                std::strncpy(response.spi_flash_read.data, "XCW14031838402", read_size);
+            }
+        }
+        else if (read_addr == 0x6050) {
             std::memcpy(response.spi_flash_read.data, &m_colours, sizeof(m_colours)); // Set controller colours
         }
         else {
