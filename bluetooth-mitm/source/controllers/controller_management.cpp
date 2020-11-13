@@ -56,6 +56,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : DualsenseController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Dualsense;
+            }
+        }
+
         for (auto hwId : XboxOneController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_XboxOne;
@@ -174,6 +180,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Dualshock4:
                 g_controllers.push_back(std::make_unique<Dualshock4Controller>(address));
+                break;
+            case ControllerType_Dualsense:
+                g_controllers.push_back(std::make_unique<DualsenseController>(address));
                 break;
             case ControllerType_XboxOne:
                 g_controllers.push_back(std::make_unique<XboxOneController>(address));
