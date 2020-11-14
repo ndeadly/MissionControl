@@ -348,7 +348,7 @@ namespace ams::controller {
     }
 
     Result WiiController::SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) {
-        m_rumble_state = left->low_band_amp || left->high_band_amp || right->low_band_amp || right->high_band_amp;
+        m_rumble_state = left->low_band_amp || left->high_band_amp;
 
         s_output_report.size = sizeof(WiiOutputReport0x10) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
