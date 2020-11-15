@@ -32,6 +32,7 @@
 #include "powera_controller.hpp"
 #include "mad_catz_controller.hpp"
 #include "mocute_controller.hpp"
+#include "razer_controller.hpp"
 
 namespace ams::controller {
 
@@ -55,6 +56,7 @@ namespace ams::controller {
         ControllerType_PowerA,
         ControllerType_MadCatz,
         ControllerType_Mocute,
+        ControllerType_Razer,
         ControllerType_Unknown,
     };
 
