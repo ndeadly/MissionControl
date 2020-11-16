@@ -79,13 +79,34 @@ You should also ensure your controller firmware is up to date, as old firmwares 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it in sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
 
-### Planned Features
+### Planned/In-progress Features
+Below is a list of features I am currently working on or would like to look into in the future, roughly in descending order of priority. Requests are welcome if you have an idea you think would make a useful feature.
 
-* Controller management application
 * Rumble support
-* Motion support
+* Motion controls support
+* Bluetooth LE support
 * Per-controller configurations
+    * Rumble on/off
+    * Motion controls on/off
+    * Identify as Pro Controller or Joycon
+    * Set controller body/button colours
+    * Invert analog stick axes
+    * Analog stick deadzones
+* Companion application
+    * Pairing database management
+        * View paired controller information
+        * Clear database
+        * Export database to file
+        * Import existing database from file
+    * Controller management/diagnostics
+        * Manage controller configurations
+        * View raw HID report data
+        * Test buttons/analog sticks
+        * Dump SPI flash (official controllers only)
+    * Controller discovery/pairing reimplementation
+* Tesla overlay
 * Keyboard and mouse support
+* USB wired controllers
 
 ### Known Issues and Limitations
 
