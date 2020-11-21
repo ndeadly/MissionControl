@@ -50,11 +50,11 @@ namespace ams::controller {
     void XiaomiController::HandleInputReport0x04(const XiaomiReportData *src) {
         m_battery = src->input0x04.battery / 52 << 1;
 
-        this->PackStickData(&m_left_stick,
+        m_left_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x04.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x04.left_stick.y)) & 0xfff
         );
-        this->PackStickData(&m_right_stick,
+        m_right_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x04.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x04.right_stick.y)) & 0xfff
         );
