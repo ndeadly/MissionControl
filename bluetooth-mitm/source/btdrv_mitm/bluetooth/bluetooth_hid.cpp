@@ -86,12 +86,12 @@ namespace ams::bluetooth::hid {
     }
 
     void handleConnectionStateEvent(HidEventData *event_data) {
-        switch (event_data->connectionState.state) {
-            case HidConnectionState_Connected:
-                controller::AttachHandler(&event_data->connectionState.address);
+        switch (event_data->connection_state.state) {
+            case BluetoothHidConnectionState_Connected:
+                controller::AttachHandler(&event_data->connection_state.address);
                 break;
-            case HidConnectionState_Disconnected:
-                controller::RemoveHandler(&event_data->connectionState.address);
+            case BluetoothHidConnectionState_Disconnected:
+                controller::RemoveHandler(&event_data->connection_state.address);
                 break;
             default:
                 break;
@@ -109,17 +109,17 @@ namespace ams::bluetooth::hid {
     void HandleEvent(void) {
         {
             std::scoped_lock lk(g_event_data_lock);
-            R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_current_event_type, g_event_data_buffer, sizeof(g_event_data_buffer)));
+            R_ABORT_UNLESS(btdrvGetHidEventInfo(g_event_data_buffer, sizeof(g_event_data_buffer), &g_current_event_type));
         }
 
         auto event_data = reinterpret_cast<HidEventData *>(g_event_data_buffer);
 
         switch (g_current_event_type) {
 
-            case HidEvent_ConnectionState:
+            case BtdrvHidEventType_ConnectionState:
                 handleConnectionStateEvent(event_data);
                 break;
-            case HidEvent_Unknown07:
+            case BtdrvHidEventType_Unknown7:
                 handleUnknown07Event(event_data);
                 break;
             default:

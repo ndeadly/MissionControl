@@ -35,14 +35,10 @@ Result btdrvInitializeHidFwd(Service* srv, Handle *out_handle, u16 version) {
     );
 }
 
-Result btdrvWriteHidDataFwd(Service* srv, const BluetoothAddress *address, const BluetoothHidReport *data) {
-    const struct {
-        BluetoothAddress address;
-    } in = { *address };
-
-    return serviceMitmDispatchIn(srv, 19, in,
+Result btdrvWriteHidDataFwd(Service* srv, const BtdrvAddress *address, const BtdrvHidReport *data) {
+    return serviceMitmDispatchIn(srv, 19, *address,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_In },
-        .buffers = { {data, sizeof(BluetoothHidReport)} }
+        .buffers = { {data, sizeof(BtdrvHidReport)} }
     );
 }
 

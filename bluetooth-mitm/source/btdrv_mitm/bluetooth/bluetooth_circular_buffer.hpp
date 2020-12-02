@@ -18,6 +18,8 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
+#include "bluetooth_types.hpp"
+
 namespace ams::bluetooth {
 
     constexpr int BLUETOOTH_BUFFER_SIZE = 10000;
@@ -32,14 +34,14 @@ namespace ams::bluetooth {
     };
 
     struct CircularBufferPacketHeader{
-        u8          type;
-        os::Tick    timestamp;
-        u64         size;
+        u8       type;
+        os::Tick timestamp;
+        u64      size;
     };
 
     struct CircularBufferPacket{
         CircularBufferPacketHeader header;
-        BluetoothHidReportData     data;
+        HidReportData data;
     };
 
     class CircularBuffer {
@@ -66,22 +68,22 @@ namespace ams::bluetooth {
             void _updateUtilization(void);
             CircularBufferPacket *_read(void);
 
-            os::SdkMutex    mutex;
-            os::EventType   *event;
+            os::SdkMutex  mutex;
+            os::EventType *event;
             
-            u8      data[BLUETOOTH_BUFFER_SIZE];
-            u32     writeOffset;
-            u32     readOffset;
-            s64 	size;
-            char    name[16];
-            u8      _unk1;
-            bool 	isInitialized;
-            u8      _unk2[6];
+            u8   data[BLUETOOTH_BUFFER_SIZE];
+            u32  writeOffset;
+            u32  readOffset;
+            s64  size;
+            char name[16];
+            u8   _unk1;
+            bool isInitialized;
+            u8   _unk2[6];
 
         public:
-            CircularBufferType 	type;
-            bool    _unk3;
-            //u8      _unk3[4];
+            CircularBufferType type;
+            bool _unk3;
+            //u8 _unk3[4];
     };
 
 }

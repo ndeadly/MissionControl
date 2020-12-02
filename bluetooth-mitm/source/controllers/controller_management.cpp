@@ -39,7 +39,7 @@ namespace ams::controller {
 
     }
 
-    ControllerType Identify(const BluetoothDevicesSettings *device) {
+    ControllerType Identify(const bluetooth::DevicesSettings *device) {
 
         if (IsOfficialSwitchControllerName(device->name, sizeof(device->name)))
             return ControllerType_Switch;
@@ -162,8 +162,8 @@ namespace ams::controller {
     void AttachHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controller_lock);
 
-        BluetoothDevicesSettings device;
-        R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(address, &device));
+        bluetooth::DevicesSettings device;
+        R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(*address, &device));
 
         switch (Identify(&device)) {
             case ControllerType_Switch:

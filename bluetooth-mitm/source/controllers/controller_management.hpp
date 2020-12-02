@@ -68,7 +68,7 @@ namespace ams::controller {
             };
     };
 
-    ControllerType Identify(const BluetoothDevicesSettings *device);
+    ControllerType Identify(const bluetooth::DevicesSettings *device);
     bool IsAllowedDevice(const bluetooth::DeviceClass *cod);
     bool IsOfficialSwitchControllerName(const char *name, size_t size);
     
