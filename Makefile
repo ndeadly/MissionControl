@@ -23,7 +23,7 @@ dist: all
 	mkdir -p dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags
 	touch dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags/boot2.flag
 	
-  	cp bluetooth-mitm/toolbox.json dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/toolbox.json
+	cp bluetooth-mitm/toolbox.json dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/toolbox.json
 	
 	cp -r exefs_patches dist/atmosphere/
 	
