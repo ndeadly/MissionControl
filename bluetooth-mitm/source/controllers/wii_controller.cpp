@@ -220,7 +220,7 @@ namespace ams::controller {
     void WiiController::MapNunchuckExtension(const uint8_t ext[]) {
         auto extension = reinterpret_cast<const WiiNunchuckExtensionData *>(ext);
 
-        this->PackStickData(&m_left_stick, 
+        m_left_stick = this->PackStickData(
             std::clamp<uint16_t>(static_cast<uint16_t>(nunchuck_stick_scale_factor * (extension->stick_x - 0x80) + STICK_ZERO), 0, 0xfff), 
             std::clamp<uint16_t>(static_cast<uint16_t>(nunchuck_stick_scale_factor * (extension->stick_y - 0x80) + STICK_ZERO), 0, 0xfff)
         );
@@ -230,11 +230,11 @@ namespace ams::controller {
     }
 
     void WiiController::MapClassicControllerExtension(const uint8_t ext[]) {
-        this->PackStickData(&m_left_stick, 
+        m_left_stick = this->PackStickData(
             static_cast<uint16_t>(left_stick_scale_factor * ((ext[0] & 0x3f) - 0x20) + STICK_ZERO) & 0xfff, 
             static_cast<uint16_t>(left_stick_scale_factor * ((ext[1] & 0x3f) - 0x20) + STICK_ZERO) & 0xfff
         );
-        this->PackStickData(&m_right_stick, 
+        m_right_stick = this->PackStickData(
             static_cast<uint16_t>(right_stick_scale_factor * ((((ext[0] >> 3) & 0x18) | ((ext[1] >> 5) & 0x06) | ((ext[2] >> 7) & 0x01)) - 0x10) + STICK_ZERO) & 0xfff, 
             static_cast<uint16_t>(right_stick_scale_factor * ((ext[2] & 0x1f) - 0x10) + STICK_ZERO) & 0xfff
         );
@@ -265,11 +265,11 @@ namespace ams::controller {
     void WiiController::MapWiiUProControllerExtension(const uint8_t ext[]) {
         auto extension = reinterpret_cast<const WiiUProExtensionData *>(ext);
 
-        this->PackStickData(&m_left_stick,
+        m_left_stick = this->PackStickData(
             std::clamp<uint16_t>(((wiiu_scale_factor * (extension->left_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff), 
             std::clamp<uint16_t>(((wiiu_scale_factor * (extension->left_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
         );
-        this->PackStickData(&m_right_stick,
+        m_right_stick = this->PackStickData(
             std::clamp<uint16_t>(((wiiu_scale_factor * (extension->right_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff),
             std::clamp<uint16_t>(((wiiu_scale_factor * (extension->right_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
         );
@@ -351,7 +351,7 @@ namespace ams::controller {
         s_output_report.size = sizeof(WiiOutputReport0x15) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
         report_data->id = 0x11;
-        report_data->output0x11.leds = (led_mask << 4) & 0xf0;;
+        report_data->output0x11.leds = (led_mask << 4) & 0xf0;
 
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }

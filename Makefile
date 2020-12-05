@@ -9,7 +9,6 @@ bluetooth-mitm:
 	$(MAKE) -C $@
 
 clean:
-	$(MAKE) -C Atmosphere/libraries clean
 	$(MAKE) -C bluetooth-mitm clean
 	rm -rf dist
 

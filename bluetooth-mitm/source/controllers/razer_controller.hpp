@@ -19,72 +19,73 @@
 
 namespace ams::controller {
 
-    enum PowerADPadDirection {
-        PowerADPad_N,
-        PowerADPad_NE,
-        PowerADPad_E,
-        PowerADPad_SE,
-        PowerADPad_S,
-        PowerADPad_SW,
-        PowerADPad_W,
-        PowerADPad_NW,
-        PowerADPad_Released = 0x0f
+    enum RazerDPadDirection {
+        RazerDPad_N,
+        RazerDPad_NE,
+        RazerDPad_E,
+        RazerDPad_SE,
+        RazerDPad_S,
+        RazerDPad_SW,
+        RazerDPad_W,
+        RazerDPad_NW,
+        RazerDPad_Released
     };
 
-    struct PowerAStickData {
+    struct RazerStickData {
         uint8_t x;
         uint8_t y;
     } __attribute__((packed));
 
-    struct PowerAButtonData {
+    struct RazerButtonData {
         uint8_t dpad    : 4;
         uint8_t A       : 1;
         uint8_t B       : 1;
         uint8_t X       : 1;
         uint8_t Y       : 1;
 
-        uint8_t L1      : 1;
-        uint8_t R1      : 1;
-        uint8_t select  : 1;
-        uint8_t start   : 1;
-        uint8_t L3      : 1;
-        uint8_t R3      : 1;
-        uint8_t         : 0;
+        uint8_t L1           : 1;
+        uint8_t R1           : 1;
+        uint8_t back         : 1;
+        uint8_t start        : 1;
+        uint8_t L3           : 1;
+        uint8_t R3           : 1;
+        uint8_t              : 1;
+        uint8_t home         : 1;
+
+        uint8_t select       : 1;
+        uint8_t              : 0;
     } __attribute__((packed));
 
-    struct PowerAInputReport0x03 {
-        PowerAStickData left_stick;
-        PowerAStickData right_stick;
-        PowerAButtonData buttons;
-        uint8_t L2;
-        uint8_t R2;
-        uint8_t battery;
-        uint8_t _unk;
+    struct RazerInputReport0x01 {
+        RazerStickData left_stick;
+        RazerStickData right_stick;
+        RazerButtonData buttons;
+        uint8_t left_trigger;
+        uint8_t right_trigger;
     } __attribute__((packed));
 
-    struct PowerAReportData{
+    struct RazerReportData{
         uint8_t id;
         union {
-            PowerAInputReport0x03 input0x03;
+            RazerInputReport0x01 input0x01;
         };
     } __attribute__((packed));
 
-    class PowerAController : public EmulatedSwitchController {
+
+    class RazerController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x20d6, 0x89e5},   // Moga Hero Controller
-                {0x20d6, 0x0dad},   // Moga Pro Controller
-                {0x20d6, 0x6271}    // Moga Pro 2 Controller
+                {0x1532, 0x0900}    // Razer Serval
             };  
 
-            PowerAController(const bluetooth::Address *address) 
+            RazerController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x03(const PowerAReportData *src);
+            void HandleInputReport0x01(const RazerReportData *src);
 
     };
 

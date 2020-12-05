@@ -45,9 +45,9 @@ Result btmGetDeviceConditionFwd(Service* s, BtmDeviceConditionV900 *condition) {
     );
 }
 
-Result btmGetDeviceInfoFwd(Service* s, BtmDeviceInfo *devices) {
+Result btmGetDeviceInfoFwd(Service* s, BtmDeviceInfoList *devices) {
     return serviceMitmDispatch(s, 9,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
-        .buffers = { {devices, sizeof(BtmDeviceInfo)} }
+        .buffers = { {devices, sizeof(BtmDeviceInfoList)} }
     );
 }

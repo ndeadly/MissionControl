@@ -19,24 +19,36 @@
 
 namespace ams::controller {
 
-    enum PowerADPadDirection {
-        PowerADPad_N,
-        PowerADPad_NE,
-        PowerADPad_E,
-        PowerADPad_SE,
-        PowerADPad_S,
-        PowerADPad_SW,
-        PowerADPad_W,
-        PowerADPad_NW,
-        PowerADPad_Released = 0x0f
+    enum MocuteDPadDirection {
+        MocuteDPad_N,
+        MocuteDPad_NE,
+        MocuteDPad_E,
+        MocuteDPad_SE,
+        MocuteDPad_S,
+        MocuteDPad_SW,
+        MocuteDPad_W,
+        MocuteDPad_NW,
+        MocuteDPad_Released = 0x0f
     };
 
-    struct PowerAStickData {
+    enum MocuteDPadDirection2 {
+        MocuteDPad2_Released = 0x00,
+        MocuteDPad2_N,
+        MocuteDPad2_NE,
+        MocuteDPad2_E,
+        MocuteDPad2_SE,
+        MocuteDPad2_S,
+        MocuteDPad2_SW,
+        MocuteDPad2_W,
+        MocuteDPad2_NW
+    };
+
+    struct MocuteStickData {
         uint8_t x;
         uint8_t y;
-    } __attribute__((packed));
+    } __attribute__ ((__packed__));
 
-    struct PowerAButtonData {
+    struct MocuteButtonData {
         uint8_t dpad    : 4;
         uint8_t A       : 1;
         uint8_t B       : 1;
@@ -49,42 +61,43 @@ namespace ams::controller {
         uint8_t start   : 1;
         uint8_t L3      : 1;
         uint8_t R3      : 1;
-        uint8_t         : 0;
-    } __attribute__((packed));
+        uint8_t L2      : 1;
+        uint8_t R2      : 1;
+    } __attribute__ ((__packed__));
 
-    struct PowerAInputReport0x03 {
-        PowerAStickData left_stick;
-        PowerAStickData right_stick;
-        PowerAButtonData buttons;
-        uint8_t L2;
-        uint8_t R2;
-        uint8_t battery;
-        uint8_t _unk;
-    } __attribute__((packed));
+    struct MocuteInputReport0x01 {
+        MocuteStickData left_stick;
+        MocuteStickData right_stick;
+        MocuteButtonData buttons;
+        uint8_t left_trigger;
+        uint8_t right_trigger;
+    } __attribute__ ((__packed__)); 
 
-    struct PowerAReportData{
+    typedef MocuteInputReport0x01 MocuteInputReport0x04;
+
+    struct MocuteReportData {
         uint8_t id;
         union {
-            PowerAInputReport0x03 input0x03;
+            MocuteInputReport0x01 input0x01;
+            MocuteInputReport0x04 input0x04;
         };
     } __attribute__((packed));
 
-    class PowerAController : public EmulatedSwitchController {
+    class MocuteController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x20d6, 0x89e5},   // Moga Hero Controller
-                {0x20d6, 0x0dad},   // Moga Pro Controller
-                {0x20d6, 0x6271}    // Moga Pro 2 Controller
+                {0xffff, 0x0000}    // Mocute 050 Controller
             };  
 
-            PowerAController(const bluetooth::Address *address) 
+            MocuteController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x03(const PowerAReportData *src);
+            void HandleInputReport0x01(const MocuteReportData *src);
+            void HandleInputReport0x04(const MocuteReportData *src);
 
     };
 

@@ -153,7 +153,7 @@ namespace ams::bluetooth::hid::report {
         }
         std::memcpy(&g_fake_report_data.report, report, report->size + sizeof(report->size));
 
-        g_fake_buffer->Write(HidEvent_GetReport, &g_fake_report_data, g_fake_report_data.report.size + 0x11); 
+        g_fake_buffer->Write(BtdrvHidEventType_GetReport, &g_fake_report_data, g_fake_report_data.report.size + 0x11); 
 
         os::SignalSystemEvent(&g_system_event_fwd);
 
@@ -164,7 +164,7 @@ namespace ams::bluetooth::hid::report {
         if (os::GetThreadId(os::GetCurrentThread()) == g_main_thread_id)
             R_TRY(btdrvWriteHidDataFwd(g_forward_service, address, report));
         else
-            R_TRY(btdrvWriteHidData(address, report));
+            R_TRY(btdrvWriteHidData(*address, report));
 
         return ams::ResultSuccess();
     }
@@ -185,11 +185,11 @@ namespace ams::bluetooth::hid::report {
                 auto event_data = reinterpret_cast<bluetooth::HidEventData *>(buffer);
 
                 *type = static_cast<bluetooth::HidEventType>(packet->header.type);
-                std::memcpy(&event_data->getReport.address, &packet->data.address, sizeof(bluetooth::Address));
-                event_data->getReport.status = HidStatus_Ok;
-                event_data->getReport.report_length = packet->header.size;
+                std::memcpy(&event_data->get_report.address, &packet->data.address, sizeof(bluetooth::Address));
+                event_data->get_report.status = BluetoothHidStatus_Ok;
+                event_data->get_report.report_length = packet->header.size;
 
-                std::memcpy(&event_data->getReport.report_data, &packet->data, packet->header.size);
+                std::memcpy(&event_data->get_report.report_data, &packet->data, packet->header.size);
                 break;
             }      
         }
@@ -201,20 +201,20 @@ namespace ams::bluetooth::hid::report {
         if (!g_redirect_hid_report_events) {
             if (hos::GetVersion() < hos::Version_7_0_0) {
                 auto event_data = reinterpret_cast<bluetooth::HidEventData *>(g_event_data_buffer);
-                R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_current_event_type, g_event_data_buffer, sizeof(g_event_data_buffer)));
+                R_ABORT_UNLESS(btdrvGetHidReportEventInfo(g_event_data_buffer, sizeof(g_event_data_buffer), &g_current_event_type));
 
                 switch (g_current_event_type) {
-                    case HidEvent_GetReport:
+                    case BtdrvHidEventType_GetReport:
                         {
-                            auto device = controller::LocateHandler(&event_data->getReport.address);
+                            auto device = controller::LocateHandler(&event_data->get_report.address);
                             if (!device)
                                 return;
 
-                            device->HandleIncomingReport(&event_data->getReport.report_data.report);
+                            device->HandleIncomingReport(&event_data->get_report.report_data.report);
                         }
                         break;
                     default:
-                        g_fake_buffer->Write(g_current_event_type, &event_data->getReport.report_data, event_data->getReport.report_length);
+                        g_fake_buffer->Write(g_current_event_type, &event_data->get_report.report_data, event_data->get_report.report_length);
                         break;
                 }
             }
@@ -229,7 +229,7 @@ namespace ams::bluetooth::hid::report {
                     switch (real_packet->header.type) {
                         case 0xff:
                             continue;
-                        case HidEvent_GetReport:
+                        case BtdrvHidEventType_GetReport:
                             {
                                 auto device = controller::LocateHandler(hos::GetVersion() < hos::Version_9_0_0 ? &real_packet->data.address : &real_packet->data.v2.address);
                                 if (!device)

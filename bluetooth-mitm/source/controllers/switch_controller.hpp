@@ -23,6 +23,18 @@ namespace ams::controller {
     constexpr auto STICK_ZERO  = 0x800;
     constexpr auto BATTERY_MAX = 8;
 
+    enum SwitchPlayerNumber : uint8_t {
+        SwitchPlayerNumber_One,
+        SwitchPlayerNumber_Two,
+        SwitchPlayerNumber_Three,
+        SwitchPlayerNumber_Four,
+        SwitchPlayerNumber_Five,
+        SwitchPlayerNumber_Six,
+        SwitchPlayerNumber_Seven,
+        SwitchPlayerNumber_Eight,
+        SwitchPlayerNumber_Unknown = 0xf
+    };
+
     struct HardwareID {
         uint16_t vid;
         uint16_t pid;
@@ -80,31 +92,40 @@ namespace ams::controller {
         uint16_t    gyro_3;
     } __attribute__ ((__packed__));
 
-    enum SubCmdType : u8 {
+    enum SubCmdType : uint8_t {
         SubCmd_GetControllerState   = 0x00,
         SubCmd_ManualPair           = 0x01,
-        SubCmd_RequestDeviceInfo 	= 0x02,
-        SubCmd_SetInputReportMode	= 0x03,
-        SubCmd_TriggersElapsedTime	= 0x04,
+        SubCmd_RequestDeviceInfo    = 0x02,
+        SubCmd_SetInputReportMode   = 0x03,
+        SubCmd_TriggersElapsedTime  = 0x04,
+        SubCmd_GetPageListState     = 0x05,
         SubCmd_SetHciState          = 0x06,
         SubCmd_ResetPairingInfo     = 0x07,
         SubCmd_SetShipPowerState    = 0x08,
-        SubCmd_SpiFlashRead			= 0x10,
-        SubCmd_SpiFlashWrite		= 0x11,
+        SubCmd_SpiFlashRead         = 0x10,
+        SubCmd_SpiFlashWrite        = 0x11,
         SubCmd_SpiSectorErase       = 0x12,
         SubCmd_ResetMcu             = 0x20,
-        SubCmd_SetMcuConfig			= 0x21,
+        SubCmd_SetMcuConfig         = 0x21,
         SubCmd_SetMcuState          = 0x22,
-        SubCmd_SetPlayerLeds 		= 0x30,
+        SubCmd_SetPlayerLeds        = 0x30,
         SubCmd_GetPlayerLeds        = 0x31,
         SubCmd_SetHomeLed           = 0x38,
-        SubCmd_EnableImu			= 0x40,
+        SubCmd_EnableImu            = 0x40,
         SubCmd_SetImuSensitivity    = 0x41,
         SubCmd_WriteImuRegisters    = 0x42,
         SubCmd_ReadImuRegisters     = 0x43,
-        SubCmd_EnableVibration		= 0x48,
+        SubCmd_EnableVibration      = 0x48,
         SubCmd_GetRegulatedVoltage  = 0x50,
+        SubCmd_SetGpioPinValue      = 0x51,
+        SubCmd_GetGpioPinValue      = 0x52,
     };
+
+    struct SwitchSubcommandResponse {
+        uint8_t         ack;
+        uint8_t         id;
+        uint8_t         data[0x23];
+    } __attribute__ ((__packed__));
 
     struct SwitchOutputReport0x01;
     struct SwitchOutputReport0x03;
@@ -113,20 +134,14 @@ namespace ams::controller {
     struct SwitchOutputReport0x12;
 
     struct SwitchInputReport0x21 {
-        uint8_t             timer;
-        uint8_t             conn_info      : 4;
-        uint8_t             battery        : 4;
-        SwitchButtonData    buttons;
-        SwitchStickData     left_stick;
-        SwitchStickData     right_stick;
-        uint8_t             vibrator;
-        
-        struct {
-            uint8_t         ack;
-            uint8_t         id;
-            uint8_t         reply;
-            uint8_t         data[0x22];
-        } subcmd;
+        uint8_t                     timer;
+        uint8_t                     conn_info      : 4;
+        uint8_t                     battery        : 4;
+        SwitchButtonData            buttons;
+        SwitchStickData             left_stick;
+        SwitchStickData             right_stick;
+        uint8_t                     vibrator;
+        SwitchSubcommandResponse    response;
     } __attribute__ ((__packed__));
 
     struct SwitchInputReport0x23;
@@ -166,6 +181,8 @@ namespace ams::controller {
 
         };
     } __attribute__ ((__packed__));
+
+    Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
 
     class SwitchController {
 

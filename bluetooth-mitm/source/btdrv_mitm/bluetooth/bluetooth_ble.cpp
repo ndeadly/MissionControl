@@ -86,7 +86,7 @@ namespace ams::bluetooth::ble {
     void HandleEvent(void) {
         {
             std::scoped_lock lk(g_event_data_lock); 
-            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_current_event_type, g_event_data_buffer, sizeof(g_event_data_buffer)));
+            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(g_event_data_buffer, sizeof(g_event_data_buffer), &g_current_event_type));
         }
 
         if (!g_redirect_ble_events) {

@@ -42,7 +42,7 @@ namespace ams::controller {
         uint8_t RT            : 1;
         uint8_t center_press  : 1;
         uint8_t center_hold   : 1;
-    } __attribute__ ((__packed__));;
+    } __attribute__ ((__packed__));
 
     struct OuyaInputReport0x03 {
         uint8_t battery;

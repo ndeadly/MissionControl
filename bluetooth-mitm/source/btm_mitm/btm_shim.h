@@ -25,7 +25,7 @@ Result btmGetDeviceConditionDeprecated1Fwd(Service* s, BtmDeviceConditionV100 *c
 Result btmGetDeviceConditionDeprecated2Fwd(Service* s, BtmDeviceConditionV510 *condition);
 Result btmGetDeviceConditionDeprecated3Fwd(Service* s, BtmDeviceConditionV800 *condition);
 Result btmGetDeviceConditionFwd(Service* s, BtmDeviceConditionV900 *condition);
-Result btmGetDeviceInfoFwd(Service* s, BtmDeviceInfo *devices);
+Result btmGetDeviceInfoFwd(Service* s, BtmDeviceInfoList *devices);
 
 #ifdef __cplusplus
 }

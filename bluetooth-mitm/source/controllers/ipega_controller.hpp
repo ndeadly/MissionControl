@@ -84,7 +84,8 @@ namespace ams::controller {
         public:
             static constexpr const HardwareID hardware_ids[] = { 
                 {0x1949, 0x0402},
-                {0x1949, 0x0403}
+                {0x1949, 0x0403},
+                {0x05ac, 0x022c}    // ipega 9017S (Another fucking Apple keyboard ID. Eventually these are going to clash)
             };  
 
             IpegaController(const bluetooth::Address *address) 

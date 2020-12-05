@@ -18,6 +18,7 @@
 #include "switch_controller.hpp"
 #include "wii_controller.hpp"
 #include "dualshock4_controller.hpp"
+#include "dualsense_controller.hpp"
 #include "xbox_one_controller.hpp"
 #include "ouya_controller.hpp"
 #include "gamestick_controller.hpp"
@@ -29,6 +30,9 @@
 #include "nvidia_shield_controller.hpp"
 #include "8bitdo_controller.hpp"
 #include "powera_controller.hpp"
+#include "mad_catz_controller.hpp"
+#include "mocute_controller.hpp"
+#include "razer_controller.hpp"
 
 namespace ams::controller {
 
@@ -39,6 +43,7 @@ namespace ams::controller {
         ControllerType_Switch,
         ControllerType_Wii,
         ControllerType_Dualshock4,
+        ControllerType_Dualsense,
         ControllerType_XboxOne,
         ControllerType_Ouya,
         ControllerType_Gamestick,
@@ -50,6 +55,9 @@ namespace ams::controller {
         ControllerType_NvidiaShield,
         ControllerType_8BitDo,
         ControllerType_PowerA,
+        ControllerType_MadCatz,
+        ControllerType_Mocute,
+        ControllerType_Razer,
         ControllerType_Unknown,
     };
 
@@ -61,7 +69,7 @@ namespace ams::controller {
             };
     };
 
-    ControllerType Identify(const BluetoothDevicesSettings *device);
+    ControllerType Identify(const bluetooth::DevicesSettings *device);
     bool IsAllowedDevice(const bluetooth::DeviceClass *cod);
     bool IsOfficialSwitchControllerName(const char *name, size_t size);
     

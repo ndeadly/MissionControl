@@ -45,11 +45,11 @@ namespace ams::controller {
     }
     
     void OuyaController::HandleInputReport0x07(const OuyaReportData *src) {
-        this->PackStickData(&m_left_stick,
+        m_left_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x07.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x07.left_stick.y)) & 0xfff
         );
-        this->PackStickData(&m_right_stick,
+        m_right_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x07.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x07.right_stick.y)) & 0xfff
         );

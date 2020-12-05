@@ -35,8 +35,8 @@ namespace ams::controller {
 
     void EmulatedSwitchController::ClearControllerState(void) {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
-        this->PackStickData(&m_left_stick, STICK_ZERO, STICK_ZERO);
-        this->PackStickData(&m_right_stick, STICK_ZERO, STICK_ZERO);
+        m_left_stick = this->PackStickData(STICK_ZERO, STICK_ZERO);
+        m_right_stick = this->PackStickData(STICK_ZERO, STICK_ZERO);
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
     }
 
@@ -60,8 +60,8 @@ namespace ams::controller {
         this->UpdateControllerState(report);
 
         // Prepare Switch report
-        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
+        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         switch_report->id = 0x30;
         switch_report->input0x30.conn_info      = 0;
         switch_report->input0x30.battery        = m_battery | m_charging;
@@ -235,8 +235,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::FakeSubCmdResponse(const uint8_t response[], size_t size) {
-        auto report_data = reinterpret_cast<controller::SwitchReportData *>(&s_input_report.data);
-        s_input_report.size = sizeof(controller::SwitchInputReport0x21);
+        s_input_report.size = sizeof(SwitchInputReport0x21) + 1;
+        auto report_data = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         report_data->id = 0x21;
         report_data->input0x21.conn_info   = 0;
         report_data->input0x21.battery     = m_battery | m_charging;
@@ -244,7 +244,7 @@ namespace ams::controller {
         report_data->input0x21.left_stick  = m_left_stick;
         report_data->input0x21.right_stick = m_right_stick;
         report_data->input0x21.vibrator    = 0;
-        std::memcpy(&report_data->input0x21.subcmd, response, size);
+        std::memcpy(&report_data->input0x21.response, response, size);
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer

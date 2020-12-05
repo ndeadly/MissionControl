@@ -25,31 +25,37 @@ namespace ams::controller {
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
         const RGBColour player_led_colours[] = {
-            {0x00, 0x00, 0x3f}, // blue
-            {0x3f, 0x00, 0x00}, // red
-            {0x00, 0x3f, 0x00}, // green
-            {0x3f, 0x00, 0x3f}  // pink
+            // Same colours used by PS4
+            {0x00, 0x00, 0x40}, // blue
+            {0x40, 0x00, 0x00}, // red
+            {0x00, 0x40, 0x00}, // green
+            {0x20, 0x00, 0x20}, // pink
+            // New colours for controllers 5-8
+            {0x00, 0x20, 0x20}, // cyan
+            {0x30, 0x10, 0x00}, // orange
+            {0x20, 0x20, 0x00}, // yellow
+            {0x10, 0x00, 0x30}  // purple
         };
 
     }
 
     Result Dualshock4Controller::Initialize(void) {
         R_TRY(EmulatedSwitchController::Initialize());
-        R_TRY(this->UpdateControllerState());
+        R_TRY(this->PushRumbleLedState());
 
         return ams::ResultSuccess();
     }
 
     Result Dualshock4Controller::SetPlayerLed(uint8_t led_mask) {
-        uint8_t i = 0;
-        while (led_mask >>= 1) { ++i; }
-        RGBColour colour = player_led_colours[i];
+        uint8_t player_number;
+        R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
+        RGBColour colour = player_led_colours[player_number];
         return this->SetLightbarColour(colour);
     }
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
         m_led_colour = colour;
-        return this->UpdateControllerState();
+        return this->PushRumbleLedState();
     }
 
     void Dualshock4Controller::UpdateControllerState(const bluetooth::HidReport *report) {
@@ -68,11 +74,11 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {       
-        this->PackStickData(&m_left_stick,
+        m_left_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
-        this->PackStickData(&m_right_stick,
+        m_right_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
@@ -94,13 +100,13 @@ namespace ams::controller {
 
         m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
 
-        this->PackStickData(&m_left_stick,
-            static_cast<uint16_t>(stick_scale_factor * src->input0x11.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x11.left_stick.y)) & 0xfff
+        m_left_stick = this->PackStickData(
+            static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
-        this->PackStickData(&m_right_stick,
-            static_cast<uint16_t>(stick_scale_factor * src->input0x11.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x11.right_stick.y)) & 0xfff
+        m_right_stick = this->PackStickData(
+            static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
 
         this->MapButtons(&src->input0x11.buttons);
@@ -140,7 +146,7 @@ namespace ams::controller {
         m_buttons.home    = buttons->ps;
     }
 
-    Result Dualshock4Controller::UpdateControllerState(void) {
+    Result Dualshock4Controller::PushRumbleLedState(void) {
         Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, m_led_colour.r, m_led_colour.g, m_led_colour.b};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 

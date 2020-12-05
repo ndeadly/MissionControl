@@ -50,6 +50,11 @@ namespace ams::controller {
     }
 
     void EightBitDoController::HandleInputReport0x03(const EightBitDoReportData *src) {
+        m_buttons.dpad_down     = src->input0x03.left_stick.y == 0xff;
+        m_buttons.dpad_up       = src->input0x03.left_stick.y == 0x00;
+        m_buttons.dpad_right    = src->input0x03.left_stick.x == 0xff;
+        m_buttons.dpad_left     = src->input0x03.left_stick.x == 0x00;
+
         m_buttons.A = src->input0x03.buttons.B;
         m_buttons.B = src->input0x03.buttons.A;
         m_buttons.X = src->input0x03.buttons.Y;
