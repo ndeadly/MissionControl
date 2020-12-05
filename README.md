@@ -58,8 +58,6 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for MissionControl to become active.
 
-It is recommended after rebooting to also disconnect any physically connected controllers from the console, delete the pairing database, and re-pair via bluetooth to make sure your existing Switch controllers have the correct hardware ID stored and can be recognised properly. To delete the database, navigate to `System Settings->Controllers and Sensors->Disconnect Controllers`
-
 ***IMPORTANT: 
 Atmosphère >= 0.16.0 is required to run the latest release of MissionControl. Using an older Atmosphère version will cause MissionControl to crash the system on boot.
 Users upgrading from version 0.1.0 of MissionControl are also advised to wipe their pairing database and re-pair controllers running the latest version. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
