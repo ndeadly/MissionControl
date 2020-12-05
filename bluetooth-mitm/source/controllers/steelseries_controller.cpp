@@ -33,6 +33,8 @@ namespace ams::controller {
                 this->HandleInputReport0x01(steelseries_report);
                 break;
             default:
+                // Todo: handle this properly
+                this->HandleMfiInputReport(steelseries_report);
                 break;
         }
     }
@@ -65,11 +67,39 @@ namespace ams::controller {
         m_buttons.X = src->input0x01.buttons.Y;
         m_buttons.Y = src->input0x01.buttons.X;
 
-        m_buttons.R  = src->input0x01.buttons.R;
-        m_buttons.L  = src->input0x01.buttons.L;
+        m_buttons.R = src->input0x01.buttons.R;
+        m_buttons.L = src->input0x01.buttons.L;
 
-        m_buttons.minus    = src->input0x01.buttons.select;
-        m_buttons.plus     = src->input0x01.buttons.start;       
+        m_buttons.minus = src->input0x01.buttons.select;
+        m_buttons.plus  = src->input0x01.buttons.start;       
+    }
+
+    void SteelseriesController::HandleMfiInputReport(const SteelseriesReportData *src) {
+        m_left_stick = this->PackStickData(
+            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (-static_cast<int8_t>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & 0xfff
+        );
+        m_right_stick = this->PackStickData(
+            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input_mfi.right_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (-static_cast<int8_t>(~src->input_mfi.right_stick.y + 1)) + 0x7ff) & 0xfff
+        );
+
+        m_buttons.dpad_up    = src->input_mfi.buttons.dpad_up > 0;
+        m_buttons.dpad_right = src->input_mfi.buttons.dpad_right > 0;
+        m_buttons.dpad_down  = src->input_mfi.buttons.dpad_down > 0;
+        m_buttons.dpad_left  = src->input_mfi.buttons.dpad_left > 0;
+
+        m_buttons.A = src->input_mfi.buttons.A > 0;
+        m_buttons.B = src->input_mfi.buttons.B > 0;
+        m_buttons.X = src->input_mfi.buttons.X > 0;
+        m_buttons.Y = src->input_mfi.buttons.Y > 0;
+
+        m_buttons.R  = src->input_mfi.buttons.R1 > 0;
+        m_buttons.L  = src->input_mfi.buttons.L1 > 0;
+        m_buttons.ZR = src->input_mfi.buttons.R2 > 0;
+        m_buttons.ZL = src->input_mfi.buttons.L2 > 0;
+
+        m_buttons.home = src->input_mfi.buttons.menu;
     }
 
 }
