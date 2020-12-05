@@ -62,7 +62,7 @@ namespace ams::controller {
         uint8_t dpad;
         EightBitDoStickData left_stick;
         EightBitDoStickData right_stick;
-        uint8_t _unk[3];
+        uint8_t _unk[2];
         EightBitDoButtonData buttons;
     } __attribute__((packed));
 
