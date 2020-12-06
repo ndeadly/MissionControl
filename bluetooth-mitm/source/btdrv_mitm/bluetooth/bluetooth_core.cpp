@@ -83,17 +83,17 @@ namespace ams::bluetooth::core {
         if (program_id == ncm::SystemProgramId::Btm) {
             switch (g_current_event_type) {
                 case BtdrvEventType_DeviceFound:
-                    if (controller::IsAllowedDevice(&event_data->device_found.cod) && !controller::IsOfficialSwitchControllerName(event_data->device_found.name, sizeof(bluetooth::Name))) {
+                    if (controller::IsAllowedDevice(&event_data->device_found.cod) && !controller::IsOfficialSwitchControllerName(event_data->device_found.name)) {
                         std::strncpy(event_data->device_found.name, controller::pro_controller_name, sizeof(bluetooth::Name) - 1);
                     }
                     break;
                 case BtdrvEventType_PinRequest:
-                    if (!controller::IsOfficialSwitchControllerName(event_data->pin_reply.name, sizeof(bluetooth::Name))) {
+                    if (!controller::IsOfficialSwitchControllerName(event_data->pin_reply.name)) {
                         std::strncpy(event_data->pin_reply.name, controller::pro_controller_name, sizeof(bluetooth::Name) - 1);
                     }
                     break;
                 case BtdrvEventType_SspRequest:
-                    if (!controller::IsOfficialSwitchControllerName(event_data->ssp_reply.name, sizeof(bluetooth::Name))) {
+                    if (!controller::IsOfficialSwitchControllerName(event_data->ssp_reply.name)) {
                         std::strncpy(event_data->ssp_reply.name, controller::pro_controller_name, sizeof(bluetooth::Name) - 1);
                     }
                     break;

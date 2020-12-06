@@ -189,7 +189,7 @@ namespace ams::controller {
         public: 
             static constexpr const HardwareID hardware_ids[] = { 
                 {0x057e, 0x2006},   // Official Joycon(L) Controller
-                {0x057e, 0x2007},   // Official Joycon(R) Controller
+                {0x057e, 0x2007},   // Official Joycon(R) Controller/NES Online Controller
                 {0x057e, 0x2009},   // Official Switch Pro Controller
                 {0x057e, 0x2017}    // Official SNES Online Controller
             };

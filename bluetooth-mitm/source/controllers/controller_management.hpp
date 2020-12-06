@@ -15,6 +15,8 @@
  */
 #pragma once
 #include <switch.h>
+#include <string>
+
 #include "switch_controller.hpp"
 #include "wii_controller.hpp"
 #include "dualshock4_controller.hpp"
@@ -71,7 +73,7 @@ namespace ams::controller {
 
     ControllerType Identify(const bluetooth::DevicesSettings *device);
     bool IsAllowedDevice(const bluetooth::DeviceClass *cod);
-    bool IsOfficialSwitchControllerName(const char *name, size_t size);
+    bool IsOfficialSwitchControllerName(const std::string& name);
     
     void AttachHandler(const bluetooth::Address *address);
     void RemoveHandler(const bluetooth::Address *address);
