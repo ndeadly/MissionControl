@@ -62,7 +62,7 @@ namespace ams::mitm::btm {
         return ams::ResultSuccess();
     }
 
-    Result BtmMitmService::GetDeviceInfo(sf::Out<btm::DeviceInfo> out) {
+    Result BtmMitmService::GetDeviceInfo(sf::Out<btm::DeviceInfoList> out) {
         auto device_info = reinterpret_cast<BtmDeviceInfoList *>(out.GetPointer());
         R_TRY(btmGetDeviceInfoFwd(this->forward_service.get(), device_info));
 
