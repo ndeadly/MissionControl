@@ -36,8 +36,8 @@ namespace ams::mitm::btm {
         BtmDeviceConditionV900 condition;
     };
 
-    struct DeviceInfo : sf::LargeData {
-        BtmDeviceInfo info;
+    struct DeviceInfoList : sf::LargeData {
+        BtmDeviceInfoList info;
     };
 
 }

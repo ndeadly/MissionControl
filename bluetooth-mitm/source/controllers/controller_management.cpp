@@ -24,6 +24,16 @@ namespace ams::controller {
 
     namespace {
 
+        const std::string official_npad_names[] = {
+            "Joy-Con",
+            "Pro Controller",
+            "Lic Pro Controller",
+            "NES Controller",
+            "HVC Controller",
+            "SNES Controller",
+            "NintendoGamepad",
+        };
+
         constexpr auto cod_major_peripheral  = 0x05;
         constexpr auto cod_minor_gamepad     = 0x08;
         constexpr auto cod_minor_joystick    = 0x04;
@@ -40,7 +50,7 @@ namespace ams::controller {
 
     ControllerType Identify(const bluetooth::DevicesSettings *device) {
 
-        if (IsOfficialSwitchControllerName(device->name, sizeof(device->name)))
+        if (IsOfficialSwitchControllerName(device->name))
             return ControllerType_Switch;
 
         for (auto hwId : WiiController::hardware_ids) {
@@ -148,20 +158,18 @@ namespace ams::controller {
         return ControllerType_Unknown;
     }
 
-    bool IsAllowedDevice(const bluetooth::DeviceClass *cod) {
+    bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod) {
         return ((cod->cod[1] & 0x0f) == cod_major_peripheral) &&
                (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick) || ((cod->cod[2] & 0x40) == cod_minor_keyboard));
     }
 
-    bool IsOfficialSwitchControllerName(const char *name, size_t size) {
-        return std::strncmp(name, "Joy-Con (L)",        size) == 0 ||
-               std::strncmp(name, "Joy-Con (R)",        size) == 0 ||
-               std::strncmp(name, "Pro Controller",     size) == 0 ||
-               std::strncmp(name, "Lic Pro Controller", size) == 0 ||
-               std::strncmp(name, "NES Controller",     size) == 0 ||
-               std::strncmp(name, "HVC Controller",     size) == 0 ||
-               std::strncmp(name, "SNES Controller",    size) == 0 ||
-               std::strncmp(name, "NintendoGamepad",    size) == 0 ;
+    bool IsOfficialSwitchControllerName(const std::string& name) {
+        for (auto n : official_npad_names) {
+            if (name.rfind(n, 0) == 0)
+                return true;
+        }
+
+        return false;
     }
 
     void AttachHandler(const bluetooth::Address *address) {

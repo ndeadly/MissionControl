@@ -26,7 +26,7 @@ namespace ams::mitm::btm {
         void RenameConnectedDevices(BtmConnectedDevice devices[], size_t count) {
             for (unsigned int i = 0; i < count; ++i) {
                 auto device = &devices[i];
-                if (!controller::IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
+                if (!controller::IsOfficialSwitchControllerName(device->name)) {
                     std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
                 }
             }
@@ -62,13 +62,13 @@ namespace ams::mitm::btm {
         return ams::ResultSuccess();
     }
 
-    Result BtmMitmService::GetDeviceInfo(sf::Out<btm::DeviceInfo> out) {
+    Result BtmMitmService::GetDeviceInfo(sf::Out<btm::DeviceInfoList> out) {
         auto device_info = reinterpret_cast<BtmDeviceInfoList *>(out.GetPointer());
         R_TRY(btmGetDeviceInfoFwd(this->forward_service.get(), device_info));
 
         for (unsigned int i = 0; i < device_info->total_entries; ++i) {
             auto device = &device_info->devices[i];
-            if (!controller::IsOfficialSwitchControllerName(device->name, sizeof(device->name))) {
+            if (!controller::IsOfficialSwitchControllerName(device->name)) {
                 std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
             }
         }

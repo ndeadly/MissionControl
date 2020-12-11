@@ -26,8 +26,8 @@ namespace ams::bluetooth::hid {
 
         std::atomic<bool> g_is_initialized(false);
 
-        os::Mutex    g_event_data_lock(false);
-        uint8_t      g_event_data_buffer[0x480];
+        os::Mutex    g_event_info_lock(false);
+        uint8_t      g_event_info_buffer[0x480];
         HidEventType g_current_event_type;
 
         os::SystemEventType g_system_event;
@@ -74,52 +74,52 @@ namespace ams::bluetooth::hid {
     }
 
     Result GetEventInfo(ncm::ProgramId program_id, HidEventType *type, uint8_t* buffer, size_t size) {
-        std::scoped_lock lk(g_event_data_lock);
+        std::scoped_lock lk(g_event_info_lock);
 
         *type = g_current_event_type;
-        std::memcpy(buffer, g_event_data_buffer, size);
+        std::memcpy(buffer, g_event_info_buffer, size);
 
         os::SignalEvent(&g_data_read_event);
 
         return ams::ResultSuccess();
     }
 
-    void handleConnectionStateEvent(HidEventData *event_data) {
-        switch (event_data->connection_state.state) {
-            case BluetoothHidConnectionState_Connected:
-                controller::AttachHandler(&event_data->connection_state.address);
+    void handleConnectionStateEvent(bluetooth::HidEventInfo *event_info) {
+        switch (event_info->connection_state.state) {
+            case BtdrvHidConnectionState_Connected:
+                controller::AttachHandler(&event_info->connection_state.address);
                 break;
-            case BluetoothHidConnectionState_Disconnected:
-                controller::RemoveHandler(&event_data->connection_state.address);
+            case BtdrvHidConnectionState_Disconnected:
+                controller::RemoveHandler(&event_info->connection_state.address);
                 break;
             default:
                 break;
         }
     }
 
-    void handleUnknown07Event(HidEventData *event_data) {
+    void handleUnknown07Event(bluetooth::HidEventInfo *event_info) {
         // Fix for xbox one disconnection. Don't know what this value is for, but it appears to be 0 for other controllers
         if (hos::GetVersion() < hos::Version_9_0_0)
-            event_data->unknown07._unk1 = 0;
+            event_info->type7.v1.unk_xC = 0;
         else
-            event_data->unknown07.v2._unk1 = 0;
+            event_info->type7.v9.unk_x4 = 0;
     }
 
     void HandleEvent(void) {
         {
-            std::scoped_lock lk(g_event_data_lock);
-            R_ABORT_UNLESS(btdrvGetHidEventInfo(g_event_data_buffer, sizeof(g_event_data_buffer), &g_current_event_type));
+            std::scoped_lock lk(g_event_info_lock);
+            R_ABORT_UNLESS(btdrvGetHidEventInfo(g_event_info_buffer, sizeof(g_event_info_buffer), &g_current_event_type));
         }
 
-        auto event_data = reinterpret_cast<HidEventData *>(g_event_data_buffer);
+        auto event_info = reinterpret_cast<bluetooth::HidEventInfo *>(g_event_info_buffer);
 
         switch (g_current_event_type) {
 
             case BtdrvHidEventType_ConnectionState:
-                handleConnectionStateEvent(event_data);
+                handleConnectionStateEvent(event_info);
                 break;
             case BtdrvHidEventType_Unknown7:
-                handleUnknown07Event(event_data);
+                handleUnknown07Event(event_info);
                 break;
             default:
                 break;
