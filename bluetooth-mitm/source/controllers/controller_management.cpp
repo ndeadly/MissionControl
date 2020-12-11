@@ -158,7 +158,7 @@ namespace ams::controller {
         return ControllerType_Unknown;
     }
 
-    bool IsAllowedDevice(const bluetooth::DeviceClass *cod) {
+    bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod) {
         return ((cod->cod[1] & 0x0f) == cod_major_peripheral) &&
                (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick) || ((cod->cod[2] & 0x40) == cod_minor_keyboard));
     }

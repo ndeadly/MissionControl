@@ -72,7 +72,7 @@ namespace ams::controller {
     };
 
     ControllerType Identify(const bluetooth::DevicesSettings *device);
-    bool IsAllowedDevice(const bluetooth::DeviceClass *cod);
+    bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod);
     bool IsOfficialSwitchControllerName(const std::string& name);
     
     void AttachHandler(const bluetooth::Address *address);
