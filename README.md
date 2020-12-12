@@ -59,7 +59,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for MissionControl to become active.
 
 ***IMPORTANT: 
-Atmosphère >= 0.16.0 is required to run the latest release of MissionControl. Using an older Atmosphère version will cause MissionControl to crash the system on boot.
+Atmosphère >= 0.16.1 is required to run the latest release of MissionControl. Using an older Atmosphère version will cause MissionControl to crash the system on boot.
 Users upgrading from version 0.1.0 of MissionControl are also advised to wipe their pairing database and re-pair controllers running the latest version. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
 
 ### Usage
@@ -75,13 +75,13 @@ Most native features *should* just work (with the exception of things like firmw
 ### Pairing controllers
 The supported controllers each have their own methods to enter pairing/sync mode. Below are instructions on entering this mode for each supported type.
 
-***Wii(U) Controllers***
+***Nintendo Wii(U) Controllers***
 Press the red sync button on the back of the controller. The controller LEDs will blink rapidly.
 
-***Dualshock4 Controllers***
+***Sony Dualshock4/Dualsense Controllers***
 Press and hold the `PS` + `share` buttons simultaneously until the lightbar starts blinking. When done correctly the blink pattern will resemble a heartbeat, otherwise it will blink periodically.
 
-***Xbox One Controllers***
+***Microsoft Xbox One Controllers***
 Press and hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
 You should also ensure your controller firmware is up to date, as old firmwares were known to have flakey bluetooth.
 
@@ -132,6 +132,9 @@ Below is a list of features I am currently working on or would like to look into
 
 ***Does this run on \<insert CFW here\>?***
 No. MissionControl will only run under Atmosphère. This is not an attempt to lock users of other cfw out, Atmosphere is simply the only one (currently) providing the extensions neccessary to MITM Bluetooth communications that make this sysmodule possible.
+
+***Will using this get me banned from online?***
+Currently there haven't been any confirmed cases of bans as a result of running MissionControl. That said, running any unofficial software under CFW will always carry a non-zero risk of ban, and Nintendo could change their ban criteria at any point. While this should be relatively safe, it would certainly be possible to detect that you had connected foreign controllers to the console if they were interested in doing do. Use at your own discretion.
 
 ***Does this support USB controllers?***
 No. MissionControl is Bluetooth-only for now.
