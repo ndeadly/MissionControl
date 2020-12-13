@@ -134,7 +134,7 @@ Below is a list of features I am currently working on or would like to look into
 No. MissionControl will only run under Atmosphère. This is not an attempt to lock users of other cfw out, Atmosphere is simply the only one (currently) providing the extensions neccessary to MITM Bluetooth communications that make this sysmodule possible.
 
 ***Will using this get me banned from online?***
-Currently there haven't been any confirmed cases of bans as a result of running MissionControl. That said, running any unofficial software under CFW will always carry a non-zero risk of ban, and Nintendo could change their ban criteria at any point. While this should be relatively safe, it would certainly be possible to detect that you had connected foreign controllers to the console if they were interested in doing do. Use at your own discretion.
+Currently there haven't been any confirmed cases of bans as a result of running MissionControl. That said, running any unofficial software under CFW will always carry a non-zero risk of ban, and Nintendo could change their ban criteria at any point. While this should be relatively safe, it would certainly be possible to detect that you had connected foreign controllers to the console if they were interested in doing so. Use at your own discretion.
 
 ***Does this support USB controllers?***
 No. MissionControl is Bluetooth-only for now.
