@@ -74,8 +74,6 @@ void __appInit(void) {
     });
 
     R_ABORT_UNLESS(fsdevMountSdmc());
-
-    ams::CheckApiVersion();
 }
 
 void __appExit(void) {
