@@ -21,15 +21,12 @@ namespace ams::controller {
 
     namespace {
         
-
         constexpr float stick_scale_factor = float(UINT12_MAX) / UINT16_MAX;
 
         constexpr uint8_t min_rumble_lf = 0x03;
         constexpr uint8_t max_rumble_lf = 0x5f;
         constexpr uint8_t min_rumble_hf = 0x10; //0x03;
         constexpr uint8_t max_rumble_hf = 0xbf; //0x7f;
-
-    }
 
     }
 
