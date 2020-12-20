@@ -21,7 +21,13 @@ namespace ams::controller {
 
     namespace {
         
+
         constexpr float stick_scale_factor = float(UINT12_MAX) / UINT16_MAX;
+
+        constexpr uint8_t min_rumble_lf = 0x03;
+        constexpr uint8_t max_rumble_lf = 0x5f;
+        constexpr uint8_t min_rumble_hf = 0x10; //0x03;
+        constexpr uint8_t max_rumble_hf = 0xbf; //0x7f;
 
     }
 
@@ -32,8 +38,8 @@ namespace ams::controller {
         s_output_report.size = sizeof(XboxOneOutputReport0x03) + 1;
         report->id = 0x03;
         report->output0x03.enable                = 0x3;
-        report->output0x03.magnitude_strong      = left->low_band_amp; //static_cast<uint8_t>(100 * 0.5 * (left->low_band_amp + left->high_band_amp) / UINT8_MAX);
-        report->output0x03.magnitude_weak        = left->high_band_amp; //static_cast<uint8_t>(100 * 0.5 * (left->high_band_amp + right->high_band_amp) / UINT8_MAX);
+        report->output0x03.magnitude_strong      = ScaleRumbleAmplitude(left->low_band_amp, min_rumble_lf, max_rumble_lf); //left->low_band_amp; //static_cast<uint8_t>(100 * 0.5 * (left->low_band_amp + left->high_band_amp) / UINT8_MAX);
+        report->output0x03.magnitude_weak        = ScaleRumbleAmplitude(left->high_band_amp, min_rumble_hf, max_rumble_hf); //left->high_band_amp; //static_cast<uint8_t>(100 * 0.5 * (left->high_band_amp + right->high_band_amp) / UINT8_MAX);
         report->output0x03.pulse_sustain_10ms    = 1;
         report->output0x03.pulse_release_10ms    = 0;
         report->output0x03.loop_count            = 0;

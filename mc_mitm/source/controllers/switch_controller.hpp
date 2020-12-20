@@ -93,10 +93,10 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct SwitchRumbleData {
-        uint16_t high_band_freq;
-        uint8_t  high_band_amp;
-        uint16_t low_band_freq;
-        uint8_t  low_band_amp;
+        float high_band_freq;
+        float high_band_amp;
+        float low_band_freq;
+        float low_band_amp;
     } __attribute__ ((__packed__));
 
     enum SubCmdType : uint8_t {
