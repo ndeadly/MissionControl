@@ -31,7 +31,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Ouya Controller__
 * __Gamestick Controller__
 * __Gembox Controller__
-* __Ipega Controllers (9017s, 9023, 9062S, 9076, 9078, 9087 9096 confirmed working. Others may also work)__
+* __Ipega Controllers (9017s, 9023, 9055, 9062S, 9076, 9078, 9087 9096 confirmed working. Others may also work)__
 * __Xiaomi Mi Controller__
 * __Steelseries Free__
 * __Steelseries Nimbus__
