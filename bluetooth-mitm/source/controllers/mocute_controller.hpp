@@ -73,13 +73,10 @@ namespace ams::controller {
         uint8_t right_trigger;
     } __attribute__ ((__packed__)); 
 
-    typedef MocuteInputReport0x01 MocuteInputReport0x04;
-
     struct MocuteReportData {
         uint8_t id;
         union {
             MocuteInputReport0x01 input0x01;
-            MocuteInputReport0x04 input0x04;
         };
     } __attribute__((packed));
 
@@ -96,8 +93,7 @@ namespace ams::controller {
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const MocuteReportData *src);
-            void HandleInputReport0x04(const MocuteReportData *src);
+            void HandleInputReport(const MocuteReportData *src);
 
     };
 
