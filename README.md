@@ -45,7 +45,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Mad-Catz C.T.R.L.R__
 * __Razer Serval__
 * __Mocute 050__
-
+* __Gen Game S3__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
@@ -131,19 +131,20 @@ Below is a list of features I am currently working on or would like to look into
 ### Frequently Asked Questions
 
 ***Does this run on \<insert CFW here\>?***
-No. MissionControl will only run under Atmosphère. This is not an attempt to lock users of other cfw out, Atmosphere is simply the only one (currently) providing the extensions neccessary to MITM Bluetooth communications that make this sysmodule possible.
+No. MissionControl will only run under Atmosphère. This is not some attempt to lock out users of other CFW, Atmosphere is simply the only one (currently) providing the extensions neccessary to MITM Bluetooth communications that make this sysmodule possible.
 
 ***Will using this get me banned from online?***
 Currently there haven't been any confirmed cases of bans as a result of running MissionControl. That said, running any unofficial software under CFW will always carry a non-zero risk of ban, and Nintendo could change their ban criteria at any point. While this should be relatively safe, it would certainly be possible to detect that you had connected foreign controllers to the console if they were interested in doing so. Use at your own discretion.
 
 ***Does this support USB controllers?***
-No. MissionControl is Bluetooth-only for now.
+No, MissionControl is currently Bluetooth-only. For now you can use cathery's [sys-con](https://github.com/cathery/sys-con) for USB controllers.
 
 ***Does this work with sys-con installed?***
-Yes, the two can be run simultaneously without stepping on each others toes.
+Yes, the two can be run simultaneously without issue.
 
 ***My console is crashing on boot because of this sysmodule. What can I do?***
-If you're seeing crashes on boot with title ID `010000000000bd00`, it is likely either you have updated recently to a new Atmosphere release and an update to MissionControl is required, or you are running an old version of Atmosphere which is not compatible with the latest version of MissionControl.
+If you're seeing crashes on boot with MissionControl's title ID (`010000000000bd00`), it is likely either you have updated recently to a new Atmosphere release and an update to MissionControl is required, or you are running an old version of Atmosphere which is not compatible with the latest version of MissionControl.
+qlaunch errors (title ID `0100000000001000`) can be a sign that you have too many custom sysmodules running and are depleting the limited system resources available to them. Check your `/atmosphere/contents` folder and verify you actually need everything in there. If you don't know what you're doing, it may be easier to just delete this folder entirely, reinstall atmosphere, and then explicitly reinstall only the sysmodules you need.
 
 ***How can I use this with multiple sysNAND/emuMMC launch configs?***
 Pairing controllers across multiple unique HOS installations requires multiple pairing databases and is essentially the same as pairing with two different consoles. The only exception being the case where you paired the controller(s) prior to making sysNAND copies. For now you will have to re-pair your controllers when switching back and forth. In the future I hope to include an option to load/store the database on the SD card to avoid this issue.
