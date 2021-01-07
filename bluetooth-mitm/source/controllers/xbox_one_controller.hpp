@@ -122,7 +122,6 @@ namespace ams::controller {
             XboxOneController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
-            Result Initialize(void);
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
