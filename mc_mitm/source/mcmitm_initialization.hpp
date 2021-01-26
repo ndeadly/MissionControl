@@ -14,17 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include <stratosphere.hpp>
 
-namespace ams::bluetooth::events {
+namespace ams::mitm {
 
-    enum BtdrvEventType {
-        BtdrvEventType_BluetoothCore,
-        BtdrvEventType_BluetoothHid,
-        BtdrvEventType_BluetoothBle,
-    };
-
-    Result Initialize(void);
-    void Finalize(void);
+    void StartInitialize(void);
 
 }

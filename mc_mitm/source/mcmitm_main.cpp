@@ -15,6 +15,7 @@
  */
 #include <switch.h>
 #include <stratosphere.hpp>
+#include "mcmitm_initialization.hpp"
 #include "bluetooth_mitm/bluetoothmitm_module.hpp"
 #include "btm_mitm/btmmitm_module.hpp"
 
@@ -100,6 +101,7 @@ void WaitModules(void) {
 }
 
 int main(int argc, char **argv) {
+    mitm::StartInitialize();
     LaunchModules();
     WaitModules();
     return 0;

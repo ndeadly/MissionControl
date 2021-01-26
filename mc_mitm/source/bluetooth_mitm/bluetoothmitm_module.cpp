@@ -15,7 +15,6 @@
  */
 #include "bluetoothmitm_module.hpp"
 #include "btdrv_mitm_service.hpp"
-#include "bluetooth/bluetooth_events.hpp"
 #include "../mcmitm_utils.hpp"
 #include <stratosphere.hpp>
 
@@ -63,7 +62,6 @@ namespace ams::mitm::bluetooth {
         s32 g_btdrv_mitm_thread_priority = utils::ConvertToUserPriority(17);
 
         void BtdrvMitmThreadFunction(void *arg) {
-            R_ABORT_UNLESS(ams::bluetooth::events::Initialize());
 
             R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtdrvMitmService>(PortIndex_BtdrvMitm, BtdrvMitmServiceName)));
             g_server_manager.LoopProcess();

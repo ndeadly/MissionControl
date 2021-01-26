@@ -15,6 +15,9 @@
  */
 #include <switch.h>
 #include "bluetooth_events.hpp"
+#include "bluetooth_core.hpp"
+#include "bluetooth_hid.hpp"
+#include "bluetooth_ble.hpp"
 
 namespace ams::bluetooth::events {
 
@@ -29,32 +32,6 @@ namespace ams::bluetooth::events {
         os::WaitableHolderType 	g_holder_bt_ble;
 
         void EventHandlerThreadFunc(void *arg) {
-
-            // Wait for all events to be initialised
-            while (!(core::IsInitialized() && hid::IsInitialized() && (ble::IsInitialized() || (hos::GetVersion() < hos::Version_5_0_0)))) {
-                svc::SleepThread(1'000'000ul);
-            }
-
-            // Initialise the btdrv service now that we can be sure the MITM is up and running
-            sm::DoWithSession([&]() {
-                R_ABORT_UNLESS(btdrvInitialize());
-            });
-
-            os::InitializeWaitableManager(&g_manager);
-
-            os::InitializeWaitableHolder(&g_holder_bt_core, core::GetSystemEvent());
-            os::SetWaitableHolderUserData(&g_holder_bt_core, BtdrvEventType_BluetoothCore);
-            os::LinkWaitableHolder(&g_manager, &g_holder_bt_core);
-
-            os::InitializeWaitableHolder(&g_holder_bt_hid, hid::GetSystemEvent());
-            os::SetWaitableHolderUserData(&g_holder_bt_hid, BtdrvEventType_BluetoothHid);
-            os::LinkWaitableHolder(&g_manager, &g_holder_bt_hid);
-
-            if (hos::GetVersion() >= hos::Version_5_0_0) {
-                os::InitializeWaitableHolder(&g_holder_bt_ble, ble::GetSystemEvent());
-                os::SetWaitableHolderUserData(&g_holder_bt_ble, BtdrvEventType_BluetoothBle);
-                os::LinkWaitableHolder(&g_manager, &g_holder_bt_ble);
-            }
 
             while (true) {
                 auto signalled_holder = os::WaitAny(&g_manager);
@@ -80,6 +57,22 @@ namespace ams::bluetooth::events {
     }
 
     Result Initialize(void) {
+
+        os::InitializeWaitableManager(&g_manager);
+
+        os::InitializeWaitableHolder(&g_holder_bt_core, core::GetSystemEvent());
+        os::SetWaitableHolderUserData(&g_holder_bt_core, BtdrvEventType_BluetoothCore);
+        os::LinkWaitableHolder(&g_manager, &g_holder_bt_core);
+
+        os::InitializeWaitableHolder(&g_holder_bt_hid, hid::GetSystemEvent());
+        os::SetWaitableHolderUserData(&g_holder_bt_hid, BtdrvEventType_BluetoothHid);
+        os::LinkWaitableHolder(&g_manager, &g_holder_bt_hid);
+
+        if (hos::GetVersion() >= hos::Version_5_0_0) {
+            os::InitializeWaitableHolder(&g_holder_bt_ble, ble::GetSystemEvent());
+            os::SetWaitableHolderUserData(&g_holder_bt_ble, BtdrvEventType_BluetoothBle);
+            os::LinkWaitableHolder(&g_manager, &g_holder_bt_ble);
+        }
 
         R_TRY(os::CreateThread(&g_event_handler_thread, 
             EventHandlerThreadFunc, 

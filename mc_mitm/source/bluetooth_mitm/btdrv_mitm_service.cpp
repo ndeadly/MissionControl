@@ -16,7 +16,9 @@
 #include "btdrv_mitm_service.hpp"
 #include "btdrv_mitm_flags.hpp"
 #include "btdrv_shim.h"
-#include "bluetooth/bluetooth_events.hpp"
+#include "bluetooth/bluetooth_core.hpp"
+#include "bluetooth/bluetooth_hid.hpp"
+#include "bluetooth/bluetooth_ble.hpp"
 #include "../controllers/controller_management.hpp"
 #include <switch.h>
 #include <cstring>
