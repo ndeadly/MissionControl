@@ -125,13 +125,15 @@ namespace ams::controller {
             };
 
             Dualshock4Controller(const bluetooth::Address *address)
-                : EmulatedSwitchController(address), m_led_colour({0, 0, 0}) { };
+                : EmulatedSwitchController(address), m_rumble_high(0), m_rumble_low(0), m_led_colour({0, 0, 0}) { };
             
             Result Initialize(void);
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(RGBColour colour);
             
             void UpdateControllerState(const bluetooth::HidReport *report);
+
+            Result HandleRumbleReport(const bluetooth::HidReport *report);
 
         private:
             void HandleInputReport0x01(const Dualshock4ReportData *src);
@@ -140,6 +142,9 @@ namespace ams::controller {
             void MapButtons(const Dualshock4ButtonData *buttons);
             
             Result PushRumbleLedState(void);
+
+            uint8_t m_rumble_high;
+            uint8_t m_rumble_low;
 
             RGBColour m_led_colour; 
     };

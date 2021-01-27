@@ -52,7 +52,14 @@ namespace ams::controller {
         RGBColour left_grip;
         RGBColour right_grip;
     } __attribute__ ((__packed__));
-        
+
+    struct SwitchRumbleData {
+        uint8_t high_freq;
+        uint8_t high_amp;
+        uint8_t low_freq;
+        uint8_t low_amp;
+    } __attribute__ ((__packed__));
+
     struct SwitchStickData {
         uint8_t xy[3];
     } __attribute__ ((__packed__));
@@ -129,7 +136,12 @@ namespace ams::controller {
 
     struct SwitchOutputReport0x01;
     struct SwitchOutputReport0x03;
-    struct SwitchOutputReport0x10;
+
+    struct SwitchOutputReport0x10 {
+        SwitchRumbleData left_rumble;
+        SwitchRumbleData right_rumble;
+    } __attribute__ ((__packed__));
+
     struct SwitchOutputReport0x11;
     struct SwitchOutputReport0x12;
 
@@ -169,7 +181,7 @@ namespace ams::controller {
         union {
             //SwitchOutputReport0x01 output0x01;
             //SwitchOutputReport0x03 output0x03;
-            //SwitchOutputReport0x10 output0x10;
+            SwitchOutputReport0x10 output0x10;
             //SwitchOutputReport0x11 output0x11;
             //SwitchOutputReport0x12 output0x12;
             SwitchInputReport0x21  input0x21;

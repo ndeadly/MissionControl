@@ -42,6 +42,8 @@ namespace ams::controller {
                 };
             }
 
+            virtual Result HandleRumbleReport(const bluetooth::HidReport *report) { return ams::ResultSuccess(); };
+
             Result HandleSubCmdReport(const bluetooth::HidReport *report);
             Result SubCmdRequestDeviceInfo(const bluetooth::HidReport *report);
             Result SubCmdSpiFlashRead(const bluetooth::HidReport *report);

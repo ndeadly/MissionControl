@@ -83,7 +83,8 @@ namespace ams::controller {
                 R_TRY(this->HandleSubCmdReport(report));
                 break;
             case 0x10:  // Rumble
-                // Todo: add rumble support
+                R_TRY(this->HandleRumbleReport(report));
+                break;
             default:
                 break;
         }

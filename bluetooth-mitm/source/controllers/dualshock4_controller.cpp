@@ -146,8 +146,18 @@ namespace ams::controller {
         m_buttons.home    = buttons->ps;
     }
 
+    Result Dualshock4Controller::HandleRumbleReport(const bluetooth::HidReport *report)
+    {
+        auto rumble_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        m_rumble_high = ((rumble_report->output0x10.left_rumble.high_amp & 0xfe) + (rumble_report->output0x10.right_rumble.high_amp & 0xfe)) / 2;
+        m_rumble_low  = ((rumble_report->output0x10.left_rumble.low_amp  - 0x40) + (rumble_report->output0x10.right_rumble.low_amp  - 0x40)) / 2;
+
+        return PushRumbleLedState();
+    }
+
     Result Dualshock4Controller::PushRumbleLedState(void) {
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 0x00, 0x00, m_led_colour.r, m_led_colour.g, m_led_colour.b};
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, m_rumble_high, m_rumble_low, m_led_colour.r, m_led_colour.g, m_led_colour.b};
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 
         s_output_report.size = sizeof(report) - 1;

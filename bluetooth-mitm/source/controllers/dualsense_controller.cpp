@@ -157,8 +157,18 @@ namespace ams::controller {
         m_buttons.home    = buttons->ps;
     }
 
+    Result DualsenseController::HandleRumbleReport(const bluetooth::HidReport *report)
+    {
+        auto rumble_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        m_rumble_high = ((rumble_report->output0x10.left_rumble.high_amp & 0xfe) + (rumble_report->output0x10.right_rumble.high_amp & 0xfe)) / 2;
+        m_rumble_low  = ((rumble_report->output0x10.left_rumble.low_amp  - 0x40) + (rumble_report->output0x10.right_rumble.low_amp  - 0x40)) / 2;
+
+        return PushRumbleLedState();
+    }
+
     Result DualsenseController::PushRumbleLedState(void) {
-        DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x00, 0x14};
+        DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x03, 0x14, m_rumble_high, m_rumble_low};
         report.data[41] = 0x02;
         report.data[44] = 0x02;
         report.data[46] = m_led_flags;
