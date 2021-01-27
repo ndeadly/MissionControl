@@ -56,18 +56,49 @@ namespace ams::controller {
         uint8_t counter    : 6;
     } __attribute__((packed));
 
+    struct DualsenseOutputReport0x31  {
+        struct {
+            uint8_t data[75];
+        };
+        uint32_t crc;
+    } __attribute__((packed));
+
     struct DualsenseInputReport0x01 {
-        DualsenseStickData     left_stick;
-        DualsenseStickData     right_stick;
-        DualsenseButtonData    buttons;
+        DualsenseStickData      left_stick;
+        DualsenseStickData      right_stick;
+        DualsenseButtonData     buttons;
         uint8_t                 left_trigger;
         uint8_t                 right_trigger;
+    } __attribute__((packed));
+
+    struct DualsenseInputReport0x31 {
+        uint8_t                 _unk0;
+        DualsenseStickData      left_stick;
+        DualsenseStickData      right_stick;
+        uint8_t                 left_trigger;
+        uint8_t                 right_trigger;
+        uint8_t                 counter;
+        DualsenseButtonData     buttons;
+        uint8_t                 _unk1[5];
+        uint16_t                vel_x;
+        uint16_t                vel_y;
+        uint16_t                vel_z;
+        uint16_t                acc_x;
+        uint16_t                acc_y;
+        uint16_t                acc_z;
+        uint8_t                 _unk2[25];
+
+        uint8_t battery_level    : 4;
+        uint8_t usb              : 1;
+        uint8_t full             : 1;
+        uint8_t                  : 0;
     } __attribute__((packed));
 
     struct DualsenseReportData {
         uint8_t id;
         union {
             DualsenseInputReport0x01 input0x01;
+            DualsenseInputReport0x31 input0x31;
         };
     } __attribute__((packed));
 
@@ -79,15 +110,23 @@ namespace ams::controller {
             };  
 
             DualsenseController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+                : EmulatedSwitchController(address), m_led_flags(0), m_led_colour({0, 0, 0}) { };
 
-            //Result Initialize(void);
+            Result Initialize(void);
+            Result SetPlayerLed(uint8_t led_mask);
+            Result SetLightbarColour(RGBColour colour);
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
             void HandleInputReport0x01(const DualsenseReportData *src);
+            void HandleInputReport0x31(const DualsenseReportData *src);
+
             void MapButtons(const DualsenseButtonData *buttons);
 
+            Result PushRumbleLedState(void);
+
+            uint8_t m_led_flags;
+            RGBColour m_led_colour;
     };
 }
