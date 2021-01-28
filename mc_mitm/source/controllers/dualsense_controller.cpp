@@ -22,6 +22,11 @@ namespace ams::controller {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
+        constexpr uint8_t min_rumble_lf = 0x01;
+        constexpr uint8_t max_rumble_lf = 0x5f;
+        constexpr uint8_t min_rumble_hf = 0x30;
+        constexpr uint8_t max_rumble_hf = 0xbf;
+
         const uint8_t player_led_flags[] = {
             // Mimic the Switch's player LEDs
             0x01,
@@ -54,6 +59,18 @@ namespace ams::controller {
         R_TRY(this->PushRumbleLedState());
 
         return ams::ResultSuccess();
+    }
+
+    Result DualsenseController::SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) {
+        m_rumble_state.amp_motor_left  = ScaleRumbleAmplitude(left->low_band_amp, min_rumble_lf, max_rumble_lf); //left->low_band_amp; //(left->low_band_amp + left->high_band_amp) >> 1;
+        m_rumble_state.amp_motor_right = ScaleRumbleAmplitude(left->high_band_amp, min_rumble_hf, max_rumble_hf); //(right->low_band_amp + right->high_band_amp) >> 1;
+        return this->PushRumbleLedState();
+    }
+
+    Result DualsenseController::CancelVibration(void) {
+        m_rumble_state.amp_motor_left = 0;
+        m_rumble_state.amp_motor_right = 0;
+        return this->PushRumbleLedState();
     }
 
     Result DualsenseController::SetPlayerLed(uint8_t led_mask) {
@@ -158,7 +175,7 @@ namespace ams::controller {
     }
 
     Result DualsenseController::PushRumbleLedState(void) {
-        DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x00, 0x14};
+        DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x03, 0x14, m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left};
         report.data[41] = 0x02;
         report.data[44] = 0x02;
         report.data[46] = m_led_flags;
