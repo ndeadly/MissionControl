@@ -86,9 +86,10 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0xffff, 0x046e},   // Gamesir-G3s
-                {0x05ac, 0x022d},   // Gamesir-G3s (Alternate mode. Lol, this is actually the ID of an Apple wireless keyboard)
-                {0xffff, 0x046f}    // Gamesir-G4s
+                {0xffff, 0x046e},   // Gamesir G3s
+                {0x05ac, 0x022d},   // Gamesir G3s (Alternate mode. Lol, this is actually the ID of an Apple wireless keyboard)
+                {0xffff, 0x046f},   // Gamesir G4s
+                {0xffff, 0x0450}    // Gamesir T1s
             };  
 
             GamesirController(const bluetooth::Address *address) 
