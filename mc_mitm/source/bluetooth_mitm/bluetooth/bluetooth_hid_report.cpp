@@ -17,7 +17,7 @@
 #include "bluetooth_circular_buffer.hpp"
 #include "../btdrv_shim.h"
 #include "../btdrv_mitm_flags.hpp"
-#include "../../bluetoothmitm_utils.hpp"
+#include "../../mcmitm_utils.hpp"
 #include "../../controllers/controller_management.hpp"
 #include <atomic>
 #include <mutex>

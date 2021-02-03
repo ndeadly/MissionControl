@@ -3,7 +3,7 @@
 .patches/
 tests/
 dist/
-bluetooth-mitm/build/
+mc_mitm/build/
 *.log
 *.elf
 *.nro
@@ -16,3 +16,4 @@ bluetooth-mitm/build/
 *.id2
 *.nam
 *.til
+*.orig

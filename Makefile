@@ -1,29 +1,29 @@
 PROJECT_NAME := MissionControl
-BLUETOOTH_MITM_TID := 010000000000bd00
+MC_MITM_TID := 010000000000bd00
 
-TARGETS := bluetooth-mitm
+TARGETS := mc_mitm
 
 all: $(TARGETS)
 
-bluetooth-mitm:
+mc_mitm:
 	$(MAKE) -C $@
 
 clean:
-	$(MAKE) -C bluetooth-mitm clean
+	$(MAKE) -C mc_mitm clean
 	rm -rf dist
 
 dist: all
 	rm -rf dist
 	
-	mkdir -p dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)
-	cp bluetooth-mitm/bluetooth-mitm.nsp dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/exefs.nsp
-	echo "btdrv" >> dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/mitm.lst
-	echo "btm" >> dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/mitm.lst
+	mkdir -p dist/atmosphere/contents/$(MC_MITM_TID)
+	cp mc_mitm/mc_mitm.nsp dist/atmosphere/contents/$(MC_MITM_TID)/exefs.nsp
+	echo "btdrv" >> dist/atmosphere/contents/$(MC_MITM_TID)/mitm.lst
+	echo "btm" >> dist/atmosphere/contents/$(MC_MITM_TID)/mitm.lst
 
-	mkdir -p dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags
-	touch dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/flags/boot2.flag
+	mkdir -p dist/atmosphere/contents/$(MC_MITM_TID)/flags
+	touch dist/atmosphere/contents/$(MC_MITM_TID)/flags/boot2.flag
 	
-	cp bluetooth-mitm/toolbox.json dist/atmosphere/contents/$(BLUETOOTH_MITM_TID)/toolbox.json
+	cp mc_mitm/toolbox.json dist/atmosphere/contents/$(MC_MITM_TID)/toolbox.json
 	
 	cp -r exefs_patches dist/atmosphere/
 	
