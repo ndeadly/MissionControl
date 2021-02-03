@@ -17,7 +17,7 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
-namespace ams::mitm::btm {
+namespace ams::btm {
 
     struct DeviceConditionV100 : sf::LargeData {
         BtmDeviceConditionV100 condition;

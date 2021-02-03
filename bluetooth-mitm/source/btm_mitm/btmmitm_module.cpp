@@ -17,13 +17,17 @@
 #include "btm_mitm_service.hpp"
 #include "../bluetoothmitm_utils.hpp"
 #include <stratosphere.hpp>
-#include <memory>
 
 namespace ams::mitm::btm {
 
     namespace {
 
-        constexpr sm::ServiceName MitmServiceName = sm::ServiceName::Encode("btm");
+        enum PortIndex {
+            PortIndex_BtmMitm,
+            PortIndex_Count,
+        };
+
+        constexpr sm::ServiceName BtmMitmServiceName = sm::ServiceName::Encode("btm");
 
         struct ServerOptions {
             static constexpr size_t PointerBufferSize = 0x1000;
@@ -31,17 +35,35 @@ namespace ams::mitm::btm {
             static constexpr size_t MaxDomainObjects = 0;
         };
 
-        constexpr size_t MaxServers = 1;
         constexpr size_t MaxSessions = 6;
+
+        class ServerManager final : public sf::hipc::ServerManager<PortIndex_Count, ServerOptions, MaxSessions> {
+            private:
+                virtual Result OnNeedsToAccept(int port_index, Server *server) override;
+        };
+
+        ServerManager g_server_manager;
+
+        Result ServerManager::OnNeedsToAccept(int port_index, Server *server) {
+            /* Acknowledge the mitm session. */
+            std::shared_ptr<::Service> fsrv;
+            sm::MitmProcessInfo client_info;
+            server->AcknowledgeMitmSession(std::addressof(fsrv), std::addressof(client_info));
+
+            switch (port_index) {
+                case PortIndex_BtmMitm:
+                    return this->AcceptMitmImpl(server, sf::CreateSharedObjectEmplaced<IBtmMitmInterface, BtmMitmService>(decltype(fsrv)(fsrv), client_info), fsrv);
+                AMS_UNREACHABLE_DEFAULT_CASE();
+            }
+        }
 
         os::ThreadType g_btm_mitm_thread;
         alignas(os::ThreadStackAlignment) u8 g_btm_mitm_thread_stack[0x2000];
         s32 g_btm_mitm_thread_priority = utils::ConvertToUserPriority(37);
 
         void BtmMitmThreadFunction(void *arg) {
-            auto server_manager = std::make_unique<sf::hipc::ServerManager<MaxServers, ServerOptions, MaxSessions>>();
-            R_ABORT_UNLESS((server_manager->RegisterMitmServer<ams::mitm::btm::IBtmMitmInterface, ams::mitm::btm::BtmMitmService>(MitmServiceName)));
-            server_manager->LoopProcess();
+            R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtmMitmService>(PortIndex_BtmMitm, BtmMitmServiceName)));
+            g_server_manager.LoopProcess();
         }
 
     }

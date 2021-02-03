@@ -33,35 +33,35 @@ namespace ams::mitm::btm {
 
     }
 
-    Result BtmMitmService::GetDeviceConditionDeprecated1(sf::Out<DeviceConditionV100> out) {
+    Result BtmMitmService::GetDeviceConditionDeprecated1(sf::Out<ams::btm::DeviceConditionV100> out) {
         auto device_condition = reinterpret_cast<BtmDeviceConditionV100 *>(out.GetPointer());
         R_TRY(btmGetDeviceConditionDeprecated1Fwd(this->forward_service.get(), device_condition));
         RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
         return ams::ResultSuccess();
     }
 
-    Result BtmMitmService::GetDeviceConditionDeprecated2(sf::Out<DeviceConditionV510> out) {
+    Result BtmMitmService::GetDeviceConditionDeprecated2(sf::Out<ams::btm::DeviceConditionV510> out) {
         auto device_condition = reinterpret_cast<BtmDeviceConditionV510 *>(out.GetPointer());
         R_TRY(btmGetDeviceConditionDeprecated2Fwd(this->forward_service.get(), device_condition));
         RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
         return ams::ResultSuccess();
     }
 
-    Result BtmMitmService::GetDeviceConditionDeprecated3(sf::Out<DeviceConditionV800> out) {
+    Result BtmMitmService::GetDeviceConditionDeprecated3(sf::Out<ams::btm::DeviceConditionV800> out) {
         auto device_condition = reinterpret_cast<BtmDeviceConditionV800 *>(out.GetPointer());
         R_TRY(btmGetDeviceConditionDeprecated1Fwd(this->forward_service.get(), device_condition));
         RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
         return ams::ResultSuccess();
     }
 
-    Result BtmMitmService::GetDeviceCondition(sf::Out<btm::DeviceCondition> out) {
+    Result BtmMitmService::GetDeviceCondition(sf::Out<ams::btm::DeviceCondition> out) {
         auto device_condition = reinterpret_cast<BtmDeviceConditionV900 *>(out.GetPointer());
         R_TRY(btmGetDeviceConditionFwd(this->forward_service.get(), device_condition));
         RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
         return ams::ResultSuccess();
     }
 
-    Result BtmMitmService::GetDeviceInfo(sf::Out<btm::DeviceInfoList> out) {
+    Result BtmMitmService::GetDeviceInfo(sf::Out<ams::btm::DeviceInfoList> out) {
         auto device_info = reinterpret_cast<BtmDeviceInfoList *>(out.GetPointer());
         R_TRY(btmGetDeviceInfoFwd(this->forward_service.get(), device_info));
 
