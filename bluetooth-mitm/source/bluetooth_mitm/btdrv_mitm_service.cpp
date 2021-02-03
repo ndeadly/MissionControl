@@ -21,7 +21,7 @@
 #include <switch.h>
 #include <cstring>
 
-namespace ams::mitm::btdrv {
+namespace ams::mitm::bluetooth {
 
     Result BtdrvMitmService::InitializeBluetooth(sf::OutCopyHandle out_handle) {
         if (!ams::bluetooth::core::IsInitialized()) {

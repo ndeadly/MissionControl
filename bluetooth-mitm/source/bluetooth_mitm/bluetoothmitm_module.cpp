@@ -13,13 +13,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "btdrvmitm_module.hpp"
+#include "bluetoothmitm_module.hpp"
 #include "btdrv_mitm_service.hpp"
 #include "bluetooth/bluetooth_events.hpp"
 #include "../bluetoothmitm_utils.hpp"
 #include <stratosphere.hpp>
 
-namespace ams::mitm::btdrv {
+namespace ams::mitm::bluetooth {
 
     namespace {
 

@@ -16,7 +16,7 @@
 #pragma once
 #include <stratosphere.hpp>
 
-namespace ams::mitm::btdrv {
+namespace ams::mitm::bluetooth {
 
     Result Launch(void);
     void WaitFinished(void);

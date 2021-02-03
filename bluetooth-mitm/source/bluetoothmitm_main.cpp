@@ -15,7 +15,7 @@
  */
 #include <switch.h>
 #include <stratosphere.hpp>
-#include "btdrv_mitm/btdrvmitm_module.hpp"
+#include "bluetooth_mitm/bluetoothmitm_module.hpp"
 #include "btm_mitm/btmmitm_module.hpp"
 
 extern "C" {
@@ -90,14 +90,14 @@ void __libnx_exception_handler(ThreadExceptionDump* ctx) {
 }
 
 ams::Result LaunchModules(void) {
-    R_TRY(ams::mitm::btdrv::Launch());
+    R_TRY(ams::mitm::bluetooth::Launch());
     R_TRY(ams::mitm::btm::Launch());
     return ams::ResultSuccess();
 }
 
 void WaitModules(void) {
     ams::mitm::btm::WaitFinished();
-    ams::mitm::btdrv::WaitFinished();
+    ams::mitm::bluetooth::WaitFinished();
 }
 
 int main(int argc, char **argv) {

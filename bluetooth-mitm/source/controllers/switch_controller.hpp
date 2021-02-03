@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include "../btdrv_mitm/bluetooth/bluetooth_types.hpp"
-#include "../btdrv_mitm/bluetooth/bluetooth_hid_report.hpp"
+#include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
+#include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 
 namespace ams::controller {
 

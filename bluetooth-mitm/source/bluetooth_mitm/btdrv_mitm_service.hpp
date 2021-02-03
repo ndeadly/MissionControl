@@ -41,9 +41,9 @@
     AMS_SF_METHOD_INFO(C, H, 65004, void,   RedirectHidReportEvents,          (bool redirect),                                                                          (redirect))                                                     \
     AMS_SF_METHOD_INFO(C, H, 65005, void,   RedirectBleEvents,                (bool redirect),                                                                          (redirect))                                                     \
     
-AMS_SF_DEFINE_MITM_INTERFACE(ams::mitm::btdrv, IBtdrvMitmInterface, AMS_BTDRV_MITM_INTERFACE_INFO)
+AMS_SF_DEFINE_MITM_INTERFACE(ams::mitm::bluetooth, IBtdrvMitmInterface, AMS_BTDRV_MITM_INTERFACE_INFO)
 
-namespace ams::mitm::btdrv {
+namespace ams::mitm::bluetooth {
 
     class BtdrvMitmService : public sf::MitmServiceImplBase {
 
