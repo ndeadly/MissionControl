@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------------------
 # pull in common stratosphere sysmodule configuration
 #---------------------------------------------------------------------------------
-include $(dir $(abspath $(lastword $(MAKEFILE_LIST))))/../Atmosphere-libs/config/templates/stratosphere.mk
+include $(dir $(abspath $(lastword $(MAKEFILE_LIST))))/../lib/Atmosphere-libs/config/templates/stratosphere.mk
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

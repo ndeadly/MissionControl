@@ -16,7 +16,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * Low input lag.
 * Make use of native HOS menus for controller pairing, button remapping (firmware 10.0.0+) etc.
 * Supports all Switch firmware versions
-* `btdrv-mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system. 
+* `btdrv.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system. 
 
 ### Supported Controllers
 
@@ -164,9 +164,9 @@ No. The bluetooth module on the switch only implements a small set of services r
 
 MissionControl works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating incoming/outgoing data to convince the Switch that it's communicating with an official Pro Controller.
 
-To achieve this, the `btdrv-mitm` module obtains the handles to `bluetooth` system events and shared memory when the system attempts to initialise them over IPC via the `btm` and `hid` modules. It then creates its own secondary versions of these and passes their handles on instead of the original. This allows modifications to be made to any data buffers before notifying (or not) the system. Additionally, the `WriteHidData` IPC command is intercepted to translate or drop outgoing requests to the controller. In the case of the latter, fake responses can be written directly to the buffer in shared memory.
+To achieve this, the `btdrv.mitm` module obtains the handles to `bluetooth` system events and shared memory when the system attempts to initialise them over IPC via the `btm` and `hid` modules. It then creates its own secondary versions of these and passes their handles on instead of the original. This allows modifications to be made to any data buffers before notifying (or not) the system. Additionally, the `WriteHidData` IPC command is intercepted to translate or drop outgoing requests to the controller. In the case of the latter, fake responses can be written directly to the buffer in shared memory.
 
-Intercepting initialisation IPC commands also allows homebrew to properly make use of the `bluetooth` service. Normally, calling any of the IPC commands that would initialise or finalise system events would either crash the console, or invalidate the event handles held by system processes. With `btdrv-mitm` we are able to hand out alternative event handles when homebrew attempts to initialise an interface, and redirect the real system events to those instead of the events held by system processes.
+Intercepting initialisation IPC commands also allows homebrew to properly make use of the `bluetooth` service. Normally, calling any of the IPC commands that would initialise or finalise system events would either crash the console, or invalidate the event handles held by system processes. With `btdrv.mitm` we are able to hand out alternative event handles when homebrew attempts to initialise an interface, and redirect the real system events to those instead of the events held by system processes.
 
 IPS patches to the `bluetooth` module are provided to (re)enable the passing of abitrary pincodes when Bluetooth legacy pairing is used (Nintendo hardcodes a value of `'0000'`, ignoring IPC arguments). This enables Wii(U) devices to be paired with the console.
 
@@ -183,7 +183,7 @@ cd MissionControl
 MissionControl currently uses a custom fork of `libnx` that adds Bluetooth service wrappers and type definitions. This needs to be built and installed first
 
 ```
-cd libnx
+cd lib/libnx
 make && make install
 ```
 
@@ -193,9 +193,9 @@ cd ../Atmosphere-libs
 make
 ```
 
-Finally, build and package the distribution .zip. This will build `bluetooth-mitm` and package it up with bluetooth exefs patches. 
+Finally, build and package the distribution .zip. This will build the `mc.mitm` sysmodule and package it up with bluetooth exefs patches. 
 ```
-cd ..
+cd ../..
 make dist
 ```
 
