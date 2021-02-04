@@ -89,10 +89,9 @@ void __libnx_exception_handler(ThreadExceptionDump* ctx) {
     ams::CrashHandler(ctx);
 }
 
-ams::Result LaunchModules(void) {
-    R_TRY(ams::mitm::bluetooth::Launch());
-    R_TRY(ams::mitm::btm::Launch());
-    return ams::ResultSuccess();
+void LaunchModules(void) {
+    R_ABORT_UNLESS(ams::mitm::bluetooth::Launch());
+    R_ABORT_UNLESS(ams::mitm::btm::Launch());
 }
 
 void WaitModules(void) {
@@ -101,8 +100,7 @@ void WaitModules(void) {
 }
 
 int main(int argc, char **argv) {
-    R_ABORT_UNLESS(LaunchModules());
+    LaunchModules();
     WaitModules();
-    
     return 0;
 }
