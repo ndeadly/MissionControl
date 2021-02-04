@@ -1,8 +1,8 @@
 {
-	"name": "mc.mitm",
-	"title_id": "0x010000000000bd00",
-	"title_id_range_min": "0x010000000000bd00",
-	"title_id_range_max": "0x010000000000bd00",
+    "name": "mc.mitm",
+    "title_id": "0x010000000000bd00",
+    "title_id_range_min": "0x010000000000bd00",
+    "title_id_range_max": "0x010000000000bd00",
     "main_thread_stack_size": "0x1000",
     "main_thread_priority": 42,
     "default_cpu_id": 3,
@@ -11,6 +11,8 @@
     "pool_partition": 2,
     "is_64_bit": true,
     "address_space_type": 3,
+    "system_resource_size": "0",
+    "disable_device_address_space_merge": true,
     "filesystem_access": {
         "permissions": "0xFFFFFFFFFFFFFFFF"
     },
