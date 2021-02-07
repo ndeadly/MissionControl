@@ -18,58 +18,121 @@
 
 namespace ams::controller {
 
-    enum EightBitDoDPadDirection : uint16_t {
-        EightBitDoDPad_Released = 0x0000,
-        EightBitDoDPad_N        = 0x0052,
-        EightBitDoDPad_NE       = 0x524f,
-        EightBitDoDPad_E        = 0x004f,
-        EightBitDoDPad_SE       = 0x4f51,
-        EightBitDoDPad_S        = 0x0051,
-        EightBitDoDPad_SW       = 0x5150,
-        EightBitDoDPad_W        = 0x0050,   
-        EightBitDoDPad_NW       = 0x5250,     
+    enum EightBitDoReportFormat {
+        EightBitDoReportFormat_ZeroV1,
+        EightBitDoReportFormat_ZeroV2,
+        EightBitDoReportFormat_Other
     };
 
-    struct EightBitDoStickData {
+    enum EightBitDoDPadDirectionV1 : uint16_t {
+        EightBitDoDPadV1_Released = 0x0000,
+        EightBitDoDPadV1_N        = 0x0052,
+        EightBitDoDPadV1_NE       = 0x524f,
+        EightBitDoDPadV1_E        = 0x004f,
+        EightBitDoDPadV1_SE       = 0x4f51,
+        EightBitDoDPadV1_S        = 0x0051,
+        EightBitDoDPadV1_SW       = 0x5150,
+        EightBitDoDPadV1_W        = 0x0050,   
+        EightBitDoDPadV1_NW       = 0x5250,     
+    };
+
+    enum EightBitDoDPadDirectionV2 {
+        EightBitDoDPadV2_N,
+        EightBitDoDPadV2_NE,
+        EightBitDoDPadV2_E,
+        EightBitDoDPadV2_SE,
+        EightBitDoDPadV2_S,
+        EightBitDoDPadV2_SW,
+        EightBitDoDPadV2_W,
+        EightBitDoDPadV2_NW,
+        EightBitDoDPadV2_Released
+    };
+
+    struct EightBitDoStickData8 {
         uint8_t x;
         uint8_t y;
     } __attribute__((packed));
 
-    struct EightBitDoButtonData {
+    struct EightBitDoStickData16 {
+        uint16_t x;
+        uint16_t y;
+    } __attribute__((packed));
+
+    struct EightBitDoButtonDataV1 {
         uint8_t A       : 1;
         uint8_t B       : 1;
         uint8_t         : 1;
         uint8_t X       : 1;
         uint8_t Y       : 1;
         uint8_t         : 1;
-        uint8_t L       : 1;
-        uint8_t R       : 1;
+        uint8_t L1      : 1;
+        uint8_t R1      : 1;
 
         uint8_t         : 2;
         uint8_t select  : 1;
         uint8_t start   : 1;
-        uint8_t         : 0;
+		uint8_t			: 0;
     }__attribute__((packed));
 
-    struct EightBitDoInputReport0x01 {
+    struct EightBitDoButtonDataV2 {
+        uint8_t A       : 1;
+        uint8_t B       : 1;
+        uint8_t         : 1;
+        uint8_t X       : 1;
+        uint8_t Y       : 1;
+        uint8_t         : 1;
+        uint8_t L1      : 1;
+        uint8_t R1      : 1;
+
+        uint8_t select  : 1;
+        uint8_t         : 2;
+        uint8_t start   : 1;
+        uint8_t home    : 1;
+        uint8_t L3		: 1;
+		uint8_t R3		: 1;
+		uint8_t			: 1;
+
+        uint8_t dpad;
+    }__attribute__((packed));
+
+    struct EightBitDoInputReport0x01V1 {
         uint8_t _unk0[2];
         uint16_t dpad;
         uint8_t _unk1[4];
     } __attribute__((packed));
 
-    struct EightBitDoInputReport0x03 {
+    struct EightBitDoInputReport0x01V2 {
+        EightBitDoButtonDataV2 buttons;
+        EightBitDoStickData16 left_stick;
+        EightBitDoStickData16 right_stick;
+        uint8_t left_trigger;
+        uint8_t right_trigger;
+        uint8_t _unk0;
+    } __attribute__((packed));
+
+    struct EightBitDoInputReport0x03V1 {
         uint8_t dpad;
-        EightBitDoStickData left_stick;
-        EightBitDoStickData right_stick;
+        EightBitDoStickData8 left_stick;
+        EightBitDoStickData8 right_stick;
+        uint8_t _unk[3];
+        EightBitDoButtonDataV1 buttons;
+    } __attribute__((packed));
+
+    struct EightBitDoInputReport0x03V2 {
+        uint8_t dpad;
+        EightBitDoStickData8 left_stick;
+        EightBitDoStickData8 right_stick;
         uint8_t _unk[2];
-        EightBitDoButtonData buttons;
+        EightBitDoButtonDataV1 buttons;
     } __attribute__((packed));
 
     struct EightBitDoReportData{
         uint8_t id;
         union {
-            EightBitDoInputReport0x01 input0x01;
-            EightBitDoInputReport0x03 input0x03;
+            EightBitDoInputReport0x01V1 input0x01_v1;
+            EightBitDoInputReport0x01V2 input0x01_v2;
+            EightBitDoInputReport0x03V1 input0x03_v1;
+            EightBitDoInputReport0x03V2 input0x03_v2;
         };
     } __attribute__((packed));
 
@@ -77,7 +140,8 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x05a0, 0x3232}    // 8BitDo Zero
+                {0x05a0, 0x3232}, // 8BitDo Zero
+                {0x2dc8, 0x2100}  // 8BitDo SN30 Pro for Xbox Cloud Gaming
             };  
 
             EightBitDoController(const bluetooth::Address *address) 
@@ -86,10 +150,9 @@ namespace ams::controller {
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const EightBitDoReportData *src);
-            void HandleInputReport0x03(const EightBitDoReportData *src);
+            void HandleInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
+            void HandleInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat);
 
     };
-
 
 }
