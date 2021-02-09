@@ -87,11 +87,11 @@ namespace ams::bluetooth::hid {
     void SignalFakeEvent(HidEventType type, const void *data, size_t size) {
         g_current_event_type = type;
         std::memcpy(g_event_info_buffer, data, size);
-        
+
         os::SignalSystemEvent(&g_system_event_fwd);
     }
 
-    void handleConnectionStateEvent(bluetooth::HidEventInfo *event_info) {
+    void HandleConnectionStateEvent(bluetooth::HidEventInfo *event_info) {
         switch (event_info->connection_state.state) {
             case BtdrvHidConnectionState_Connected:
                 controller::AttachHandler(&event_info->connection_state.address);
@@ -104,13 +104,9 @@ namespace ams::bluetooth::hid {
         }
     }
 
-    void handleUnknown07Event(bluetooth::HidEventInfo *event_info) {
-        // Fix for xbox one disconnection. Don't know what this value is for, but it appears to be 0 for other controllers
-        if (hos::GetVersion() < hos::Version_9_0_0)
-            event_info->type7.v1.unk_xC = 0;
-        else
-            event_info->type7.v9.unk_x4 = 0;
-    }
+    // void HandleUnknown07Event(bluetooth::HidEventInfo *event_info) {
+    //     ;
+    // }
 
     void HandleEvent(void) {
         {
@@ -121,12 +117,11 @@ namespace ams::bluetooth::hid {
         auto event_info = reinterpret_cast<bluetooth::HidEventInfo *>(g_event_info_buffer);
 
         switch (g_current_event_type) {
-
             case BtdrvHidEventType_ConnectionState:
-                handleConnectionStateEvent(event_info);
+                HandleConnectionStateEvent(event_info);
                 break;
             case BtdrvHidEventType_Unknown7:
-                handleUnknown07Event(event_info);
+                //HandleUnknown07Event(event_info);
                 break;
             default:
                 break;
