@@ -108,7 +108,32 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::SetTsi(ams::bluetooth::Address address, u8 tsi) {
-        return sm::mitm::ResultShouldForwardToSession();
+        auto device = controller::LocateHandler(&address);
+        if (!device || device->IsOfficialController())
+            return sm::mitm::ResultShouldForwardToSession();
+
+        if (hos::GetVersion() < hos::Version_9_0_0) {
+            const struct {
+                uint32_t type;
+                ams::bluetooth::Address address;
+                uint8_t pad[2];
+                uint32_t status;
+            } event_data = {tsi == 0xff ? 1u : 0u, address, {0, 0}, 0};
+
+            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventType_Unknown7, &event_data, sizeof(event_data));
+        }
+        else {
+            const struct {
+                uint32_t type;
+                uint32_t status;
+                ams::bluetooth::Address address;
+                uint8_t pad[2];
+            } event_data = {tsi == 0xff ? 1u : 0u, 0, address, {0, 0}};
+
+            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventType_Unknown7, &event_data, sizeof(event_data));
+        }
+
+        return ams::ResultSuccess();
     }
 
     /* 1.0.0 - 3.0.2 */
