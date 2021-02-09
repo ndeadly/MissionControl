@@ -84,6 +84,13 @@ namespace ams::bluetooth::hid {
         return ams::ResultSuccess();
     }
 
+    void SignalFakeEvent(HidEventType type, const void *data, size_t size) {
+        g_current_event_type = type;
+        std::memcpy(g_event_info_buffer, data, size);
+        
+        os::SignalSystemEvent(&g_system_event_fwd);
+    }
+
     void handleConnectionStateEvent(bluetooth::HidEventInfo *event_info) {
         switch (event_info->connection_state.state) {
             case BtdrvHidConnectionState_Connected:
