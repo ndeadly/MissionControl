@@ -199,6 +199,8 @@ namespace ams::controller {
 
             const bluetooth::Address& Address(void) const { return m_address; };
 
+            virtual bool IsOfficialController(void) { return true; };
+
             virtual Result Initialize(void) { return ams::ResultSuccess(); };
             virtual Result HandleIncomingReport(const bluetooth::HidReport *report);
             virtual Result HandleOutgoingReport(const bluetooth::HidReport *report);
