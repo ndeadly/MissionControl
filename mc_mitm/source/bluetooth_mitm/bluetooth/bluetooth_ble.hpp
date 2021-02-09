@@ -30,7 +30,7 @@ namespace ams::bluetooth::ble {
     Result Initialize(Handle event_handle);
     void Finalize(void);
 
-    Result GetEventInfo(ncm::ProgramId program_id, BleEventType *type, uint8_t* buffer, size_t size);
+    Result GetEventInfo(BleEventType *type, uint8_t* buffer, size_t size);
     void HandleEvent(void);
     
 }

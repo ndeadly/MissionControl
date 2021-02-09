@@ -61,8 +61,9 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        R_TRY(ams::bluetooth::core::GetEventInfo(this->client_info.program_id,
-            out_type.GetPointer(),
+        R_UNLESS(this->client_info.program_id == ncm::SystemProgramId::Btm, sm::mitm::ResultShouldForwardToSession());
+        
+        R_TRY(ams::bluetooth::core::GetEventInfo(out_type.GetPointer(),
             static_cast<uint8_t *>(out_buffer.GetPointer()), 
             static_cast<size_t>(out_buffer.GetSize())
         ));
@@ -111,8 +112,7 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::GetHidEventInfo(sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        R_TRY(ams::bluetooth::hid::GetEventInfo(this->client_info.program_id,
-            out_type.GetPointer(), 
+        R_TRY(ams::bluetooth::hid::GetEventInfo(out_type.GetPointer(), 
             static_cast<uint8_t *>(out_buffer.GetPointer()),
             static_cast<size_t>(out_buffer.GetSize())
         ));
@@ -227,8 +227,7 @@ namespace ams::mitm::bluetooth {
     }
     
     Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<ams::bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {        
-        R_TRY(ams::bluetooth::ble::GetEventInfo(this->client_info.program_id,
-            out_type.GetPointer(), 
+        R_TRY(ams::bluetooth::ble::GetEventInfo(out_type.GetPointer(), 
             static_cast<uint8_t *>(out_buffer.GetPointer()),
             static_cast<size_t>(out_buffer.GetSize())
         ));

@@ -76,33 +76,32 @@ namespace ams::bluetooth::core {
         ;
     }
 
-    Result GetEventInfo(ncm::ProgramId program_id, EventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(EventType *type, uint8_t* buffer, size_t size) {
         std::scoped_lock lk(g_event_info_lock);
 
         *type = g_current_event_type;
         std::memcpy(buffer, g_event_info_buffer, size);
 
         auto event_info = reinterpret_cast<bluetooth::EventInfo *>(buffer);
-        if (program_id == ncm::SystemProgramId::Btm) {
-            switch (g_current_event_type) {
-                case BtdrvEventType_DeviceFound:
-                    if (controller::IsAllowedDeviceClass(&event_info->device_found.cod) && !controller::IsOfficialSwitchControllerName(event_info->device_found.name)) {
-                        std::strncpy(event_info->device_found.name, controller::pro_controller_name, sizeof(event_info->device_found.name) - 1);
-                    }
-                    break;
-                case BtdrvEventType_PinRequest:
-                    if (!controller::IsOfficialSwitchControllerName(event_info->pin_reply.name)) {
-                        std::strncpy(event_info->pin_reply.name, controller::pro_controller_name, sizeof(event_info->pin_reply.name) - 1);
-                    }
-                    break;
-                case BtdrvEventType_SspRequest:
-                    if (!controller::IsOfficialSwitchControllerName(event_info->ssp_reply.name)) {
-                        std::strncpy(event_info->ssp_reply.name, controller::pro_controller_name, sizeof(event_info->ssp_reply.name) - 1);
-                    }
-                    break;
-                default:
-                    break;
-            }
+
+        switch (g_current_event_type) {
+            case BtdrvEventType_DeviceFound:
+                if (controller::IsAllowedDeviceClass(&event_info->device_found.cod) && !controller::IsOfficialSwitchControllerName(event_info->device_found.name)) {
+                    std::strncpy(event_info->device_found.name, controller::pro_controller_name, sizeof(event_info->device_found.name) - 1);
+                }
+                break;
+            case BtdrvEventType_PinRequest:
+                if (!controller::IsOfficialSwitchControllerName(event_info->pin_reply.name)) {
+                    std::strncpy(event_info->pin_reply.name, controller::pro_controller_name, sizeof(event_info->pin_reply.name) - 1);
+                }
+                break;
+            case BtdrvEventType_SspRequest:
+                if (!controller::IsOfficialSwitchControllerName(event_info->ssp_reply.name)) {
+                    std::strncpy(event_info->ssp_reply.name, controller::pro_controller_name, sizeof(event_info->ssp_reply.name) - 1);
+                }
+                break;
+            default:
+                break;
         }
 
         g_data_read_event.Signal();

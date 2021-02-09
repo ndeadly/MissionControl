@@ -65,7 +65,7 @@ namespace ams::bluetooth::ble {
         ;
     }
 
-    Result GetEventInfo(ncm::ProgramId program_id, BleEventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(BleEventType *type, uint8_t* buffer, size_t size) {
         std::scoped_lock lk(g_event_data_lock); 
 
         *type = g_current_event_type;

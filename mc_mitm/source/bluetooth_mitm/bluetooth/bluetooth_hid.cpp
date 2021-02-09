@@ -67,7 +67,7 @@ namespace ams::bluetooth::hid {
         ;
     }
 
-    Result GetEventInfo(ncm::ProgramId program_id, HidEventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(HidEventType *type, uint8_t* buffer, size_t size) {
         std::scoped_lock lk(g_event_info_lock);
 
         *type = g_current_event_type;
