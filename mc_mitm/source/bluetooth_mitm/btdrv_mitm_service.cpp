@@ -107,6 +107,10 @@ namespace ams::mitm::bluetooth {
         return ams::ResultSuccess();
     }
 
+    Result BtdrvMitmService::SetTsi(ams::bluetooth::Address address, u8 tsi) {
+        return sm::mitm::ResultShouldForwardToSession();
+    }
+
     /* 1.0.0 - 3.0.2 */
     Result BtdrvMitmService::RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle) {
         return RegisterHidReportEvent(out_handle);
