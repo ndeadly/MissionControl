@@ -22,9 +22,9 @@ namespace ams::bluetooth::ble {
 
     namespace {
 
-        os::Mutex    g_event_data_lock(false);
-        uint8_t      g_event_data_buffer[0x400];
-        BleEventType g_current_event_type;
+        os::Mutex g_event_data_lock(false);
+        bluetooth::BleEventInfo g_event_info;
+        bluetooth::BleEventType g_current_event_type;
 
         os::SystemEvent g_system_event;
         os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);
@@ -65,11 +65,11 @@ namespace ams::bluetooth::ble {
         ;
     }
 
-    Result GetEventInfo(BleEventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(bluetooth::BleEventType  *type, uint8_t* buffer, size_t size) {
         std::scoped_lock lk(g_event_data_lock); 
 
         *type = g_current_event_type;
-        std::memcpy(buffer, g_event_data_buffer, size);
+        std::memcpy(buffer, &g_event_info, size);
 
         g_data_read_event.Signal();
         
@@ -79,7 +79,7 @@ namespace ams::bluetooth::ble {
     void HandleEvent(void) {
         {
             std::scoped_lock lk(g_event_data_lock); 
-            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(g_event_data_buffer, sizeof(g_event_data_buffer), &g_current_event_type));
+            R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_event_info, sizeof(bluetooth::BleEventInfo), &g_current_event_type));
         }
 
         if (!g_redirect_ble_events) {

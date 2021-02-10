@@ -24,8 +24,8 @@ namespace ams::bluetooth::core {
     namespace {
 
         os::Mutex g_event_info_lock(false);
-        uint8_t   g_event_info_buffer[0x400];
-        BtdrvEventType g_current_event_type;
+        bluetooth::EventInfo g_event_info;
+        bluetooth::EventType g_current_event_type;
 
         os::SystemEvent g_system_event;
         os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);
@@ -76,11 +76,11 @@ namespace ams::bluetooth::core {
         ;
     }
 
-    Result GetEventInfo(EventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(bluetooth::EventType *type, uint8_t* buffer, size_t size) {
         std::scoped_lock lk(g_event_info_lock);
 
         *type = g_current_event_type;
-        std::memcpy(buffer, g_event_info_buffer, size);
+        std::memcpy(buffer, &g_event_info, size);
 
         auto event_info = reinterpret_cast<bluetooth::EventInfo *>(buffer);
 
@@ -112,19 +112,17 @@ namespace ams::bluetooth::core {
     void HandleEvent(void) {
         {
             std::scoped_lock lk(g_event_info_lock);
-            R_ABORT_UNLESS(btdrvGetEventInfo(g_event_info_buffer, sizeof(g_event_info_buffer), &g_current_event_type));
+            R_ABORT_UNLESS(btdrvGetEventInfo(&g_event_info, sizeof(bluetooth::EventInfo), &g_current_event_type));
         }
 
         if (!g_redirect_core_events) {
             if (g_current_event_type == BtdrvEventType_PinRequest) {
-                auto event_info = reinterpret_cast<bluetooth::EventInfo *>(g_event_info_buffer);
-
                 // Default pin used by bluetooth service
                 bluetooth::PinCode pin = {"0000"};
                 uint8_t pin_length = std::strlen(pin.code);
 
                 // Reverse host address as pin code for wii devices
-                if (std::strncmp(event_info->pin_reply.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
+                if (std::strncmp(g_event_info.pin_reply.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
                     // Fetch host adapter address
                     bluetooth::Address host_address;
                     R_ABORT_UNLESS(btdrvGetAdapterProperty(BtdrvBluetoothPropertyType_Address, &host_address, sizeof(bluetooth::Address)));
@@ -134,7 +132,7 @@ namespace ams::bluetooth::core {
                 }
 
                 // Fuck BTM, we're sending the pin response ourselves if it won't.
-                R_ABORT_UNLESS(btdrvRespondToPinRequest(event_info->pin_reply.address, false, &pin, pin_length));
+                R_ABORT_UNLESS(btdrvRespondToPinRequest(g_event_info.pin_reply.address, false, &pin, pin_length));
             }
             else {
                 g_system_event_fwd.Signal();

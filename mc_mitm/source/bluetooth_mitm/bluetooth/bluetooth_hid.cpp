@@ -23,9 +23,9 @@ namespace ams::bluetooth::hid {
 
     namespace {
 
-        os::Mutex    g_event_info_lock(false);
-        uint8_t      g_event_info_buffer[0x480];
-        HidEventType g_current_event_type;
+        os::Mutex g_event_info_lock(false);
+        bluetooth::HidEventInfo g_event_info;
+        bluetooth::HidEventType g_current_event_type;
 
         os::SystemEvent g_system_event;
         os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);
@@ -67,20 +67,20 @@ namespace ams::bluetooth::hid {
         ;
     }
 
-    Result GetEventInfo(HidEventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(bluetooth::HidEventType *type, uint8_t* buffer, size_t size) {
         std::scoped_lock lk(g_event_info_lock);
 
         *type = g_current_event_type;
-        std::memcpy(buffer, g_event_info_buffer, size);
+        std::memcpy(buffer, &g_event_info, size);
 
         g_data_read_event.Signal();
 
         return ams::ResultSuccess();
     }
 
-    void SignalFakeEvent(HidEventType type, const void *data, size_t size) {
+    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size) {
         g_current_event_type = type;
-        std::memcpy(g_event_info_buffer, data, size);
+        std::memcpy(&g_event_info, data, size);
 
         g_system_event_fwd.Signal();
     }
@@ -105,17 +105,15 @@ namespace ams::bluetooth::hid {
     void HandleEvent(void) {
         {
             std::scoped_lock lk(g_event_info_lock);
-            R_ABORT_UNLESS(btdrvGetHidEventInfo(g_event_info_buffer, sizeof(g_event_info_buffer), &g_current_event_type));
+            R_ABORT_UNLESS(btdrvGetHidEventInfo(&g_event_info, sizeof(bluetooth::HidEventInfo), &g_current_event_type));
         }
-
-        auto event_info = reinterpret_cast<bluetooth::HidEventInfo *>(g_event_info_buffer);
 
         switch (g_current_event_type) {
             case BtdrvHidEventType_ConnectionState:
-                HandleConnectionStateEvent(event_info);
+                HandleConnectionStateEvent(&g_event_info);
                 break;
             case BtdrvHidEventType_Unknown7:
-                //HandleUnknown07Event(event_info);
+                //HandleUnknown07Event(&g_event_info);
                 break;
             default:
                 break;

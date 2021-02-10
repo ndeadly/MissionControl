@@ -30,9 +30,9 @@ namespace ams::bluetooth::hid {
     Result Initialize(Handle event_handle);
     void Finalize(void);
 
-    Result GetEventInfo(HidEventType *type, uint8_t* buffer, size_t size);
+    Result GetEventInfo(bluetooth::HidEventType *type, uint8_t* buffer, size_t size);
     void HandleEvent(void);
 
-    void SignalFakeEvent(HidEventType type, const void *data, size_t size);
+    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size);
 
 }

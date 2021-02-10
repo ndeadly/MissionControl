@@ -28,12 +28,12 @@ namespace ams::bluetooth::hid::report {
 
         constexpr auto bluetooth_sharedmem_size = 0x3000;
 
-        os::ThreadType                            g_event_handler_thread;
+        os::ThreadType g_event_handler_thread;
         alignas(os::ThreadStackAlignment) uint8_t g_event_handler_thread_stack[0x1000];
         s32 g_event_handler_thread_priority = mitm::utils::ConvertToUserPriority(17);
 
         // This is only required  on fw < 7.0.0
-        uint8_t                 g_event_info_buffer[0x480];
+        bluetooth::HidEventInfo g_event_info;
         bluetooth::HidEventType g_current_event_type;
 
         os::SystemEvent g_system_event;
@@ -50,7 +50,7 @@ namespace ams::bluetooth::hid::report {
 
         bluetooth::HidReportData g_fake_report_data;
 
-        Service *    g_forward_service;
+        Service *g_forward_service;
         os::ThreadId g_main_thread_id;
 
         void EventThreadFunc(void *arg) {
@@ -195,21 +195,20 @@ namespace ams::bluetooth::hid::report {
     void HandleEvent(void) {
         if (!g_redirect_hid_report_events) {
             if (hos::GetVersion() < hos::Version_7_0_0) {
-                auto event_info = reinterpret_cast<bluetooth::HidEventInfo *>(g_event_info_buffer);
-                R_ABORT_UNLESS(btdrvGetHidReportEventInfo(g_event_info_buffer, sizeof(g_event_info_buffer), &g_current_event_type));
+                R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_event_info, sizeof(bluetooth::HidEventInfo), &g_current_event_type));
 
                 switch (g_current_event_type) {
                     case BtdrvHidEventType_GetReport:
                         {
-                            auto device = controller::LocateHandler(&event_info->get_report.address);
+                            auto device = controller::LocateHandler(&g_event_info.get_report.address);
                             if (!device)
                                 return;
 
-                            device->HandleIncomingReport(&event_info->get_report.report_data.report);
+                            device->HandleIncomingReport(&g_event_info.get_report.report_data.report);
                         }
                         break;
                     default:
-                        g_fake_buffer->Write(g_current_event_type, &event_info->get_report.report_data, event_info->get_report.report_length);
+                        g_fake_buffer->Write(g_current_event_type, &g_event_info.get_report.report_data, g_event_info.get_report.report_length);
                         break;
                 }
             }
