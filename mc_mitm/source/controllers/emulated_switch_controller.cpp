@@ -17,7 +17,7 @@
 #include "../mcmitm_config.hpp"
 #include <memory>
 
-#include "../btdrv_mitm/bluetooth/bluetooth_hid.hpp"
+#include "../bluetooth_mitm/bluetooth/bluetooth_hid.hpp"
 
 namespace ams::controller {
 
@@ -134,7 +134,7 @@ namespace ams::controller {
         switch (m_emulated_type) {
             case SwitchControllerType_RightJoyCon:
                 if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    this->PackStickData(&switch_report->input0x30.right_stick,
+                    switch_report->input0x30.right_stick = this->PackStickData(
                         m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_up ? 0 : STICK_ZERO),
                         m_buttons.dpad_right ? UINT12_MAX : (m_buttons.dpad_left ? 0 : STICK_ZERO)
                     );
@@ -143,7 +143,7 @@ namespace ams::controller {
                     uint16_t x;
                     uint16_t y;
                     this->UnpackStickData(&m_left_stick, &x, &y);
-                    this->PackStickData(&switch_report->input0x30.right_stick, -y, x);
+                    switch_report->input0x30.right_stick = this->PackStickData(-y, x);
                 }
 
                 switch_report->input0x30.buttons.SL_R = m_buttons.L | m_buttons.ZL;
@@ -155,7 +155,7 @@ namespace ams::controller {
                 break;
             case SwitchControllerType_LeftJoyCon:
                 if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    this->PackStickData(&switch_report->input0x30.left_stick,
+                    switch_report->input0x30.left_stick = this->PackStickData(
                         m_buttons.dpad_up ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_ZERO),
                         m_buttons.dpad_left ? UINT12_MAX : (m_buttons.dpad_right ? 0 : STICK_ZERO)
                     );
@@ -164,7 +164,7 @@ namespace ams::controller {
                     uint16_t x;
                     uint16_t y;
                     this->UnpackStickData(&m_left_stick, &x, &y);
-                    this->PackStickData(&switch_report->input0x30.left_stick, y, -x);
+                    switch_report->input0x30.left_stick = this->PackStickData(y, -x);
                 }
 
                 switch_report->input0x30.buttons.SL_L = m_buttons.L | m_buttons.ZL;
