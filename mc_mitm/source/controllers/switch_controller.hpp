@@ -272,6 +272,7 @@ namespace ams::controller {
 
             const bluetooth::Address& Address(void) const { return m_address; };
 
+            virtual SwitchControllerType GetControllerType(void) { return SwitchControllerType_ProController; };  //.Todo: handle this properly for official controllers
             virtual bool IsOfficialController(void) { return true; };
 
             virtual Result Initialize(void) { return ams::ResultSuccess(); };

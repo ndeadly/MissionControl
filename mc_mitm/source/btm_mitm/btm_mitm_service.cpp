@@ -16,6 +16,7 @@
 #include "btm_mitm_service.hpp"
 #include "btm_shim.h"
 #include "../controllers/controller_management.hpp"
+//#include "../controllers/switch_controller.hpp"
 #include <cstring>
 
 namespace ams::mitm::btm {
@@ -24,9 +25,14 @@ namespace ams::mitm::btm {
 
         void RenameConnectedDevices(BtmConnectedDevice devices[], size_t count) {
             for (unsigned int i = 0; i < count; ++i) {
-                auto device = &devices[i];
-                if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                    std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                auto device = controller::LocateHandler(&devices[i].address);
+                if (device) {
+                    if (!device->IsOfficialController()) {
+                        if (device->GetControllerType() == controller::SwitchControllerType_ProController)
+                            std::strncpy(devices[i].name, controller::pro_controller_name, sizeof(devices[i].name) - 1);
+                        else
+                            std::strncpy(devices[i].name, "Joy-Con (R)", sizeof(devices[i].name) - 1);
+                    }
                 }
             }
         }
@@ -65,10 +71,15 @@ namespace ams::mitm::btm {
         auto device_info = reinterpret_cast<BtmDeviceInfoList *>(out.GetPointer());
         R_TRY(btmGetDeviceInfoFwd(this->forward_service.get(), device_info));
 
-        for (unsigned int i = 0; i < device_info->device_count; ++i) {
-            auto device = &device_info->devices[i];
-            if (!controller::IsOfficialSwitchControllerName(device->name.name)) {
-                std::strncpy(device->name.name, controller::pro_controller_name, sizeof(device->name) - 1);
+        for (unsigned int i = 0; i < device_info->total_entries; ++i) {
+            auto device = controller::LocateHandler(&device_info->devices[i].address);
+            if (device) {
+                if (!device->IsOfficialController()) {
+                    if (device->GetControllerType() == controller::SwitchControllerType_ProController)
+                        std::strncpy(device_info->devices[i].name, controller::pro_controller_name, sizeof(device_info->devices[i].name) - 1);
+                    else
+                        std::strncpy(device_info->devices[i].name, "Joy-Con (R)", sizeof(device_info->devices[i].name) - 1);
+                }
             }
         }
 

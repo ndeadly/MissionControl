@@ -27,6 +27,7 @@ namespace ams::controller {
         public:
             EmulatedSwitchController(const bluetooth::Address *address);
 
+            SwitchControllerType GetControllerType(void) { return m_emulated_type; };
             bool IsOfficialController(void) { return false; };
             
             Result HandleIncomingReport(const bluetooth::HidReport *report);
