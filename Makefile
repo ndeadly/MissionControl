@@ -1,6 +1,11 @@
 PROJECT_NAME := MissionControl
 MC_MITM_TID := 010000000000bd00
 
+GIT_BRANCH := $(shell git symbolic-ref --short HEAD)
+GIT_HASH := $(shell git rev-parse --short HEAD)
+GIT_TAG := $(shell git describe --tags `git rev-list --tags --max-count=1`)
+BUILD_VERSION := $(GIT_TAG:v%=%)-$(GIT_BRANCH)-$(GIT_HASH)
+
 TARGETS := mc_mitm
 
 all: $(TARGETS)
@@ -27,6 +32,6 @@ dist: all
 	
 	cp -r exefs_patches dist/atmosphere/
 	
-	cd dist; zip -r $(PROJECT_NAME).zip ./*; cd ../;
+	cd dist; zip -r $(PROJECT_NAME)-$(BUILD_VERSION).zip ./*; cd ../;
 	
 .PHONY: all clean dist $(TARGETS)
