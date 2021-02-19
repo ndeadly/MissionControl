@@ -6,15 +6,19 @@ GIT_HASH := $(shell git rev-parse --short HEAD)
 GIT_TAG := $(shell git describe --tags `git rev-list --tags --max-count=1`)
 BUILD_VERSION := $(GIT_TAG:v%=%)-$(GIT_BRANCH)-$(GIT_HASH)
 
-TARGETS := mc_mitm
+TARGETS := mcmitm_version.cpp mc_mitm
 
 all: $(TARGETS)
+
+mcmitm_version.cpp: .git/HEAD .git/index
+	echo "namespace ams::mitm { const char *version_string = \"$(BUILD_VERSION)\"; }" > mc_mitm/source/$@
 
 mc_mitm:
 	$(MAKE) -C $@
 
 clean:
 	$(MAKE) -C mc_mitm clean
+	rm mc_mitm/source/mcmitm_version.cpp
 	rm -rf dist
 
 dist: all
