@@ -19,6 +19,7 @@
 
 #define AMS_BTDRV_MITM_INTERFACE_INFO(C, H)                                                                                                                                                                                             \
     AMS_SF_METHOD_INFO(C, H, 1,     Result, InitializeBluetooth,              (sf::OutCopyHandle out_handle),                                                           (out_handle))                                                   \
+    AMS_SF_METHOD_INFO(C, H, 2,     Result, EnableBluetooth,                  (void),                                                                                   ())                                                             \
     AMS_SF_METHOD_INFO(C, H, 4,     Result, FinalizeBluetooth,                (void),                                                                                   ())                                                             \
     AMS_SF_METHOD_INFO(C, H, 15,    Result, GetEventInfo,                     (sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer),    (out_type, out_buffer))                                         \
     AMS_SF_METHOD_INFO(C, H, 16,    Result, InitializeHid,                    (sf::OutCopyHandle out_handle, u16 version),                                              (out_handle, version))                                          \
@@ -58,6 +59,7 @@ namespace ams::mitm::bluetooth {
 
         public:
             Result InitializeBluetooth(sf::OutCopyHandle out_handle);
+            Result EnableBluetooth(void);
             Result FinalizeBluetooth(void);
             Result GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);

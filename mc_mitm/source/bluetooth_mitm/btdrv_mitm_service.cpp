@@ -19,6 +19,7 @@
 #include "bluetooth/bluetooth_core.hpp"
 #include "bluetooth/bluetooth_hid.hpp"
 #include "bluetooth/bluetooth_ble.hpp"
+#include "../mcmitm_initialization.hpp"
 #include "../controllers/controller_management.hpp"
 #include <switch.h>
 #include <cstring>
@@ -36,6 +37,16 @@ namespace ams::mitm::bluetooth {
         } else {
             out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::core::GetUserForwardEvent()));
         }
+
+        return ams::ResultSuccess();
+    }
+
+    Result BtdrvMitmService::EnableBluetooth(void) {
+        R_TRY(btdrvEnableBluetoothFwd(this->forward_service.get()));
+        ams::bluetooth::core::SignalEnabled();
+
+        // Wait until mc.mitm module initialisation has completed before returning
+        ams::mitm::WaitInitialized();
 
         return ams::ResultSuccess();
     }

@@ -13,11 +13,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+#include "bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 
 namespace ams::mitm {
 
-    void StartInitialize(void);
-    void WaitInitialized(void);
+    struct MissionControlConfig {
+        struct {
+            bool enable_rumble;
+            bool enable_motion;
+        } general;
+
+        struct {
+            char host_name[0x20];
+            bluetooth::Address host_address;
+        } bluetooth;
+    };
+
+    MissionControlConfig *GetGlobalConfig(void);
+    void ParseIniConfig(void);
 
 }

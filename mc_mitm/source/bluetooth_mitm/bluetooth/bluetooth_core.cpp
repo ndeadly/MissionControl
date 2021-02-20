@@ -35,10 +35,19 @@ namespace ams::bluetooth::core {
         os::SystemEventType g_system_event_user_fwd;
         os::EventType       g_data_read_event;
 
+        os::Event g_enable_event(os::EventClearMode_ManualClear);
     }
 
     bool IsInitialized(void) {
         return g_is_initialized;
+    }
+
+    void SignalEnabled(void) {
+        g_enable_event.Signal();
+    }
+
+    void WaitEnabled(void) {
+        g_enable_event.Wait();
     }
 
     os::SystemEventType *GetSystemEvent(void) {

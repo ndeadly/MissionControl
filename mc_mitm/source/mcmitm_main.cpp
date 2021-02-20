@@ -16,6 +16,7 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 #include "mcmitm_initialization.hpp"
+#include "mcmitm_config.hpp"
 #include "bluetooth_mitm/bluetoothmitm_module.hpp"
 #include "btm_mitm/btmmitm_module.hpp"
 
@@ -73,16 +74,12 @@ void __appInit(void) {
         R_ABORT_UNLESS(pmdmntInitialize());
         R_ABORT_UNLESS(pminfoInitialize());
     });
-
-    R_ABORT_UNLESS(fsdevMountSdmc());
 }
 
 void __appExit(void) {
     btdrvExit();
     pminfoExit();
     pmdmntExit();
-
-    fsdevUnmountAll();
     fsExit();
 }
 
@@ -101,7 +98,8 @@ void WaitModules(void) {
 }
 
 int main(int argc, char **argv) {
-    mitm::StartInitialize();
+    ams::mitm::ParseIniConfig();
+    ams::mitm::StartInitialize();
     LaunchModules();
     WaitModules();
     return 0;

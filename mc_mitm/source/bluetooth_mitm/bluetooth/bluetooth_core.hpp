@@ -21,6 +21,8 @@
 namespace ams::bluetooth::core {
 
     bool IsInitialized(void);
+    void SignalEnabled(void);
+    void WaitEnabled(void);
 
     os::SystemEventType *GetSystemEvent(void);
     os::SystemEventType *GetForwardEvent(void);

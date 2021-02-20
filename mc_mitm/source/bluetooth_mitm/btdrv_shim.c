@@ -23,6 +23,10 @@ Result btdrvInitializeBluetoothFwd(Service* srv, Handle *out_handle) {
     );
 }
 
+Result btdrvEnableBluetoothFwd(Service* srv) {
+    return serviceMitmDispatch(srv, 2);
+}
+
 Result btdrvFinalizeBluetoothFwd(Service* srv) {
     return serviceMitmDispatch(srv, 4);
 }
