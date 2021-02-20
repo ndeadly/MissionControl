@@ -15,15 +15,12 @@
  */
 #include "bluetooth_ble.hpp"
 #include "../btdrv_mitm_flags.hpp"
-#include <atomic>
 #include <mutex>
 #include <cstring>
 
 namespace ams::bluetooth::ble {
 
     namespace {
-
-        std::atomic<bool> g_is_initialized(false);
 
         os::Mutex    g_event_data_lock(false);
         uint8_t      g_event_data_buffer[0x400];
@@ -34,10 +31,16 @@ namespace ams::bluetooth::ble {
         os::SystemEventType g_system_event_user_fwd;
         os::EventType       g_data_read_event;
 
+        os::Event g_init_event(os::EventClearMode_ManualClear);
+
     }
 
-    bool IsInitialized(void) {
-        return g_is_initialized;
+    bool IsInitialized() {
+        return g_init_event.TryWait();
+    }
+
+    void WaitInitialized(void) {
+        g_init_event.Wait();
     }
 
     os::SystemEventType *GetSystemEvent(void) {
@@ -59,7 +62,7 @@ namespace ams::bluetooth::ble {
         R_TRY(os::CreateSystemEvent(&g_system_event_user_fwd, os::EventClearMode_AutoClear, true));
         os::InitializeEvent(&g_data_read_event, false, os::EventClearMode_AutoClear);
 
-        g_is_initialized = true;
+        g_init_event.Signal();
 
         return ams::ResultSuccess();
     }
@@ -68,8 +71,6 @@ namespace ams::bluetooth::ble {
         os::FinalizeEvent(&g_data_read_event);
         os::DestroySystemEvent(&g_system_event_user_fwd);
         os::DestroySystemEvent(&g_system_event_fwd);
-
-        g_is_initialized = false;
     }
 
     Result GetEventInfo(ncm::ProgramId program_id, BleEventType *type, uint8_t* buffer, size_t size) {

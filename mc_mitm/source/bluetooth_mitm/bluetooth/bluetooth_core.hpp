@@ -21,6 +21,7 @@
 namespace ams::bluetooth::core {
 
     bool IsInitialized(void);
+    void WaitInitialized(void);
     void SignalEnabled(void);
     void WaitEnabled(void);
 

@@ -19,7 +19,6 @@
 #include "../btdrv_mitm_flags.hpp"
 #include "../../mcmitm_utils.hpp"
 #include "../../controllers/controller_management.hpp"
-#include <atomic>
 #include <mutex>
 #include <cstring>
 
@@ -28,8 +27,6 @@ namespace ams::bluetooth::hid::report {
     namespace {
 
         constexpr auto bluetooth_sharedmem_size = 0x3000;
-
-        std::atomic<bool> g_is_initialized(false);
 
         os::ThreadType                            g_event_handler_thread;
         alignas(os::ThreadStackAlignment) uint8_t g_event_handler_thread_stack[0x1000];
@@ -42,6 +39,8 @@ namespace ams::bluetooth::hid::report {
         os::SystemEventType g_system_event;
         os::SystemEventType g_system_event_fwd;
         os::SystemEventType g_system_event_user_fwd;
+
+        os::Event g_init_event(os::EventClearMode_ManualClear);
 
         SharedMemory g_real_bt_shmem;
         SharedMemory g_fake_bt_shmem;
@@ -63,8 +62,12 @@ namespace ams::bluetooth::hid::report {
 
     }
 
-    bool IsInitialized(void) {
-        return g_is_initialized;
+    bool IsInitialized() {
+        return g_init_event.TryWait();
+    }
+
+    void WaitInitialized(void) {
+        g_init_event.Wait();
     }
 
     SharedMemory *GetRealSharedMemory(void) {
@@ -109,7 +112,7 @@ namespace ams::bluetooth::hid::report {
 
         os::StartThread(&g_event_handler_thread); 
 
-        g_is_initialized = true;
+        g_init_event.Signal();
 
         return ams::ResultSuccess();
     }
@@ -119,8 +122,6 @@ namespace ams::bluetooth::hid::report {
 
         os::DestroySystemEvent(&g_system_event_user_fwd);
         os::DestroySystemEvent(&g_system_event_fwd); 
-
-        g_is_initialized = false;
     }
 
     Result MapRemoteSharedMemory(Handle handle) {

@@ -16,15 +16,12 @@
 #include "bluetooth_core.hpp"
 #include "../btdrv_mitm_flags.hpp"
 #include "../../controllers/controller_management.hpp"
-#include <atomic>
 #include <mutex>
 #include <cstring>
 
 namespace ams::bluetooth::core {
 
     namespace {
-
-        std::atomic<bool> g_is_initialized(false);
 
         os::Mutex g_event_info_lock(false);
         uint8_t   g_event_info_buffer[0x400];
@@ -35,11 +32,16 @@ namespace ams::bluetooth::core {
         os::SystemEventType g_system_event_user_fwd;
         os::EventType       g_data_read_event;
 
+        os::Event g_init_event(os::EventClearMode_ManualClear);
         os::Event g_enable_event(os::EventClearMode_ManualClear);
     }
 
-    bool IsInitialized(void) {
-        return g_is_initialized;
+    bool IsInitialized() {
+        return g_init_event.TryWait();
+    }
+
+    void WaitInitialized(void) {
+        g_init_event.Wait();
     }
 
     void SignalEnabled(void) {
@@ -69,7 +71,7 @@ namespace ams::bluetooth::core {
         R_TRY(os::CreateSystemEvent(&g_system_event_user_fwd, os::EventClearMode_AutoClear, true)); 
         os::InitializeEvent(&g_data_read_event, false, os::EventClearMode_AutoClear);
 
-        g_is_initialized = true;
+        g_init_event.Signal();
 
         return ams::ResultSuccess();
     }
@@ -78,8 +80,6 @@ namespace ams::bluetooth::core {
         os::FinalizeEvent(&g_data_read_event);
         os::DestroySystemEvent(&g_system_event_user_fwd);
         os::DestroySystemEvent(&g_system_event_fwd);
-
-        g_is_initialized = false;
     }
 
     Result GetEventInfo(ncm::ProgramId program_id, EventType *type, uint8_t* buffer, size_t size) {

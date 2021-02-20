@@ -35,9 +35,10 @@ namespace ams::mitm {
         os::Event g_init_event(os::EventClearMode_ManualClear);
 
         void WaitInterfacesInitialized(void) {
-            while (!(ams::bluetooth::core::IsInitialized() && ams::bluetooth::hid::IsInitialized() && (ams::bluetooth::ble::IsInitialized() || (hos::GetVersion() < hos::Version_5_0_0)))) {
-                svc::SleepThread(1'000'000ul);
-            }
+            ams::bluetooth::core::WaitInitialized();
+            ams::bluetooth::hid::WaitInitialized();
+            if (hos::GetVersion() >= hos::Version_5_0_0)
+                ams::bluetooth::ble::WaitInitialized();
         }
 
         void InitializeThreadFunc(void *arg) {
