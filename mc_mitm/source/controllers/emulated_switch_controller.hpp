@@ -75,6 +75,8 @@ namespace ams::controller {
             Switch6AxisData  m_motion_data[3];
 
             ProControllerColours m_colours;
+            bool m_enable_rumble;
+
     };
 
 }

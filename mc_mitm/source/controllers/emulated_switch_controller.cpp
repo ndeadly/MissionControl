@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "emulated_switch_controller.hpp"
+#include "../mcmitm_config.hpp"
 #include <memory>
 
 namespace ams::controller {
@@ -135,6 +136,10 @@ namespace ams::controller {
         m_colours.buttons    = {0xe6, 0xe6, 0xe6};
         m_colours.left_grip  = {0x46, 0x46, 0x46};
         m_colours.right_grip = {0x46, 0x46, 0x46};
+
+        auto config = mitm::GetGlobalConfig();
+
+        m_enable_rumble = config->general.enable_rumble;
     };
 
     void EmulatedSwitchController::ClearControllerState(void) {
@@ -231,6 +236,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
+        R_SUCCEED_IF(!m_enable_rumble);
+
         auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
         
         SwitchRumbleData left_motor;
