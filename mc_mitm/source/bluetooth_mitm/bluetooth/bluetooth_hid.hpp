@@ -21,14 +21,12 @@
 namespace ams::bluetooth::hid {
 
     bool IsInitialized(void);
+    void SignalInitialized(void);
     void WaitInitialized(void);
 
     os::SystemEvent *GetSystemEvent(void);
     os::SystemEvent *GetForwardEvent(void);
     os::SystemEvent *GetUserForwardEvent(void);
-
-    Result Initialize(Handle event_handle);
-    void Finalize(void);
 
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size);
     void HandleEvent(void);

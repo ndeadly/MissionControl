@@ -40,6 +40,10 @@ namespace ams::bluetooth::hid {
         return g_init_event.TryWait();
     }
 
+    void SignalInitialized(void) {
+        g_init_event.Signal();
+    }
+
     void WaitInitialized(void) {
         g_init_event.Wait();
     }
@@ -54,17 +58,6 @@ namespace ams::bluetooth::hid {
 
     os::SystemEvent *GetUserForwardEvent(void) {
         return &g_system_event_user_fwd;
-    }
-
-    Result Initialize(Handle event_handle) {
-        g_system_event.AttachReadableHandle(event_handle, false, os::EventClearMode_ManualClear);
-        g_init_event.Signal();
-
-        return ams::ResultSuccess();
-    }
-
-    void Finalize(void) {
-        ;
     }
 
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size) {
