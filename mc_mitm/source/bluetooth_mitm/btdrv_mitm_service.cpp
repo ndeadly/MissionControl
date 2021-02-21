@@ -60,15 +60,6 @@ namespace ams::mitm::bluetooth {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::FinalizeBluetooth(void) {
-        // Only btm should be able to make this call
-        if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
-            R_TRY(btdrvFinalizeBluetoothFwd(this->forward_service.get()));
-        }
-
-        return ams::ResultSuccess();
-    }
-
     Result BtdrvMitmService::GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {
         R_UNLESS(this->client_info.program_id == ncm::SystemProgramId::Btm, sm::mitm::ResultShouldForwardToSession());
         
@@ -113,15 +104,6 @@ namespace ams::mitm::bluetooth {
         }
         else {
             R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), &address, report));
-        }
-
-        return ams::ResultSuccess();
-    }
-        
-    Result BtdrvMitmService::FinalizeHid(void) {
-        // Only btm should be able to make this call
-        if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
-            R_TRY(btdrvFinalizeHidFwd(this->forward_service.get()));
         }
 
         return ams::ResultSuccess();
@@ -232,14 +214,6 @@ namespace ams::mitm::bluetooth {
         }
         else {
             out_handle.SetValue(ams::bluetooth::ble::GetUserForwardEvent()->GetReadableHandle());
-        }
-
-        return ams::ResultSuccess();
-    }
-
-    Result BtdrvMitmService::FinalizeBle(void) {
-        if (this->client_info.program_id == ncm::SystemProgramId::Btm) {
-            R_TRY(btdrvFinalizeBleFwd(this->forward_service.get()));
         }
 
         return ams::ResultSuccess();

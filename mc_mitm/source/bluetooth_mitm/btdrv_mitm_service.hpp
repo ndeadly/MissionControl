@@ -20,11 +20,9 @@
 #define AMS_BTDRV_MITM_INTERFACE_INFO(C, H)                                                                                                                                                                                             \
     AMS_SF_METHOD_INFO(C, H, 1,     Result, InitializeBluetooth,              (sf::OutCopyHandle out_handle),                                                           (out_handle))                                                   \
     AMS_SF_METHOD_INFO(C, H, 2,     Result, EnableBluetooth,                  (void),                                                                                   ())                                                             \
-    AMS_SF_METHOD_INFO(C, H, 4,     Result, FinalizeBluetooth,                (void),                                                                                   ())                                                             \
     AMS_SF_METHOD_INFO(C, H, 15,    Result, GetEventInfo,                     (sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer),    (out_type, out_buffer))                                         \
     AMS_SF_METHOD_INFO(C, H, 16,    Result, InitializeHid,                    (sf::OutCopyHandle out_handle, u16 version),                                              (out_handle, version))                                          \
     AMS_SF_METHOD_INFO(C, H, 19,    Result, WriteHidData,                     (ams::bluetooth::Address address, const sf::InPointerBuffer &buffer),                     (address, buffer))                                              \
-    AMS_SF_METHOD_INFO(C, H, 26,    Result, FinalizeHid,                      (void),                                                                                   ())                                                             \
     AMS_SF_METHOD_INFO(C, H, 27,    Result, GetHidEventInfo,                  (sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer), (out_type, out_buffer))                                         \
     AMS_SF_METHOD_INFO(C, H, 28,    Result, SetTsi,                           (ams::bluetooth::Address address, u8 tsi),                                                (address, tsi))                                                 \
     AMS_SF_METHOD_INFO(C, H, 36,    Result, RegisterHidReportEventDeprecated, (sf::OutCopyHandle out_handle),                                                           (out_handle),           hos::Version_1_0_0, hos::Version_3_0_2) \
@@ -33,7 +31,6 @@
     AMS_SF_METHOD_INFO(C, H, 38,    Result, GetHidReportEventInfoDeprecated2, (sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer), (out_type, out_buffer), hos::Version_4_0_0, hos::Version_6_2_0) \
     AMS_SF_METHOD_INFO(C, H, 38,    Result, GetHidReportEventInfo,            (sf::OutCopyHandle out_handle),                                                           (out_handle),           hos::Version_7_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 46,    Result, InitializeBle,                    (sf::OutCopyHandle out_handle),                                                           (out_handle),           hos::Version_5_0_0)                     \
-    AMS_SF_METHOD_INFO(C, H, 49,    Result, FinalizeBle,                      (void),                                                                                   (),                     hos::Version_5_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 78,    Result, GetBleManagedEventInfoDeprecated, (sf::Out<ams::bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer), (out_type, out_buffer), hos::Version_5_0_0, hos::Version_5_0_2) \
     AMS_SF_METHOD_INFO(C, H, 79,    Result, GetBleManagedEventInfo,           (sf::Out<ams::bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer), (out_type, out_buffer), hos::Version_5_1_0)                     \
     AMS_SF_METHOD_INFO(C, H, 65000, Result, GetRealSharedMemory,              (sf::OutCopyHandle out_handle),                                                           (out_handle),           hos::Version_7_0_0)                     \
@@ -60,11 +57,9 @@ namespace ams::mitm::bluetooth {
         public:
             Result InitializeBluetooth(sf::OutCopyHandle out_handle);
             Result EnableBluetooth(void);
-            Result FinalizeBluetooth(void);
             Result GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result InitializeHid(sf::OutCopyHandle out_handle, u16 version);
             Result WriteHidData(ams::bluetooth::Address address, const sf::InPointerBuffer &buffer);
-            Result FinalizeHid(void);
             Result GetHidEventInfo(sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result SetTsi(ams::bluetooth::Address address, u8 tsi);
             Result RegisterHidReportEventDeprecated(sf::OutCopyHandle out_handle);
@@ -74,7 +69,6 @@ namespace ams::mitm::bluetooth {
             Result GetHidReportEventInfo(sf::OutCopyHandle out_handle);
             /* 5.0.0+ */
             Result InitializeBle(sf::OutCopyHandle out_handle);
-            Result FinalizeBle(void);
             Result GetBleManagedEventInfoDeprecated(sf::Out<ams::bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
             Result GetBleManagedEventInfo(sf::Out<ams::bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer);
 

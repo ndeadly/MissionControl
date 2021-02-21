@@ -27,10 +27,6 @@ Result btdrvEnableBluetoothFwd(Service* srv) {
     return serviceMitmDispatch(srv, 2);
 }
 
-Result btdrvFinalizeBluetoothFwd(Service* srv) {
-    return serviceMitmDispatch(srv, 4);
-}
-
 Result btdrvInitializeHidFwd(Service* srv, Handle *out_handle, u16 version) {
     return serviceMitmDispatchIn(srv, 16, version,
         .out_handle_attrs = { SfOutHandleAttr_HipcCopy },
@@ -43,10 +39,6 @@ Result btdrvWriteHidDataFwd(Service* srv, const BtdrvAddress *address, const Btd
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_In },
         .buffers = { {data, sizeof(BtdrvHidReport)} }
     );
-}
-
-Result btdrvFinalizeHidFwd(Service* srv) {
-    return serviceMitmDispatch(srv, 26);
 }
 
 Result btdrvRegisterHidReportEventFwd(Service* srv, Handle *out_handle) {
@@ -68,8 +60,4 @@ Result btdrvInitializeBleFwd(Service* srv, Handle *out_handle) {
         .out_handle_attrs = { SfOutHandleAttr_HipcCopy },
         .out_handles = out_handle,
     );
-}
-
-Result btdrvFinalizeBleFwd(Service* srv) {
-    return serviceMitmDispatch(srv, 49);
 }

@@ -22,14 +22,11 @@ extern "C" {
 
 Result btdrvInitializeBluetoothFwd(Service* srv, Handle *out_handle);
 Result btdrvEnableBluetoothFwd(Service* srv);
-Result btdrvFinalizeBluetoothFwd(Service* srv);
 Result btdrvInitializeHidFwd(Service* srv, Handle *out_handle, u16 version);
 Result btdrvWriteHidDataFwd(Service* srv, const BtdrvAddress *address, const BtdrvHidReport *data);
-Result btdrvFinalizeHidFwd(Service* srv);
 Result btdrvRegisterHidReportEventFwd(Service* srv, Handle *out_handle);
 Result btdrvGetHidReportEventInfoFwd(Service* srv, Handle *out_handle);
 Result btdrvInitializeBleFwd(Service* srv, Handle *out_handle);
-Result btdrvFinalizeBleFwd(Service* srv);
 
 #ifdef __cplusplus
 }
