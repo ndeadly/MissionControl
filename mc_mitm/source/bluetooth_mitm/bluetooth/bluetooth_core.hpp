@@ -32,7 +32,7 @@ namespace ams::bluetooth::core {
     Result Initialize(Handle event_handle);
     void Finalize(void);
 
-    Result GetEventInfo(bluetooth::EventType *type, uint8_t* buffer, size_t size);
+    Result GetEventInfo(bluetooth::EventType *type, void *buffer, size_t size);
     void HandleEvent(void);
    
 }

@@ -165,7 +165,7 @@ namespace ams::bluetooth::hid::report {
     }
 
     /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */ 
-    Result GetEventInfo(bluetooth::HidEventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size) {
         while (true) {
             auto packet = g_fake_buffer->Read();
             if (!packet)

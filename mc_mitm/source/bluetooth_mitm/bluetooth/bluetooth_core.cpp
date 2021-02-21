@@ -76,7 +76,7 @@ namespace ams::bluetooth::core {
         ;
     }
 
-    Result GetEventInfo(bluetooth::EventType *type, uint8_t* buffer, size_t size) {
+    Result GetEventInfo(bluetooth::EventType *type, void *buffer, size_t size) {
         std::scoped_lock lk(g_event_info_lock);
 
         *type = g_current_event_type;
