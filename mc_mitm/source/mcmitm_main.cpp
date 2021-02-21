@@ -17,8 +17,6 @@
 #include <stratosphere.hpp>
 #include "mcmitm_initialization.hpp"
 #include "mcmitm_config.hpp"
-#include "bluetooth_mitm/bluetoothmitm_module.hpp"
-#include "btm_mitm/btmmitm_module.hpp"
 
 extern "C" {
 
@@ -87,20 +85,18 @@ void __libnx_exception_handler(ThreadExceptionDump* ctx) {
     ams::CrashHandler(ctx);
 }
 
-void LaunchModules(void) {
-    R_ABORT_UNLESS(ams::mitm::bluetooth::Launch());
-    R_ABORT_UNLESS(ams::mitm::btm::Launch());
-}
-
-void WaitModules(void) {
-    ams::mitm::btm::WaitFinished();
-    ams::mitm::bluetooth::WaitFinished();
-}
-
 int main(int argc, char **argv) {
+    // Parse global module settings ini from sd card
     ams::mitm::ParseIniConfig();
+
+    // Start initialisation thread
     ams::mitm::StartInitialize();
-    LaunchModules();
-    WaitModules();
+
+    // Launch mitm modules
+    ams::mitm::LaunchModules();
+
+    // Wait for mitm modules to terminate
+    ams::mitm::WaitModules();
+
     return 0;
 }

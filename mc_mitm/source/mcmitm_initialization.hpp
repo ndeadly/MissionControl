@@ -19,5 +19,6 @@ namespace ams::mitm {
 
     void StartInitialize(void);
     void WaitInitialized(void);
-
+    void LaunchModules(void);
+    void WaitModules(void);
 }

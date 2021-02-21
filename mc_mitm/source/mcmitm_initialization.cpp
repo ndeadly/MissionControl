@@ -18,6 +18,8 @@
 #include "mcmitm_initialization.hpp"
 #include "mcmitm_config.hpp"
 #include "bluetooth_mitm/btdrv_mitm_service.hpp"
+#include "bluetooth_mitm/bluetoothmitm_module.hpp"
+#include "btm_mitm/btmmitm_module.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_events.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_core.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_hid.hpp"
@@ -89,6 +91,16 @@ namespace ams::mitm {
 
     void WaitInitialized(void) {
         g_init_event.Wait();
+    }
+
+    void LaunchModules(void) {
+        R_ABORT_UNLESS(ams::mitm::bluetooth::Launch());
+        R_ABORT_UNLESS(ams::mitm::btm::Launch());
+    }
+
+    void WaitModules(void) {
+        ams::mitm::btm::WaitFinished();
+        ams::mitm::bluetooth::WaitFinished();
     }
 
 }
