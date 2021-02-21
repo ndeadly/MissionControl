@@ -60,10 +60,9 @@ namespace ams::mitm::bluetooth {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        R_UNLESS(this->client_info.program_id == ncm::SystemProgramId::Btm, sm::mitm::ResultShouldForwardToSession());
-        
-        R_TRY(ams::bluetooth::core::GetEventInfo(out_type.GetPointer(),
+    Result BtdrvMitmService::GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {       
+        R_TRY(ams::bluetooth::core::GetEventInfo(this->client_info.program_id,
+            out_type.GetPointer(),
             static_cast<uint8_t *>(out_buffer.GetPointer()), 
             static_cast<size_t>(out_buffer.GetSize())
         ));

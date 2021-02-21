@@ -30,7 +30,7 @@ namespace ams::bluetooth::core {
     os::SystemEvent *GetForwardEvent(void);
     os::SystemEvent *GetUserForwardEvent(void);
 
-    Result GetEventInfo(bluetooth::EventType *type, void *buffer, size_t size);
+    Result GetEventInfo(ncm::ProgramId program_id, bluetooth::EventType *type, void *buffer, size_t size);
     void HandleEvent(void);
    
 }
