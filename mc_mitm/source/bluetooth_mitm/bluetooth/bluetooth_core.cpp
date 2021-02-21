@@ -27,13 +27,14 @@ namespace ams::bluetooth::core {
         uint8_t   g_event_info_buffer[0x400];
         BtdrvEventType g_current_event_type;
 
-        os::SystemEventType g_system_event;
-        os::SystemEventType g_system_event_fwd;
-        os::SystemEventType g_system_event_user_fwd;
-        os::EventType       g_data_read_event;
+        os::SystemEvent g_system_event;
+        os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);
+        os::SystemEvent g_system_event_user_fwd(os::EventClearMode_AutoClear, true);
 
         os::Event g_init_event(os::EventClearMode_ManualClear);
         os::Event g_enable_event(os::EventClearMode_ManualClear);
+        os::Event g_data_read_event(os::EventClearMode_AutoClear);
+
     }
 
     bool IsInitialized() {
@@ -52,34 +53,27 @@ namespace ams::bluetooth::core {
         g_enable_event.Wait();
     }
 
-    os::SystemEventType *GetSystemEvent(void) {
+    os::SystemEvent *GetSystemEvent(void) {
         return &g_system_event;
     }
 
-    os::SystemEventType *GetForwardEvent(void) {
+    os::SystemEvent *GetForwardEvent(void) {
         return &g_system_event_fwd;
     }
 
-    os::SystemEventType *GetUserForwardEvent(void) {
+    os::SystemEvent *GetUserForwardEvent(void) {
         return &g_system_event_user_fwd;
     }
 
     Result Initialize(Handle event_handle) {
-        os::AttachReadableHandleToSystemEvent(&g_system_event, event_handle, false, os::EventClearMode_ManualClear);
-
-        R_TRY(os::CreateSystemEvent(&g_system_event_fwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_system_event_user_fwd, os::EventClearMode_AutoClear, true)); 
-        os::InitializeEvent(&g_data_read_event, false, os::EventClearMode_AutoClear);
-
+        g_system_event.AttachReadableHandle(event_handle, false, os::EventClearMode_ManualClear);
         g_init_event.Signal();
 
         return ams::ResultSuccess();
     }
 
     void Finalize(void) {
-        os::FinalizeEvent(&g_data_read_event);
-        os::DestroySystemEvent(&g_system_event_user_fwd);
-        os::DestroySystemEvent(&g_system_event_fwd);
+        ;
     }
 
     Result GetEventInfo(ncm::ProgramId program_id, EventType *type, uint8_t* buffer, size_t size) {
@@ -111,7 +105,7 @@ namespace ams::bluetooth::core {
             }
         }
 
-        os::SignalEvent(&g_data_read_event);
+        g_data_read_event.Signal();
 
         return ams::ResultSuccess();
     }
@@ -143,13 +137,14 @@ namespace ams::bluetooth::core {
                 R_ABORT_UNLESS(btdrvRespondToPinRequest(event_info->pin_reply.address, false, &pin_code, pin_length));
             }
             else {
-                os::SignalSystemEvent(&g_system_event_fwd);
-                os::WaitEvent(&g_data_read_event);
+                g_system_event_fwd.Signal();
+                g_data_read_event.Wait();
             }
         }
 
-        if (g_system_event_user_fwd.state)
-            os::SignalSystemEvent(&g_system_event_user_fwd);
+        if (g_system_event_user_fwd.GetBase()->state) {
+            g_system_event_user_fwd.Signal();
+        }
     }
 
 }

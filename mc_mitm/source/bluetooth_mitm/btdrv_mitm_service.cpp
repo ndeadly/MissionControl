@@ -33,9 +33,9 @@ namespace ams::mitm::bluetooth {
             R_TRY(ams::bluetooth::core::Initialize(handle));
             R_TRY(ams::bluetooth::hid::report::InitializeReportBuffer());           
 
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::core::GetForwardEvent())); 
+            out_handle.SetValue(ams::bluetooth::core::GetForwardEvent()->GetReadableHandle()); 
         } else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::core::GetUserForwardEvent()));
+            out_handle.SetValue(ams::bluetooth::core::GetUserForwardEvent()->GetReadableHandle());
         }
 
         return ams::ResultSuccess();
@@ -76,10 +76,10 @@ namespace ams::mitm::bluetooth {
             R_TRY(btdrvInitializeHidFwd(this->forward_service.get(), &handle, version));
             R_TRY(ams::bluetooth::hid::Initialize(handle));
 
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::hid::GetForwardEvent())); 
+            out_handle.SetValue(ams::bluetooth::hid::GetForwardEvent()->GetReadableHandle()); 
         }
         else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::hid::GetUserForwardEvent()));
+            out_handle.SetValue(ams::bluetooth::hid::GetUserForwardEvent()->GetReadableHandle());
         }
 
         return ams::ResultSuccess();
@@ -160,10 +160,10 @@ namespace ams::mitm::bluetooth {
             Handle handle = INVALID_HANDLE;
             R_TRY(btdrvRegisterHidReportEventFwd(this->forward_service.get(), &handle));
             R_TRY(ams::bluetooth::hid::report::Initialize(handle, this->forward_service.get(), os::GetThreadId(os::GetCurrentThread())));
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::hid::report::GetForwardEvent()));
+            out_handle.SetValue(ams::bluetooth::hid::report::GetForwardEvent()->GetReadableHandle());
         }
         else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::hid::report::GetUserForwardEvent()));
+            out_handle.SetValue(ams::bluetooth::hid::report::GetUserForwardEvent()->GetReadableHandle());
         }
 
         return ams::ResultSuccess();
@@ -205,10 +205,10 @@ namespace ams::mitm::bluetooth {
             R_TRY(btdrvInitializeBleFwd(this->forward_service.get(), &handle));
             R_TRY(ams::bluetooth::ble::Initialize(handle));
 
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::ble::GetForwardEvent())); 
+            out_handle.SetValue(ams::bluetooth::ble::GetForwardEvent()->GetReadableHandle()); 
         }
         else {
-            out_handle.SetValue(os::GetReadableHandleOfSystemEvent(ams::bluetooth::ble::GetUserForwardEvent()));
+            out_handle.SetValue(ams::bluetooth::ble::GetUserForwardEvent()->GetReadableHandle());
         }
 
         return ams::ResultSuccess();

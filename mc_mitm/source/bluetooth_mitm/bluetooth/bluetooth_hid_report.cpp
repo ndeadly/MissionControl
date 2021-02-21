@@ -36,9 +36,9 @@ namespace ams::bluetooth::hid::report {
         uint8_t                 g_event_info_buffer[0x480];
         bluetooth::HidEventType g_current_event_type;
 
-        os::SystemEventType g_system_event;
-        os::SystemEventType g_system_event_fwd;
-        os::SystemEventType g_system_event_user_fwd;
+        os::SystemEvent g_system_event;
+        os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);
+        os::SystemEvent g_system_event_user_fwd(os::EventClearMode_AutoClear, true);
 
         os::Event g_init_event(os::EventClearMode_ManualClear);
 
@@ -55,7 +55,7 @@ namespace ams::bluetooth::hid::report {
 
         void EventThreadFunc(void *arg) {
             while (true) {
-                os::WaitSystemEvent(&g_system_event);
+                g_system_event.Wait();
                 HandleEvent();
             }
         }
@@ -81,23 +81,20 @@ namespace ams::bluetooth::hid::report {
         return &g_fake_bt_shmem;
     }
 
-    os::SystemEventType *GetSystemEvent(void) {
+    os::SystemEvent *GetSystemEvent(void) {
         return &g_system_event;
     }
 
-    os::SystemEventType *GetForwardEvent(void) {
+    os::SystemEvent *GetForwardEvent(void) {
         return &g_system_event_fwd;
     }
 
-    os::SystemEventType *GetUserForwardEvent(void) {
+    os::SystemEvent *GetUserForwardEvent(void) {
         return &g_system_event_user_fwd;
     }
 
     Result Initialize(Handle event_handle, Service *forward_service, os::ThreadId main_thread_id) {
-        os::AttachReadableHandleToSystemEvent(&g_system_event, event_handle, false, os::EventClearMode_AutoClear);
-
-        R_TRY(os::CreateSystemEvent(&g_system_event_fwd, os::EventClearMode_AutoClear, true));
-        R_TRY(os::CreateSystemEvent(&g_system_event_user_fwd, os::EventClearMode_AutoClear, true));
+        g_system_event.AttachReadableHandle(event_handle, false, os::EventClearMode_AutoClear);
 
         R_TRY(os::CreateThread(&g_event_handler_thread, 
             EventThreadFunc, 
@@ -119,9 +116,6 @@ namespace ams::bluetooth::hid::report {
 
     void Finalize(void) {
         os::DestroyThread(&g_event_handler_thread);
-
-        os::DestroySystemEvent(&g_system_event_user_fwd);
-        os::DestroySystemEvent(&g_system_event_fwd); 
     }
 
     Result MapRemoteSharedMemory(Handle handle) {
@@ -156,7 +150,7 @@ namespace ams::bluetooth::hid::report {
 
         g_fake_buffer->Write(BtdrvHidEventType_GetReport, &g_fake_report_data, g_fake_report_data.report.size + 0x11); 
 
-        os::SignalSystemEvent(&g_system_event_fwd);
+        g_system_event_fwd.Signal();
 
         return ams::ResultSuccess();
     }
@@ -247,7 +241,7 @@ namespace ams::bluetooth::hid::report {
             }
         }
         else {
-            os::SignalSystemEvent(&g_system_event_user_fwd);
+            g_system_event_user_fwd.Signal();
         }
     }
 
