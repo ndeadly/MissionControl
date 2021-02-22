@@ -68,27 +68,25 @@ namespace ams::bluetooth::hid {
     }
 
     Result VirtualReconnect(const bluetooth::Address *address) {
-        auto event_info = reinterpret_cast<HidEventInfo *>(g_event_info_buffer);
-        event_info->connection_state.address = *address;
 
-        //g_redirect_hid_report_events = true;
+        struct ConnectionState {
+            BtdrvAddress address;
+            uint8_t pad[2];
+            BtdrvHidConnectionState state;
+        };
 
         // Signal fake disconnection event
-        g_current_event_type = BtdrvHidEventType_ConnectionState;
-        event_info->connection_state.state = BtdrvHidConnectionState_Disconnected;
-        os::SignalSystemEvent(&g_system_event_fwd);
-        os::WaitEvent(&g_data_read_event);
+        ConnectionState disconnected = { *address, BtdrvHidConnectionState_Disconnected };
+        SignalFakeEvent(BtdrvHidEventType_ConnectionState, &disconnected, sizeof(disconnected));
+        g_data_read_event.Wait();
 
         // If we don't wait a bit the console disconnects the controller for real
         svcSleepThread(100'000'000ULL);
 
         // Signal fake connection event
-        g_current_event_type = BtdrvHidEventType_ConnectionState;
-        event_info->connection_state.state = BtdrvHidConnectionState_Connected;
-        os::SignalSystemEvent(&g_system_event_fwd);
-        os::WaitEvent(&g_data_read_event);
-
-        //g_redirect_hid_report_events = false;
+        ConnectionState connected = { *address, BtdrvHidConnectionState_Connected };
+        SignalFakeEvent(BtdrvHidEventType_ConnectionState, &connected, sizeof(connected));
+        g_data_read_event.Wait();
 
         return ams::ResultSuccess();
     }
