@@ -36,30 +36,20 @@ namespace ams::mitm {
 
         os::Event g_init_event(os::EventClearMode_ManualClear);
 
-        void WaitInterfacesInitialized(void) {
-            ams::bluetooth::core::WaitInitialized();
-            ams::bluetooth::hid::WaitInitialized();
-            if (hos::GetVersion() >= hos::Version_5_0_0)
-                ams::bluetooth::ble::WaitInitialized();
-        }
-
         void InitializeThreadFunc(void *arg) {
-            // Wait for all bluetooth interfaces to be initialised
-            WaitInterfacesInitialized();
+            // Start bluetooth event handling thread
+            ams::bluetooth::events::Initialize();
+
+            // Wait for system to call BluetoothEnable
+            ams::bluetooth::core::WaitEnabled();
 
             // Connect to btdrv service now that we're sure the mitm is up and running
             sm::DoWithSession([&]() {
                 R_ABORT_UNLESS(btdrvInitialize());
             });
 
-            // Start bluetooth event handling thread
-            ams::bluetooth::events::Initialize();
-
             // Get global module settings
             auto config = GetGlobalConfig();
-
-            // Wait for system to call BluetoothEnable so the proceeding adapter properties aren't overwritten
-            ams::bluetooth::core::WaitEnabled();
 
             // Set bluetooth adapter host address override
             ams::bluetooth::Address null_address = {};
