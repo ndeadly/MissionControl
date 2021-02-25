@@ -207,6 +207,9 @@ namespace ams::controller {
 
         protected:
             bluetooth::Address m_address;
+
+            static bluetooth::HidReport s_input_report;
+            static bluetooth::HidReport s_output_report;
     };
 
 }

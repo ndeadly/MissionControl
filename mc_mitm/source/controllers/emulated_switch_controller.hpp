@@ -69,9 +69,6 @@ namespace ams::controller {
             Switch6AxisData  m_motion_data[3];
 
             ProControllerColours m_colours;
-
-            static bluetooth::HidReport s_input_report;
-            static bluetooth::HidReport s_output_report;
     };
 
 }

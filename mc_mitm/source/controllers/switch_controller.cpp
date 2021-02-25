@@ -48,8 +48,14 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
+    bluetooth::HidReport SwitchController::s_input_report;
+    bluetooth::HidReport SwitchController::s_output_report;
+
     Result SwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, report);
+        s_input_report.size = report->size;
+	    std::memcpy(s_input_report.data, report->data, report->size);
+
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
     }
 
     Result SwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {

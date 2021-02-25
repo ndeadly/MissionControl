@@ -18,9 +18,6 @@
 
 namespace ams::controller {
 
-    bluetooth::HidReport EmulatedSwitchController::s_input_report;
-    bluetooth::HidReport EmulatedSwitchController::s_output_report;
-
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
     : SwitchController(address)
     , m_charging(false)
