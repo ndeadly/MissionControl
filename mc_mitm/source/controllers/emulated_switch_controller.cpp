@@ -37,22 +37,6 @@ namespace ams::controller {
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
     }
 
-    void EmulatedSwitchController::ApplyButtonCombos(SwitchButtonData *buttons) {
-        // Home combo = MINUS + DPAD_DOWN
-        if (buttons->minus && buttons->dpad_down) {
-            buttons->home = 1;
-            buttons->minus = 0;
-            buttons->dpad_down = 0;
-        }
-
-        // Capture combo = MINUS + DPAD_UP
-        if (buttons->minus && buttons->dpad_up) {
-            buttons->capture = 1;
-            buttons->minus = 0;
-            buttons->dpad_up = 0;
-        }
-    }
-
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
         this->UpdateControllerState(report);
 

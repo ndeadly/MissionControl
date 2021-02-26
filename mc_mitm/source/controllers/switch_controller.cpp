@@ -55,11 +55,32 @@ namespace ams::controller {
         s_input_report.size = report->size;
 	    std::memcpy(s_input_report.data, report->data, report->size);
 
+        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        if (switch_report->id == 0x30) {
+            this->ApplyButtonCombos(&switch_report->input0x30.buttons);
+        }
+
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
     }
 
     Result SwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
         return bluetooth::hid::report::SendHidReport(&m_address, report);
+    }
+
+    void SwitchController::ApplyButtonCombos(SwitchButtonData *buttons) {
+        // Home combo = MINUS + DPAD_DOWN
+        if (buttons->minus && buttons->dpad_down) {
+            buttons->home = 1;
+            buttons->minus = 0;
+            buttons->dpad_down = 0;
+        }
+
+        // Capture combo = MINUS + DPAD_UP
+        if (buttons->minus && buttons->dpad_up) {
+            buttons->capture = 1;
+            buttons->minus = 0;
+            buttons->dpad_up = 0;
+        }
     }
 
 }
