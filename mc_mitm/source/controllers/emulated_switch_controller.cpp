@@ -73,10 +73,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleSubCmdReport(const bluetooth::HidReport *report) {
-        const uint8_t *subcmd = &report->data[10];
-        auto subcmd_id = static_cast<SubCmdType>(subcmd[0]);
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
 
-        switch (subcmd_id) {
+        switch (switch_report->output0x01.subcmd.id) {
             case SubCmd_RequestDeviceInfo:
                 R_TRY(this->SubCmdRequestDeviceInfo(report));
                 break;
@@ -124,8 +123,23 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x82, 0x02, 0x03, 0x48, 0x03, 0x02, m_address.address[0], m_address.address[1], m_address.address[2], m_address.address[3], m_address.address[4], m_address.address[5], 0x01, 0x02};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x82, 
+            .id = SubCmd_RequestDeviceInfo,
+            .device_info = {
+                .fw_ver = {
+                    .major = 0x03,
+                    .minor = 0x48
+                },
+                .type = 0x03, 
+                ._unk0 = 0x02, 
+                .address = m_address, 
+                ._unk1 = 0x01, 
+                ._unk2 = 0x02
+            }
+        };
+        
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSpiFlashRead(const bluetooth::HidReport *report) {
@@ -138,57 +152,104 @@ namespace ams::controller {
         // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Left analog stick calibration
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
 
-        uint32_t read_addr = *(uint32_t *)(&report->data[11]);
-        uint8_t  read_size = report->data[15];
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+        uint32_t read_addr = switch_report->output0x01.subcmd.spi_flash_read.address;
+        uint8_t  read_size = switch_report->output0x01.subcmd.spi_flash_read.size;
 
-        const uint8_t prefix[] = {0x90, SubCmd_SpiFlashRead, report->data[11], report->data[12], report->data[13], report->data[14], report->data[15]};
+        SwitchSubcommandResponse response = {
+            .ack = 0x90,
+            .id = SubCmd_SpiFlashRead,
+            .spi_flash_read = {
+                .address = read_addr,
+                .size = read_size
+            }
+        };
 
-        int response_size = read_size + sizeof(prefix);
-        auto response = std::make_unique<uint8_t[]>(response_size);
-        std::memcpy(response.get(), prefix, sizeof(prefix));
-        std::memset(response.get() + sizeof(prefix), 0xff, read_size); // Console doesn't seem to mind if response is uninitialised data (0xff)
-
-        // Set controller colours
         if (read_addr == 0x6050) {
-            std::memcpy(response.get() + sizeof(prefix), &m_colours, sizeof(m_colours));
+            std::memcpy(response.spi_flash_read.data, &m_colours, sizeof(m_colours)); // Set controller colours
+        }
+        else {
+            std::memset(response.spi_flash_read.data, 0xff, read_size); // Console doesn't seem to mind if response is uninitialised data (0xff)
         }
 
-        return this->FakeSubCmdResponse(response.get(), response_size);    
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSpiFlashWrite(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_SpiFlashWrite, 0x01};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SpiFlashWrite,
+            .spi_flash_write = {
+                .status = 0x01
+            }
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSpiSectorErase(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_SpiSectorErase, 0x01};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SpiSectorErase,
+            .spi_flash_write = {
+                .status = 0x01
+            }
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_SetInputReportMode};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetInputReportMode
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x83, SubCmd_TriggersElapsedTime};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {       
+        const SwitchSubcommandResponse response = {
+            .ack = 0x83,
+            .id = SubCmd_TriggersElapsedTime
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_SetShipPowerState, 0x00};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetShipPowerState,
+            .set_ship_power_state = {
+                .enabled = false
+            }
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuConfig(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0xa0, SubCmd_SetMcuConfig, 0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5c};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0xa0,
+            .id = SubCmd_SetMcuConfig,
+            .data = {0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01, 
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                     0x00, 0x5c}
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuState(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_SetMcuState};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetMcuState
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSetPlayerLeds(const bluetooth::HidReport *report) {
@@ -196,26 +257,42 @@ namespace ams::controller {
         uint8_t led_mask = subCmd[1];
         R_TRY(this->SetPlayerLed(led_mask));
 
-        const uint8_t response[] = {0x80, SubCmd_SetPlayerLeds};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetPlayerLeds
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSetHomeLed(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_SetHomeLed};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetHomeLed
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdEnableImu(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_EnableImu};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_EnableImu
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
-        const uint8_t response[] = {0x80, SubCmd_EnableVibration};
-        return this->FakeSubCmdResponse(response, sizeof(response));
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_EnableVibration
+        };
+
+        return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::FakeSubCmdResponse(const uint8_t response[], size_t size) {
+    Result EmulatedSwitchController::FakeSubCmdResponse(const SwitchSubcommandResponse *response) {
         s_input_report.size = sizeof(SwitchInputReport0x21) + 1;
         auto report_data = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         report_data->id = 0x21;
@@ -225,7 +302,7 @@ namespace ams::controller {
         report_data->input0x21.left_stick  = m_left_stick;
         report_data->input0x21.right_stick = m_right_stick;
         report_data->input0x21.vibrator    = 0;
-        std::memcpy(&report_data->input0x21.response, response, size);
+        std::memcpy(&report_data->input0x21.response, response, sizeof(SwitchSubcommandResponse));
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer

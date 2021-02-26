@@ -58,7 +58,7 @@ namespace ams::controller {
             Result SubCmdEnableImu(const bluetooth::HidReport *report);
             Result SubCmdEnableVibration(const bluetooth::HidReport *report);
 
-            Result FakeSubCmdResponse(const uint8_t response[], size_t size);
+            Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
 
             bool    m_charging;
             uint8_t m_battery;

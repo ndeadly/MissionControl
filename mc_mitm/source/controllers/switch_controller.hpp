@@ -121,13 +121,62 @@ namespace ams::controller {
         SubCmd_GetGpioPinValue      = 0x52,
     };
 
-    struct SwitchSubcommandResponse {
-        uint8_t         ack;
-        uint8_t         id;
-        uint8_t         data[0x23];
+    struct SwitchSubcommand {
+        uint8_t id;
+        union {
+            uint8_t data[0x26];
+
+            struct {
+                uint32_t address;
+                uint8_t size;
+            } spi_flash_read;
+        };
     } __attribute__ ((__packed__));
 
-    struct SwitchOutputReport0x01;
+    struct SwitchSubcommandResponse {
+        uint8_t ack;
+        uint8_t id;
+        union {
+            uint8_t data[0x23];
+
+            struct {
+                struct {
+                    uint8_t major;
+                    uint8_t minor;
+                } fw_ver;
+                uint8_t type;
+                uint8_t _unk0;  // Always 0x02
+                bluetooth::Address address;
+                uint8_t _unk1;  // Always 0x01
+                uint8_t _unk2;  // If 01, colors in SPI are used. Otherwise default ones
+            } __attribute__ ((__packed__)) device_info;
+
+            struct {
+                bool enabled;
+            } set_ship_power_state;
+
+            struct {
+                uint32_t address;
+                uint8_t size;
+                uint8_t data[];
+            } spi_flash_read;
+
+            struct {
+                uint8_t status;
+            } spi_flash_write;
+
+            struct {
+                uint8_t status;
+            } spi_sector_erase;
+        };
+    } __attribute__ ((__packed__));
+
+    struct SwitchOutputReport0x01 {
+        uint8_t counter;
+        uint8_t rumble_data[8];
+        SwitchSubcommand subcmd;
+    } __attribute__ ((__packed__));
+
     struct SwitchOutputReport0x03;
     struct SwitchOutputReport0x10;
     struct SwitchOutputReport0x11;
@@ -167,7 +216,7 @@ namespace ams::controller {
     struct SwitchReportData {
         uint8_t id;
         union {
-            //SwitchOutputReport0x01 output0x01;
+            SwitchOutputReport0x01 output0x01;
             //SwitchOutputReport0x03 output0x03;
             //SwitchOutputReport0x10 output0x10;
             //SwitchOutputReport0x11 output0x11;
