@@ -306,18 +306,21 @@ namespace ams::controller {
             }
         };
 
-        if (read_addr == 0x6000) {
-            if (m_emulated_type != SwitchControllerType_ProController) {
-                std::strncpy(response.spi_flash_read.data, "XCW14031838402", read_size);
-            }
-        }
-        else if (read_addr == 0x6050) {
-            std::memcpy(response.spi_flash_read.data, &m_colours, sizeof(m_colours)); // Set controller colours
-        }
-        else {
-            std::memset(response.spi_flash_read.data, 0xff, read_size); // Console doesn't seem to mind if response is uninitialised data (0xff)
-        }
+        std::memset(response.spi_flash_read.data, 0xff, read_size); // Console doesn't seem to mind if response is all uninitialised data (0xff)
 
+        switch (read_addr) {
+            case 0x6000:
+                if (m_emulated_type != SwitchControllerType_ProController) {
+                    //std::strncpy(&response.spi_flash_read.data, "XCW14031838402", read_size);
+                }
+                break;
+            case 0x6050:
+                std::memcpy(response.spi_flash_read.data, &m_colours, sizeof(m_colours)); // Set controller colours
+                break;
+            default:
+                break;
+        };
+        
         return this->FakeSubCmdResponse(&response);
     }
 
