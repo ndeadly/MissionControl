@@ -311,7 +311,7 @@ namespace ams::controller {
         switch (read_addr) {
             case 0x6000:
                 if (m_emulated_type != SwitchControllerType_ProController) {
-                    //std::strncpy(&response.spi_flash_read.data, "XCW14031838402", read_size);
+                    std::memcpy(&response.spi_flash_read.data, "\0\0XCW14000069420", read_size);
                 }
                 break;
             case 0x6050:
