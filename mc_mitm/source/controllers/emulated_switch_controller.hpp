@@ -67,18 +67,18 @@ namespace ams::controller {
             Result SetEmulatedControllerType(SwitchControllerType type);
 
             SwitchControllerType m_emulated_type;
+            SwitchControllerColours m_colours;
             
             bool m_charging;
             uint8_t m_battery;
+
+            SwitchButtonData m_buttons_previous;
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
             Switch6AxisData m_motion_data[3];
 
-            ProControllerColours m_colours;
             bool m_enable_rumble;
-            SwitchButtonData m_buttons_previous;
-
     };
 
 }

@@ -97,19 +97,29 @@ namespace ams::controller {
             0x00, 0xf6
         };
 
+        const SwitchControllerColours default_colours_pro_controller = {
+            .body       = {0x32, 0x32, 0x32},
+            .buttons    = {0xe6, 0xe6, 0xe6},
+            .left_grip  = {0x46, 0x46, 0x46},
+            .right_grip = {0x46, 0x46, 0x46}
+        };
+
+        const SwitchControllerColours default_colours_joycon = {
+            .body       = {0x82, 0x82, 0x82},
+            .buttons    = {0x0f, 0x0f, 0x0f},
+            .left_grip  = {0xff, 0xff, 0xff},
+            .right_grip = {0xff, 0xff, 0xff}
+        };
+
     }
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
     : SwitchController(address)
     , m_emulated_type(SwitchControllerType_ProController)
+    , m_colours(default_colours_pro_controller)
     , m_charging(false)
     , m_battery(BATTERY_MAX) { 
         this->ClearControllerState();
-
-        m_colours.body       = {0x32, 0x32, 0x32};
-        m_colours.buttons    = {0xe6, 0xe6, 0xe6};
-        m_colours.left_grip  = {0x46, 0x46, 0x46};
-        m_colours.right_grip = {0x46, 0x46, 0x46};
 
         auto config = mitm::GetGlobalConfig();
 
@@ -117,12 +127,11 @@ namespace ams::controller {
     };
 
     void EmulatedSwitchController::ClearControllerState(void) {
+        std::memset(&m_buttons_previous, 0, sizeof(m_buttons_previous));
         std::memset(&m_buttons, 0, sizeof(m_buttons));
         m_left_stick.SetData(STICK_ZERO, STICK_ZERO);
         m_right_stick.SetData(STICK_ZERO, STICK_ZERO);
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
-
-        std::memset(&m_buttons_previous, 0, sizeof(m_buttons_previous));
     }
 
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
