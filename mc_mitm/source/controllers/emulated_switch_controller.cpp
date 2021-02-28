@@ -125,7 +125,7 @@ namespace ams::controller {
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
 
         // Toggle controller type
-        if ((m_buttons.plus && !m_buttons_previous.plus) && m_buttons.minus) {
+        if ((m_buttons.lstick_press && !m_buttons_previous.lstick_press) && m_buttons.rstick_press) {
             SwitchControllerType type = (m_emulated_type == SwitchControllerType_ProController) ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController;
             this->SetEmulatedControllerType(type);
         }
