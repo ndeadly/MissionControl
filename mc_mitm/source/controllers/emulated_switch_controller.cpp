@@ -326,11 +326,6 @@ namespace ams::controller {
         std::memset(response.spi_flash_read.data, 0xff, read_size); // Console doesn't seem to mind if response is all uninitialised data (0xff)
 
         switch (read_addr) {
-            case 0x6000:
-                if (m_emulated_type != SwitchControllerType_ProController) {
-                    std::memcpy(&response.spi_flash_read.data, "\0\0XCW14000069420", read_size);
-                }
-                break;
             case 0x6050:
                 std::memcpy(response.spi_flash_read.data, &m_colours, sizeof(m_colours)); // Set controller colours
                 break;
