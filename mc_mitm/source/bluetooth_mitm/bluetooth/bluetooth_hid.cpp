@@ -76,7 +76,7 @@ namespace ams::bluetooth::hid {
         };
 
         // Signal fake disconnection event
-        ConnectionState disconnected = { *address, BtdrvHidConnectionState_Disconnected };
+        ConnectionState disconnected = { *address, {0}, BtdrvHidConnectionState_Disconnected };
         SignalFakeEvent(BtdrvHidEventType_ConnectionState, &disconnected, sizeof(disconnected));
         g_data_read_event.Wait();
 
@@ -84,7 +84,7 @@ namespace ams::bluetooth::hid {
         svcSleepThread(100'000'000ULL);
 
         // Signal fake connection event
-        ConnectionState connected = { *address, BtdrvHidConnectionState_Connected };
+        ConnectionState connected = { *address, {0}, BtdrvHidConnectionState_Connected };
         SignalFakeEvent(BtdrvHidEventType_ConnectionState, &connected, sizeof(connected));
         g_data_read_event.Wait();
 
