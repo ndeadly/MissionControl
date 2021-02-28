@@ -301,8 +301,8 @@ namespace ams::controller {
                 .type = m_emulated_type, 
                 ._unk0 = 0x02, 
                 .address = m_address, 
-                ._unk1 = (m_emulated_type == SwitchControllerType_LeftJoyCon) ? 0x03 : 0x01, 
-                ._unk2 = (m_emulated_type == SwitchControllerType_ProController) ? 0x02 : 0x01
+                ._unk1 = static_cast<uint8_t>(m_emulated_type == SwitchControllerType_LeftJoyCon ? 0x03 : 0x01), 
+                ._unk2 = static_cast<uint8_t>(m_emulated_type == SwitchControllerType_ProController ? 0x02 : 0x01)
             }
         };
         
