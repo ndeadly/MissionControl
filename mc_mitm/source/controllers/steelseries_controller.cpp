@@ -31,6 +31,12 @@ namespace ams::controller {
             case 0x01:
                 this->HandleInputReport0x01(steelseries_report);
                 break;
+            case 0x12:
+                this->HandleInputReport0x12(steelseries_report);
+                break;
+            case 0xc4:
+                this->HandleInputReport0xc4(steelseries_report);
+                break;
             default:
                 // Todo: handle this properly
                 this->HandleMfiInputReport(steelseries_report);
@@ -70,7 +76,51 @@ namespace ams::controller {
         m_buttons.L = src->input0x01.buttons.L;
 
         m_buttons.minus = src->input0x01.buttons.select;
-        m_buttons.plus  = src->input0x01.buttons.start;       
+        m_buttons.plus  = src->input0x01.buttons.start;
+    }
+
+    void SteelseriesController::HandleInputReport0x12(const SteelseriesReportData *src) {
+        m_buttons.home  = src->input0x12.home;
+    }
+
+    void SteelseriesController::HandleInputReport0xc4(const SteelseriesReportData *src) {
+        m_left_stick = this->PackStickData(
+            static_cast<uint16_t>(stick_scale_factor * src->input0xc4.left_stick.x) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & 0xfff
+        );
+        m_right_stick = this->PackStickData(
+            static_cast<uint16_t>(stick_scale_factor * src->input0xc4.right_stick.x) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & 0xfff
+        );
+
+        m_buttons.dpad_down   = (src->input0xc4.dpad == SteelseriesDPad2_S)  ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_SE) ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_SW);
+        m_buttons.dpad_up     = (src->input0xc4.dpad == SteelseriesDPad2_N)  ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_NE) ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_NW);
+        m_buttons.dpad_right  = (src->input0xc4.dpad == SteelseriesDPad2_E)  ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_NE) ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_SE);
+        m_buttons.dpad_left   = (src->input0xc4.dpad == SteelseriesDPad2_W)  ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_NW) ||
+                                (src->input0xc4.dpad == SteelseriesDPad2_SW);
+
+        m_buttons.A = src->input0xc4.buttons.B;
+        m_buttons.B = src->input0xc4.buttons.A;
+        m_buttons.X = src->input0xc4.buttons.Y;
+        m_buttons.Y = src->input0xc4.buttons.X;
+
+        m_buttons.R  = src->input0xc4.buttons.R1;
+        m_buttons.ZR = src->input0xc4.buttons.R2;
+        m_buttons.L  = src->input0xc4.buttons.L1;
+        m_buttons.ZL = src->input0xc4.buttons.L2;
+
+        m_buttons.lstick_press = src->input0xc4.buttons.L3;
+        m_buttons.rstick_press = src->input0xc4.buttons.R3;   
+
+        m_buttons.minus = src->input0xc4.buttons.select;
+        m_buttons.plus  = src->input0xc4.buttons.start;
     }
 
     void SteelseriesController::HandleMfiInputReport(const SteelseriesReportData *src) {
