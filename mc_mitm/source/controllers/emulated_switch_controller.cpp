@@ -152,8 +152,7 @@ namespace ams::controller {
 
         // Toggle controller type
         if ((m_buttons.lstick_press && !m_buttons_previous.lstick_press) && m_buttons.rstick_press) {
-            SwitchControllerType type = (m_emulated_type == SwitchControllerType_ProController) ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController;
-            this->SetEmulatedControllerType(type);
+            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
         }
 
         // Fixup for identifying as horizontal joycon
@@ -289,7 +288,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
         const FirmwareVersion fw = (m_emulated_type == SwitchControllerType_ProController) ? pro_controller_fw_version : joycon_fw_version;
-        //const FirmwareVersion fw = {0xff, 0xff}; // Max possible firmware value so we never get prompted to update
+
         const SwitchSubcommandResponse response = {
             .ack = 0x82, 
             .id = SubCmd_RequestDeviceInfo,
