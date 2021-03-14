@@ -268,7 +268,7 @@ namespace ams::controller {
             virtual Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
-            void ApplyButtonCombos(SwitchButtonData *buttons);
+            virtual void ApplyButtonCombos(SwitchButtonData *buttons);
 
             bluetooth::Address m_address;
 

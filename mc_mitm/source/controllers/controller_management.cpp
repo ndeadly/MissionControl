@@ -155,6 +155,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : ICadeController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_ICade;
+            }
+        }       
+
         return ControllerType_Unknown;
     }
 
@@ -232,6 +238,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Razer:
                 g_controllers.push_back(std::make_unique<RazerController>(address));
+                break;
+            case ControllerType_ICade:
+                g_controllers.push_back(std::make_unique<ICadeController>(address));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<UnknownController>(address));
