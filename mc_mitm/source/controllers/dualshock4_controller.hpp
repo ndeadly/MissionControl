@@ -135,7 +135,7 @@ namespace ams::controller {
                 , m_rumble_state({0, 0}) { };
             
             Result Initialize(void);
-            Result SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right);
+            Result SetVibration(const SwitchRumbleData *rumble_data);
             Result CancelVibration(void);
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(RGBColour colour);

@@ -347,8 +347,8 @@ namespace ams::controller {
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
 
-    Result WiiController::SetVibration(const SwitchRumbleData *left, const SwitchRumbleData *right) {
-        m_rumble_state = left->low_band_amp > 0 || left->high_band_amp > 0;
+    Result WiiController::SetVibration(const SwitchRumbleData *rumble_data) {
+        m_rumble_state = rumble_data->low_band_amp > 0 || rumble_data->high_band_amp > 0;
 
         s_output_report.size = sizeof(WiiOutputReport0x10) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
