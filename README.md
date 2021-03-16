@@ -3,7 +3,13 @@
 <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/ndeadly/MissionControl">
 <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total">
 <img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total">
+<br>
 <img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin">
+<img alt="Donate Ethereum" src="https://img.shields.io/static/v1?label=donate&message=fd28c8680416d5c706ad8e404955e0a3a2aa7124&color=yellow&style=flat&logo=ethereum">
+</p>
+
+<p align="left">
+
 </p>
 
 # MissionControl
@@ -12,11 +18,15 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 
 ### Features
 
+* Supports all Switch firmware versions.
 * Connect up to 8 non-switch Bluetooth controllers simultaneously without any additional hardware.
-* Low input lag.
 * Make use of native HOS menus for controller pairing, button remapping (firmware 10.0.0+) etc.
-* Supports all Switch firmware versions
-* `btdrv.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system. 
+* Rumble support*
+* Low input lag.
+* Spoofing of host Bluetooth adapter name and address.
+* `btdrv.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system.
+
+**Rumble not currently implemented for all compatible controllers*
 
 ### Supported Controllers
 
@@ -31,18 +41,23 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Ouya Controller__
 * __Gamestick Controller__
 * __Gembox Controller__
+* __iCade Controller__
 * __Ipega Controllers (9017s, 9023, 9055, 9062S, 9076, 9078, 9087 9096 confirmed working. Others may also work)__
 * __Xiaomi Mi Controller__
 * __Steelseries Free__
 * __Steelseries Nimbus__
+* __Steelseries Stratus Duo__
 * __GameSir G3s__
 * __GameSir G4s__
+* __GameSir T1s__
 * __Hori Onyx__
+* __8bitDo SN30 Pro Xbox Cloud Gaming Edition__
 * __8BitDo ZERO (Most other 8BitDo controllers have a Switch mode available. May require firmware update)__
 * __PowerA Moga Hero__
 * __PowerA Moga Pro__
 * __PowerA Moga Pro 2__
 * __Mad-Catz C.T.R.L.R__
+* __Razer Raiju Tournament__
 * __Razer Serval__
 * __Mocute 050__
 * __Gen Game S3__
@@ -88,10 +103,25 @@ You should also ensure your controller firmware is up to date, as old firmwares 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it in sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
 
+### Removal
+
+To functionally uninstall Mission Control and its components, all that needs to be done is to delete the following directories from your SD card and reboot your console.
+
+* `/atmosphere/contents/010000000000bd00`
+* `/atmosphere/exefs_patches/bluetooth_patches`
+
+If you wish to completely remove all traces of the software ever having been installed (telemetry excepted), you may also want to follow these additional steps
+
+* Remove the following files from your SD card (if present)
+    * `/atmosphere/config_templates/missioncontrol.ini`
+    * `/atmosphere/config/missioncontrol.ini`
+
+* Wipe the Bluetooth pairing database via `System Settings->Controllers and Sensors->Disconnect Controllers`
+
 ### Planned/In-progress Features
 Below is a list of features I am currently working on or would like to look into in the future, roughly in descending order of priority. Requests are welcome if you have an idea you think would make a useful feature.
 
-* Rumble support
+* ~~Rumble support~~
 * Motion controls support
 * Bluetooth LE support
 * Per-controller configurations
@@ -120,6 +150,7 @@ Below is a list of features I am currently working on or would like to look into
 
 ### Known Issues and Limitations
 
+* Motion controls currently unsupported.
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Controllers using the Bluetooth LE (BLE) standard are currently not supported and will not connect to the system.
 * Xbox One Elite V2 controllers cannot complete the pairing process with the console and in some cases cause it to crash. Without access to a physical controller there's not a lot I can do to debug the process. 
