@@ -65,10 +65,10 @@ namespace ams::mitm::btm {
         auto device_info = reinterpret_cast<BtmDeviceInfoList *>(out.GetPointer());
         R_TRY(btmGetDeviceInfoFwd(this->forward_service.get(), device_info));
 
-        for (unsigned int i = 0; i < device_info->total_entries; ++i) {
+        for (unsigned int i = 0; i < device_info->device_count; ++i) {
             auto device = &device_info->devices[i];
-            if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+            if (!controller::IsOfficialSwitchControllerName(device->name.name)) {
+                std::strncpy(device->name.name, controller::pro_controller_name, sizeof(device->name) - 1);
             }
         }
 

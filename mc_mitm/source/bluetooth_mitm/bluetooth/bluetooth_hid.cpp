@@ -79,19 +79,19 @@ namespace ams::bluetooth::hid {
     }
 
     void HandleConnectionStateEvent(bluetooth::HidEventInfo *event_info) {
-        switch (event_info->connection_state.state) {
-            case BtdrvHidConnectionState_Connected:
-                controller::AttachHandler(&event_info->connection_state.address);
+        switch (event_info->connection.status) {
+            case BtdrvHidConnectionStatus_Connected:
+                controller::AttachHandler(&event_info->connection.addr);
                 break;
-            case BtdrvHidConnectionState_Disconnected:
-                controller::RemoveHandler(&event_info->connection_state.address);
+            case BtdrvHidConnectionStatus_Disconnected:
+                controller::RemoveHandler(&event_info->connection.addr);
                 break;
             default:
                 break;
         }
     }
 
-    // void HandleUnknown07Event(bluetooth::HidEventInfo *event_info) {
+    // void HandleExtEvent(bluetooth::HidEventInfo *event_info) {
     //     ;
     // }
 
@@ -102,11 +102,11 @@ namespace ams::bluetooth::hid {
         }
 
         switch (g_current_event_type) {
-            case BtdrvHidEventType_ConnectionState:
+            case BtdrvHidEventType_Connection:
                 HandleConnectionStateEvent(&g_event_info);
                 break;
-            case BtdrvHidEventType_Unknown7:
-                //HandleUnknown07Event(&g_event_info);
+            case BtdrvHidEventType_Ext:
+                //HandleExtEvent(&g_event_info);
                 break;
             default:
                 break;

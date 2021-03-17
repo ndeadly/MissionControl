@@ -18,19 +18,15 @@
 #include <stratosphere.hpp>
 
 namespace ams::bluetooth {
-   
+
     typedef BtdrvAddress Address;
-    typedef BtdrvDeviceClass DeviceClass;
+    typedef BtdrvClassOfDevice DeviceClass;
     typedef BtdrvBluetoothPinCode PinCode;
     typedef BtdrvAdapterProperty AdapterProperty;
     typedef BtdrvHidReport HidReport;
     typedef BtdrvBluetoothHhReportType HhReportType;
     typedef SetSysBluetoothDevicesSettings DevicesSettings;
 
-    typedef BtdrvBluetoothSspVariant SspVariant;
-    typedef BtdrvBluetoothTransport Transport;
-    typedef BtdrvBluetoothDiscoveryState DiscoveryState;
-    typedef BtdrvBluetoothBondState BondState;
     typedef BtdrvEventType EventType;
     typedef BtdrvEventInfo EventInfo;
 
@@ -40,7 +36,6 @@ namespace ams::bluetooth {
     typedef BtdrvBleEventType BleEventType;
     typedef BtdrvBleEventInfo BleEventInfo;
 
-    typedef BtdrvHidConnectionState HidConnectionState;
-    typedef BtdrvHidReportData HidReportData;
-  
+    typedef BtdrvHidReportEventInfo HidReportEventInfo;
+
 }

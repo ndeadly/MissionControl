@@ -50,7 +50,7 @@ namespace ams::controller {
 
     ControllerType Identify(const bluetooth::DevicesSettings *device) {
 
-        if (IsOfficialSwitchControllerName(device->name))
+        if (IsOfficialSwitchControllerName(device->name.name))
             return ControllerType_Switch;
 
         for (auto hwId : WiiController::hardware_ids) {
@@ -165,8 +165,8 @@ namespace ams::controller {
     }
 
     bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod) {
-        return ((cod->cod[1] & 0x0f) == cod_major_peripheral) &&
-               (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick) || ((cod->cod[2] & 0x40) == cod_minor_keyboard));
+        return ((cod->class_of_device[1] & 0x0f) == cod_major_peripheral) &&
+               (((cod->class_of_device[2] & 0x0f) == cod_minor_gamepad) || ((cod->class_of_device[2] & 0x0f) == cod_minor_joystick) || ((cod->class_of_device[2] & 0x40) == cod_minor_keyboard));
     }
 
     bool IsOfficialSwitchControllerName(const std::string& name) {

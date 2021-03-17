@@ -40,7 +40,7 @@ namespace ams::bluetooth {
 
     struct CircularBufferPacket{
         CircularBufferPacketHeader header;
-        HidReportData data;
+        HidReportEventInfo data;
     };
 
     class CircularBuffer {
