@@ -36,6 +36,7 @@
 #include "mocute_controller.hpp"
 #include "razer_controller.hpp"
 #include "icade_controller.hpp"
+#include "lanshen_controller.hpp"
 
 namespace ams::controller {
 
@@ -62,6 +63,7 @@ namespace ams::controller {
         ControllerType_Mocute,
         ControllerType_Razer,
         ControllerType_ICade,
+        ControllerType_LanShen,
         ControllerType_Unknown,
     };
 

@@ -159,7 +159,13 @@ namespace ams::controller {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_ICade;
             }
-        }       
+        }
+		
+		for (auto hwId : LanShenController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_LanShen;
+            }
+        }
 
         return ControllerType_Unknown;
     }
@@ -242,6 +248,9 @@ namespace ams::controller {
             case ControllerType_ICade:
                 g_controllers.push_back(std::make_unique<ICadeController>(address));
                 break;
+			case ControllerType_LanShen:
+                g_controllers.push_back(std::make_unique<LanShenController>(address));
+                break;	
             default:
                 g_controllers.push_back(std::make_unique<UnknownController>(address));
                 break;
