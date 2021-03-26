@@ -83,7 +83,8 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0xffff, 0x0000}    // Mocute 050 Controller
+                {0xffff, 0x0000},   // Mocute 050 Controller
+                {0x04e8, 0x046e}    // Mocute 050 Controller
             };  
 
             MocuteController(const bluetooth::Address *address) 
