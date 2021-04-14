@@ -28,9 +28,8 @@ namespace ams::bluetooth::hid {
     os::SystemEvent *GetForwardEvent(void);
     os::SystemEvent *GetUserForwardEvent(void);
 
+    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size);
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size);
     void HandleEvent(void);
-
-    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size);
 
 }

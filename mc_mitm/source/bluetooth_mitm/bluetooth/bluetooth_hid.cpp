@@ -60,6 +60,13 @@ namespace ams::bluetooth::hid {
         return &g_system_event_user_fwd;
     }
 
+    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size) {
+        g_current_event_type = type;
+        std::memcpy(&g_event_info, data, size);
+
+        g_system_event_fwd.Signal();
+    }
+
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size) {
         std::scoped_lock lk(g_event_info_lock);
 
@@ -71,29 +78,31 @@ namespace ams::bluetooth::hid {
         return ams::ResultSuccess();
     }
 
-    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size) {
-        g_current_event_type = type;
-        std::memcpy(&g_event_info, data, size);
-
-        g_system_event_fwd.Signal();
-    }
-
-    void HandleConnectionStateEvent(bluetooth::HidEventInfo *event_info) {
-        switch (event_info->connection.status) {
+    inline void HandleConnectionStateEventV1(bluetooth::HidEventInfo *event_info) {
+        switch (event_info->connection.v1.status) {
             case BtdrvHidConnectionStatus_Connected:
-                controller::AttachHandler(&event_info->connection.addr);
+                controller::AttachHandler(&event_info->connection.v1.addr);
                 break;
             case BtdrvHidConnectionStatus_Disconnected:
-                controller::RemoveHandler(&event_info->connection.addr);
+                controller::RemoveHandler(&event_info->connection.v1.addr);
                 break;
             default:
                 break;
         }
     }
 
-    // void HandleExtEvent(bluetooth::HidEventInfo *event_info) {
-    //     ;
-    // }
+    inline void HandleConnectionStateEventV12(bluetooth::HidEventInfo *event_info) {
+        switch (event_info->connection.v12.status) {
+            case BtdrvHidConnectionStatusV12_Connected:
+                controller::AttachHandler(&event_info->connection.v12.addr);
+                break;
+            case BtdrvHidConnectionStatusV12_Disconnected:
+                controller::RemoveHandler(&event_info->connection.v12.addr);
+                break;
+            default:
+                break;
+        }
+    }
 
     void HandleEvent(void) {
         {
@@ -103,10 +112,7 @@ namespace ams::bluetooth::hid {
 
         switch (g_current_event_type) {
             case BtdrvHidEventType_Connection:
-                HandleConnectionStateEvent(&g_event_info);
-                break;
-            case BtdrvHidEventType_Ext:
-                //HandleExtEvent(&g_event_info);
+                hos::GetVersion() < hos::Version_12_0_0 ? HandleConnectionStateEventV1(&g_event_info) : HandleConnectionStateEventV12(&g_event_info);
                 break;
             default:
                 break;

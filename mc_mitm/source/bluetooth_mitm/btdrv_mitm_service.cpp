@@ -132,7 +132,7 @@ namespace ams::mitm::bluetooth {
 
             ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventType_Ext, &event_data, sizeof(event_data));
         }
-        else {
+        else if (hos::GetVersion() < hos::Version_12_0_0) {
             const struct {
                 uint32_t type;
                 uint32_t status;
@@ -141,6 +141,15 @@ namespace ams::mitm::bluetooth {
             } event_data = {tsi == 0xff ? 1u : 0u, 0, address, {0, 0}};
 
             ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventType_Ext, &event_data, sizeof(event_data));
+        }
+        else {
+            const struct {
+                ams::bluetooth::Address address;
+                uint8_t flag;
+                uint8_t tsi;
+            } event_data = { address, 1, tsi };
+
+            ams::bluetooth::core::SignalFakeEvent(static_cast<ams::bluetooth::EventType>(BtdrvEventTypeV12_Tsi), &event_data, sizeof(event_data));
         }
 
         return ams::ResultSuccess();
