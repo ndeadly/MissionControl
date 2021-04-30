@@ -67,11 +67,10 @@ void __libnx_initheap(void) {
 void __appInit(void) {
     hos::InitializeForStratosphere();
 
-    sm::DoWithSession([&]() {
-        R_ABORT_UNLESS(fsInitialize());
-        R_ABORT_UNLESS(pmdmntInitialize());
-        R_ABORT_UNLESS(pminfoInitialize());
-    });
+    R_ABORT_UNLESS(smInitialize());
+    R_ABORT_UNLESS(fsInitialize());
+    R_ABORT_UNLESS(pmdmntInitialize());
+    R_ABORT_UNLESS(pminfoInitialize());
 }
 
 void __appExit(void) {
@@ -79,6 +78,7 @@ void __appExit(void) {
     pminfoExit();
     pmdmntExit();
     fsExit();
+    smExit();
 }
 
 void __libnx_exception_handler(ThreadExceptionDump* ctx) {

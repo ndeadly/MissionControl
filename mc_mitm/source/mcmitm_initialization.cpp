@@ -44,9 +44,7 @@ namespace ams::mitm {
             ams::bluetooth::core::WaitEnabled();
 
             // Connect to btdrv service now that we're sure the mitm is up and running
-            sm::DoWithSession([&]() {
-                R_ABORT_UNLESS(btdrvInitialize());
-            });
+            R_ABORT_UNLESS(btdrvInitialize());
 
             // Get global module settings
             auto config = GetGlobalConfig();
