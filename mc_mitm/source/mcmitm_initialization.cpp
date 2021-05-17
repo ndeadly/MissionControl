@@ -52,12 +52,30 @@ namespace ams::mitm {
             // Set bluetooth adapter host address override
             ams::bluetooth::Address null_address = {};
             if (std::memcmp(&config->bluetooth.host_address, &null_address, sizeof(ams::bluetooth::Address)) != 0) {
-                R_ABORT_UNLESS(btdrvSetAdapterProperty(BtdrvBluetoothPropertyType_Address, &config->bluetooth.host_address, sizeof(ams::bluetooth::Address)));
+                if (hos::GetVersion() < hos::Version_12_0_0) {
+                    R_ABORT_UNLESS(btdrvLegacySetAdapterProperty(BtdrvBluetoothPropertyType_Address, &config->bluetooth.host_address, sizeof(ams::bluetooth::Address)));
+                }
+                else {
+                    BtdrvAdapterProperty property;
+                    property.type = BtdrvAdapterPropertyType_Address;
+                    property.size = sizeof(ams::bluetooth::Address);
+                    std::memcpy(property.data, &config->bluetooth.host_address, sizeof(ams::bluetooth::Address));
+                    R_ABORT_UNLESS(btdrvSetAdapterProperty(BtdrvAdapterPropertyType_Address, &property));
+                }
             }
 
             // Set bluetooth adapter host name override
             if (std::strlen(config->bluetooth.host_name) > 0) {
-                R_ABORT_UNLESS(btdrvSetAdapterProperty(BtdrvBluetoothPropertyType_Name, config->bluetooth.host_name, std::strlen(config->bluetooth.host_name)));
+                if (hos::GetVersion() < hos::Version_12_0_0) {
+                    R_ABORT_UNLESS(btdrvLegacySetAdapterProperty(BtdrvBluetoothPropertyType_Name, config->bluetooth.host_name, std::strlen(config->bluetooth.host_name)));
+                }
+                else {
+                    BtdrvAdapterProperty property;
+                    property.type = BtdrvAdapterPropertyType_Name;
+                    property.size = std::strlen(config->bluetooth.host_name);
+                    std::memcpy(property.data, config->bluetooth.host_name, std::strlen(config->bluetooth.host_name));
+                    R_ABORT_UNLESS(btdrvSetAdapterProperty(BtdrvAdapterPropertyType_Name, &property));
+                }
             }
 
             g_init_event.Signal();

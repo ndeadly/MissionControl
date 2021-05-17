@@ -130,7 +130,7 @@ namespace ams::mitm::bluetooth {
                 uint32_t status;
             } event_data = {tsi == 0xff ? 1u : 0u, address, {0, 0}, 0};
 
-            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventType_Ext, &event_data, sizeof(event_data));
+            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventTypeOld_Ext, &event_data, sizeof(event_data));
         }
         else if (hos::GetVersion() < hos::Version_12_0_0) {
             const struct {
@@ -140,7 +140,7 @@ namespace ams::mitm::bluetooth {
                 uint8_t pad[2];
             } event_data = {tsi == 0xff ? 1u : 0u, 0, address, {0, 0}};
 
-            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventType_Ext, &event_data, sizeof(event_data));
+            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventTypeOld_Ext, &event_data, sizeof(event_data));
         }
         else {
             const struct {
@@ -149,7 +149,7 @@ namespace ams::mitm::bluetooth {
                 uint8_t tsi;
             } event_data = { address, 1, tsi };
 
-            ams::bluetooth::core::SignalFakeEvent(static_cast<ams::bluetooth::EventType>(BtdrvEventTypeV12_Tsi), &event_data, sizeof(event_data));
+            ams::bluetooth::core::SignalFakeEvent(BtdrvEventType_Tsi, &event_data, sizeof(event_data));
         }
 
         return ams::ResultSuccess();

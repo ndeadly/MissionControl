@@ -49,7 +49,7 @@ namespace ams::mitm::btm {
 
     Result BtmMitmService::GetDeviceConditionDeprecated3(sf::Out<ams::btm::DeviceConditionV800> out) {
         auto device_condition = reinterpret_cast<BtmDeviceConditionV800 *>(out.GetPointer());
-        R_TRY(btmGetDeviceConditionDeprecated1Fwd(this->forward_service.get(), device_condition));
+        R_TRY(btmGetDeviceConditionDeprecated3Fwd(this->forward_service.get(), device_condition));
         RenameConnectedDevices(device_condition->devices, device_condition->connected_count);
         return ams::ResultSuccess();
     }
