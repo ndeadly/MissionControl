@@ -161,10 +161,10 @@ namespace ams::controller {
     }
 
     void WiiController::MapButtonsHorizontalOrientation(const WiiButtonData *buttons) {
-        m_buttons.dpad_down   = buttons->dpad_left;
-        m_buttons.dpad_up     = buttons->dpad_right;
-        m_buttons.dpad_right  = buttons->dpad_down;
-        m_buttons.dpad_left   = buttons->dpad_up;
+        m_buttons.dpad_down  = buttons->dpad_left;
+        m_buttons.dpad_up    = buttons->dpad_right;
+        m_buttons.dpad_right = buttons->dpad_down;
+        m_buttons.dpad_left  = buttons->dpad_up;
 
         m_buttons.A = buttons->two;
         m_buttons.B = buttons->one;
@@ -172,17 +172,17 @@ namespace ams::controller {
         m_buttons.R = buttons->A;
         m_buttons.L = buttons->B;
 
-        m_buttons.minus   = buttons->minus;
-        m_buttons.plus    = buttons->plus;
-        
-        m_buttons.home    = buttons->home;
+        m_buttons.minus = buttons->minus;
+        m_buttons.plus  = buttons->plus;
+
+        m_buttons.home = buttons->home;
     }
 
     void WiiController::MapButtonsVerticalOrientation(const WiiButtonData *buttons) {
-        m_buttons.dpad_down   = buttons->dpad_down;
-        m_buttons.dpad_up     = buttons->dpad_up;
-        m_buttons.dpad_right  = buttons->dpad_right;
-        m_buttons.dpad_left   = buttons->dpad_left;
+        m_buttons.dpad_down  = buttons->dpad_down;
+        m_buttons.dpad_up    = buttons->dpad_up;
+        m_buttons.dpad_right = buttons->dpad_right;
+        m_buttons.dpad_left  = buttons->dpad_left;
 
         m_buttons.A = buttons->A;
         m_buttons.B = buttons->B;
@@ -191,10 +191,10 @@ namespace ams::controller {
         m_buttons.R  = buttons->one;
         m_buttons.ZR = buttons->two;
 
-        m_buttons.minus   = buttons->minus;
-        m_buttons.plus    = buttons->plus;
-        
-        m_buttons.home    = buttons->home;
+        m_buttons.minus = buttons->minus;
+        m_buttons.plus  = buttons->plus;
+
+        m_buttons.home = buttons->home;
     }
 
     void WiiController::MapExtensionBytes(const uint8_t ext[]) {
@@ -241,25 +241,25 @@ namespace ams::controller {
 
         auto buttons = reinterpret_cast<const WiiClassicControllerButtonData *>(&ext[4]);
 
-        m_buttons.dpad_down   = !buttons->dpad_down;
-        m_buttons.dpad_up     = !buttons->dpad_up;
-        m_buttons.dpad_right  = !buttons->dpad_right;
-        m_buttons.dpad_left   = !buttons->dpad_left;
+        m_buttons.dpad_down  |= !buttons->dpad_down;
+        m_buttons.dpad_up    |= !buttons->dpad_up;
+        m_buttons.dpad_right |= !buttons->dpad_right;
+        m_buttons.dpad_left  |= !buttons->dpad_left;
 
-        m_buttons.A = !buttons->A;
-        m_buttons.B = !buttons->B;
-        m_buttons.X = !buttons->X;
-        m_buttons.Y = !buttons->Y;
+        m_buttons.A |= !buttons->A;
+        m_buttons.B |= !buttons->B;
+        m_buttons.X  = !buttons->X;
+        m_buttons.Y  = !buttons->Y;
 
-        m_buttons.L  = !buttons->L;
-        m_buttons.ZL = !buttons->ZL;
-        m_buttons.R  = !buttons->R;
-        m_buttons.ZR = !buttons->ZR;
+        m_buttons.L   = !buttons->L;
+        m_buttons.ZL  = !buttons->ZL;
+        m_buttons.R  |= !buttons->R;
+        m_buttons.ZR |= !buttons->ZR;
 
-        m_buttons.minus   = !buttons->minus;
-        m_buttons.plus    = !buttons->plus;
-        
-        m_buttons.home    = !buttons->home;
+        m_buttons.minus |= !buttons->minus;
+        m_buttons.plus  |= !buttons->plus;
+
+        m_buttons.home |= !buttons->home;
     }
 
     void WiiController::MapWiiUProControllerExtension(const uint8_t ext[]) {
@@ -274,10 +274,10 @@ namespace ams::controller {
             std::clamp<uint16_t>(((wiiu_scale_factor * (extension->right_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
         );
 
-        m_buttons.dpad_down   = !extension->buttons.dpad_down;
-        m_buttons.dpad_up     = !extension->buttons.dpad_up;
-        m_buttons.dpad_right  = !extension->buttons.dpad_right;
-        m_buttons.dpad_left   = !extension->buttons.dpad_left;
+        m_buttons.dpad_down  = !extension->buttons.dpad_down;
+        m_buttons.dpad_up    = !extension->buttons.dpad_up;
+        m_buttons.dpad_right = !extension->buttons.dpad_right;
+        m_buttons.dpad_left  = !extension->buttons.dpad_left;
 
         m_buttons.A = !extension->buttons.A;
         m_buttons.B = !extension->buttons.B;
@@ -301,10 +301,10 @@ namespace ams::controller {
     void WiiController::MapTaTaConExtension(const uint8_t ext[]) {
         auto extension = reinterpret_cast<const TaTaConExtensionData *>(ext);
 
-        m_buttons.X            = !extension->R_rim;
-        m_buttons.Y            = !extension->R_center;
-        m_buttons.dpad_up      = !extension->L_rim;
-        m_buttons.dpad_right   = !extension->L_center;
+        m_buttons.X           = !extension->R_rim;
+        m_buttons.Y           = !extension->R_center;
+        m_buttons.dpad_up    |= !extension->L_rim;
+        m_buttons.dpad_right |= !extension->L_center;
     }
 
     Result WiiController::WriteMemory(uint32_t write_addr, const uint8_t *data, uint8_t size) {
