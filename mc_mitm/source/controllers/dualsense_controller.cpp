@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "dualsense_controller.hpp"
+#include "../mcmitm_config.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -33,6 +34,8 @@ namespace ams::controller {
             0x19,
             0x0A
         };
+
+        const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
 
         const RGBColour player_led_colours[] = {
             // Same colours used by PS4
@@ -77,7 +80,8 @@ namespace ams::controller {
     }
 
     Result DualsenseController::SetLightbarColour(RGBColour colour) {
-        m_led_colour = colour;
+        auto config = mitm::GetGlobalConfig();
+        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
         return this->PushRumbleLedState();
     }
 
