@@ -37,6 +37,7 @@
 #include "razer_controller.hpp"
 #include "icade_controller.hpp"
 #include "lanshen_controller.hpp"
+#include "atgames_controller.hpp"
 
 namespace ams::controller {
 
@@ -64,6 +65,7 @@ namespace ams::controller {
         ControllerType_Razer,
         ControllerType_ICade,
         ControllerType_LanShen,
+        ControllerType_AtGames,
         ControllerType_Unknown,
     };
 

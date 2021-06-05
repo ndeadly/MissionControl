@@ -167,6 +167,12 @@ namespace ams::controller {
             }
         }
 
+		for (auto hwId : AtGamesController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_AtGames;
+            }
+        }
+		
         return ControllerType_Unknown;
     }
 
@@ -250,7 +256,10 @@ namespace ams::controller {
                 break;
 			case ControllerType_LanShen:
                 g_controllers.push_back(std::make_unique<LanShenController>(address));
-                break;	
+                break;
+            case ControllerType_AtGames:
+                g_controllers.push_back(std::make_unique<AtGamesController>(address));
+                break;
             default:
                 g_controllers.push_back(std::make_unique<UnknownController>(address));
                 break;
