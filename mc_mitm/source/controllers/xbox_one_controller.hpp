@@ -36,7 +36,7 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     // Used on older firmware
-    struct XboxOneButtonData {
+    struct XboxOneButtonDataOld {
         uint8_t      dpad;
 
         uint8_t A            : 1;
@@ -54,7 +54,7 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     // Used on latest firmwares
-    struct XboxOneButtonDataNew {
+    struct XboxOneButtonData {
         uint8_t      dpad;
 
         uint8_t A            : 1;
@@ -90,11 +90,17 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x01 {
-        XboxOneStickData        left_stick;
-        XboxOneStickData        right_stick;
-        uint16_t                left_trigger;
-        uint16_t                right_trigger;
-        XboxOneButtonDataNew    buttons;
+        XboxOneStickData  left_stick;
+        XboxOneStickData  right_stick;
+        uint16_t          left_trigger;
+        uint16_t          right_trigger;
+        union {
+            XboxOneButtonData buttons;
+
+            struct {
+                XboxOneButtonDataOld buttons;
+            } old;
+        };
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x02{
@@ -138,7 +144,8 @@ namespace ams::controller {
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x01(const XboxOneReportData *src);
+            void HandleInputReport0x01(const XboxOneReportData *src, bool new_format);
+            void HandleInputReport0x02(const XboxOneReportData *src);
             void HandleInputReport0x04(const XboxOneReportData *src);
 
     };
