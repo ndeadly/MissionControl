@@ -47,7 +47,7 @@ namespace ams::controller {
     }
 
     void XiaomiController::HandleInputReport0x04(const XiaomiReportData *src) {
-        m_battery = src->input0x04.battery / 52 << 1;
+        m_battery = src->input0x04.battery / 21 << 1;
 
         m_left_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x04.left_stick.x) & 0xfff,
