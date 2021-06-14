@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "powera_controller.hpp"
+#include "controller_utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -37,7 +38,7 @@ namespace ams::controller {
     }
 
     void PowerAController::HandleInputReport0x03(const PowerAReportData *src) {
-        m_battery = src->input0x03.battery / 52 << 1;
+        m_battery = convert_battery_255(src->input0x03.battery);
 
         m_left_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,

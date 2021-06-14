@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "wii_controller.hpp"
-#include <switch.h>
+#include "controller_utils.hpp"
 #include <stratosphere.hpp>
 #include <algorithm>
 #include <cstring>
@@ -83,7 +83,7 @@ namespace ams::controller {
             this->ReadMemory(0x04a400fa, 6);
         }
 
-        m_battery = (src->input0x20.battery / 52) << 1;
+        m_battery = convert_battery_255(src->input0x20.battery);
     }
 
     void WiiController::HandleInputReport0x21(const WiiReportData *src) {

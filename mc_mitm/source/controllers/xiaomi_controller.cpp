@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xiaomi_controller.hpp"
+#include "controller_utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -47,7 +48,7 @@ namespace ams::controller {
     }
 
     void XiaomiController::HandleInputReport0x04(const XiaomiReportData *src) {
-        m_battery = src->input0x04.battery / 21 << 1;
+        m_battery = convert_battery_100(src->input0x04.battery);
 
         m_left_stick = this->PackStickData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x04.left_stick.x) & 0xfff,
