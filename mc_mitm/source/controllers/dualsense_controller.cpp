@@ -101,11 +101,11 @@ namespace ams::controller {
     }
 
     void DualsenseController::HandleInputReport0x01(const DualsenseReportData *src) {
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
@@ -127,11 +127,11 @@ namespace ams::controller {
 
         m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
     
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x31.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x31.left_stick.y)) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x31.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x31.right_stick.y)) & 0xfff
         );

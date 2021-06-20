@@ -40,11 +40,11 @@ namespace ams::controller {
     }
 
     void NvidiaShieldController::HandleInputReport0x01(const NvidiaShieldReportData *src) {
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & 0xfff
         );

@@ -98,8 +98,8 @@ namespace ams::controller {
 
     void EmulatedSwitchController::ClearControllerState(void) {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
-        m_left_stick = this->PackStickData(STICK_ZERO, STICK_ZERO);
-        m_right_stick = this->PackStickData(STICK_ZERO, STICK_ZERO);
+        m_left_stick.SetData(STICK_ZERO, STICK_ZERO);
+        m_right_stick.SetData(STICK_ZERO, STICK_ZERO);
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
     }
 

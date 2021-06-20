@@ -45,11 +45,11 @@ namespace ams::controller {
     }
 
     void SteelseriesController::HandleInputReport0x01(const SteelseriesReportData *src) {
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x01.left_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x01.left_stick.y + 1)) + 0x7ff) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x01.right_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x01.right_stick.y + 1)) + 0x7ff) & 0xfff
         );
@@ -84,11 +84,11 @@ namespace ams::controller {
     }
 
     void SteelseriesController::HandleInputReport0xc4(const SteelseriesReportData *src) {
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0xc4.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0xc4.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & 0xfff
         );
@@ -124,11 +124,11 @@ namespace ams::controller {
     }
 
     void SteelseriesController::HandleMfiInputReport(const SteelseriesReportData *src) {
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (-static_cast<int8_t>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input_mfi.right_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (-static_cast<int8_t>(~src->input_mfi.right_stick.y + 1)) + 0x7ff) & 0xfff
         );

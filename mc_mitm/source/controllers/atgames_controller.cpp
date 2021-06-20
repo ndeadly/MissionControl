@@ -37,11 +37,11 @@ namespace ams::controller {
     }
 
     void AtGamesController::HandleInputReport0x01(const AtGamesReportData *src) {
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             STICK_ZERO + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
             STICK_ZERO
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             STICK_ZERO,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & 0xfff
         );
