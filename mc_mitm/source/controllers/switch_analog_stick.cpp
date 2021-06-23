@@ -25,11 +25,11 @@ namespace ams::controller {
 
     void SwitchAnalogStick::SetX(uint16_t x) {
         m_xy[0] = x & 0xff;
-        m_xy[1] |= x >> 8;
+        m_xy[1] = (m_xy[1] & 0xf0) | (x >> 8);
     }
 
     void SwitchAnalogStick::SetY(uint16_t y) {
-        m_xy[1] |= (y & 0xff) << 4;
+        m_xy[1] = (m_xy[1] & 0x0f) | ((y & 0xff) << 4);
         m_xy[2] = (y >> 4) & 0xff;
     }
 
