@@ -69,24 +69,45 @@ namespace ams::bluetooth::hid {
 
     Result VirtualReconnect(const bluetooth::Address *address) {
 
-        struct ConnectionState {
-            BtdrvAddress address;
-            uint8_t pad[2];
-            BtdrvHidConnectionState state;
-        };
+        if (hos::GetVersion() >= hos::Version_12_0_0) {
+            struct ConnectionState {
+                BtdrvHidConnectionStatus status;
+                BtdrvAddress address; 
+            };
 
-        // Signal fake disconnection event
-        ConnectionState disconnected = { *address, {0}, BtdrvHidConnectionState_Disconnected };
-        SignalFakeEvent(BtdrvHidEventType_ConnectionState, &disconnected, sizeof(disconnected));
-        g_data_read_event.Wait();
+            // Signal fake disconnection event
+            ConnectionState disconnected = { BtdrvHidConnectionStatus_Closed, *address };
+            SignalFakeEvent(BtdrvHidEventType_Connection, &disconnected, sizeof(disconnected));
+            g_data_read_event.Wait();
 
-        // If we don't wait a bit the console disconnects the controller for real
-        svcSleepThread(100'000'000ULL);
+            // If we don't wait a bit the console disconnects the controller for real
+            svcSleepThread(100'000'000ULL);
 
-        // Signal fake connection event
-        ConnectionState connected = { *address, {0}, BtdrvHidConnectionState_Connected };
-        SignalFakeEvent(BtdrvHidEventType_ConnectionState, &connected, sizeof(connected));
-        g_data_read_event.Wait();
+            // Signal fake connection event
+            ConnectionState connected = { BtdrvHidConnectionStatus_Opened, *address };
+            SignalFakeEvent(BtdrvHidEventType_Connection, &connected, sizeof(connected));
+            g_data_read_event.Wait();
+        }
+        else {
+            struct ConnectionState {
+                BtdrvAddress address;
+                uint8_t pad[2];
+                BtdrvHidConnectionStatus status;
+            };
+
+            // Signal fake disconnection event
+            ConnectionState disconnected = { *address, {0}, BtdrvHidConnectionStatusOld_Closed };
+            SignalFakeEvent(BtdrvHidEventTypeOld_Connection, &disconnected, sizeof(disconnected));
+            g_data_read_event.Wait();
+
+            // If we don't wait a bit the console disconnects the controller for real
+            svcSleepThread(100'000'000ULL);
+
+            // Signal fake connection event
+            ConnectionState connected = { *address, {0}, BtdrvHidConnectionStatusOld_Opened };
+            SignalFakeEvent(BtdrvHidEventTypeOld_Connection, &connected, sizeof(connected));
+            g_data_read_event.Wait();
+        }
 
         return ams::ResultSuccess();
     }

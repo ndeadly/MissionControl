@@ -159,16 +159,13 @@ namespace ams::controller {
         switch (m_emulated_type) {
             case SwitchControllerType_RightJoyCon:
                 if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    switch_report->input0x30.right_stick = this->PackStickData(
+                    switch_report->input0x30.right_stick.SetData(
                         m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_up ? 0 : STICK_ZERO),
                         m_buttons.dpad_right ? UINT12_MAX : (m_buttons.dpad_left ? 0 : STICK_ZERO)
                     );
                 }
                 else {
-                    uint16_t x;
-                    uint16_t y;
-                    this->UnpackStickData(&m_left_stick, &x, &y);
-                    switch_report->input0x30.right_stick = this->PackStickData(-y, x);
+                    switch_report->input0x30.right_stick.SetData(-m_left_stick.GetY(), m_left_stick.GetX());
                 }
 
                 switch_report->input0x30.buttons.SL_R = m_buttons.L | m_buttons.ZL;
@@ -180,16 +177,13 @@ namespace ams::controller {
                 break;
             case SwitchControllerType_LeftJoyCon:
                 if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    switch_report->input0x30.left_stick = this->PackStickData(
+                    switch_report->input0x30.left_stick.SetData(
                         m_buttons.dpad_up ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_ZERO),
                         m_buttons.dpad_left ? UINT12_MAX : (m_buttons.dpad_right ? 0 : STICK_ZERO)
                     );
                 }
                 else {
-                    uint16_t x;
-                    uint16_t y;
-                    this->UnpackStickData(&m_left_stick, &x, &y);
-                    switch_report->input0x30.left_stick = this->PackStickData(y, -x);
+                    switch_report->input0x30.left_stick.SetData(m_left_stick.GetY(), -m_left_stick.GetX());
                 }
 
                 switch_report->input0x30.buttons.SL_L = m_buttons.L | m_buttons.ZL;

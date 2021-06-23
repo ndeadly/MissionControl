@@ -71,14 +71,14 @@ namespace ams::mitm::btm {
         auto device_info = reinterpret_cast<BtmDeviceInfoList *>(out.GetPointer());
         R_TRY(btmGetDeviceInfoFwd(this->forward_service.get(), device_info));
 
-        for (unsigned int i = 0; i < device_info->total_entries; ++i) {
-            auto device = controller::LocateHandler(&device_info->devices[i].address);
+        for (unsigned int i = 0; i < device_info->device_count; ++i) {
+            auto device = controller::LocateHandler(&device_info->devices[i].addr);
             if (device) {
                 if (!device->IsOfficialController()) {
                     if (device->GetControllerType() == controller::SwitchControllerType_ProController)
-                        std::strncpy(device_info->devices[i].name, controller::pro_controller_name, sizeof(device_info->devices[i].name) - 1);
+                        std::strncpy(device_info->devices[i].name.name, controller::pro_controller_name, sizeof(device_info->devices[i].name) - 1);
                     else
-                        std::strncpy(device_info->devices[i].name, "Joy-Con (R)", sizeof(device_info->devices[i].name) - 1);
+                        std::strncpy(device_info->devices[i].name.name, "Joy-Con (R)", sizeof(device_info->devices[i].name) - 1);
                 }
             }
         }
