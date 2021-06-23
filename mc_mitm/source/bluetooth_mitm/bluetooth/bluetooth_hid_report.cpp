@@ -41,6 +41,7 @@ namespace ams::bluetooth::hid::report {
         os::SystemEvent g_system_event_user_fwd(os::EventClearMode_AutoClear, true);
 
         os::Event g_init_event(os::EventClearMode_ManualClear);
+        os::Event g_report_read_event(os::EventClearMode_AutoClear);
 
         SharedMemory g_real_bt_shmem;
         SharedMemory g_fake_bt_shmem;
@@ -68,6 +69,10 @@ namespace ams::bluetooth::hid::report {
 
     void WaitInitialized(void) {
         g_init_event.Wait();
+    }
+
+    void SignalReportRead(void) {
+        g_report_read_event.Signal();
     }
 
     SharedMemory *GetRealSharedMemory(void) {
@@ -272,17 +277,17 @@ namespace ams::bluetooth::hid::report {
     }
 
     void HandleEvent(void) {
-        if (!g_redirect_hid_report_events) {
-            if (hos::GetVersion() >= hos::Version_12_0_0)
-                HandleHidReportEventV12();
-            else if (hos::GetVersion() >= hos::Version_7_0_0)
-                HandleHidReportEventV7();
-            else
-                HandleHidReportEventV1();
-        }
-        else {
+        if (g_redirect_hid_report_events) {
             g_system_event_user_fwd.Signal();
+            g_report_read_event.Wait();
         }
+
+        if (hos::GetVersion() >= hos::Version_12_0_0)
+            HandleHidReportEventV12();
+        else if (hos::GetVersion() >= hos::Version_7_0_0)
+            HandleHidReportEventV7();
+        else
+            HandleHidReportEventV1();
     }
 
 }
