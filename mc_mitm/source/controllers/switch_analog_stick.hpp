@@ -33,4 +33,8 @@ namespace ams::controller {
         uint8_t m_xy[3];
     };
 
+    struct SwitchAnalogStickFactoryCalibration {
+        uint8_t calib[9];
+    };
+
 }

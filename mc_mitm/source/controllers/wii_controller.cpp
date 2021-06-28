@@ -27,7 +27,7 @@ namespace ams::controller {
         constexpr uint8_t init_data2[] = {0x00};
 
         constexpr float nunchuck_stick_scale_factor  = float(UINT12_MAX) / 0xb8;
-        constexpr float wiiu_scale_factor            = 1.5;
+        constexpr float wiiu_scale_factor            = 2.0;
         constexpr float left_stick_scale_factor      = float(UINT12_MAX) / 0x3f;
         constexpr float right_stick_scale_factor     = float(UINT12_MAX) / 0x1f;
 
