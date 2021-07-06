@@ -18,6 +18,26 @@
 
 namespace ams::controller {
 
+    enum Dualshock4ReportRate {
+        Dualshock4ReportRate_Max    = 0,
+        Dualshock4ReportRate_1000Hz = 1,
+        Dualshock4ReportRate_500Hz  = 2,
+        Dualshock4ReportRate_333Hz  = 3,
+        Dualshock4ReportRate_250Hz  = 4,
+        Dualshock4ReportRate_200Hz  = 5,
+        Dualshock4ReportRate_166Hz  = 6,
+        Dualshock4ReportRate_142Hz  = 7,
+        Dualshock4ReportRate_125Hz  = 8,
+        Dualshock4ReportRate_111Hz  = 9,
+        Dualshock4ReportRate_100Hz  = 10,
+        Dualshock4ReportRate_90Hz   = 11,
+        Dualshock4ReportRate_83Hz   = 12,
+        Dualshock4ReportRate_76Hz   = 13,
+        Dualshock4ReportRate_71Hz   = 14,
+        Dualshock4ReportRate_66Hz   = 15,
+        Dualshock4ReportRate_62Hz   = 16
+    };
+
     enum Dualshock4ControllerVariant {
         Dualshock4ControllerVariant_V1,
         Dualshock4ControllerVariant_V2,
@@ -131,15 +151,16 @@ namespace ams::controller {
 
             Dualshock4Controller(const bluetooth::Address *address)
                 : EmulatedSwitchController(address)
+                , m_report_rate(Dualshock4ReportRate_125Hz)
                 , m_led_colour({0, 0, 0})
                 , m_rumble_state({0, 0}) { };
-            
+
             Result Initialize(void);
             Result SetVibration(const SwitchRumbleData *rumble_data);
             Result CancelVibration(void);
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(RGBColour colour);
-     
+
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
@@ -150,6 +171,7 @@ namespace ams::controller {
             
             Result PushRumbleLedState(void);
 
+            Dualshock4ReportRate m_report_rate;
             RGBColour m_led_colour; 
             Dualshock4RumbleData m_rumble_state; 
     };
