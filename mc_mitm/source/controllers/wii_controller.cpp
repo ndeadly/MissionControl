@@ -77,7 +77,9 @@ namespace ams::controller {
         else if (src->input0x20.extension_connected && (m_extension == WiiExtensionController_None)) {
             // Initialise extension
             this->WriteMemory(0x04a400f0, init_data1, sizeof(init_data1));
+            svcSleepThread(20'000'000ULL);
             this->WriteMemory(0x04a400fb, init_data2, sizeof(init_data2));
+            svcSleepThread(20'000'000ULL);
 
             // Read extension type
             this->ReadMemory(0x04a400fa, 6);
@@ -92,7 +94,7 @@ namespace ams::controller {
         if (read_addr == 0x00fa) {
             // Identify extension controller by ID
             uint64_t extension_id = (util::SwapBytes(*reinterpret_cast<const uint64_t *>(&src->input0x21.data)) >> 16);
-            
+
             switch (extension_id) {
                 case 0x0000A4200000ULL:
                 case 0xFF00A4200000ULL:
@@ -140,7 +142,7 @@ namespace ams::controller {
     }
 
     void WiiController::HandleInputReport0x32(const WiiReportData *src) {
-        if ((m_extension == WiiExtensionController_Nunchuck) 
+        if ((m_extension == WiiExtensionController_Nunchuck)
          || (m_extension == WiiExtensionController_Classic)
          || (m_extension == WiiExtensionController_ClassicPro)
          || (m_extension == WiiExtensionController_TaTaCon)) {
@@ -151,7 +153,7 @@ namespace ams::controller {
     }
 
     void WiiController::HandleInputReport0x34(const WiiReportData *src) {
-        if ((m_extension == WiiExtensionController_Nunchuck) 
+        if ((m_extension == WiiExtensionController_Nunchuck)
          || (m_extension == WiiExtensionController_Classic)
          || (m_extension == WiiExtensionController_ClassicPro)) {
             this->MapButtonsVerticalOrientation(&src->input0x34.buttons);
@@ -221,7 +223,7 @@ namespace ams::controller {
         auto extension = reinterpret_cast<const WiiNunchuckExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<uint16_t>(static_cast<uint16_t>(nunchuck_stick_scale_factor * (extension->stick_x - 0x80) + STICK_ZERO), 0, 0xfff), 
+            std::clamp<uint16_t>(static_cast<uint16_t>(nunchuck_stick_scale_factor * (extension->stick_x - 0x80) + STICK_ZERO), 0, 0xfff),
             std::clamp<uint16_t>(static_cast<uint16_t>(nunchuck_stick_scale_factor * (extension->stick_y - 0x80) + STICK_ZERO), 0, 0xfff)
         );
 
@@ -231,11 +233,11 @@ namespace ams::controller {
 
     void WiiController::MapClassicControllerExtension(const uint8_t ext[]) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(left_stick_scale_factor * ((ext[0] & 0x3f) - 0x20) + STICK_ZERO) & 0xfff, 
+            static_cast<uint16_t>(left_stick_scale_factor * ((ext[0] & 0x3f) - 0x20) + STICK_ZERO) & 0xfff,
             static_cast<uint16_t>(left_stick_scale_factor * ((ext[1] & 0x3f) - 0x20) + STICK_ZERO) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(right_stick_scale_factor * ((((ext[0] >> 3) & 0x18) | ((ext[1] >> 5) & 0x06) | ((ext[2] >> 7) & 0x01)) - 0x10) + STICK_ZERO) & 0xfff, 
+            static_cast<uint16_t>(right_stick_scale_factor * ((((ext[0] >> 3) & 0x18) | ((ext[1] >> 5) & 0x06) | ((ext[2] >> 7) & 0x01)) - 0x10) + STICK_ZERO) & 0xfff,
             static_cast<uint16_t>(right_stick_scale_factor * ((ext[2] & 0x1f) - 0x10) + STICK_ZERO) & 0xfff
         );
 
@@ -266,7 +268,7 @@ namespace ams::controller {
         auto extension = reinterpret_cast<const WiiUProExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<uint16_t>(((wiiu_scale_factor * (extension->left_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff), 
+            std::clamp<uint16_t>(((wiiu_scale_factor * (extension->left_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff),
             std::clamp<uint16_t>(((wiiu_scale_factor * (extension->left_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
         );
         m_right_stick.SetData(
@@ -343,7 +345,7 @@ namespace ams::controller {
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
         report_data->id = 0x15;
         report_data->output0x15.rumble = m_rumble_state;
-        
+
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
 
@@ -369,7 +371,7 @@ namespace ams::controller {
         return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
     }
 
-    Result WiiController::SetPlayerLed(uint8_t led_mask) {        
+    Result WiiController::SetPlayerLed(uint8_t led_mask) {
         s_output_report.size = sizeof(WiiOutputReport0x11) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
         report_data->id = 0x11;
