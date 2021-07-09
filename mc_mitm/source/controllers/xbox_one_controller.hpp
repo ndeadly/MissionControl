@@ -140,6 +140,8 @@ namespace ams::controller {
             XboxOneController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
+            bool SupportsSetTsiCommand(void) { return false; }
+
             Result SetVibration(const SwitchRumbleData *rumble_data);
             void UpdateControllerState(const bluetooth::HidReport *report);
 

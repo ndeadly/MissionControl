@@ -119,7 +119,7 @@ namespace ams::mitm::bluetooth {
 
     Result BtdrvMitmService::SetTsi(ams::bluetooth::Address address, u8 tsi) {
         auto device = controller::LocateHandler(&address);
-        if (!device || device->IsOfficialController())
+        if (!device || device->SupportsSetTsiCommand())
             return sm::mitm::ResultShouldForwardToSession();
 
         if (hos::GetVersion() < hos::Version_9_0_0) {

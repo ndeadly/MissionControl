@@ -254,11 +254,12 @@ namespace ams::controller {
             SwitchController(const bluetooth::Address *address)
                 : m_address(*address) { };
 
-            const bluetooth::Address& Address(void) const { return m_address; };
+            const bluetooth::Address& Address(void) const { return m_address; }
 
-            virtual bool IsOfficialController(void) { return true; };
+            virtual bool IsOfficialController(void) { return true; }
+            virtual bool SupportsSetTsiCommand(void) { return true; }
 
-            virtual Result Initialize(void) { return ams::ResultSuccess(); };
+            virtual Result Initialize(void) { return ams::ResultSuccess(); }
             virtual Result HandleIncomingReport(const bluetooth::HidReport *report);
             virtual Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
