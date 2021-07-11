@@ -24,7 +24,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * Rumble support*
 * Low input lag.
 * Spoofing of host Bluetooth adapter name and address.
-* `btdrv.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system.
+* `mc.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system.
 
 **Rumble not currently implemented for all compatible controllers*
 
@@ -75,7 +75,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for Mission Control to become active.
 
 ***IMPORTANT: 
-Atmosphère >= 0.19.3 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash the system on boot.
+Atmosphère >= 0.19.5 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash the system on boot.
 Users upgrading from version 0.1.0 of Mission Control are also advised to wipe their pairing database and re-pair controllers running the latest version. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
 
 ### Usage
@@ -104,6 +104,20 @@ You should also ensure your controller firmware is up to date, as old firmwares 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it in sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
 
+### Module configuration
+
+A template for the config .ini file will be installed to `/config/MissionControl/missioncontrol.ini.template`. To modify the default module settings, copy the template to `/config/MissionControl/missioncontrol.ini` and uncomment/modify any settings you want to change. The file is only parsed on startup, so any changes you make will require a reboot to take effect. Currently there is only a small set of configuration settings, but this will be expanded upon in future releases.
+
+- `[general]`
+These are general settings for mission control features. 
+	- `enable_rumble` Enables/disables rumble support for unofficial controllers.
+	- `enable_motion` Enables/disables motion controls support. Not currently used
+
+- `[bluetooth]`
+These settings can be used to spoof your switch bluetooth to appear as another device. This may be useful (in conjunction with a link key) if you want to use your controller across multiple devices without having to re-pair every time you switch. Note that changing these settings will invalidate your console information stored in any previously paired controllers and will require re-pairing.
+	- `host_name` Override the bluetooth host adapter name
+	- `host_address` Override the bluetooth host adapter address
+
 ### Removal
 
 To functionally uninstall Mission Control and its components, all that needs to be done is to delete the following directories from your SD card and reboot your console.
@@ -113,9 +127,8 @@ To functionally uninstall Mission Control and its components, all that needs to 
 
 If you wish to completely remove all traces of the software ever having been installed (telemetry excepted), you may also want to follow these additional steps
 
-* Remove the following files from your SD card (if present)
-    * `/atmosphere/config_templates/missioncontrol.ini`
-    * `/atmosphere/config/missioncontrol.ini`
+* Remove the following directory from your SD card
+    * `/config/MissionControl`
 
 * Wipe the Bluetooth pairing database via `System Settings->Controllers and Sensors->Disconnect Controllers`
 
@@ -217,7 +230,7 @@ git clone --recurse-submodules https://github.com/ndeadly/MissionControl.git
 cd MissionControl
 ```
 
-~~Mission Control currently uses a custom fork of `libnx` that adds Bluetooth service wrappers and type definitions.~~ Official libnx master is now used to build Mission Control. This needs to be built and installed first.
+~~Mission Control currently uses a custom fork of `libnx` that adds Bluetooth service wrappers and type definitions.~~ Official libnx master is now used to build Mission Control. At the time of writing, the libnx distributed by devkitPro can be used without the need to build it yourself. This may change if `Atmosphere-libs` updates to use bleeding edge `libnx` commits not present in the official release. In any case, you can build the included `libnx` submodule from source with the following commands.
 
 ```
 cd lib/libnx
