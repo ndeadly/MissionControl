@@ -18,82 +18,74 @@
 
 namespace ams::controller {
 
-    enum MocuteDPadDirection {
-        MocuteDPad_N,
-        MocuteDPad_NE,
-        MocuteDPad_E,
-        MocuteDPad_SE,
-        MocuteDPad_S,
-        MocuteDPad_SW,
-        MocuteDPad_W,
-        MocuteDPad_NW,
-        MocuteDPad_Released = 0x0f
+    enum LanShenDPadDirection {
+        LanShenDPad_N,
+        LanShenDPad_NE,
+        LanShenDPad_E,
+        LanShenDPad_SE,
+        LanShenDPad_S,
+        LanShenDPad_SW,
+        LanShenDPad_W,
+        LanShenDPad_NW,
+        LanShenDPad_Released = 0x0f
     };
 
-    enum MocuteDPadDirection2 {
-        MocuteDPad2_Released = 0x00,
-        MocuteDPad2_N,
-        MocuteDPad2_NE,
-        MocuteDPad2_E,
-        MocuteDPad2_SE,
-        MocuteDPad2_S,
-        MocuteDPad2_SW,
-        MocuteDPad2_W,
-        MocuteDPad2_NW
-    };
-
-    struct MocuteStickData {
+    struct LanShenStickData {
         uint8_t x;
         uint8_t y;
     } __attribute__ ((__packed__));
 
-    struct MocuteButtonData {
-        uint8_t dpad    : 4;
+    struct LanShenButtonData {
+        uint8_t dpad;
+
         uint8_t A       : 1;
         uint8_t B       : 1;
+        uint8_t         : 1;
         uint8_t X       : 1;
         uint8_t Y       : 1;
-
+        uint8_t         : 1;
         uint8_t L1      : 1;
         uint8_t R1      : 1;
-        uint8_t select  : 1;
-        uint8_t start   : 1;
-        uint8_t L3      : 1;
-        uint8_t R3      : 1;
+
         uint8_t L2      : 1;
         uint8_t R2      : 1;
+        uint8_t         : 1;
+        uint8_t start   : 1;
+        uint8_t         : 1;
+        uint8_t L3      : 1;
+        uint8_t R3      : 1;
+        uint8_t         : 1;
+
     } __attribute__ ((__packed__));
 
-    struct MocuteInputReport0x01 {
-        MocuteStickData left_stick;
-        MocuteStickData right_stick;
-        MocuteButtonData buttons;
-        uint8_t left_trigger;
-        uint8_t right_trigger;
-    } __attribute__ ((__packed__)); 
+    struct LanShenInputReport0x01{
+        LanShenStickData left_stick;
+        LanShenStickData right_stick;
+        LanShenButtonData buttons;
+        uint8_t _unk[4];
+    } __attribute__ ((__packed__));
 
-    struct MocuteReportData {
+    struct LanShenReportData {
         uint8_t id;
         union {
-            MocuteInputReport0x01 input0x01;
+            LanShenInputReport0x01 input0x01;
         };
     } __attribute__((packed));
 
-    class MocuteController : public EmulatedSwitchController {
+    class LanShenController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0xffff, 0x0000},   // Mocute 050 Controller
-                {0x04e8, 0x046e}    // Mocute 050 Controller
+                {0x0079, 0x181c}    // LanShen X1Pro
             };  
 
-            MocuteController(const bluetooth::Address *address) 
+            LanShenController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport(const MocuteReportData *src);
+            void HandleInputReport0x01(const LanShenReportData *src);
 
     };
 

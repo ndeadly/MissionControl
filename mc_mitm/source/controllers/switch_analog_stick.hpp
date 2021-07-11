@@ -15,21 +15,26 @@
  */
 #pragma once
 #include <switch.h>
-#include <stratosphere.hpp>
-#include "bluetooth_types.hpp"
 
-namespace ams::bluetooth::hid {
+namespace ams::controller {
 
-    bool IsInitialized(void);
-    void SignalInitialized(void);
-    void WaitInitialized(void);
+    constexpr auto UINT12_MAX  = 0xfff;
+    constexpr auto STICK_ZERO  = 0x800;
 
-    os::SystemEvent *GetSystemEvent(void);
-    os::SystemEvent *GetForwardEvent(void);
-    os::SystemEvent *GetUserForwardEvent(void);
+    struct SwitchAnalogStick {
+        void SetData(uint16_t x, uint16_t y);
+        void SetX(uint16_t x);
+        void SetY(uint16_t y);
+        uint16_t GetX(void);
+        uint16_t GetY(void);
+        void InvertX(void);
+        void InvertY(void);
+    
+        uint8_t m_xy[3];
+    };
 
-    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size);
-    Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size);
-    void HandleEvent(void);
+    struct SwitchAnalogStickFactoryCalibration {
+        uint8_t calib[9];
+    };
 
 }

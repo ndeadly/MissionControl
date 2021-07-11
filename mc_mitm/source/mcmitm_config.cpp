@@ -21,12 +21,15 @@ namespace ams::mitm {
 
     namespace {
 
-        constexpr const char *config_file_location = "sdmc:/atmosphere/config/missioncontrol.ini";
+        constexpr const char *config_file_location = "sdmc:/config/MissionControl/missioncontrol.ini";
 
         MissionControlConfig g_global_config = {
             .general = {
                 .enable_rumble = true,
                 .enable_motion = true
+            },
+            .misc = {
+                .disable_sony_leds = false
             }
         };
 
@@ -71,6 +74,10 @@ namespace ams::mitm {
                     std::strncpy(config->bluetooth.host_name, value, sizeof(config->bluetooth.host_name));
                 else if (strcasecmp(name, "host_address") == 0)
                     ParseBluetoothAddress(value, &config->bluetooth.host_address);
+            }
+            else if (strcasecmp(section, "misc") == 0) {
+                if (strcasecmp(name, "disable_sony_leds") == 0)
+                    ParseBoolean(value, &config->misc.disable_sony_leds);
             }
             else {
                 return 0;

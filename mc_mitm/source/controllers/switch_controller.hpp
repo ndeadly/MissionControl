@@ -14,13 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include "switch_analog_stick.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 
 namespace ams::controller {
 
-    constexpr auto UINT12_MAX  = 0xfff;
-    constexpr auto STICK_ZERO  = 0x800;
     constexpr auto BATTERY_MAX = 8;
 
     enum SwitchPlayerNumber : uint8_t {
@@ -53,10 +52,6 @@ namespace ams::controller {
         RGBColour right_grip;
     } __attribute__ ((__packed__));
         
-    struct SwitchStickData {
-        uint8_t xy[3];
-    } __attribute__ ((__packed__));
-
     struct SwitchButtonData {
         uint8_t Y              : 1;
         uint8_t X              : 1;
@@ -200,8 +195,8 @@ namespace ams::controller {
         uint8_t                     conn_info      : 4;
         uint8_t                     battery        : 4;
         SwitchButtonData            buttons;
-        SwitchStickData             left_stick;
-        SwitchStickData             right_stick;
+        SwitchAnalogStick           left_stick;
+        SwitchAnalogStick           right_stick;
         uint8_t                     vibrator;
         SwitchSubcommandResponse    response;
     } __attribute__ ((__packed__));
@@ -213,8 +208,8 @@ namespace ams::controller {
         uint8_t             conn_info      : 4;
         uint8_t             battery        : 4;
         SwitchButtonData    buttons;
-        SwitchStickData     left_stick;
-        SwitchStickData     right_stick;
+        SwitchAnalogStick           left_stick;
+        SwitchAnalogStick           right_stick;
         uint8_t             vibrator;
 
         // IMU samples at 0, 5 and 10ms
@@ -259,11 +254,12 @@ namespace ams::controller {
             SwitchController(const bluetooth::Address *address)
                 : m_address(*address) { };
 
-            const bluetooth::Address& Address(void) const { return m_address; };
+            const bluetooth::Address& Address(void) const { return m_address; }
 
-            virtual bool IsOfficialController(void) { return true; };
+            virtual bool IsOfficialController(void) { return true; }
+            virtual bool SupportsSetTsiCommand(void) { return true; }
 
-            virtual Result Initialize(void) { return ams::ResultSuccess(); };
+            virtual Result Initialize(void) { return ams::ResultSuccess(); }
             virtual Result HandleIncomingReport(const bluetooth::HidReport *report);
             virtual Result HandleOutgoingReport(const bluetooth::HidReport *report);
 

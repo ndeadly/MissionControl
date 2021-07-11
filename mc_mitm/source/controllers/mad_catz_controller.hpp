@@ -85,7 +85,8 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x0738, 0x5266}    // Mad Catz C.T.R.L.R
+                {0x0738, 0x5266},   // Mad Catz C.T.R.L.R
+                {0x0738, 0x5250}    // Mad Catz C.T.R.L.R for Samsung
             };  
 
             MadCatzController(const bluetooth::Address *address) 

@@ -33,7 +33,7 @@ namespace ams::bluetooth::hid::report {
         s32 g_event_handler_thread_priority = mitm::utils::ConvertToUserPriority(17);
 
         // This is only required  on fw < 7.0.0
-        bluetooth::HidEventInfo g_event_info;
+        bluetooth::HidReportEventInfo g_event_info;
         bluetooth::HidEventType g_current_event_type;
 
         os::SystemEvent g_system_event;
@@ -41,6 +41,7 @@ namespace ams::bluetooth::hid::report {
         os::SystemEvent g_system_event_user_fwd(os::EventClearMode_AutoClear, true);
 
         os::Event g_init_event(os::EventClearMode_ManualClear);
+        os::Event g_report_read_event(os::EventClearMode_AutoClear);
 
         SharedMemory g_real_bt_shmem;
         SharedMemory g_fake_bt_shmem;
@@ -48,7 +49,7 @@ namespace ams::bluetooth::hid::report {
         bluetooth::CircularBuffer *g_real_buffer;
         bluetooth::CircularBuffer *g_fake_buffer;
 
-        bluetooth::HidReportData g_fake_report_data;
+        bluetooth::HidReportEventInfo g_fake_report_event_info;
 
         Service *g_forward_service;
         os::ThreadId g_main_thread_id;
@@ -68,6 +69,10 @@ namespace ams::bluetooth::hid::report {
 
     void WaitInitialized(void) {
         g_init_event.Wait();
+    }
+
+    void SignalReportRead(void) {
+        g_report_read_event.Signal();
     }
 
     SharedMemory *GetRealSharedMemory(void) {
@@ -140,15 +145,20 @@ namespace ams::bluetooth::hid::report {
 
     Result WriteHidReportBuffer(const bluetooth::Address *address, const bluetooth::HidReport *report) {
         if (hos::GetVersion() < hos::Version_9_0_0) {
-            g_fake_report_data.v1.size = g_fake_report_data.report.size + 0x11;
-            std::memcpy(&g_fake_report_data.v1.address, address, sizeof(bluetooth::Address));
+            // Todo: check this may still be necessary
+            //g_fake_report_event_info.data_report.v7.size = g_fake_report_event_info.data_report.v7.report.size + 0x11;
+            g_fake_report_event_info.data_report.v7.addr = *address;
+            std::memcpy(&g_fake_report_event_info.data_report.v7.report, report, report->size + sizeof(report->size));
         }
         else {
-            std::memcpy(&g_fake_report_data.v9.address, address, sizeof(bluetooth::Address));
+            g_fake_report_event_info.data_report.v9.addr = *address;
+            std::memcpy(&g_fake_report_event_info.data_report.v9.report, report, report->size + sizeof(report->size));
         }
-        std::memcpy(&g_fake_report_data.report, report, report->size + sizeof(report->size));
 
-        g_fake_buffer->Write(BtdrvHidEventType_GetReport, &g_fake_report_data, g_fake_report_data.report.size + 0x11); 
+        if (hos::GetVersion() >= hos::Version_12_0_0)
+            g_fake_buffer->Write(BtdrvHidEventType_Data, &g_fake_report_event_info, report->size + 0x11);
+        else
+            g_fake_buffer->Write(BtdrvHidEventTypeOld_Data, &g_fake_report_event_info, report->size + 0x11);
 
         g_system_event_fwd.Signal();
 
@@ -177,14 +187,14 @@ namespace ams::bluetooth::hid::report {
                 continue;
             }
             else {
-                auto event_info = reinterpret_cast<bluetooth::HidEventInfo *>(buffer);
+                auto event_info = reinterpret_cast<bluetooth::HidReportEventInfo *>(buffer);
 
                 *type = static_cast<bluetooth::HidEventType>(packet->header.type);
-                std::memcpy(&event_info->get_report.address, &packet->data.v1.address, sizeof(bluetooth::Address));
-                event_info->get_report.status = BtdrvHidStatus_Ok;
-                event_info->get_report.report_length = packet->header.size;
-
-                std::memcpy(&event_info->get_report.report_data, &packet->data, packet->header.size);
+                event_info->data_report.v1.hdr.addr = packet->data.data_report.v7.addr;
+                event_info->data_report.v1.hdr.res = 0;
+                event_info->data_report.v1.hdr.size = packet->header.size;
+                event_info->data_report.v1.addr = packet->data.data_report.v7.addr;
+                std::memcpy(&event_info->data_report.v1.report, &packet->data.data_report.v7.report, packet->header.size);
                 break;
             }      
         }
@@ -192,56 +202,92 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    void HandleEvent(void) {
-        if (!g_redirect_hid_report_events) {
-            if (hos::GetVersion() < hos::Version_7_0_0) {
-                R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_event_info, sizeof(bluetooth::HidEventInfo), &g_current_event_type));
+    inline void HandleHidReportEventV1(void) {
+        R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_event_info, sizeof(bluetooth::HidReportEventInfo), &g_current_event_type));
 
-                switch (g_current_event_type) {
-                    case BtdrvHidEventType_GetReport:
-                        {
-                            auto device = controller::LocateHandler(&g_event_info.get_report.address);
-                            if (!device)
-                                return;
+        switch (g_current_event_type) {
+            case BtdrvHidEventTypeOld_Data:
+                {
+                    auto device = controller::LocateHandler(&g_event_info.data_report.v1.addr);
+                    if (!device)
+                        return;
 
-                            device->HandleIncomingReport(&g_event_info.get_report.report_data.report);
-                        }
-                        break;
-                    default:
-                        g_fake_buffer->Write(g_current_event_type, &g_event_info.get_report.report_data, g_event_info.get_report.report_length);
-                        break;
+                    device->HandleIncomingReport(reinterpret_cast<bluetooth::HidReport *>(&g_event_info.data_report.v1.report));
                 }
-            }
-            else {
-                while (true) {
-                    auto real_packet = g_real_buffer->Read();
-                    if (!real_packet)
-                        break;
+                break;
+            default:
+                g_fake_buffer->Write(g_current_event_type, &g_event_info.data_report.v1.report.data, g_event_info.data_report.v1.report.size);
+                break;
+        }
+    }
 
-                    g_real_buffer->Free();
+    inline void HandleHidReportEventV7(void) {
+        while (true) {
+            auto real_packet = g_real_buffer->Read();
+            if (!real_packet)
+                break;
 
-                    switch (real_packet->header.type) {
-                        case 0xff:
+            g_real_buffer->Free();
+
+            switch (real_packet->header.type) {
+                case 0xff:
+                    continue;
+                case BtdrvHidEventTypeOld_Data:
+                    {
+                        auto device = controller::LocateHandler(hos::GetVersion() < hos::Version_9_0_0 ? &real_packet->data.data_report.v7.addr : &real_packet->data.data_report.v9.addr);
+                        if (!device)
                             continue;
-                        case BtdrvHidEventType_GetReport:
-                            {
-                                auto device = controller::LocateHandler(hos::GetVersion() < hos::Version_9_0_0 ? &real_packet->data.v1.address : &real_packet->data.v9.address);
-                                if (!device)
-                                    continue;
 
-                                device->HandleIncomingReport(&real_packet->data.report);
-                            }
-                            break;
-                        default:
-                            g_fake_buffer->Write(real_packet->header.type, &real_packet->data, real_packet->header.size);
-                            break;
+                        auto report = hos::GetVersion() < hos::Version_9_0_0 ? reinterpret_cast<bluetooth::HidReport *>(&real_packet->data.data_report.v7.report) : &real_packet->data.data_report.v9.report;
+                        device->HandleIncomingReport(report);
                     }
-                } 
+                    break;
+                default:
+                    g_fake_buffer->Write(real_packet->header.type, &real_packet->data, real_packet->header.size);
+                    break;
             }
-        }
-        else {
+        } 
+    }
+
+    inline void HandleHidReportEventV12(void) {
+        while (true) {
+            auto real_packet = g_real_buffer->Read();
+            if (!real_packet)
+                break;
+
+            g_real_buffer->Free();
+
+            switch (real_packet->header.type) {
+                case 0xff:
+                    continue;
+                case BtdrvHidEventType_Data:
+                    {
+                        auto device = controller::LocateHandler(&real_packet->data.data_report.v9.addr);
+                        if (!device)
+                            continue;
+
+                        device->HandleIncomingReport(&real_packet->data.data_report.v9.report);
+                    }
+                    break;
+                default:
+                    g_fake_buffer->Write(real_packet->header.type, &real_packet->data, real_packet->header.size);
+                    break;
+            }
+        } 
+    }
+
+    void HandleEvent(void) {
+        if (g_redirect_hid_report_events) {
             g_system_event_user_fwd.Signal();
+            g_report_read_event.Wait();
         }
+
+        if (hos::GetVersion() >= hos::Version_12_0_0)
+            HandleHidReportEventV12();
+        else if (hos::GetVersion() >= hos::Version_7_0_0)
+            HandleHidReportEventV7();
+        else
+            HandleHidReportEventV1();
     }
 
 }

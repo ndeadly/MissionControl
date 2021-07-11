@@ -15,21 +15,10 @@
  */
 #pragma once
 #include <switch.h>
-#include <stratosphere.hpp>
-#include "bluetooth_types.hpp"
 
-namespace ams::bluetooth::hid {
+namespace ams::controller {
 
-    bool IsInitialized(void);
-    void SignalInitialized(void);
-    void WaitInitialized(void);
-
-    os::SystemEvent *GetSystemEvent(void);
-    os::SystemEvent *GetForwardEvent(void);
-    os::SystemEvent *GetUserForwardEvent(void);
-
-    void SignalFakeEvent(bluetooth::HidEventType type, const void *data, size_t size);
-    Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size);
-    void HandleEvent(void);
-
+    uint8_t convert_battery_100(uint8_t level);
+    uint8_t convert_battery_255(uint8_t level);
+    
 }

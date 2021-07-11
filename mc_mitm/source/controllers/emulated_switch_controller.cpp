@@ -21,6 +21,10 @@ namespace ams::controller {
 
     namespace {
 
+        // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
+        SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
+        SwitchAnalogStickFactoryCalibration rstick_factory_calib = {0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f};
+
         // Frequency in Hz rounded to nearest int
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#frequency-table
         const uint16_t rumble_freq_lut[] = {
@@ -98,8 +102,8 @@ namespace ams::controller {
 
     void EmulatedSwitchController::ClearControllerState(void) {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
-        m_left_stick = this->PackStickData(STICK_ZERO, STICK_ZERO);
-        m_right_stick = this->PackStickData(STICK_ZERO, STICK_ZERO);
+        m_left_stick.SetData(STICK_ZERO, STICK_ZERO);
+        m_right_stick.SetData(STICK_ZERO, STICK_ZERO);
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
     }
 
@@ -227,7 +231,7 @@ namespace ams::controller {
         // @ 0x00006080: 50 fd 00 00 c6 0f 0f 30 61 ae 90 d9 d4 14 54 41 15 54 c7 79 9c 33 36 63    <= Factory Sensor and Stick device parameters
         // @ 0x00006098: 0f 30 61 ae 90 d9 d4 14 54 41 15 54 c7 79 9c 33 36 63                      <= Stick device parameters 2. Normally the same with 1, even in Pro Contr.
         // @ 0x00008010: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    <= User Analog sticks calibration
-        // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Left analog stick calibration
+        // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Analog stick factory calibration + face/button colours
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
 
         auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
@@ -245,6 +249,17 @@ namespace ams::controller {
 
         if (read_addr == 0x6050) {
             std::memcpy(response.spi_flash_read.data, &m_colours, sizeof(m_colours)); // Set controller colours
+        }
+        else if (read_addr == 0x603d) {
+            const struct {
+                SwitchAnalogStickFactoryCalibration lstick_factory_calib;
+                SwitchAnalogStickFactoryCalibration rstick_factory_calib;
+                uint8_t unused;
+                RGBColour body;
+                RGBColour buttons;
+            } data = { lstick_factory_calib, rstick_factory_calib, 0xff, m_colours.body, m_colours.buttons };
+
+            std::memcpy(response.spi_flash_read.data, &data, sizeof(data));
         }
         else {
             std::memset(response.spi_flash_read.data, 0xff, read_size); // Console doesn't seem to mind if response is uninitialised data (0xff)

@@ -1,9 +1,6 @@
-[submodule "libnx"]
-	path = lib/libnx
-	url = https://github.com/ndeadly/libnx.git
 [submodule "Atmosphere-libs"]
 	path = lib/Atmosphere-libs
 	url = https://github.com/Atmosphere-NX/Atmosphere-libs.git
-[submodule "borealis"]
-	path = borealis
-	url = https://github.com/natinusala/borealis.git
+[submodule "libnx"]
+	path = lib/libnx
+	url = https://github.com/switchbrew/libnx.git

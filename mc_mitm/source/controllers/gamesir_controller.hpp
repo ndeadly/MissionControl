@@ -95,6 +95,8 @@ namespace ams::controller {
             GamesirController(const bluetooth::Address *address) 
                 : EmulatedSwitchController(address) { };
 
+            bool SupportsSetTsiCommand(void) { return false; }
+
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:

@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "dualshock4_controller.hpp"
+#include "../mcmitm_config.hpp"
 #include <switch.h>
 #include <stratosphere.hpp>
 #include <cstring>
@@ -23,6 +24,8 @@ namespace ams::controller {
     namespace {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+
+        const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
 
         const RGBColour player_led_colours[] = {
             // Same colours used by PS4
@@ -66,7 +69,8 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
-        m_led_colour = colour;
+        auto config = mitm::GetGlobalConfig();
+        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
         return this->PushRumbleLedState();
     }
 
@@ -86,11 +90,11 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {       
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
@@ -112,11 +116,11 @@ namespace ams::controller {
 
         m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
 
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x11.left_stick.y)) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.right_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x11.right_stick.y)) & 0xfff
         );
@@ -159,8 +163,8 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::PushRumbleLedState(void) {
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, 0xc0, 0x20, 0xf3, 0x04, 0x00, 
-            m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left, 
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff)), 0x20, 0xf3, 0x04, 0x00,
+            m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left,
             m_led_colour.r, m_led_colour.g, m_led_colour.b
         };
         report.crc = crc32Calculate(report.data, sizeof(report.data));

@@ -45,11 +45,11 @@ namespace ams::controller {
     }
 
     void GemboxController::HandleInputReport0x07(const GemboxReportData *src) {
-        m_left_stick = this->PackStickData(
+        m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x07.left_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x07.left_stick.y + 1)) + 0x7ff) & 0xfff
         );
-        m_right_stick = this->PackStickData(
+        m_right_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x07.right_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x07.right_stick.y + 1)) + 0x7ff) & 0xfff
         );

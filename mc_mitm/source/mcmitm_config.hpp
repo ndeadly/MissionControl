@@ -27,6 +27,10 @@ namespace ams::mitm {
             char host_name[0x20];
             bluetooth::Address host_address;
         } bluetooth;
+
+        struct {
+            bool disable_sony_leds;
+        } misc;
     };
 
     MissionControlConfig *GetGlobalConfig(void);

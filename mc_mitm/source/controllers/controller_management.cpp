@@ -50,7 +50,7 @@ namespace ams::controller {
 
     ControllerType Identify(const bluetooth::DevicesSettings *device) {
 
-        if (IsOfficialSwitchControllerName(device->name))
+        if (IsOfficialSwitchControllerName(device->name.name))
             return ControllerType_Switch;
 
         for (auto hwId : WiiController::hardware_ids) {
@@ -159,14 +159,26 @@ namespace ams::controller {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_ICade;
             }
-        }       
+        }
+		
+		for (auto hwId : LanShenController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_LanShen;
+            }
+        }
 
+		for (auto hwId : AtGamesController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_AtGames;
+            }
+        }
+		
         return ControllerType_Unknown;
     }
 
     bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod) {
-        return ((cod->cod[1] & 0x0f) == cod_major_peripheral) &&
-               (((cod->cod[2] & 0x0f) == cod_minor_gamepad) || ((cod->cod[2] & 0x0f) == cod_minor_joystick) || ((cod->cod[2] & 0x40) == cod_minor_keyboard));
+        return ((cod->class_of_device[1] & 0x0f) == cod_major_peripheral) &&
+               (((cod->class_of_device[2] & 0x0f) == cod_minor_gamepad) || ((cod->class_of_device[2] & 0x0f) == cod_minor_joystick) || ((cod->class_of_device[2] & 0x40) == cod_minor_keyboard));
     }
 
     bool IsOfficialSwitchControllerName(const std::string& name) {
@@ -241,6 +253,12 @@ namespace ams::controller {
                 break;
             case ControllerType_ICade:
                 g_controllers.push_back(std::make_unique<ICadeController>(address));
+                break;
+			case ControllerType_LanShen:
+                g_controllers.push_back(std::make_unique<LanShenController>(address));
+                break;
+            case ControllerType_AtGames:
+                g_controllers.push_back(std::make_unique<AtGamesController>(address));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<UnknownController>(address));
