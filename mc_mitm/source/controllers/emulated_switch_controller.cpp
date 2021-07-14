@@ -144,9 +144,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleSubCmdReport(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+        auto report_data = reinterpret_cast<const SwitchReportData *>(&report->data);
 
-        switch (switch_report->output0x01.subcmd.id) {
+        switch (report_data->output0x01.subcmd.id) {
             case SubCmd_RequestDeviceInfo:
                 R_TRY(this->SubCmdRequestDeviceInfo(report));
                 break;
@@ -190,16 +190,24 @@ namespace ams::controller {
                 break;
         }
 
-        return ams::ResultSuccess();
+        // This report can also contain rumble data
+        if (!m_enable_rumble || *reinterpret_cast<const uint32_t *>(report_data->output0x01.rumble.left_motor) == 0)
+            return ams::ResultSuccess();
+
+        SwitchRumbleData rumble_data;
+        DecodeRumbleValues(report_data->output0x01.rumble.left_motor, &rumble_data);
+
+        return this->SetVibration(&rumble_data);
     }
 
     Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
-        R_SUCCEED_IF(!m_enable_rumble);
+        if (!m_enable_rumble)
+            return ams::ResultSuccess();
 
         auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
         
         SwitchRumbleData rumble_data;
-        DecodeRumbleValues(report_data->output0x10.left_motor, &rumble_data);
+        DecodeRumbleValues(report_data->output0x10.rumble.left_motor, &rumble_data);
 
         return this->SetVibration(&rumble_data);
     }

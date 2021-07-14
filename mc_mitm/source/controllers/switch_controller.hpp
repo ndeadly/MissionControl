@@ -175,7 +175,10 @@ namespace ams::controller {
 
     struct SwitchOutputReport0x01 {
         uint8_t counter;
-        uint8_t rumble_data[8];
+        struct {
+            uint8_t left_motor[4];
+            uint8_t right_motor[4];
+        } rumble;
         SwitchSubcommand subcmd;
     } __attribute__ ((__packed__));
 
@@ -183,8 +186,10 @@ namespace ams::controller {
 
     struct SwitchOutputReport0x10 {
         uint8_t timer;
-        uint8_t left_motor[4];
-        uint8_t right_motor[4];
+        struct {
+            uint8_t left_motor[4];
+            uint8_t right_motor[4];
+        } rumble;
     }__attribute__ ((__packed__));
 
     struct SwitchOutputReport0x11;
