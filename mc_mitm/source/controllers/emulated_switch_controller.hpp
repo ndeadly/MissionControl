@@ -18,6 +18,9 @@
 
 namespace ams::controller {
 
+    constexpr auto DPAD_THRESHOLD_BEGIN = STICK_ZERO - UINT12_MAX/4;
+    constexpr auto DPAD_THRESHOLD_END = STICK_ZERO + UINT12_MAX/4;
+
     inline uint8_t ScaleRumbleAmplitude(float amp, uint8_t lower, uint8_t upper) {
         return amp > 0.0 ? static_cast<uint8_t>(amp * (upper - lower) + lower) : 0;
     }
@@ -28,7 +31,7 @@ namespace ams::controller {
             EmulatedSwitchController(const bluetooth::Address *address);
 
             bool IsOfficialController(void) { return false; };
-            
+
             Result HandleIncomingReport(const bluetooth::HidReport *report);
             Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
@@ -68,6 +71,15 @@ namespace ams::controller {
             ProControllerColours m_colours;
             bool m_enable_rumble;
 
+            bool m_use_western_layout;
+            bool m_swap_dpad_lstick;
+            bool m_invert_lstick_xaxis;
+            bool m_invert_lstick_yaxis;
+            bool m_invert_rstick_xaxis;
+            bool m_invert_rstick_yaxis;
+            float m_lstick_deadzone;
+            float m_rstick_deadzone;
+            bool m_disable_home_button;
     };
 
 }

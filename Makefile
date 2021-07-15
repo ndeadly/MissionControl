@@ -38,7 +38,10 @@ dist: all
 
 	mkdir -p dist/config/MissionControl
 	cp mc_mitm/config.ini dist/config/MissionControl/missioncontrol.ini.template
-	
+
+	mkdir -p dist/config/MissionControl/profiles
+	cp mc_mitm/default.ini dist/config/MissionControl/profiles/default.ini
+
 	cd dist; zip -r $(PROJECT_NAME)-$(BUILD_VERSION).zip ./*; cd ../;
 	
 .PHONY: all clean dist $(TARGETS)

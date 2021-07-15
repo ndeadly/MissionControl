@@ -29,15 +29,15 @@ namespace ams::controller {
 
         const RGBColour player_led_colours[] = {
             // Same colours used by PS4
-            {0x00, 0x00, 0x40}, // blue
-            {0x40, 0x00, 0x00}, // red
-            {0x00, 0x40, 0x00}, // green
-            {0x20, 0x00, 0x20}, // pink
+            {0x00, 0x00, 0x04}, // blue
+            {0x04, 0x00, 0x00}, // red
+            {0x00, 0x04, 0x00}, // green
+            {0x02, 0x00, 0x02}, // pink
             // New colours for controllers 5-8
-            {0x00, 0x20, 0x20}, // cyan
-            {0x30, 0x10, 0x00}, // orange
-            {0x20, 0x20, 0x00}, // yellow
-            {0x10, 0x00, 0x30}  // purple
+            {0x00, 0x02, 0x02}, // cyan
+            {0x03, 0x01, 0x00}, // orange
+            {0x02, 0x02, 0x00}, // yellow
+            {0x01, 0x00, 0x03}  // purple
         };
 
     }
@@ -46,6 +46,9 @@ namespace ams::controller {
         R_TRY(EmulatedSwitchController::Initialize());
         R_TRY(this->PushRumbleLedState());
 
+        mitm::ControllerProfileConfig config;
+        mitm::GetCustomIniConfig(&this->Address(), &config);
+        m_report_rate = (Dualshock4ReportRate)config.misc.dualshock_pollingrate_divisor;
         return ams::ResultSuccess();
     }
 
@@ -69,8 +72,11 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
-        auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        mitm::ControllerProfileConfig config;
+        mitm::GetCustomIniConfig(&this->Address(), &config);
+        m_led_colour.r = colour.r * config.misc.sony_led_brightness;
+        m_led_colour.g = colour.g * config.misc.sony_led_brightness;
+        m_led_colour.b = colour.b * config.misc.sony_led_brightness;
         return this->PushRumbleLedState();
     }
 
@@ -89,7 +95,7 @@ namespace ams::controller {
         }
     }
 
-    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {       
+    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff

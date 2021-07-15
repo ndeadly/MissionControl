@@ -67,7 +67,7 @@ namespace ams::controller {
         uint8_t cross      : 1;
         uint8_t circle     : 1;
         uint8_t triangle   : 1;
-        
+
         uint8_t L1         : 1;
         uint8_t R1         : 1;
         uint8_t L2         : 1;
@@ -76,7 +76,7 @@ namespace ams::controller {
         uint8_t options    : 1;
         uint8_t L3         : 1;
         uint8_t R3         : 1;
-        
+
         uint8_t ps         : 1;
         uint8_t tpad       : 1;
         uint8_t counter    : 6;
@@ -142,7 +142,7 @@ namespace ams::controller {
     class Dualshock4Controller : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x054c, 0x05c4},   // Official Dualshock4 v1
                 {0x054c, 0x09cc},   // Official Dualshock4 v2
                 {0x0f0d, 0x00f6},   // Hori ONYX
@@ -168,12 +168,12 @@ namespace ams::controller {
             void HandleInputReport0x11(const Dualshock4ReportData *src);
 
             void MapButtons(const Dualshock4ButtonData *buttons);
-            
+
             Result PushRumbleLedState(void);
 
             Dualshock4ReportRate m_report_rate;
-            RGBColour m_led_colour; 
-            Dualshock4RumbleData m_rumble_state; 
+            RGBColour m_led_colour;
+            Dualshock4RumbleData m_rumble_state;
     };
 
 }
