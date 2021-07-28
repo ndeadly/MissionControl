@@ -84,8 +84,8 @@ namespace ams::controller {
 
     }
 
-    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
-    : SwitchController(address)
+    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id) 
+    : SwitchController(address, id)
     , m_charging(false)
     , m_battery(BATTERY_MAX) { 
         this->ClearControllerState();

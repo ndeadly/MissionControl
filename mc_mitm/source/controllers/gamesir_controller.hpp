@@ -115,8 +115,8 @@ namespace ams::controller {
                 {0x05ac, 0x056b}    // Gamesir T2a
             };  
 
-            GamesirController(const bluetooth::Address *address)
-                : EmulatedSwitchController(address) { }
+            GamesirController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand(void) { return false; }
 

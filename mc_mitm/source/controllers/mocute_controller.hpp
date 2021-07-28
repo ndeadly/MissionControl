@@ -87,8 +87,8 @@ namespace ams::controller {
                 {0x04e8, 0x046e}    // Mocute 050 Controller
             };  
 
-            MocuteController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { }
+            MocuteController(const bluetooth::Address *address, HardwareID id) 
+            : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand(void) { return false; }
 

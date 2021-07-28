@@ -25,7 +25,7 @@ namespace ams::controller {
     class EmulatedSwitchController : public SwitchController {
 
         public:
-            EmulatedSwitchController(const bluetooth::Address *address);
+            EmulatedSwitchController(const bluetooth::Address *address, HardwareID id);
 
             bool IsOfficialController(void) { return false; };
             

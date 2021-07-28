@@ -87,7 +87,7 @@ namespace ams::controller {
         uint8_t amp_motor_right;
     } __attribute__((packed));
 
-    struct Dualshock4OutputReport0x11  {
+    struct Dualshock4OutputReport0x11 {
         struct {
             uint8_t data[75];
         };
@@ -142,18 +142,18 @@ namespace ams::controller {
     class Dualshock4Controller : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x054c, 0x05c4},   // Official Dualshock4 v1
                 {0x054c, 0x09cc},   // Official Dualshock4 v2
                 {0x0f0d, 0x00f6},   // Hori ONYX
                 {0x1532, 0x100a}    // Razer Raiju Tournament
             };
 
-            Dualshock4Controller(const bluetooth::Address *address)
-                : EmulatedSwitchController(address)
-                , m_report_rate(Dualshock4ReportRate_125Hz)
-                , m_led_colour({0, 0, 0})
-                , m_rumble_state({0, 0}) { };
+            Dualshock4Controller(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id)
+            , m_report_rate(Dualshock4ReportRate_125Hz)
+            , m_led_colour({0, 0, 0})
+            , m_rumble_state({0, 0}) { }
 
             Result Initialize(void);
             Result SetVibration(const SwitchRumbleData *rumble_data);
@@ -173,7 +173,7 @@ namespace ams::controller {
 
             Dualshock4ReportRate m_report_rate;
             RGBColour m_led_colour; 
-            Dualshock4RumbleData m_rumble_state; 
+            Dualshock4RumbleData m_rumble_state;
     };
 
 }

@@ -85,12 +85,12 @@ namespace ams::controller {
     class GamestickController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x0f0d, 0x1011}
-            };  
+            };
 
-            GamestickController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            GamestickController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
@@ -98,7 +98,6 @@ namespace ams::controller {
             void HandleInputReport0x01(const GamestickReportData *src);
             void HandleInputReport0x03(const GamestickReportData *src);
 
-           
     };
 
 }

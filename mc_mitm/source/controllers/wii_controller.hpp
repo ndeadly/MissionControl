@@ -288,15 +288,15 @@ namespace ams::controller {
     class WiiController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x057e, 0x0306},  // Official Wiimote
                 {0x057e, 0x0330},  // Official Wii U Pro Controller
             };
 
-            WiiController(const bluetooth::Address *address)    
-                : EmulatedSwitchController(address)
-                , m_extension(WiiExtensionController_None)
-                , m_rumble_state(0) { };
+            WiiController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id)
+            , m_extension(WiiExtensionController_None)
+            , m_rumble_state(0) { }
 
             Result Initialize(void);
             Result SetVibration(const SwitchRumbleData *rumble_data);

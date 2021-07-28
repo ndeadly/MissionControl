@@ -55,7 +55,7 @@ namespace ams::controller {
         uint8_t dpad;
     } __attribute__ ((__packed__));
 
-    struct MadCatzInputReport0x01{
+    struct MadCatzInputReport0x01 {
         MadCatzButtonData buttons;
         MadCatzStickData left_stick;
         MadCatzStickData right_stick;
@@ -63,7 +63,7 @@ namespace ams::controller {
         uint8_t right_trigger;
     } __attribute__ ((__packed__)); 
 
-    struct MadCatzInputReport0x02{
+    struct MadCatzInputReport0x02 {
         uint8_t             : 2;
         uint8_t volume_up   : 1;
         uint8_t volume_down : 1;
@@ -84,13 +84,13 @@ namespace ams::controller {
     class MadCatzController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x0738, 0x5266},   // Mad Catz C.T.R.L.R
                 {0x0738, 0x5250}    // Mad Catz C.T.R.L.R for Samsung
             };  
 
-            MadCatzController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            MadCatzController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

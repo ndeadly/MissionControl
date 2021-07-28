@@ -58,7 +58,7 @@ namespace ams::controller {
 
     } __attribute__((packed));
 
-    struct AtGamesReportData{
+    struct AtGamesReportData {
         uint8_t id;
         union {
             AtGamesInputReport0x01 input0x01;
@@ -68,12 +68,12 @@ namespace ams::controller {
     class AtGamesController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x1d6b, 0x0246},   // AtGames Legends Pinball
-            };  
+            };
 
-            AtGamesController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            AtGamesController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

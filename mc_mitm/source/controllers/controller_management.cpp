@@ -193,75 +193,77 @@ namespace ams::controller {
     void AttachHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controller_lock);
 
-        bluetooth::DevicesSettings device;
-        R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(*address, &device));
+        bluetooth::DevicesSettings device_settings;
+        R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(*address, &device_settings));
 
-        switch (Identify(&device)) {
+        HardwareID id = { device_settings.vid, device_settings.pid };
+
+        switch (Identify(&device_settings)) {
             case ControllerType_Switch:
-                g_controllers.push_back(std::make_unique<SwitchController>(address));
+                g_controllers.push_back(std::make_unique<SwitchController>(address, id));
                 break;
             case ControllerType_Wii:
-                g_controllers.push_back(std::make_unique<WiiController>(address));
+                g_controllers.push_back(std::make_unique<WiiController>(address, id));
                 break;
             case ControllerType_Dualshock4:
-                g_controllers.push_back(std::make_unique<Dualshock4Controller>(address));
+                g_controllers.push_back(std::make_unique<Dualshock4Controller>(address, id));
                 break;
             case ControllerType_Dualsense:
-                g_controllers.push_back(std::make_unique<DualsenseController>(address));
+                g_controllers.push_back(std::make_unique<DualsenseController>(address, id));
                 break;
             case ControllerType_XboxOne:
-                g_controllers.push_back(std::make_unique<XboxOneController>(address));
+                g_controllers.push_back(std::make_unique<XboxOneController>(address, id));
                 break;
             case ControllerType_Ouya:
-                g_controllers.push_back(std::make_unique<OuyaController>(address));
+                g_controllers.push_back(std::make_unique<OuyaController>(address, id));
                 break;
             case ControllerType_Gamestick:
-                g_controllers.push_back(std::make_unique<GamestickController>(address));
+                g_controllers.push_back(std::make_unique<GamestickController>(address, id));
 				break;
             case ControllerType_Gembox:
-                g_controllers.push_back(std::make_unique<GemboxController>(address));
+                g_controllers.push_back(std::make_unique<GemboxController>(address, id));
                 break;
             case ControllerType_Ipega:
-                g_controllers.push_back(std::make_unique<IpegaController>(address));
+                g_controllers.push_back(std::make_unique<IpegaController>(address, id));
 				break;
             case ControllerType_Xiaomi:
-                g_controllers.push_back(std::make_unique<XiaomiController>(address));
+                g_controllers.push_back(std::make_unique<XiaomiController>(address, id));
                 break;
             case ControllerType_Gamesir:
-                g_controllers.push_back(std::make_unique<GamesirController>(address));
+                g_controllers.push_back(std::make_unique<GamesirController>(address, id));
 				break;
             case ControllerType_Steelseries:
-                g_controllers.push_back(std::make_unique<SteelseriesController>(address));
+                g_controllers.push_back(std::make_unique<SteelseriesController>(address, id));
                 break;
             case ControllerType_NvidiaShield:
-                g_controllers.push_back(std::make_unique<NvidiaShieldController>(address));
+                g_controllers.push_back(std::make_unique<NvidiaShieldController>(address, id));
 				break;
             case ControllerType_8BitDo:
-                g_controllers.push_back(std::make_unique<EightBitDoController>(address));
+                g_controllers.push_back(std::make_unique<EightBitDoController>(address, id));
                 break;
             case ControllerType_PowerA:
-                g_controllers.push_back(std::make_unique<PowerAController>(address));
+                g_controllers.push_back(std::make_unique<PowerAController>(address, id));
                 break;
             case ControllerType_MadCatz:
-                g_controllers.push_back(std::make_unique<MadCatzController>(address));
+                g_controllers.push_back(std::make_unique<MadCatzController>(address, id));
                 break;
             case ControllerType_Mocute:
-                g_controllers.push_back(std::make_unique<MocuteController>(address));
+                g_controllers.push_back(std::make_unique<MocuteController>(address, id));
                 break;
             case ControllerType_Razer:
-                g_controllers.push_back(std::make_unique<RazerController>(address));
+                g_controllers.push_back(std::make_unique<RazerController>(address, id));
                 break;
             case ControllerType_ICade:
-                g_controllers.push_back(std::make_unique<ICadeController>(address));
+                g_controllers.push_back(std::make_unique<ICadeController>(address, id));
                 break;
 			case ControllerType_LanShen:
-                g_controllers.push_back(std::make_unique<LanShenController>(address));
+                g_controllers.push_back(std::make_unique<LanShenController>(address, id));
                 break;
             case ControllerType_AtGames:
-                g_controllers.push_back(std::make_unique<AtGamesController>(address));
+                g_controllers.push_back(std::make_unique<AtGamesController>(address, id));
                 break;
             default:
-                g_controllers.push_back(std::make_unique<UnknownController>(address));
+                g_controllers.push_back(std::make_unique<UnknownController>(address, id));
                 break;
         }
 

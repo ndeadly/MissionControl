@@ -78,8 +78,8 @@ namespace ams::controller {
                 {0x1532, 0x0900}    // Razer Serval
             };  
 
-            RazerController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            RazerController(const bluetooth::Address *address, HardwareID id) 
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

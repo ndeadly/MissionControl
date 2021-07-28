@@ -85,12 +85,12 @@ namespace ams::controller {
     class GemboxController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x1d79, 0x0009}
-            };  
+            };
 
-            GemboxController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            GemboxController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

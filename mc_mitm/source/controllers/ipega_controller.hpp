@@ -81,14 +81,14 @@ namespace ams::controller {
     class IpegaController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x1949, 0x0402},
                 {0x1949, 0x0403},
                 {0x05ac, 0x022c}    // ipega 9017S (Another fucking Apple keyboard ID. Eventually these are going to clash)
-            };  
+            };
 
-            IpegaController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            IpegaController(const bluetooth::Address *address, HardwareID id) 
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

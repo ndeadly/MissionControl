@@ -74,7 +74,7 @@ namespace ams::controller {
         uint8_t         : 0;
     } __attribute__((packed));
 
-    struct XiaomiReportData{
+    struct XiaomiReportData {
         uint8_t id;
         union {
             XiaomiInputReport0x04 input0x04;
@@ -84,12 +84,12 @@ namespace ams::controller {
     class XiaomiController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x2717, 0x3144}    // Xiaomi Mi Controller
             };  
 
-            XiaomiController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            XiaomiController(const bluetooth::Address *address, HardwareID id) 
+            : EmulatedSwitchController(address, id) { }
 
             Result Initialize(void);
 
