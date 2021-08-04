@@ -88,7 +88,9 @@ namespace ams::controller {
             };  
 
             MocuteController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+                : EmulatedSwitchController(address) { }
+
+            bool SupportsSetTsiCommand(void) { return false; }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
