@@ -28,6 +28,9 @@ namespace ams::controller {
         auto gamesir_report = reinterpret_cast<const GamesirReportData *>(&report->data);
 
         switch(gamesir_report->id) {
+            case 0x03:
+                this->HandleInputReport0x03(gamesir_report);
+                break;
             case 0x12:
                 this->HandleInputReport0x12(gamesir_report);
                 break;
@@ -37,6 +40,48 @@ namespace ams::controller {
             default:
                 break;
         }
+    }
+
+    void GamesirController::HandleInputReport0x03(const GamesirReportData *src) {
+        m_left_stick.SetData(
+            static_cast<uint16_t>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & 0xfff
+        );
+        m_right_stick.SetData(
+            static_cast<uint16_t>(stick_scale_factor * src->input0x03.right_stick.x) & 0xfff,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & 0xfff
+        );
+
+        m_buttons.dpad_down   = (src->input0x03.buttons.dpad == GamesirDpad2_S)  ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_SE) ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_SW);
+        m_buttons.dpad_up     = (src->input0x03.buttons.dpad == GamesirDpad2_N)  ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_NE) ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_NW);
+        m_buttons.dpad_right  = (src->input0x03.buttons.dpad == GamesirDpad2_E)  ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_NE) ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_SE);
+        m_buttons.dpad_left   = (src->input0x03.buttons.dpad == GamesirDpad2_W)  ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_NW) ||
+                                (src->input0x03.buttons.dpad == GamesirDpad2_SW);
+
+        m_buttons.A = src->input0x03.buttons.B;
+        m_buttons.B = src->input0x03.buttons.A;
+        m_buttons.X = src->input0x03.buttons.Y;
+        m_buttons.Y = src->input0x03.buttons.X;
+
+        m_buttons.R  = src->input0x03.buttons.RB;
+        m_buttons.ZR = src->input0x03.buttons.RT;
+        m_buttons.L  = src->input0x03.buttons.LB;
+        m_buttons.ZL = src->input0x03.buttons.LT;
+
+        m_buttons.minus = src->input0x03.buttons.select;
+        m_buttons.plus  = src->input0x03.buttons.start;
+
+        m_buttons.lstick_press = src->input0x03.buttons.L3;
+        m_buttons.rstick_press = src->input0x03.buttons.R3;
+
+        m_buttons.home = src->input0x03.buttons.home;
     }
 
     void GamesirController::HandleInputReport0x12(const GamesirReportData *src) {
@@ -74,13 +119,13 @@ namespace ams::controller {
         m_buttons.R  = src->input0xc4.buttons.RB;
         m_buttons.ZR = src->input0xc4.buttons.RT;
         m_buttons.L  = src->input0xc4.buttons.LB;
-        m_buttons.ZL = src->input0xc4.buttons.LT; 
+        m_buttons.ZL = src->input0xc4.buttons.LT;
 
         m_buttons.minus = src->input0xc4.buttons.select;
         m_buttons.plus  = src->input0xc4.buttons.start;
 
         m_buttons.lstick_press = src->input0xc4.buttons.L3;
-        m_buttons.rstick_press = src->input0xc4.buttons.R3;  
+        m_buttons.rstick_press = src->input0xc4.buttons.R3;
     }
 
 }
