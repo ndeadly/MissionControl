@@ -132,6 +132,16 @@ namespace ams::controller {
                 uint32_t address;
                 uint8_t size;
             } spi_flash_read;
+
+            struct {
+                uint32_t address;
+                uint8_t size;
+                uint8_t data[];
+            } spi_flash_write;
+
+            struct {
+                uint32_t address;
+            } spi_flash_sector_erase;
         };
     } __attribute__ ((__packed__));
 

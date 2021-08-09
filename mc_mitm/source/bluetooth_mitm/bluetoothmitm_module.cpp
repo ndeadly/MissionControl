@@ -15,7 +15,7 @@
  */
 #include "bluetoothmitm_module.hpp"
 #include "btdrv_mitm_service.hpp"
-#include "../mcmitm_utils.hpp"
+#include "../utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::mitm::bluetooth {

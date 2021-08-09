@@ -34,6 +34,7 @@ namespace ams::controller {
     }
 
     Result WiiController::Initialize(void) {
+        R_TRY(EmulatedSwitchController::Initialize());
         R_TRY(this->SetReportMode(0x31));
 
         return this->QueryStatus();

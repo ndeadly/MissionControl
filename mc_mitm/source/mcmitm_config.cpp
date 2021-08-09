@@ -93,12 +93,6 @@ namespace ams::mitm {
     }
 
     void ParseIniConfig(void) {
-        const char *mount_name = "sdmc";
-        if (R_FAILED(fs::MountSdCard(mount_name))) {
-            return;
-        }
-        ON_SCOPE_EXIT { fs::Unmount(mount_name); };
-
         /* Open the file. */
         fs::FileHandle file;
         {

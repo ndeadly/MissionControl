@@ -15,7 +15,7 @@
  */
 #include "btmmitm_module.hpp"
 #include "btm_mitm_service.hpp"
-#include "../mcmitm_utils.hpp"
+#include "../utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::mitm::btm {

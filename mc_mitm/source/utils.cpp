@@ -13,9 +13,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "mcmitm_utils.hpp"
+#include "utils.hpp"
 
-namespace ams::mitm::utils {
+namespace ams::utils {
 
     namespace {
 
@@ -35,6 +35,22 @@ namespace ams::mitm::utils {
     s32 ConvertToUserPriority(s32 horizon_priority) {
         AMS_ASSERT(HighestTargetThreadPriority <= horizon_priority && horizon_priority <= LowestTargetThreadPriority);
         return horizon_priority - UserThreadPriorityOffset;
+    }
+
+    Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size) {
+        if (out_size < 2*sizeof(bluetooth::Address) + 1)
+            return -1;
+
+        char ch;
+        for (uint32_t i = 0; i < sizeof(bluetooth::Address); ++i) {
+            ch = address->address[i] >> 4;
+            *out++ = ch + (ch <= 9 ? '0' : 'a' - 0xa);
+            ch = address->address[i] & 0x0f;
+            *out++ = ch + (ch <= 9 ? '0' : 'a' - 0xa);
+        }
+        *out = '\0';
+
+        return ams::ResultSuccess();
     }
 
 }

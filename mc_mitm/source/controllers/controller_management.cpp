@@ -267,7 +267,7 @@ namespace ams::controller {
                 break;
         }
 
-        g_controllers.back()->Initialize();
+        R_ABORT_UNLESS(g_controllers.back()->Initialize());
     }
 
     void RemoveHandler(const bluetooth::Address *address) {

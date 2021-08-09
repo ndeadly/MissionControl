@@ -37,6 +37,7 @@ dist: all
 	cp -r exefs_patches dist/atmosphere/
 
 	mkdir -p dist/config/MissionControl
+	mkdir -p dist/config/MissionControl/controllers
 	cp mc_mitm/config.ini dist/config/MissionControl/missioncontrol.ini.template
 	
 	cd dist; zip -r $(PROJECT_NAME)-$(BUILD_VERSION).zip ./*; cd ../;
