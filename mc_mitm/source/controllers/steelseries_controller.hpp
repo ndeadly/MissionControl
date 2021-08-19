@@ -159,8 +159,8 @@ namespace ams::controller {
                 {0x0111, 0x1431}    // Steelseries Stratus Duo
             };
 
-            SteelseriesController(const bluetooth::Address *address)
-                : EmulatedSwitchController(address) { };
+            SteelseriesController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

@@ -126,7 +126,7 @@ namespace ams::controller {
         EightBitDoButtonDataV1 buttons;
     } __attribute__((packed));
 
-    struct EightBitDoReportData{
+    struct EightBitDoReportData {
         uint8_t id;
         union {
             EightBitDoInputReport0x01V1 input0x01_v1;
@@ -139,19 +139,21 @@ namespace ams::controller {
     class EightBitDoController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x05a0, 0x3232}, // 8BitDo Zero
                 {0x2dc8, 0x2100}  // 8BitDo SN30 Pro for Xbox Cloud Gaming
             };  
 
-            EightBitDoController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            EightBitDoController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
+
+            bool SupportsSetTsiCommand(void) { return !((m_id.vid == 0x05a0) && (m_id.pid == 0x3232)); }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
             void HandleInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
-            void HandleInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat);
+            void HandleInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
 
     };
 

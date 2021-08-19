@@ -77,12 +77,12 @@ namespace ams::controller {
     class NvidiaShieldController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
-                {0x0955, 0x7214}    // Nvidia Shield Controller (2017) v1.04 
+            static constexpr const HardwareID hardware_ids[] = {
+                {0x0955, 0x7214}    // Nvidia Shield Controller (2017) v1.04
             };  
 
-            NvidiaShieldController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            NvidiaShieldController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

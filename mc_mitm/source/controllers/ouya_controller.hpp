@@ -67,12 +67,12 @@ namespace ams::controller {
     class OuyaController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x2836, 0x0001}
             };  
 
-            OuyaController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            OuyaController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

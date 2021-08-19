@@ -23,6 +23,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * Make use of native HOS menus for controller pairing, button remapping (firmware 10.0.0+) etc.
 * Rumble support*
 * Low input lag.
+* File-based virtual controller memory allowing for data such as analog stick calibration to be stored and retrieved.
 * Spoofing of host Bluetooth adapter name and address.
 * `mc.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system.
 
@@ -37,6 +38,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Sony DualShock4 Controller__
 * __Sony Dualsense Controller__
 * __Microsoft Xbox One S/X Controller (not to be confused with Series S/X controllers - these use Bluetooth LE, which isn't currently supported)__*
+* __Microsoft Xbox Elite Wireless Controller Series 2__
 * __NVidia Shield Controller__
 * __Ouya Controller__
 * __Gamestick Controller__
@@ -50,6 +52,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __GameSir G3s__
 * __GameSir G4s__
 * __GameSir T1s__
+* __GameSir T2a__
 * __Hori Onyx__
 * __8bitDo SN30 Pro Xbox Cloud Gaming Edition__
 * __8BitDo ZERO (Most other 8BitDo controllers have a Switch mode available. May require firmware update)__
@@ -86,7 +89,7 @@ Mission Control runs as a background process and makes use of the system's nativ
 
 Controllers that successfully pair but haven't been supported yet will display with red buttons on the `Controllers` menu to indicate their controls are not being mapped. Please open an issue to request support for such controllers.
 
-Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please create an issue.
+Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please open a support issue on this github page.
 
 ### Pairing controllers
 The supported controllers each have their own methods to enter pairing/sync mode. Below are instructions on entering this mode for each supported type.
@@ -167,7 +170,6 @@ Below is a list of features I am currently working on or would like to look into
 * Motion controls currently unsupported.
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Controllers using the Bluetooth LE (BLE) standard are currently not supported and will not connect to the system.
-* Xbox One Elite V2 controllers cannot complete the pairing process with the console and in some cases cause it to crash. Without access to a physical controller there's not a lot I can do to debug the process. 
 * Xbox One, Wii/WiiU and (especially) some Dualshock v1 controllers can take some time to be detected and subsequently pair with the Console. Be patient and re-enter the sync mode of the controller several times if neccessary. Once synced, controllers should work as usual.
 * ~~Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.~~ Both layouts are now supported.
 * Reported controller battery levels may not be correct. I'm relying entirely on reverse engineering notes found on the internet for these. In many cases I don't own the controller and there is simply no information available, so these controllers will always show full battery. Any help in improving this is most welcome.
@@ -259,6 +261,7 @@ The resulting package can be installed as described above.
 * __misson20000__ for his handy debug monitor [Twili](https://github.com/misson20000/twili) and IPC logger [Ilia](https://github.com/misson20000/ilia)
 * __dekuNukem__, __CTCaer__, __shinyquagsire23__ and others for their work in reversing and documenting the switch controller communication protocol.
 * __friedkeenan__ for helping to test Wii extension controller support.
+* __DatenThielt__ for helping debug the bluetooth service remotely with his Xbox Elite Series 2 controller in order for me to develop patches to enable it to be successfully paired with the console.
 * Everyone else over at the __ReSwitched__ discord server who helped answering technical questions.
 
 ### Support

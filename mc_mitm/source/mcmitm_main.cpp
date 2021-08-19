@@ -71,9 +71,13 @@ void __appInit(void) {
     R_ABORT_UNLESS(fsInitialize());
     R_ABORT_UNLESS(pmdmntInitialize());
     R_ABORT_UNLESS(pminfoInitialize());
+
+    R_ABORT_UNLESS(fs::MountSdCard("sdmc"));
 }
 
 void __appExit(void) {
+    fs::Unmount("sdmc");
+    
     btdrvExit();
     pminfoExit();
     pmdmntExit();

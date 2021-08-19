@@ -25,19 +25,21 @@ namespace ams::controller {
     class EmulatedSwitchController : public SwitchController {
 
         public:
-            EmulatedSwitchController(const bluetooth::Address *address);
+            EmulatedSwitchController(const bluetooth::Address *address, HardwareID id);
+            virtual ~EmulatedSwitchController();
 
-            bool IsOfficialController(void) { return false; };
+            virtual Result Initialize(void);
+            bool IsOfficialController(void) { return false; }
             
             Result HandleIncomingReport(const bluetooth::HidReport *report);
             Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
             void ClearControllerState(void);
-            virtual void UpdateControllerState(const bluetooth::HidReport *report) {};
-            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { return ams::ResultSuccess(); };
-            virtual Result CancelVibration(void) { return ams::ResultSuccess(); };
-            virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); };
+            virtual void UpdateControllerState(const bluetooth::HidReport *report) { }
+            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { return ams::ResultSuccess(); }
+            virtual Result CancelVibration(void) { return ams::ResultSuccess(); }
+            virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); }
 
             Result HandleSubCmdReport(const bluetooth::HidReport *report);
             Result HandleRumbleReport(const bluetooth::HidReport *report);
@@ -58,6 +60,10 @@ namespace ams::controller {
 
             Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
 
+            Result VirtualSpiFlashRead(int offset, void *data, size_t size);
+            Result VirtualSpiFlashWrite(int offset, const void *data, size_t size);
+            Result VirtualSpiFlashSectorErase(int offset);
+
             bool m_charging;
             uint8_t m_battery;
             SwitchButtonData m_buttons;
@@ -67,6 +73,8 @@ namespace ams::controller {
 
             ProControllerColours m_colours;
             bool m_enable_rumble;
+
+            fs::FileHandle m_spi_flash_file;
 
     };
 

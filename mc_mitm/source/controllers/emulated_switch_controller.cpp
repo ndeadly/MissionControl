@@ -14,12 +14,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "emulated_switch_controller.hpp"
+#include "../utils.hpp"
 #include "../mcmitm_config.hpp"
 #include <memory>
 
 namespace ams::controller {
 
     namespace {
+
+        constexpr const char *controller_base_path = "sdmc:/config/MissionControl/controllers/";
 
         // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
         SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
@@ -82,12 +85,53 @@ namespace ams::controller {
             dec->low_band_amp   = rumble_amp_lut_f[lo_amp_ind];
         }
 
+        Result InitializeVirtualSpiFlash(const char *path, size_t size) {
+            fs::FileHandle file;
+
+            // Open the file for write
+            R_TRY(fs::OpenFile(std::addressof(file), path, fs::OpenMode_Write));
+            ON_SCOPE_EXIT { fs::CloseFile(file); };
+
+            // Fill the file with 0xff
+            uint8_t buff[64];
+            std::memset(buff, 0xff, sizeof(buff));
+
+            unsigned int offset = 0;
+            while (offset < size) {
+                size_t write_size = std::min(static_cast<size_t>(size - offset), sizeof(buff));
+                R_TRY(fs::WriteFile(file, offset, buff, write_size, fs::WriteOption::None));
+                offset += write_size;
+            }
+
+            // Write default values for data that the console attempts to read in practice
+            const struct {
+                SwitchAnalogStickFactoryCalibration lstick_factory_calib;
+                SwitchAnalogStickFactoryCalibration rstick_factory_calib;
+                uint8_t unused;
+                RGBColour body;
+                RGBColour buttons;
+            } data1 = { lstick_factory_calib, rstick_factory_calib, 0xff, {0x32, 0x32, 0x32,}, {0xff, 0xff, 0xff} };
+            R_TRY(fs::WriteFile(file, 0x603d, &data1, sizeof(data1), fs::WriteOption::None));
+
+            const struct {
+                RGBColour body;
+                RGBColour buttons;
+                RGBColour left_grip;
+                RGBColour right_grip;
+            } data2 = { {0x32, 0x32, 0x32}, {0xe6, 0xe6, 0xe6}, {0x46, 0x46, 0x46}, {0x46, 0x46, 0x46} };
+            R_TRY(fs::WriteFile(file, 0x6050, &data2, sizeof(data2), fs::WriteOption::None));
+
+            R_TRY(fs::FlushFile(file));
+
+            return ams::ResultSuccess();
+        }
+
     }
 
-    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address) 
-    : SwitchController(address)
+    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id) 
+    : SwitchController(address, id)
     , m_charging(false)
-    , m_battery(BATTERY_MAX) { 
+    , m_battery(BATTERY_MAX) {
         this->ClearControllerState();
 
         m_colours.body       = {0x32, 0x32, 0x32};
@@ -99,6 +143,41 @@ namespace ams::controller {
 
         m_enable_rumble = config->general.enable_rumble;
     };
+
+    EmulatedSwitchController::~EmulatedSwitchController() {
+        fs::CloseFile(m_spi_flash_file);
+    }
+
+    Result EmulatedSwitchController::Initialize(void) {
+        char path[0x100] = {};
+        
+        // Check if directory for this controller exists and create it if not
+        bool dir_exists;
+        std::strcat(path, controller_base_path);
+        utils::BluetoothAddressToString(&m_address, path+std::strlen(path), sizeof(path)-std::strlen(path));
+        R_TRY(fs::HasDirectory(&dir_exists, path));
+        if (!dir_exists) {
+            R_TRY(fs::CreateDirectory(path));
+        }
+
+        // Check if the virtual spi flash file already exists and initialise it if not
+        bool file_exists;
+        std::strcat(path, "/spi_flash.bin");
+        R_TRY(fs::HasFile(&file_exists, path));
+        if (!file_exists) {
+            auto spi_flash_size = 0x10000;
+            // Create file representing first 64KB of SPI flash
+            R_TRY(fs::CreateFile(path, spi_flash_size));
+
+            // Initialise the spi flash data
+            R_TRY(InitializeVirtualSpiFlash(path, spi_flash_size));
+        }
+
+        // Open the virtual spi flash file for read and write
+        R_TRY(fs::OpenFile(std::addressof(m_spi_flash_file), path, fs::OpenMode_ReadWrite));
+
+        return ams::ResultSuccess();
+    }
 
     void EmulatedSwitchController::ClearControllerState(void) {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
@@ -144,9 +223,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleSubCmdReport(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+        auto report_data = reinterpret_cast<const SwitchReportData *>(&report->data);
 
-        switch (switch_report->output0x01.subcmd.id) {
+        switch (report_data->output0x01.subcmd.id) {
             case SubCmd_RequestDeviceInfo:
                 R_TRY(this->SubCmdRequestDeviceInfo(report));
                 break;
@@ -190,33 +269,41 @@ namespace ams::controller {
                 break;
         }
 
-        return ams::ResultSuccess();
+        // This report can also contain rumble data
+        if (!m_enable_rumble || *reinterpret_cast<const uint32_t *>(report_data->output0x01.rumble.left_motor) == 0)
+            return ams::ResultSuccess();
+
+        SwitchRumbleData rumble_data;
+        DecodeRumbleValues(report_data->output0x01.rumble.left_motor, &rumble_data);
+
+        return this->SetVibration(&rumble_data);
     }
 
     Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
-        R_SUCCEED_IF(!m_enable_rumble);
+        if (!m_enable_rumble)
+            return ams::ResultSuccess();
 
         auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
         
         SwitchRumbleData rumble_data;
-        DecodeRumbleValues(report_data->output0x10.left_motor, &rumble_data);
+        DecodeRumbleValues(report_data->output0x10.rumble.left_motor, &rumble_data);
 
         return this->SetVibration(&rumble_data);
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
         const SwitchSubcommandResponse response = {
-            .ack = 0x82, 
+            .ack = 0x82,
             .id = SubCmd_RequestDeviceInfo,
             .device_info = {
                 .fw_ver = {
                     .major = 0x03,
                     .minor = 0x48
                 },
-                .type = 0x03, 
-                ._unk0 = 0x02, 
-                .address = m_address, 
-                ._unk1 = 0x01, 
+                .type = 0x03,
+                ._unk0 = 0x02,
+                .address = m_address,
+                ._unk1 = 0x01,
                 ._unk2 = 0x02
             }
         };
@@ -235,8 +322,8 @@ namespace ams::controller {
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
 
         auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-        uint32_t read_addr = switch_report->output0x01.subcmd.spi_flash_read.address;
-        uint8_t  read_size = switch_report->output0x01.subcmd.spi_flash_read.size;
+        auto read_addr = switch_report->output0x01.subcmd.spi_flash_read.address;
+        auto read_size = switch_report->output0x01.subcmd.spi_flash_read.size;
 
         SwitchSubcommandResponse response = {
             .ack = 0x90,
@@ -247,33 +334,22 @@ namespace ams::controller {
             }
         };
 
-        if (read_addr == 0x6050) {
-            std::memcpy(response.spi_flash_read.data, &m_colours, sizeof(m_colours)); // Set controller colours
-        }
-        else if (read_addr == 0x603d) {
-            const struct {
-                SwitchAnalogStickFactoryCalibration lstick_factory_calib;
-                SwitchAnalogStickFactoryCalibration rstick_factory_calib;
-                uint8_t unused;
-                RGBColour body;
-                RGBColour buttons;
-            } data = { lstick_factory_calib, rstick_factory_calib, 0xff, m_colours.body, m_colours.buttons };
-
-            std::memcpy(response.spi_flash_read.data, &data, sizeof(data));
-        }
-        else {
-            std::memset(response.spi_flash_read.data, 0xff, read_size); // Console doesn't seem to mind if response is uninitialised data (0xff)
-        }
+        R_TRY(this->VirtualSpiFlashRead(read_addr, response.spi_flash_read.data, read_size));
 
         return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSpiFlashWrite(const bluetooth::HidReport *report) {
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+        auto write_addr = switch_report->output0x01.subcmd.spi_flash_write.address;
+        auto write_size = switch_report->output0x01.subcmd.spi_flash_write.size;
+        auto write_data = switch_report->output0x01.subcmd.spi_flash_write.data;
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SpiFlashWrite,
             .spi_flash_write = {
-                .status = 0x01
+                .status = this->VirtualSpiFlashWrite(write_addr, write_data, write_size).IsFailure()
             }
         };
 
@@ -281,11 +357,14 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSpiSectorErase(const bluetooth::HidReport *report) {
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+        auto erase_addr = switch_report->output0x01.subcmd.spi_flash_sector_erase.address;
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SpiSectorErase,
-            .spi_flash_write = {
-                .status = 0x01
+            .spi_sector_erase = {
+                .status = this->VirtualSpiFlashSectorErase(erase_addr).IsFailure()
             }
         };
 
@@ -326,10 +405,10 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0xa0,
             .id = SubCmd_SetMcuConfig,
-            .data = {0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01, 
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+            .data = {0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                      0x00, 0x5c}
         };
 
@@ -400,6 +479,30 @@ namespace ams::controller {
 
         //Write a fake response into the report buffer
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+    }
+
+    Result EmulatedSwitchController::VirtualSpiFlashRead(int offset, void *data, size_t size) {
+        return fs::ReadFile(m_spi_flash_file, offset, data, size);
+    }
+
+    Result EmulatedSwitchController::VirtualSpiFlashWrite(int offset, const void *data, size_t size) {
+        return fs::WriteFile(m_spi_flash_file, offset, data, size, fs::WriteOption::Flush);
+    }
+
+    Result EmulatedSwitchController::VirtualSpiFlashSectorErase(int offset) {
+        uint8_t buff[64];
+        std::memset(buff, 0xff, sizeof(buff));
+
+        // Fill sector at offset with 0xff
+        unsigned int sector_size = 0x1000;
+        for (unsigned int i = 0; i < (sector_size / sizeof(buff)); ++i) {
+            R_TRY(fs::WriteFile(m_spi_flash_file, offset, buff, sizeof(buff), fs::WriteOption::None));
+            offset += sizeof(buff);
+        }
+
+        R_TRY(fs::FlushFile(m_spi_flash_file));
+
+        return ams::ResultSuccess();
     }
 
 }

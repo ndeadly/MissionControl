@@ -69,10 +69,10 @@ namespace ams::controller {
         ControllerType_Unknown,
     };
 
-    class UnknownController : public EmulatedSwitchController{
+    class UnknownController : public EmulatedSwitchController {
         public:
-            UnknownController(const bluetooth::Address *address) 
-            : EmulatedSwitchController(address) { 
+            UnknownController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) {
                 m_colours.buttons = {0xff, 0x00, 0x00};
             };
     };
@@ -80,7 +80,7 @@ namespace ams::controller {
     ControllerType Identify(const bluetooth::DevicesSettings *device);
     bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod);
     bool IsOfficialSwitchControllerName(const std::string& name);
-    
+
     void AttachHandler(const bluetooth::Address *address);
     void RemoveHandler(const bluetooth::Address *address);
     SwitchController *LocateHandler(const bluetooth::Address *address);

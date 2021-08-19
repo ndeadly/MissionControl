@@ -44,7 +44,7 @@ namespace ams::controller {
 
         switch(xbox_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(xbox_report, report->size == sizeof(XboxOneInputReport0x01) + 1);
+                this->HandleInputReport0x01(xbox_report, report->size >= sizeof(XboxOneInputReport0x01) + 1);
                 break;
             case 0x02:
                 this->HandleInputReport0x02(xbox_report);

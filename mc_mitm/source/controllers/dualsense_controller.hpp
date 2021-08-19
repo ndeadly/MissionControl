@@ -61,7 +61,7 @@ namespace ams::controller {
         uint8_t amp_motor_right;
     } __attribute__((packed));
 
-    struct DualsenseOutputReport0x31  {
+    struct DualsenseOutputReport0x31 {
         struct {
             uint8_t data[75];
         };
@@ -110,15 +110,15 @@ namespace ams::controller {
     class DualsenseController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x054c, 0x0ce6}    // Sony Dualsense Controller
-            };  
+            };
 
-            DualsenseController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address)
-                , m_led_flags(0)
-                , m_led_colour({0, 0, 0})
-                , m_rumble_state({0, 0}) { };
+            DualsenseController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id)
+            , m_led_flags(0)
+            , m_led_colour({0, 0, 0})
+            , m_rumble_state({0, 0}) { }
 
             Result Initialize(void);
             Result SetVibration(const SwitchRumbleData *rumble_data);
@@ -140,4 +140,5 @@ namespace ams::controller {
             RGBColour m_led_colour;
             DualsenseRumbleData m_rumble_state; 
     };
+
 }

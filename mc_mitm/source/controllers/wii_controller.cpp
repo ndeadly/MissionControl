@@ -34,6 +34,7 @@ namespace ams::controller {
     }
 
     Result WiiController::Initialize(void) {
+        R_TRY(EmulatedSwitchController::Initialize());
         R_TRY(this->SetReportMode(0x31));
 
         return this->QueryStatus();
@@ -253,9 +254,9 @@ namespace ams::controller {
         m_buttons.X  = !buttons->X;
         m_buttons.Y  = !buttons->Y;
 
-        m_buttons.L   = !buttons->L;
+        m_buttons.L   = !buttons->L | (((ext[3] >> 5) | ((ext[2] >> 2) & 0x18)) > 0x0f);
         m_buttons.ZL  = !buttons->ZL;
-        m_buttons.R  |= !buttons->R;
+        m_buttons.R  |= !buttons->R | ((ext[3] & 0x1f) > 0x0f);
         m_buttons.ZR |= !buttons->ZR;
 
         m_buttons.minus |= !buttons->minus;

@@ -32,12 +32,12 @@ namespace ams::controller {
     class ICadeController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x15e4, 0x0132}    // ION iCade Controller
             };  
 
-            ICadeController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            ICadeController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
             void ApplyButtonCombos(SwitchButtonData *buttons) override;

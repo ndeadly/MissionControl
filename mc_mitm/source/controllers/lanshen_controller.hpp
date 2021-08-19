@@ -75,12 +75,12 @@ namespace ams::controller {
     class LanShenController : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x0079, 0x181c}    // LanShen X1Pro
-            };  
+            };
 
-            LanShenController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            LanShenController(const bluetooth::Address *address, HardwareID id)
+            : EmulatedSwitchController(address, id) { }
 
             void UpdateControllerState(const bluetooth::HidReport *report);
 

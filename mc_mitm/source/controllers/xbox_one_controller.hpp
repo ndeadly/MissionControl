@@ -137,8 +137,8 @@ namespace ams::controller {
                 {0x045e, 0x0b0a}    // Official Xbox Adaptive Controller
             };  
 
-            XboxOneController(const bluetooth::Address *address) 
-                : EmulatedSwitchController(address) { };
+            XboxOneController(const bluetooth::Address *address, HardwareID id) 
+            : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand(void) { return false; }
 
