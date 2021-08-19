@@ -269,6 +269,8 @@ namespace ams::controller {
             : m_address(*address)
             , m_id(id) { }
 
+            virtual ~SwitchController() { };
+
             const bluetooth::Address& Address(void) const { return m_address; }
 
             virtual bool IsOfficialController(void) { return true; }
