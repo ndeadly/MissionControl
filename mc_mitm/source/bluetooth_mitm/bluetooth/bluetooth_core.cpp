@@ -35,6 +35,11 @@ namespace ams::bluetooth::core {
         os::Event g_enable_event(os::EventClearMode_ManualClear);
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
 
+        bluetooth::Address ReverseBluetoothAddress(bluetooth::Address address) {
+            uint64_t tmp = util::SwapBytes48(*reinterpret_cast<uint64_t *>(&address)); 
+            return *reinterpret_cast<bluetooth::Address *>(&tmp);
+        }
+
     }
 
     bool IsInitialized() {
@@ -150,8 +155,9 @@ namespace ams::bluetooth::core {
             // Fetch host adapter address
             bluetooth::Address host_address;
             R_ABORT_UNLESS(btdrvLegacyGetAdapterProperty(BtdrvBluetoothPropertyType_Address, &host_address, sizeof(bluetooth::Address)));
-            // Reverse host address
-            *reinterpret_cast<uint64_t *>(&pin) = util::SwapBytes(*reinterpret_cast<uint64_t *>(&host_address)) >> 16;
+
+            // Set reversed bluetooth address as pin code
+            *reinterpret_cast<bluetooth::Address *>(&pin) = ReverseBluetoothAddress(host_address);
             pin_length = sizeof(bluetooth::Address);
         }
 
@@ -167,9 +173,11 @@ namespace ams::bluetooth::core {
             // Fetch host adapter address
             BtdrvAdapterProperty property;
             R_ABORT_UNLESS(btdrvGetAdapterProperty(BtdrvAdapterPropertyType_Address, &property));
-            // Reverse host address
+
             bluetooth::Address host_address = *reinterpret_cast<bluetooth::Address *>(property.data);
-            *reinterpret_cast<uint64_t *>(&pin.code) = util::SwapBytes(*reinterpret_cast<uint64_t *>(&host_address)) >> 16;
+
+            // Set reversed bluetooth address as pin code
+            *reinterpret_cast<bluetooth::Address *>(&pin.code) = ReverseBluetoothAddress(host_address);
             pin.length = sizeof(bluetooth::Address);
         }
 
