@@ -107,10 +107,7 @@ namespace ams::controller {
             const struct {
                 SwitchAnalogStickFactoryCalibration lstick_factory_calib;
                 SwitchAnalogStickFactoryCalibration rstick_factory_calib;
-                uint8_t unused;
-                RGBColour body;
-                RGBColour buttons;
-            } data1 = { lstick_factory_calib, rstick_factory_calib, 0xff, {0x32, 0x32, 0x32,}, {0xff, 0xff, 0xff} };
+            } data1 = { lstick_factory_calib, rstick_factory_calib };
             R_TRY(fs::WriteFile(file, 0x603d, &data1, sizeof(data1), fs::WriteOption::None));
 
             const struct {
