@@ -15,10 +15,14 @@
  */
 #pragma once
 
-namespace ams::mitm {
+namespace ams::mitm::mc {
 
-    extern const unsigned int mc_version;
-    extern const char *mc_build_name;
-	extern const char *mc_build_date;
+    struct VersionString {
+        char version[32];
+    };
+
+    struct DateString {
+        char date[32];
+    };
 
 }
