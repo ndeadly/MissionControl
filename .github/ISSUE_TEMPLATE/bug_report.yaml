@@ -65,12 +65,6 @@ body:
     validations:
       required: true
   - type: textarea
-    id: error-report
-    attributes:
-      label: Error Report
-      description: If your issue involves the console crashing with an error screen, please attach the error report here.
-      placeholder: Please attach error report here.  
-  - type: textarea
     id: description
     attributes:
       label: Issue Description
@@ -78,3 +72,9 @@ body:
       placeholder: Please describe your issue here.
     validations:
       required: true
+  - type: textarea
+    id: error-report
+    attributes:
+      label: Error Report
+      description: If your issue involves the console crashing with an error screen, please attach the error report here.
+      placeholder: Please attach error report here.  
