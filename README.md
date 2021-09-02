@@ -39,7 +39,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Sony Dualsense Controller__
 * __Microsoft Xbox One S/X Controller (not to be confused with Series S/X controllers - these use Bluetooth LE, which isn't currently supported)__*
 * __Microsoft Xbox Elite Wireless Controller Series 2__
-* __NVidia Shield Controller__
+* __NVidia Shield Controller(2017 Model)__
 * __Ouya Controller__
 * __Gamestick Controller__
 * __Gembox Controller__
