@@ -66,6 +66,5 @@ body:
       label: Reported Issue
       description: Please let us know what issue you are having with Mission Control in as much detail as possible
       placeholder: Tell us what you see!
-      value: ""
     validations:
       required: true
