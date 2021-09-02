@@ -8,12 +8,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report. Please include as much information as possible so I can replicate and identify the issue.
+        Thanks for taking the time to fill out this bug report. Please include as much information as possible so the issue can be replicated and identified.
   - type: dropdown
     id: swfirmware
     attributes:
       label: Switch Firmware
-      description: Which version of the swtich firmware are you running?
+      description: Which version of the switch firmware are you running?
       options:
         - 12.1.0 (Latest)
         - 12.0.3
@@ -74,7 +74,7 @@ body:
     id: what-happened
     attributes:
       label: Reported Issue
-      description: Please let us know what issue you are having with Mission Control in as much detail as possible
+      description: Please describe the issue you are experiencing.
       placeholder: Please enter your reported issue here.
     validations:
       required: true
