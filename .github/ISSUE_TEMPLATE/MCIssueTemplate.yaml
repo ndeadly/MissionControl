@@ -1,35 +1,46 @@
 name: Bug Report
 description: File a bug report for MissionControl
 title: "[Bug]: "
-labels: [bug, triage]
+labels: [bug]
 assignees:
   - ndeadly
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!  Please include as much information as possible so we can replicate and identify the issue.
+        Thanks for taking the time to fill out this bug report!  Please include as much information as possible so I can replicate and identify the issue.
   - type: dropdown
     id: swfirmware
     attributes:
       label: Switch Firmware
-      description: What version of the swtich firmware are you running?
+      description: Which version of the swtich firmware are you running?
       options:
         - 12.1.0 (Latest)
         - 12.0.3
         - 12.0.2
         - 12.0.1
         - 12.0.0
-        - 11.0.0 +
-        - 10.0.0 +
-        - 9.0.0 +
+        - 11.0.1
+        - 11.0.0
+        - 10.0.2
+        - 10.2.0
+        - 10.1.0
+        - 10.0.4
+        - 10.0.3
+        - 10.0.2
+        - 10.0.1
+        - 10.0.0
+        - 9.2.0
+        - 9.1.0
+        - 9.0.1
+        - 9.0.0
     validations:
       required: true
   - type: dropdown
     id: atmosVersion
     attributes:
       label: Atmosphere Version
-      description: What version of AtmosphereNX are you using?
+      description: Which version of Atmosphere are you using?
       options:
         - 0.20.1 (Latest)
         - 0.20.0
@@ -48,7 +59,7 @@ body:
     id: mcVersion
     attributes:
       label: Mission Control Version
-      description: What version of Mission Control are you using?
+      description: Which version of Mission Control are you using?
       options:
         - 0.5.1 (Latest)
         - 0.5.0
@@ -65,6 +76,6 @@ body:
     attributes:
       label: Reported Issue
       description: Please let us know what issue you are having with Mission Control in as much detail as possible
-      placeholder: Tell us what you see!
+      placeholder: Please enter your reported issue here.
     validations:
       required: true
