@@ -1,0 +1,50 @@
+name: Controller Request
+description: Request support for a new controller.
+title: "[Controller Request]: "
+labels: [controller request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for requesting support for new controllers. Please check the list of [supported controllers](https://github.com/ndeadly/MissionControl#supported-controllers) before opening a new controller request. If your controller is on the list but not behaving correctly, a bug report may be more appropriate.
+  - type: input
+    id: name
+    attributes:
+      label: Controller Name
+      description: The name and/or model number of the controller.
+    validations:
+      required: true
+  - type: input
+    id: vid-pid
+    attributes:
+      label: Controller vendor and product id.
+      description: The vendor and product id of the controller. If your controller can be paired to the console you can dump this information from the pairing database using my [btdb](https://github.com/ndeadly/MissionControl/releases/download/v0.3.0/btdb.nro) application.
+      placeholder: ex. 057e:2009
+  - type: dropdown
+    id: behaviour
+    attributes:
+      label: Current Controller Behaviour
+      description: How does the controller behave after placing it into sync mode while on the `Change Grip/Order` menu of the console?
+      options:
+        - Controller is not successful in pairing with the console
+        - Controller successfully pairs with the console but doesn't respond to inputs
+        - Controller successfully pairs with the console and responds to inputs but control mapping is incorrect
+        - Other (please specify below)
+      validations:
+        required: true
+  - type: checkboxes
+    id: features
+    attributes:
+      label: Supported Features
+      description: Features supported by this controller
+      options:
+        - label: Rumble/Vibration
+        - label: Motion Controls
+        - label: Player Number Indicator
+        - label: Battery Level Reporting
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional Details
+      description: Please provide additional details about your controller here.
+      placeholder: Enter additional details here.
