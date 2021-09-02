@@ -1,0 +1,24 @@
+name: Feature Request
+description: Request a new feature or an improvement to an existing one.
+title: "[Feature Request]: "
+labels: [feature request]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: Please describe your proposed feature in a clear an concise manner.
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: How would this feature be used? What problems does it solve? Why is it useful to others?
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional Details
+      description: You can elaborate on your ideas here. Implementation ideas, diagrams, links to existing examples of similar features etc.
