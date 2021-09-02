@@ -1,19 +1,16 @@
 name: Bug Report
-description: File a bug report for MissionControl
-title: "[Bug]: "
-labels: [bug]
-assignees:
-  - ndeadly
+description: Report a bug or crash in the software
+title: "[Bug Report]: "
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report. Please include as much information as possible so the issue can be replicated and identified.
   - type: dropdown
-    id: swfirmware
+    id: hos-version
     attributes:
-      label: Switch Firmware
-      description: Which version of the switch firmware are you running?
+      label: Switch Firmware Version
+      description: Which Nintendo Switch firmware (HOS) version are you running?
       options:
         - 12.1.0 (Latest)
         - 12.0.3
@@ -37,10 +34,10 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: atmosVersion
+    id: ams-version
     attributes:
-      label: Atmosphere Version
-      description: Which version of Atmosphere are you using?
+      label: Atmosphère Version
+      description: Which version of Atmosphère are you using?
       options:
         - 0.20.1 (Latest)
         - 0.20.0
@@ -56,7 +53,7 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: mcVersion
+    id: mc-version
     attributes:
       label: Mission Control Version
       description: Which version of Mission Control are you using?
@@ -68,10 +65,16 @@ body:
     validations:
       required: true
   - type: textarea
-    id: what-happened
+    id: error-report
     attributes:
-      label: Reported Issue
-      description: Please describe the issue you are experiencing.
-      placeholder: Please enter your reported issue here.
+      label: Error Report
+      description: If your issue involves the console crashing with an error screen, please attach the error report here.
+      placeholder: Please attach error report here.  
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe the issue you are experiencing. Where does the issue occur? How can it be reproduced?
+      placeholder: Please describe your issue here.
     validations:
       required: true

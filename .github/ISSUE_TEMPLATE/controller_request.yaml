@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        This template is for requesting support for new controllers. Please check the list of [supported controllers](https://github.com/ndeadly/MissionControl#supported-controllers) before opening a new controller request. If your controller is on the list but not behaving correctly, a bug report may be more appropriate.
+        This template is for requesting support for new controllers. Please search the issue tracker for existing open issues, and check the list of [supported controllers](https://github.com/ndeadly/MissionControl#supported-controllers) before opening a new controller request. If your controller is on the list but not behaving correctly, a bug report may be more appropriate.
   - type: input
     id: name
     attributes:
@@ -48,10 +48,16 @@ body:
       label: Input Report Format
       description: If your controller can be paired to the console but the buttons aren't working you can save some time by noting down the raw input format of the controller using my [hid report viewer](https://github.com/ndeadly/MissionControl/files/6950590/hid_report_viewer_mc.0.5.0.zip) application before creating your report. 
         With no other bluetooth controllers connected, either screenshot or note down the numeric input displayed as you press each button on the controller one-by-one. Do the same for the ±X/Y positions of the analog sticks and post your results here.
-      placeholder: Enter additional details here.
+      placeholder: ex.
+        01 80 80 80 80 0f 01 00 00 00 00 70 	A
+        01 80 80 80 80 0f 02 00 00 00 00 70 	B
+        01 80 80 80 80 0f 08 00 00 00 00 70 	X
+        01 80 80 80 80 0f 10 00 00 00 00 70 	Y
+        01 80 80 80 80 0f 40 00 00 00 00 70 	L
+        01 80 80 80 80 0f 80 00 00 00 00 70 	R
   - type: textarea
     id: details
     attributes:
       label: Additional Details
-      description: Please provide additional details about your controller here.
-      placeholder: Enter additional details here.
+      description: Provide any additional details about your controller here. Descriptions, images, links to product website or manual, sync instructions etc.
+      placeholder: Please enter additional details here.
