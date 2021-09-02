@@ -52,7 +52,7 @@ body:
         - 0.19.0
         - 0.18.1
         - 0.18.0
-        - Older
+        - Other (please specify in issue description)
     validations:
       required: true
   - type: dropdown
@@ -64,11 +64,7 @@ body:
         - 0.5.1 (Latest)
         - 0.5.0
         - 0.4.1
-        - 0.4.0
-        - 0.3.0
-        - 0.2.1
-        - 0.2.0
-        - Older
+        - Other (please specify in issue description)
     validations:
       required: true
   - type: textarea
