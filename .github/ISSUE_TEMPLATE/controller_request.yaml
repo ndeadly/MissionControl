@@ -30,8 +30,8 @@ body:
         - Controller successfully pairs with the console but doesn't respond to inputs
         - Controller successfully pairs with the console and responds to inputs but control mapping is incorrect
         - Other (please specify below)
-      validations:
-        required: true
+    validations:
+      required: true
   - type: checkboxes
     id: features
     attributes:
