@@ -164,6 +164,14 @@ namespace ams::controller {
         m_buttons.home    = buttons->ps;
     }
 
+    Result Dualshock4Controller::RequestVersionInfo(void) {
+        return btdrvGetHidReport(m_address, 0xa3, BtdrvBluetoothHhReportType_Feature);
+    }
+
+    Result Dualshock4Controller::RequestCalibrationData(void) {
+        return btdrvGetHidReport(m_address, 0x05, BtdrvBluetoothHhReportType_Feature);
+    }
+
     Result Dualshock4Controller::PushRumbleLedState(void) {
         Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff)), 0x20, 0xf3, 0x04, 0x00,
             m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left,

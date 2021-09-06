@@ -169,6 +169,8 @@ namespace ams::controller {
 
             void MapButtons(const Dualshock4ButtonData *buttons);
             
+            Result RequestVersionInfo(void);
+            Result RequestCalibrationData(void);
             Result PushRumbleLedState(void);
 
             Dualshock4ReportRate m_report_rate;
