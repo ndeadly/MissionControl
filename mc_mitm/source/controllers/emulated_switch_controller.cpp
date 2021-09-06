@@ -148,14 +148,10 @@ namespace ams::controller {
     Result EmulatedSwitchController::Initialize(void) {
         char path[0x100] = {};
         
-        // Check if directory for this controller exists and create it if not
-        bool dir_exists;
+        // Ensure config directory for this controller exists
         std::strcat(path, controller_base_path);
         utils::BluetoothAddressToString(&m_address, path+std::strlen(path), sizeof(path)-std::strlen(path));
-        R_TRY(fs::HasDirectory(&dir_exists, path));
-        if (!dir_exists) {
-            R_TRY(fs::CreateDirectory(path));
-        }
+        R_TRY(fs::EnsureDirectoryRecursively(path));
 
         // Check if the virtual spi flash file already exists and initialise it if not
         bool file_exists;
