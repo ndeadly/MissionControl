@@ -101,11 +101,19 @@ namespace ams::controller {
             }
         }
 
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
+        return bluetooth::hid::report::WriteHidDataReport(&m_address, &m_input_report);
     }
 
     Result SwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
         return bluetooth::hid::report::SendHidReport(&m_address, report);
+    }
+
+    Result SwitchController::HandleSetReport(uint32_t status) {
+        return bluetooth::hid::report::WriteHidSetReport(&m_address, status);
+    }
+
+    Result SwitchController::HandleGetReport(const bluetooth::HidReport *report) {
+        return bluetooth::hid::report::WriteHidGetReport(&m_address, report);
     }
 
     void SwitchController::ApplyButtonCombos(SwitchButtonData *buttons) {

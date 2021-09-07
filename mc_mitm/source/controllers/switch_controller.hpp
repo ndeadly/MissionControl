@@ -316,6 +316,8 @@ namespace ams::controller {
             virtual Result HandleIncomingReport(const bluetooth::HidReport *report);
             virtual Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
+            virtual Result HandleSetReport(uint32_t status);
+            virtual Result HandleGetReport(const bluetooth::HidReport *report);
         private:
             bool HasSetTsiDisableFlag(void);
 

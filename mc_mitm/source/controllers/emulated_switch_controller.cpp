@@ -214,7 +214,7 @@ namespace ams::controller {
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
 
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
+        return bluetooth::hid::report::WriteHidDataReport(&m_address, &m_input_report);
     }
 
     Result EmulatedSwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
@@ -612,7 +612,7 @@ namespace ams::controller {
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
+        return bluetooth::hid::report::WriteHidDataReport(&m_address, &m_input_report);
     }
 
     Result EmulatedSwitchController::VirtualSpiFlashRead(int offset, void *data, size_t size) {
