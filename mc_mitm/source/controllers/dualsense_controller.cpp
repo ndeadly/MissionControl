@@ -139,6 +139,32 @@ namespace ams::controller {
         );
 
         this->MapButtons(&src->input0x31.buttons);
+
+        if (m_enable_motion) {
+            m_motion_data[0].gyro_1 = src->input0x31.vel_z;
+            m_motion_data[0].gyro_2 = src->input0x31.vel_y;
+            m_motion_data[0].gyro_3 = src->input0x31.vel_x;
+            m_motion_data[0].accel_x = src->input0x31.acc_z;
+            m_motion_data[0].accel_y = src->input0x31.acc_y;
+            m_motion_data[0].accel_z = src->input0x31.acc_x;
+
+            m_motion_data[1].gyro_1 = src->input0x31.vel_z;
+            m_motion_data[1].gyro_2 = src->input0x31.vel_y;
+            m_motion_data[1].gyro_3 = src->input0x31.vel_x;
+            m_motion_data[1].accel_x = src->input0x31.acc_z;
+            m_motion_data[1].accel_y = src->input0x31.acc_y;
+            m_motion_data[1].accel_z = src->input0x31.acc_x;
+
+            m_motion_data[2].gyro_1 = src->input0x31.vel_z;
+            m_motion_data[2].gyro_2 = src->input0x31.vel_y;
+            m_motion_data[2].gyro_3 = src->input0x31.vel_x;
+            m_motion_data[2].accel_x = src->input0x31.acc_z;
+            m_motion_data[2].accel_y = src->input0x31.acc_y;
+            m_motion_data[2].accel_z = src->input0x31.acc_x;
+        }
+        else {
+            std::memset(&m_motion_data, 0, sizeof(m_motion_data));
+        }
     }
 
     void DualsenseController::MapButtons(const DualsenseButtonData *buttons) {

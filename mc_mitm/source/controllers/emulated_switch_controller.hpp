@@ -79,6 +79,7 @@ namespace ams::controller {
 
             ProControllerColours m_colours;
             bool m_enable_rumble;
+            bool m_enable_motion;
 
             fs::FileHandle m_spi_flash_file;
 
