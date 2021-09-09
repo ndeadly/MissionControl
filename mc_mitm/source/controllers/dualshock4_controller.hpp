@@ -87,6 +87,35 @@ namespace ams::controller {
         uint8_t amp_motor_right;
     } __attribute__((packed));
 
+    struct Dualshock4ImuCalibrationData {
+        struct {
+            int16_t pitch_bias;
+            int16_t yaw_bias;
+            int16_t roll_bias;
+            int16_t pitch_max;
+            int16_t yaw_max;
+            int16_t roll_max;
+            int16_t pitch_min;
+            int16_t yaw_min;
+            int16_t roll_min;
+            int16_t speed_max;
+            int16_t speed_min;
+        } gyro;
+        
+        struct {
+            int16_t x_max;
+            int16_t x_min;
+            int16_t y_max;
+            int16_t y_min;
+            int16_t z_max;
+            int16_t z_min;
+        } acc;
+    } __attribute__((packed));
+
+    struct Dualshock4FeatureReport0x05 {
+        Dualshock4ImuCalibrationData calib;
+    } __attribute__((packed));
+
     struct Dualshock4OutputReport0x11 {
         struct {
             uint8_t data[75];
@@ -133,9 +162,10 @@ namespace ams::controller {
     struct Dualshock4ReportData {
         uint8_t id;
         union {
-            Dualshock4OutputReport0x11 output0x11;
-            Dualshock4InputReport0x01  input0x01;
-            Dualshock4InputReport0x11  input0x11;
+            Dualshock4FeatureReport0x05 feature0x05;
+            Dualshock4OutputReport0x11  output0x11;
+            Dualshock4InputReport0x01   input0x01;
+            Dualshock4InputReport0x11   input0x11;
         };
     } __attribute__((packed));
 
