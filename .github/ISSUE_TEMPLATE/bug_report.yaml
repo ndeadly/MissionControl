@@ -61,6 +61,17 @@ body:
         - Other (please specify in issue description)
     validations:
       required: true
+  - type: dropdown
+    id: boot-method
+    attributes:
+      label: Boot Method
+      description: Which bootloader are you using to launch Atmosphère?
+      options:
+        - Fusée
+        - Hekate
+        - Unsure
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:
@@ -74,4 +85,10 @@ body:
     attributes:
       label: Error Report
       description: If your issue involves the console crashing with an error screen, please attach the error report here.
-      placeholder: Please attach error report here.  
+      placeholder: Please attach error report here.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Sometimes issues do not occur universally and may be caused by a factor unique to your setup. Add any additional contextual information about your environment here, eg. which other custom sysmodules are you running, are you booting sysnand or emummc, did you install Atmosphère or Mission Control as part of some unofficial third-party release/distribution etc
+      placeholder: Please provide any additional context here.  
