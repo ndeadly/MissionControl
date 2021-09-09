@@ -26,10 +26,6 @@ body:
         - 10.0.2
         - 10.0.1
         - 10.0.0
-        - 9.2.0
-        - 9.1.0
-        - 9.0.1
-        - 9.0.0
         - Other (please specify in issue description)
     validations:
       required: true
@@ -39,7 +35,8 @@ body:
       label: Atmosphère Version
       description: Which version of Atmosphère are you using?
       options:
-        - 0.20.1 (Latest)
+        - 1.0.0 (Latest)
+        - 0.20.1
         - 0.20.0
         - 0.19.5
         - 0.19.4
