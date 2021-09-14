@@ -87,6 +87,32 @@ namespace ams::controller {
         uint16_t gyro_3;
     } __attribute__ ((__packed__));
 
+    struct Switch6AxisCalibrationData {
+        struct {
+            int16_t x;
+            int16_t y;
+            int16_t z;
+        } acc_bias;
+
+        struct {
+            int16_t x;
+            int16_t y;
+            int16_t z;
+        } acc_sensitivity;
+
+        struct {
+            int16_t roll;
+            int16_t pitch;
+            int16_t yaw;
+        } gyro_bias;
+
+        struct {
+            int16_t roll;
+            int16_t pitch;
+            int16_t yaw;
+        } gyro_sensitivity;
+    } __attribute__((packed));
+
     struct SwitchRumbleData {
         float high_band_freq;
         float high_band_amp;
