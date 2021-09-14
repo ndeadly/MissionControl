@@ -86,7 +86,9 @@ namespace ams::controller {
             this->ReadMemory(0x04a400fa, 6);
         }
 
-        m_battery = convert_battery_255(src->input0x20.battery);
+        if (m_extension != WiiExtensionController_WiiUPro) {
+            m_battery = convert_battery_255(src->input0x20.battery);
+        }
     }
 
     void WiiController::HandleInputReport0x21(const WiiReportData *src) {
@@ -299,6 +301,10 @@ namespace ams::controller {
         m_buttons.rstick_press = !extension->buttons.rstick_press;
 
         m_buttons.home = !extension->buttons.home;
+
+        m_charging = !extension->buttons.charging;
+
+        m_battery = (extension->buttons.battery == 0b111) ? 0 : (extension->buttons.battery << 1);
     }
 
     void WiiController::MapTaTaConExtension(const uint8_t ext[]) {

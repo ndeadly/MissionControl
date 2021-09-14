@@ -111,9 +111,12 @@ namespace ams::controller {
         uint8_t B           : 1;
         uint8_t ZL          : 1;
 
-        uint8_t rstick_press : 1;
-        uint8_t lstick_press : 1;
-        uint8_t : 0;
+        uint8_t rstick_press  : 1;
+        uint8_t lstick_press  : 1;
+        uint8_t charging      : 1;
+        uint8_t usb_connected : 1;
+        uint8_t battery       : 3;
+        uint8_t               : 1;
     } __attribute__ ((__packed__));
 
     struct WiiUProExtensionData {
