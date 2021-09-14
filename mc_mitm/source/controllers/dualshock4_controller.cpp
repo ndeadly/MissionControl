@@ -25,6 +25,9 @@ namespace ams::controller {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
+        constexpr auto GYRO_RES_PER_DEG_S = 1024;
+        constexpr auto ACC_RES_PER_G = 8192;
+
         const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
 
         const RGBColour player_led_colours[] = {
@@ -40,11 +43,72 @@ namespace ams::controller {
             {0x10, 0x00, 0x30}  // purple
         };
 
+        void ConvertToSwitchCalibration(const Dualshock4ImuCalibrationData *calib_data, Switch6AxisCalibrationData *switch_calib) {
+            /* Gyro */
+            //float numerator = (calib_data->gyro.speed_min + calib_data->gyro.speed_max) * GYRO_RES_PER_DEG_S;
+            switch_calib->gyro_bias.pitch = calib_data->gyro.pitch_bias;
+            switch_calib->gyro_sensitivity.pitch = (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min) / 2; //numerator / (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min);
+
+            switch_calib->gyro_bias.yaw = calib_data->gyro.yaw_bias;
+            switch_calib->gyro_sensitivity.yaw = (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min) / 2; //numerator / (calib_data->gyro.yaw_max - calib_data->gyro.yaw_min);
+
+            switch_calib->gyro_bias.roll = calib_data->gyro.roll_bias;
+            switch_calib->gyro_sensitivity.roll = (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min) / 2; //numerator / (calib_data->gyro.roll_max - calib_data->gyro.roll_min);
+
+            /* Accelerometer */
+            int16_t acc_range_2g;
+            acc_range_2g = calib_data->acc.x_max - calib_data->acc.x_min;
+            switch_calib->acc_bias.x = calib_data->acc.x_max - acc_range_2g / 2;
+            switch_calib->acc_sensitivity.x = 2 * ACC_RES_PER_G / float(acc_range_2g);
+
+            acc_range_2g = calib_data->acc.y_max - calib_data->acc.y_min;
+            switch_calib->acc_bias.y = calib_data->acc.y_max - acc_range_2g / 2;
+            switch_calib->acc_sensitivity.y = 2 * ACC_RES_PER_G / float(acc_range_2g);
+            
+            acc_range_2g = calib_data->acc.z_max - calib_data->acc.z_min;
+            switch_calib->acc_bias.z = calib_data->acc.z_max - acc_range_2g / 2;
+            switch_calib->acc_sensitivity.z = 2 * ACC_RES_PER_G / float(acc_range_2g);
+        }
+
     }
 
     Result Dualshock4Controller::Initialize(void) {
+
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
+		
+        // Check if factory calibration data has been inserted into virtual SPI flash
+        uint8_t calib[sizeof(Switch6AxisCalibrationData)];
+        R_TRY(this->VirtualSpiFlashRead(0x6020, &calib, sizeof(calib)));
+        bool has_motion_calib = true;
+        for (unsigned int i = 0; i < sizeof(calib); ++i) {
+            if (calib[i] != 0xff) {
+                has_motion_calib = true;
+                break;
+            }
+        }
+
+        // Request calbration from the controller if it's not present
+        if (!has_motion_calib) {
+            //Todo: make this command spawn a worker and return the value
+            R_TRY(this->RequestCalibrationData());
+
+            // Simulate having received the calibration data from a real controller
+            uint8_t raw_calib_data[] = {0xfc, 0xff, 0x06, 0x00, 0x07, 0x00, 0x4d, 0x22, 
+                                        0xd0, 0x22, 0x2a, 0x23, 0x00, 0xde, 0x3e, 0xdd, 
+                                        0x93, 0xdc, 0x1c, 0x02, 0x1c, 0x02, 0xfd, 0x1f, 
+                                        0xc6, 0xe0, 0x65, 0x20, 0x66, 0xe0, 0x18, 0x20, 
+                                        0x37, 0xdf, 0x0a, 0x00, 0xb6, 0xd3, 0x01, 0x5c};
+
+            auto calib_data = reinterpret_cast<Dualshock4ImuCalibrationData *>(raw_calib_data);
+
+            // Todo: Check CRC of calibration data
+
+            ConvertToSwitchCalibration(calib_data, &m_motion_calibration);
+
+            // Todo: Write converted calibration to virtual SPI file for future use
+            //R_TRY(this->VirtualSpiFlashWrite(0x6020, &m_motion_calibration, sizeof(m_motion_calibration)));
+        }
         
         return ams::ResultSuccess();
     }
@@ -209,6 +273,12 @@ namespace ams::controller {
         std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
 
         return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
+    }
+
+    Result Dualshock4Controller::HandleGetReport(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        return ams::ResultSuccess();
     }
 
 }

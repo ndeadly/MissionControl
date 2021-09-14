@@ -427,7 +427,18 @@ namespace ams::controller {
             }
         };
 
+        //Todo: remove this when calibration is properly handled
+        if (read_addr == 0x6020) {
+            std::memcpy(response.data.spi_flash_read.data, &m_motion_calibration, read_size);
+        }
+        else {
         R_TRY(this->VirtualSpiFlashRead(read_addr, response.data.spi_flash_read.data, read_size));
+        }
+
+        // Todo: also remove this
+        if (read_addr == 0x6080) {
+            std::memset(response.data.spi_flash_read.data, 0x00, 6);
+        }
 
         if (read_addr == 0x6050) {
             if (ams::mitm::GetSystemLanguage() == 10) {

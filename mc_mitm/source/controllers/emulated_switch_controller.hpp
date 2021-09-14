@@ -77,6 +77,8 @@ namespace ams::controller {
             SwitchAnalogStick m_right_stick;
             Switch6AxisData m_motion_data[3];
 
+            Switch6AxisCalibrationData m_motion_calibration;
+
             ProControllerColours m_colours;
             bool m_enable_rumble;
             bool m_enable_motion;
