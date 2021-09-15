@@ -114,6 +114,8 @@ namespace ams::controller {
     }
 
     void DualsenseController::HandleInputReport0x31(const DualsenseReportData *src) {
+        m_ext_power = src->input0x31.usb;
+
         if (!src->input0x31.usb || src->input0x31.full)
             m_charging = false;
         else

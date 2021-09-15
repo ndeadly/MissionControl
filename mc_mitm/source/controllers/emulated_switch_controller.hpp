@@ -65,6 +65,7 @@ namespace ams::controller {
             Result VirtualSpiFlashSectorErase(int offset);
 
             bool m_charging;
+            bool m_ext_power;
             uint8_t m_battery;
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;

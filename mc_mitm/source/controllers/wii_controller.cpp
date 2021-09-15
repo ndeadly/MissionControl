@@ -302,8 +302,8 @@ namespace ams::controller {
 
         m_buttons.home = !extension->buttons.home;
 
+        m_ext_power = !extension->buttons.usb_connected;
         m_charging = !extension->buttons.charging;
-
         m_battery = (extension->buttons.battery == 0b111) ? 0 : (extension->buttons.battery << 1);
     }
 

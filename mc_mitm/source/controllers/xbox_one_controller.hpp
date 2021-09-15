@@ -96,10 +96,10 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x01 {
-        XboxOneStickData  left_stick;
-        XboxOneStickData  right_stick;
-        uint16_t          left_trigger;
-        uint16_t          right_trigger;
+        XboxOneStickData left_stick;
+        XboxOneStickData right_stick;
+        uint16_t         left_trigger;
+        uint16_t         right_trigger;
         union {
             XboxOneButtonData buttons;
 

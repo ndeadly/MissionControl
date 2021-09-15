@@ -128,6 +128,7 @@ namespace ams::controller {
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id) 
     : SwitchController(address, id)
     , m_charging(false)
+    , m_ext_power(false)
     , m_battery(BATTERY_MAX) {
         this->ClearControllerState();
 
@@ -186,11 +187,11 @@ namespace ams::controller {
         s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
         auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         switch_report->id = 0x30;
-        switch_report->input0x30.conn_info      = 0;
-        switch_report->input0x30.battery        = m_battery | m_charging;
-        switch_report->input0x30.buttons        = m_buttons;
-        switch_report->input0x30.left_stick     = m_left_stick;
-        switch_report->input0x30.right_stick    = m_right_stick;
+        switch_report->input0x30.conn_info   = (0 << 1) | m_ext_power;
+        switch_report->input0x30.battery     = m_battery | m_charging;
+        switch_report->input0x30.buttons     = m_buttons;
+        switch_report->input0x30.left_stick  = m_left_stick;
+        switch_report->input0x30.right_stick = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
 
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
@@ -461,7 +462,7 @@ namespace ams::controller {
         s_input_report.size = sizeof(SwitchInputReport0x21) + 1;
         auto report_data = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         report_data->id = 0x21;
-        report_data->input0x21.conn_info   = 0;
+        report_data->input0x21.conn_info   = (0 << 1) | m_ext_power;
         report_data->input0x21.battery     = m_battery | m_charging;
         report_data->input0x21.buttons     = m_buttons;
         report_data->input0x21.left_stick  = m_left_stick;
