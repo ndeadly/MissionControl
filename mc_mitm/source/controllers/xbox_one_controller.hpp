@@ -30,6 +30,12 @@ namespace ams::controller {
         XboxOneDPad_NW
     };
 
+    enum XboxOnePowerMode {
+        XboxOnePowerMode_USB         = 0,
+        XboxOnePowerMode_Battery     = 1,
+        XboxOnePowerMode_PlayNCharge = 2
+    };
+
     struct XboxOneStickData {
         uint16_t x;
         uint16_t y;
