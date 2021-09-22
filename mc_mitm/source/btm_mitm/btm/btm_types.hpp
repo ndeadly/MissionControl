@@ -31,8 +31,16 @@ namespace ams::btm {
         BtmDeviceConditionV800 condition;
     };
 
-    struct DeviceCondition : sf::LargeData {
+    struct DeviceConditionV900 : sf::LargeData {
         BtmDeviceConditionV900 condition;
+    };
+
+    struct ConnectedDevice : sf::LargeData {
+        BtmConnectedDeviceV13 condition;
+    };
+
+    struct DeviceInfo : sf::LargeData {
+        BtmDeviceInfoV13 info;
     };
 
     struct DeviceInfoList : sf::LargeData {

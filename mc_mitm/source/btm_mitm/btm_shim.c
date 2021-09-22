@@ -37,16 +37,30 @@ Result btmGetDeviceConditionDeprecated3Fwd(Service* s, BtmDeviceConditionV800 *c
     );
 }
 
-Result btmGetDeviceConditionFwd(Service* s, BtmDeviceConditionV900 *condition) {
+Result btmGetDeviceConditionDeprecated4Fwd(Service* s, BtmDeviceConditionV900 *condition) {
     return serviceMitmDispatch(s, 3,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
         .buffers = { {condition, sizeof(BtmDeviceConditionV900)} }
     );
 }
 
-Result btmGetDeviceInfoFwd(Service* s, BtmDeviceInfoList *devices) {
+Result btmGetDeviceConditionFwd(Service* s, u32 id, BtmConnectedDeviceV13 *condition, size_t count, s32 *total_out) {
+    return serviceMitmDispatchInOut(s, 3, id, *total_out,
+        .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {condition, sizeof(BtmConnectedDeviceV13)*count} },
+    );
+}
+
+Result btmGetDeviceInfoDeprecatedFwd(Service* s, BtmDeviceInfoList *devices) {
     return serviceMitmDispatch(s, 9,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
         .buffers = { {devices, sizeof(BtmDeviceInfoList)} }
+    );
+}
+
+Result btmGetDeviceInfoFwd(Service* s, u32 id, BtmDeviceInfoV13 *devices, size_t count, s32 *total_out) {
+    return serviceMitmDispatchInOut(s, 9, id, *total_out,
+        .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {devices, sizeof(BtmDeviceInfoV13)*count} },
     );
 }
