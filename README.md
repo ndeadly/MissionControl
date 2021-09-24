@@ -78,7 +78,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for Mission Control to become active.
 
 ***IMPORTANT: 
-Atmosphère >= 0.19.5 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash the system on boot.
+Atmosphère >= 1.1.0 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash the system on boot.
 Users upgrading from version 0.1.0 of Mission Control are also advised to wipe their pairing database and re-pair controllers running the latest version. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
 
 ### Usage
@@ -88,6 +88,8 @@ Install Mission Control to your SD card and reboot the console.
 Mission Control runs as a background process and makes use of the system's native UI to handle controllers. The controller pairing dialog can be accessed from the home screen via  `Controllers->Change Grip/Order`. While sitting on this screen, place your controller in pairing mode (see below) and wait for it to connect to the console. Once paired, controllers will reconnect automatically when woken up. There is no need to re-pair them every time.
 
 Controllers that successfully pair but haven't been supported yet will display with red buttons on the `Controllers` menu to indicate their controls are not being mapped. Please open an issue to request support for such controllers.
+
+Your controller's buttons are mapped as closely as possible to the physical layout of a Switch Pro controller. This means that A/B and X/Y buttons will be swapped for controllers that use an Xbox style button layout rather than using what is printed on the button. The button combos `MINUS + DPAD_UP` and `MINUS + DPAD_DOWN` are provided for all controllers to function as an alternative for `HOME` and `CAPTURE` buttons in cases where there are not enough face buttons available.
 
 Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please open a support issue on this github page.
 
@@ -99,6 +101,8 @@ Press the red sync button on the back of the controller. The controller LEDs wil
 
 ***Sony Dualshock4/Dualsense Controllers***
 Press and hold the `PS` + `share` buttons simultaneously until the lightbar starts blinking. When done correctly the blink pattern will resemble a heartbeat, otherwise it will blink periodically.
+
+If you have difficulty getting the controller to pair to the console, press the reset button on the back of the controller and keep trying. It should eventually connect.
 
 ***Microsoft Xbox One Controllers***
 Press and hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
@@ -171,9 +175,10 @@ Below is a list of features I am currently working on or would like to look into
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Controllers using the Bluetooth LE (BLE) standard are currently not supported and will not connect to the system.
 * Xbox One, Wii/WiiU and (especially) some Dualshock v1 controllers can take some time to be detected and subsequently pair with the Console. Be patient and re-enter the sync mode of the controller several times if neccessary. Once synced, controllers should work as usual.
+* Xbox One controllers cannot be shut off and will attempt to reconnect to the console after being disconnected. This is a limitation of the controller's bluetooth firmware.
 * ~~Xbox One button layout was changed at some point in a firmware update. Please ensure your controller firmware is up to date if you have issues with incorrect button mappings.~~ Both layouts are now supported.
 * Reported controller battery levels may not be correct. I'm relying entirely on reverse engineering notes found on the internet for these. In many cases I don't own the controller and there is simply no information available, so these controllers will always show full battery. Any help in improving this is most welcome.
-* Several users have reported knockoff WiiU controllers that cannot be detected by the console during Bluetooth discovery. Unfortunately I think they're using an incompatible Bluetooth chipset.
+* Several users have reported knockoff WiiU and Dualshock4 controllers that cannot be detected by the console during Bluetooth discovery. Unfortunately I think they're using an incompatible Bluetooth chipset.
 
 ### Frequently Asked Questions
 

@@ -103,6 +103,8 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::HandleInputReport0x11(const Dualshock4ReportData *src) {
+        m_ext_power = src->input0x11.usb;
+
         if (!src->input0x11.usb || src->input0x11.battery_level > 10)
             m_charging = false;
         else

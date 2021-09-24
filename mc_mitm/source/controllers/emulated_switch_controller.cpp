@@ -107,10 +107,7 @@ namespace ams::controller {
             const struct {
                 SwitchAnalogStickFactoryCalibration lstick_factory_calib;
                 SwitchAnalogStickFactoryCalibration rstick_factory_calib;
-                uint8_t unused;
-                RGBColour body;
-                RGBColour buttons;
-            } data1 = { lstick_factory_calib, rstick_factory_calib, 0xff, {0x32, 0x32, 0x32,}, {0xff, 0xff, 0xff} };
+            } data1 = { lstick_factory_calib, rstick_factory_calib };
             R_TRY(fs::WriteFile(file, 0x603d, &data1, sizeof(data1), fs::WriteOption::None));
 
             const struct {
@@ -131,6 +128,7 @@ namespace ams::controller {
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id) 
     : SwitchController(address, id)
     , m_charging(false)
+    , m_ext_power(false)
     , m_battery(BATTERY_MAX) {
         this->ClearControllerState();
 
@@ -151,14 +149,10 @@ namespace ams::controller {
     Result EmulatedSwitchController::Initialize(void) {
         char path[0x100] = {};
         
-        // Check if directory for this controller exists and create it if not
-        bool dir_exists;
+        // Ensure config directory for this controller exists
         std::strcat(path, controller_base_path);
         utils::BluetoothAddressToString(&m_address, path+std::strlen(path), sizeof(path)-std::strlen(path));
-        R_TRY(fs::HasDirectory(&dir_exists, path));
-        if (!dir_exists) {
-            R_TRY(fs::CreateDirectory(path));
-        }
+        R_TRY(fs::EnsureDirectoryRecursively(path));
 
         // Check if the virtual spi flash file already exists and initialise it if not
         bool file_exists;
@@ -193,11 +187,11 @@ namespace ams::controller {
         s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
         auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         switch_report->id = 0x30;
-        switch_report->input0x30.conn_info      = 0;
-        switch_report->input0x30.battery        = m_battery | m_charging;
-        switch_report->input0x30.buttons        = m_buttons;
-        switch_report->input0x30.left_stick     = m_left_stick;
-        switch_report->input0x30.right_stick    = m_right_stick;
+        switch_report->input0x30.conn_info   = (0 << 1) | m_ext_power;
+        switch_report->input0x30.battery     = m_battery | m_charging;
+        switch_report->input0x30.buttons     = m_buttons;
+        switch_report->input0x30.left_stick  = m_left_stick;
+        switch_report->input0x30.right_stick = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
 
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
@@ -468,7 +462,7 @@ namespace ams::controller {
         s_input_report.size = sizeof(SwitchInputReport0x21) + 1;
         auto report_data = reinterpret_cast<SwitchReportData *>(s_input_report.data);
         report_data->id = 0x21;
-        report_data->input0x21.conn_info   = 0;
+        report_data->input0x21.conn_info   = (0 << 1) | m_ext_power;
         report_data->input0x21.battery     = m_battery | m_charging;
         report_data->input0x21.buttons     = m_buttons;
         report_data->input0x21.left_stick  = m_left_stick;

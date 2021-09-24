@@ -30,6 +30,12 @@ namespace ams::controller {
         XboxOneDPad_NW
     };
 
+    enum XboxOnePowerMode {
+        XboxOnePowerMode_USB         = 0,
+        XboxOnePowerMode_Battery     = 1,
+        XboxOnePowerMode_PlayNCharge = 2
+    };
+
     struct XboxOneStickData {
         uint16_t x;
         uint16_t y;
@@ -90,10 +96,10 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x01 {
-        XboxOneStickData  left_stick;
-        XboxOneStickData  right_stick;
-        uint16_t          left_trigger;
-        uint16_t          right_trigger;
+        XboxOneStickData left_stick;
+        XboxOneStickData right_stick;
+        uint16_t         left_trigger;
+        uint16_t         right_trigger;
         union {
             XboxOneButtonData buttons;
 

@@ -135,7 +135,8 @@ namespace ams::controller {
     }
 
     void XboxOneController::HandleInputReport0x04(const XboxOneReportData *src) {
-        m_battery = src->input0x04.capacity << 1;
+        m_ext_power = src->input0x04.mode != XboxOnePowerMode_Battery;
+        m_battery = (src->input0x04.mode == XboxOnePowerMode_USB) ? BATTERY_MAX : src->input0x04.capacity << 1;
         m_charging = src->input0x04.charging;
     }
 

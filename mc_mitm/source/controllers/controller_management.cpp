@@ -50,7 +50,7 @@ namespace ams::controller {
 
     ControllerType Identify(const bluetooth::DevicesSettings *device) {
 
-        if (IsOfficialSwitchControllerName(device->name.name))
+        if (IsOfficialSwitchControllerName(hos::GetVersion() < hos::Version_13_0_0 ? device->name.name : device->name2))
             return ControllerType_Switch;
 
         for (auto hwId : WiiController::hardware_ids) {

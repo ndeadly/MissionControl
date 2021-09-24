@@ -79,12 +79,12 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct Switch6AxisData {
-        uint16_t    accel_x;
-        uint16_t    accel_y;
-        uint16_t    accel_z;
-        uint16_t    gyro_1;
-        uint16_t    gyro_2;
-        uint16_t    gyro_3;
+        uint16_t accel_x;
+        uint16_t accel_y;
+        uint16_t accel_z;
+        uint16_t gyro_1;
+        uint16_t gyro_2;
+        uint16_t gyro_3;
     } __attribute__ ((__packed__));
 
     struct SwitchRumbleData {
@@ -206,26 +206,26 @@ namespace ams::controller {
     struct SwitchOutputReport0x12;
 
     struct SwitchInputReport0x21 {
-        uint8_t                     timer;
-        uint8_t                     conn_info      : 4;
-        uint8_t                     battery        : 4;
-        SwitchButtonData            buttons;
-        SwitchAnalogStick           left_stick;
-        SwitchAnalogStick           right_stick;
-        uint8_t                     vibrator;
-        SwitchSubcommandResponse    response;
+        uint8_t           timer;
+        uint8_t           conn_info      : 4;
+        uint8_t           battery        : 4;
+        SwitchButtonData  buttons;
+        SwitchAnalogStick left_stick;
+        SwitchAnalogStick right_stick;
+        uint8_t           vibrator;
+        SwitchSubcommandResponse response;
     } __attribute__ ((__packed__));
 
     struct SwitchInputReport0x23;
 
     struct SwitchInputReport0x30 {
-        uint8_t             timer;
-        uint8_t             conn_info      : 4;
-        uint8_t             battery        : 4;
-        SwitchButtonData    buttons;
-        SwitchAnalogStick           left_stick;
-        SwitchAnalogStick           right_stick;
-        uint8_t             vibrator;
+        uint8_t           timer;
+        uint8_t           conn_info      : 4;
+        uint8_t           battery        : 4;
+        SwitchButtonData  buttons;
+        SwitchAnalogStick left_stick;
+        SwitchAnalogStick right_stick;
+        uint8_t           vibrator;
 
         // IMU samples at 0, 5 and 10ms
         Switch6AxisData     motion[3];
