@@ -1,11 +1,11 @@
 <p align="left">
-<img alt="GitHub" src="https://img.shields.io/github/license/ndeadly/MissionControl">
-<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/ndeadly/MissionControl">
-<img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total">
-<img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total">
+<a href="https://github.com/ndeadly/MissionControl/blob/master/LICENSE" alt="GPL License"><img src="https://img.shields.io/github/license/ndeadly/MissionControl" /></a>
+<a href="https://github.com/ndeadly/MissionControl/releases/latest" alt="GitHub release (latest by date)" ><img src="https://img.shields.io/github/v/release/ndeadly/MissionControl" /></a>
+<a href="#"><img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total" /></a>
+<a href="#"><img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total" /></a>
 <br>
-<img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin">
-<img alt="Donate Ethereum" src="https://img.shields.io/static/v1?label=donate&message=fd28c8680416d5c706ad8e404955e0a3a2aa7124&color=yellow&style=flat&logo=ethereum">
+<a href="#"><img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin" /></a>
+<a href="#"><img alt="Donate Ethereum" src="https://img.shields.io/static/v1?label=donate&message=fd28c8680416d5c706ad8e404955e0a3a2aa7124&color=yellow&style=flat&logo=ethereum" /></a>
 </p>
 
 <p align="left">
