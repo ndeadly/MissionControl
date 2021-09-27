@@ -1,8 +1,8 @@
-[![GPL License](https://img.shields.io/github/license/ndeadly/MissionControl)](LICENSE)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ndeadly/MissionControl)](releases)
+[![GPL License](https://img.shields.io/github/license/ndeadly/MissionControl)](https://github.com/ndeadly/MissionControl/LICENSE)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ndeadly/MissionControl)](https://github.com/ndeadly/MissionControl/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/ndeadly/MissionControl/total)]()
 [![GitHub Releases](https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total)]()
-<br>
+
 [![Donate Bitcoin](https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin)]()
 [![Donate Ethereum](https://img.shields.io/static/v1?label=donate&message=fd28c8680416d5c706ad8e404955e0a3a2aa7124&color=yellow&style=flat&logo=ethereum)]()
 
