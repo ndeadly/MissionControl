@@ -1,5 +1,5 @@
-[![GPL License](https://img.shields.io/github/license/ndeadly/MissionControl)](https://github.com/ndeadly/MissionControl/master/LICENSE)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ndeadly/MissionControl)](https://github.com/ndeadly/MissionControl/releases)
+[![GPL License](https://img.shields.io/github/license/ndeadly/MissionControl)](LICENSE)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ndeadly/MissionControl)](releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/ndeadly/MissionControl/total)]()
 [![GitHub Releases](https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total)]()
 <br>
