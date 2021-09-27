@@ -1,16 +1,12 @@
-<p align="left">
-<a href="https://github.com/ndeadly/MissionControl/blob/master/LICENSE" alt="GPL License"><img src="https://img.shields.io/github/license/ndeadly/MissionControl" /></a>
-<a href="https://github.com/ndeadly/MissionControl/releases/latest" alt="GitHub release (latest by date)" ><img src="https://img.shields.io/github/v/release/ndeadly/MissionControl" /></a>
-<a href="#"><img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total" /></a>
-<a href="#"><img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total" /></a>
+[![GPL License](https://img.shields.io/github/license/ndeadly/MissionControl)](https://github.com/ndeadly/MissionControl/blob/master/LICENSE)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ndeadly/MissionControl)](https://github.com/ndeadly/MissionControl/releases)
+[![GitHub All Releases](https://img.shields.io/github/downloads/ndeadly/MissionControl/total)]()
+[![GitHub Releases](https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total)]()
 <br>
-<a href="#"><img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin" /></a>
-<a href="#"><img alt="Donate Ethereum" src="https://img.shields.io/static/v1?label=donate&message=fd28c8680416d5c706ad8e404955e0a3a2aa7124&color=yellow&style=flat&logo=ethereum" /></a>
-</p>
+[![Donate Bitcoin](https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin)]()
+[![Donate Ethereum](https://img.shields.io/static/v1?label=donate&message=fd28c8680416d5c706ad8e404955e0a3a2aa7124&color=yellow&style=flat&logo=ethereum)]()
 
-<p align="left">
 
-</p>
 
 # Mission Control
 
@@ -274,6 +270,4 @@ The resulting package can be installed as described above.
 If you like this project, please consider supporting me to continue its development :)
 
 
-<a href="https://ko-fi.com/J3J01BZZ6">
-    <img border="0" alt="ko-fi" src="https://www.ko-fi.com/img/githubbutton_sm.svg" align="left">
-</a>
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J01BZZ6)
