@@ -19,31 +19,31 @@
 
 namespace ams::btm {
 
-    struct DeviceConditionV100 : sf::LargeData {
+    struct DeviceConditionV100 : public sf::LargeData {
         BtmDeviceConditionV100 condition;
     };
 
-    struct DeviceConditionV510 : sf::LargeData {
+    struct DeviceConditionV510 : public sf::LargeData {
         BtmDeviceConditionV510 condition;
     };
 
-    struct DeviceConditionV800 : sf::LargeData {
+    struct DeviceConditionV800 : public sf::LargeData {
         BtmDeviceConditionV800 condition;
     };
 
-    struct DeviceConditionV900 : sf::LargeData {
+    struct DeviceConditionV900 : public sf::LargeData {
         BtmDeviceConditionV900 condition;
     };
 
-    struct ConnectedDevice : sf::LargeData {
+    struct ConnectedDevice : public sf::LargeData {
         BtmConnectedDeviceV13 condition;
     };
 
-    struct DeviceInfo : sf::LargeData {
+    struct DeviceInfo : public sf::LargeData {
         BtmDeviceInfoV13 info;
     };
 
-    struct DeviceInfoList : sf::LargeData {
+    struct DeviceInfoList : public sf::LargeData {
         BtmDeviceInfoList info;
     };
 

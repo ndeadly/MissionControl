@@ -61,7 +61,7 @@ namespace ams::mitm::btm {
         alignas(os::ThreadStackAlignment) u8 g_btm_mitm_thread_stack[0x2000];
         s32 g_btm_mitm_thread_priority = utils::ConvertToUserPriority(37);
 
-        void BtmMitmThreadFunction(void *arg) {
+        void BtmMitmThreadFunction(void *) {
             R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtmMitmService>(PortIndex_BtmMitm, BtmMitmServiceName)));
             g_server_manager.LoopProcess();
         }
@@ -76,7 +76,7 @@ namespace ams::mitm::btm {
             sizeof(g_btm_mitm_thread_stack),
             g_btm_mitm_thread_priority
         ));
-        
+
         os::StartThread(&g_btm_mitm_thread);
 
         return ams::ResultSuccess();

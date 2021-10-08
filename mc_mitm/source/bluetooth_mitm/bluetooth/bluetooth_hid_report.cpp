@@ -54,7 +54,7 @@ namespace ams::bluetooth::hid::report {
         Service *g_forward_service;
         os::ThreadId g_main_thread_id;
 
-        void EventThreadFunc(void *arg) {
+        void EventThreadFunc(void *) {
             while (true) {
                 g_system_event.Wait();
                 HandleEvent();
@@ -101,18 +101,18 @@ namespace ams::bluetooth::hid::report {
     Result Initialize(Handle event_handle, Service *forward_service, os::ThreadId main_thread_id) {
         g_system_event.AttachReadableHandle(event_handle, false, os::EventClearMode_AutoClear);
 
-        R_TRY(os::CreateThread(&g_event_handler_thread, 
-            EventThreadFunc, 
-            nullptr, 
-            g_event_handler_thread_stack, 
-            sizeof(g_event_handler_thread_stack), 
+        R_TRY(os::CreateThread(&g_event_handler_thread,
+            EventThreadFunc,
+            nullptr,
+            g_event_handler_thread_stack,
+            sizeof(g_event_handler_thread_stack),
             g_event_handler_thread_priority
         ));
 
         g_forward_service = forward_service;
         g_main_thread_id = main_thread_id;
 
-        os::StartThread(&g_event_handler_thread); 
+        os::StartThread(&g_event_handler_thread);
 
         g_init_event.Signal();
 
@@ -174,8 +174,10 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */ 
+    /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size) {
+        AMS_UNUSED(size);
+
         while (true) {
             auto packet = g_fake_buffer->Read();
             if (!packet)
@@ -196,9 +198,9 @@ namespace ams::bluetooth::hid::report {
                 event_info->data_report.v1.addr = packet->data.data_report.v7.addr;
                 std::memcpy(&event_info->data_report.v1.report, &packet->data.data_report.v7.report, packet->header.size);
                 break;
-            }      
+            }
         }
-        
+
         return ams::ResultSuccess();
     }
 
@@ -246,7 +248,7 @@ namespace ams::bluetooth::hid::report {
                     g_fake_buffer->Write(real_packet->header.type, &real_packet->data, real_packet->header.size);
                     break;
             }
-        } 
+        }
     }
 
     inline void HandleHidReportEventV12(void) {
@@ -273,7 +275,7 @@ namespace ams::bluetooth::hid::report {
                     g_fake_buffer->Write(real_packet->header.type, &real_packet->data, real_packet->header.size);
                     break;
             }
-        } 
+        }
     }
 
     void HandleEvent(void) {

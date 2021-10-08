@@ -18,89 +18,99 @@
 #include "mcmitm_initialization.hpp"
 #include "mcmitm_config.hpp"
 
-extern "C" {
-
-    extern u32 __start__;
-
-    u32 __nx_applet_type = AppletType_None;
-    u32 __nx_fs_num_sessions = 1;
-
-    #define INNER_HEAP_SIZE 0x10000
-    size_t nx_inner_heap_size = INNER_HEAP_SIZE;
-    char   nx_inner_heap[INNER_HEAP_SIZE];
-
-    void __libnx_initheap(void);
-    void __appInit(void);
-    void __appExit(void);
-
-    /* Exception handling. */
-    alignas(16) u8 __nx_exception_stack[ams::os::MemoryPageSize];
-    u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
-    void __libnx_exception_handler(ThreadExceptionDump* ctx);
-}
-
 namespace ams {
 
-    ncm::ProgramId CurrentProgramId = { 0x010000000000bd00ul };
+    namespace mitm {
 
-    namespace result {
+        namespace {
 
-        bool CallFatalOnResultAssertion = false;
+            alignas(0x40) constinit u8 g_heap_memory[64_KB];
+            constinit lmem::HeapHandle g_heap_handle;
 
+            void *Allocate(size_t size) {
+                return lmem::AllocateFromExpHeap(g_heap_handle, size);
+            }
+
+            void Deallocate(void *p, size_t size) {
+                AMS_UNUSED(size);
+                return lmem::FreeToExpHeap(g_heap_handle, p);
+            }
+
+            void InitializeHeap() {
+                g_heap_handle = lmem::CreateExpHeap(g_heap_memory, sizeof(g_heap_memory), lmem::CreateOption_ThreadSafe);
+            }
+
+        }
+
+    }
+
+    namespace init {
+
+        void InitializeSystemModule() {
+            mitm::InitializeHeap();
+
+            R_ABORT_UNLESS(sm::Initialize());
+
+            fs::InitializeForSystem();
+            fs::SetAllocator(mitm::Allocate, mitm::Deallocate);
+            fs::SetEnabledAutoAbort(false);
+
+            R_ABORT_UNLESS(pmdmntInitialize());
+            R_ABORT_UNLESS(pminfoInitialize());
+
+            R_ABORT_UNLESS(fs::MountSdCard("sdmc"));
+        }
+
+        void FinalizeSystemModule() { /* ... */ }
+
+        void Startup() { /* ... */ }
+
+    }
+
+    void Main() {
+        // Parse global module settings ini from sd card
+        mitm::ParseIniConfig();
+
+        // Start initialisation thread
+        mitm::StartInitialize();
+
+        // Launch mitm modules
+        mitm::LaunchModules();
+
+        // Wait for mitm modules to terminate
+        mitm::WaitModules();
     }
 
 }
 
-using namespace ams;
-
-void __libnx_initheap(void) {
-    void*  addr = nx_inner_heap;
-    size_t size = nx_inner_heap_size;
-
-    extern char* fake_heap_start;
-    extern char* fake_heap_end;
-
-    fake_heap_start = (char*)addr;
-    fake_heap_end   = (char*)addr + size;
+void *operator new(size_t size) {
+    return ams::mitm::Allocate(size);
 }
 
-void __appInit(void) {
-    hos::InitializeForStratosphere();
-
-    R_ABORT_UNLESS(smInitialize());
-    R_ABORT_UNLESS(fsInitialize());
-    R_ABORT_UNLESS(pmdmntInitialize());
-    R_ABORT_UNLESS(pminfoInitialize());
-
-    R_ABORT_UNLESS(fs::MountSdCard("sdmc"));
+void *operator new(size_t size, const std::nothrow_t &) {
+    return ams::mitm::Allocate(size);
 }
 
-void __appExit(void) {
-    fs::Unmount("sdmc");
-    
-    btdrvExit();
-    pminfoExit();
-    pmdmntExit();
-    fsExit();
-    smExit();
+void operator delete(void *p) {
+    return ams::mitm::Deallocate(p, 0);
 }
 
-void __libnx_exception_handler(ThreadExceptionDump* ctx) {
-    ams::CrashHandler(ctx);
+void operator delete(void *p, size_t size) {
+    return ams::mitm::Deallocate(p, size);
 }
 
-int main(int argc, char **argv) {
-    // Parse global module settings ini from sd card
-    ams::mitm::ParseIniConfig();
+void *operator new[](size_t size) {
+    return ams::mitm::Allocate(size);
+}
 
-    // Start initialisation thread
-    ams::mitm::StartInitialize();
+void *operator new[](size_t size, const std::nothrow_t &) {
+    return ams::mitm::Allocate(size);
+}
 
-    // Launch mitm modules
-    ams::mitm::LaunchModules();
+void operator delete[](void *p) {
+    return ams::mitm::Deallocate(p, 0);
+}
 
-    // Wait for mitm modules to terminate
-    ams::mitm::WaitModules();
-
-    return 0;
+void operator delete[](void *p, size_t size) {
+    return ams::mitm::Deallocate(p, size);
 }

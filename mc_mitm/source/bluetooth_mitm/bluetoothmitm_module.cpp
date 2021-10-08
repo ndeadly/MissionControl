@@ -61,7 +61,7 @@ namespace ams::mitm::bluetooth {
         alignas(os::ThreadStackAlignment) u8 g_btdrv_mitm_thread_stack[0x2000];
         s32 g_btdrv_mitm_thread_priority = utils::ConvertToUserPriority(17);
 
-        void BtdrvMitmThreadFunction(void *arg) {
+        void BtdrvMitmThreadFunction(void *) {
             R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtdrvMitmService>(PortIndex_BtdrvMitm, BtdrvMitmServiceName)));
             g_server_manager.LoopProcess();
         }

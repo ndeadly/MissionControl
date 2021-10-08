@@ -31,23 +31,23 @@ namespace ams::controller {
         // Frequency in Hz rounded to nearest int
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#frequency-table
         const uint16_t rumble_freq_lut[] = {
-            0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 
-            0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0039, 0x003a, 0x003b, 
-            0x003c, 0x003e, 0x003f, 0x0040, 0x0042, 0x0043, 0x0045, 0x0046, 0x0048, 
-            0x0049, 0x004b, 0x004d, 0x004e, 0x0050, 0x0052, 0x0054, 0x0055, 0x0057, 
-            0x0059, 0x005b, 0x005d, 0x005f, 0x0061, 0x0063, 0x0066, 0x0068, 0x006a, 
-            0x006c, 0x006f, 0x0071, 0x0074, 0x0076, 0x0079, 0x007b, 0x007e, 0x0081, 
-            0x0084, 0x0087, 0x0089, 0x008d, 0x0090, 0x0093, 0x0096, 0x0099, 0x009d, 
-            0x00a0, 0x00a4, 0x00a7, 0x00ab, 0x00ae, 0x00b2, 0x00b6, 0x00ba, 0x00be, 
-            0x00c2, 0x00c7, 0x00cb, 0x00cf, 0x00d4, 0x00d9, 0x00dd, 0x00e2, 0x00e7, 
-            0x00ec, 0x00f1, 0x00f7, 0x00fc, 0x0102, 0x0107, 0x010d, 0x0113, 0x0119, 
-            0x011f, 0x0125, 0x012c, 0x0132, 0x0139, 0x0140, 0x0147, 0x014e, 0x0155, 
-            0x015d, 0x0165, 0x016c, 0x0174, 0x017d, 0x0185, 0x018d, 0x0196, 0x019f, 
-            0x01a8, 0x01b1, 0x01bb, 0x01c5, 0x01ce, 0x01d9, 0x01e3, 0x01ee, 0x01f8, 
-            0x0203, 0x020f, 0x021a, 0x0226, 0x0232, 0x023e, 0x024b, 0x0258, 0x0265, 
-            0x0272, 0x0280, 0x028e, 0x029c, 0x02ab, 0x02ba, 0x02c9, 0x02d9, 0x02e9, 
-            0x02f9, 0x030a, 0x031b, 0x032c, 0x033e, 0x0350, 0x0363, 0x0376, 0x0389, 
-            0x039d, 0x03b1, 0x03c6, 0x03db, 0x03f1, 0x0407, 0x041d, 0x0434, 0x044c, 
+            0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f, 0x0030, 0x0031,
+            0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0039, 0x003a, 0x003b,
+            0x003c, 0x003e, 0x003f, 0x0040, 0x0042, 0x0043, 0x0045, 0x0046, 0x0048,
+            0x0049, 0x004b, 0x004d, 0x004e, 0x0050, 0x0052, 0x0054, 0x0055, 0x0057,
+            0x0059, 0x005b, 0x005d, 0x005f, 0x0061, 0x0063, 0x0066, 0x0068, 0x006a,
+            0x006c, 0x006f, 0x0071, 0x0074, 0x0076, 0x0079, 0x007b, 0x007e, 0x0081,
+            0x0084, 0x0087, 0x0089, 0x008d, 0x0090, 0x0093, 0x0096, 0x0099, 0x009d,
+            0x00a0, 0x00a4, 0x00a7, 0x00ab, 0x00ae, 0x00b2, 0x00b6, 0x00ba, 0x00be,
+            0x00c2, 0x00c7, 0x00cb, 0x00cf, 0x00d4, 0x00d9, 0x00dd, 0x00e2, 0x00e7,
+            0x00ec, 0x00f1, 0x00f7, 0x00fc, 0x0102, 0x0107, 0x010d, 0x0113, 0x0119,
+            0x011f, 0x0125, 0x012c, 0x0132, 0x0139, 0x0140, 0x0147, 0x014e, 0x0155,
+            0x015d, 0x0165, 0x016c, 0x0174, 0x017d, 0x0185, 0x018d, 0x0196, 0x019f,
+            0x01a8, 0x01b1, 0x01bb, 0x01c5, 0x01ce, 0x01d9, 0x01e3, 0x01ee, 0x01f8,
+            0x0203, 0x020f, 0x021a, 0x0226, 0x0232, 0x023e, 0x024b, 0x0258, 0x0265,
+            0x0272, 0x0280, 0x028e, 0x029c, 0x02ab, 0x02ba, 0x02c9, 0x02d9, 0x02e9,
+            0x02f9, 0x030a, 0x031b, 0x032c, 0x033e, 0x0350, 0x0363, 0x0376, 0x0389,
+            0x039d, 0x03b1, 0x03c6, 0x03db, 0x03f1, 0x0407, 0x041d, 0x0434, 0x044c,
             0x0464, 0x047d, 0x0496, 0x04af, 0x04ca, 0x04e5
         };
 
@@ -125,7 +125,7 @@ namespace ams::controller {
 
     }
 
-    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id) 
+    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id)
     : SwitchController(address, id)
     , m_charging(false)
     , m_ext_power(false)
@@ -148,7 +148,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::Initialize(void) {
         char path[0x100] = {};
-        
+
         // Ensure config directory for this controller exists
         std::strcat(path, controller_base_path);
         utils::BluetoothAddressToString(&m_address, path+std::strlen(path), sizeof(path)-std::strlen(path));
@@ -278,7 +278,7 @@ namespace ams::controller {
             return ams::ResultSuccess();
 
         auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
-        
+
         SwitchRumbleData rumble_data;
         DecodeRumbleValues(report_data->output0x10.rumble.left_motor, &rumble_data);
 
@@ -286,6 +286,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x82,
             .id = SubCmd_RequestDeviceInfo,
@@ -301,13 +303,13 @@ namespace ams::controller {
                 ._unk2 = 0x02
             }
         };
-        
+
         return this->FakeSubCmdResponse(&response);
     }
 
     Result EmulatedSwitchController::SubCmdSpiFlashRead(const bluetooth::HidReport *report) {
         // These are read from official Pro Controller
-        // @ 0x00006000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff                            <= Serial 
+        // @ 0x00006000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff                            <= Serial
         // @ 0x00006050: 32 32 32 ff ff ff ff ff ff ff ff ff                                        <= RGB colours (body, buttons, left grip, right grip)
         // @ 0x00006080: 50 fd 00 00 c6 0f 0f 30 61 ae 90 d9 d4 14 54 41 15 54 c7 79 9c 33 36 63    <= Factory Sensor and Stick device parameters
         // @ 0x00006098: 0f 30 61 ae 90 d9 d4 14 54 41 15 54 c7 79 9c 33 36 63                      <= Stick device parameters 2. Normally the same with 1, even in Pro Contr.
@@ -366,6 +368,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetInputReportMode
@@ -374,7 +378,9 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {       
+    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x83,
             .id = SubCmd_TriggersElapsedTime
@@ -384,6 +390,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetShipPowerState,
@@ -396,6 +404,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuConfig(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0xa0,
             .id = SubCmd_SetMcuConfig,
@@ -410,6 +420,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuState(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetMcuState
@@ -432,6 +444,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetHomeLed(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetHomeLed
@@ -441,6 +455,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdEnableImu(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_EnableImu
@@ -450,6 +466,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_EnableVibration

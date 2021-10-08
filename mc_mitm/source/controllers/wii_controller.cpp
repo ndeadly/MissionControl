@@ -131,7 +131,7 @@ namespace ams::controller {
     }
 
     void WiiController::HandleInputReport0x22(const WiiReportData *src) {
-        ;
+        AMS_UNUSED(src);
     }
 
     void WiiController::HandleInputReport0x30(const WiiReportData *src) {
