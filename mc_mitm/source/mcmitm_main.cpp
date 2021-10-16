@@ -26,18 +26,29 @@ namespace ams {
 
             alignas(0x40) constinit u8 g_heap_memory[64_KB];
             constinit lmem::HeapHandle g_heap_handle;
+            constinit bool g_heap_initialized;
+            constinit os::SdkMutex g_heap_init_mutex;
+
+            lmem::HeapHandle GetHeapHandle() {
+                if (AMS_UNLIKELY(!g_heap_initialized)) {
+                    std::scoped_lock lk(g_heap_init_mutex);
+
+                    if (AMS_LIKELY(!g_heap_initialized)) {
+                        g_heap_handle = lmem::CreateExpHeap(g_heap_memory, sizeof(g_heap_memory), lmem::CreateOption_ThreadSafe);
+                        g_heap_initialized = true;
+                    }
+                }
+
+                return g_heap_handle;
+            }
 
             void *Allocate(size_t size) {
-                return lmem::AllocateFromExpHeap(g_heap_handle, size);
+                return lmem::AllocateFromExpHeap(GetHeapHandle(), size);
             }
 
             void Deallocate(void *p, size_t size) {
                 AMS_UNUSED(size);
-                return lmem::FreeToExpHeap(g_heap_handle, p);
-            }
-
-            void InitializeHeap() {
-                g_heap_handle = lmem::CreateExpHeap(g_heap_memory, sizeof(g_heap_memory), lmem::CreateOption_ThreadSafe);
+                return lmem::FreeToExpHeap(GetHeapHandle(), p);
             }
 
         }
@@ -47,8 +58,6 @@ namespace ams {
     namespace init {
 
         void InitializeSystemModule() {
-            mitm::InitializeHeap();
-
             R_ABORT_UNLESS(sm::Initialize());
 
             fs::InitializeForSystem();

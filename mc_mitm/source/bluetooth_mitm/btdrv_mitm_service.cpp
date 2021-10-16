@@ -30,7 +30,7 @@ namespace ams::mitm::bluetooth {
         if (!ams::bluetooth::core::IsInitialized()) {
             // Forward to the real function to obtain the system event handle
             os::NativeHandle handle = os::InvalidNativeHandle;
-            R_TRY(btdrvInitializeBluetoothFwd(this->forward_service.get(), &handle));
+            R_TRY(btdrvInitializeBluetoothFwd(m_forward_service.get(), &handle));
 
             // Attach the real system event handle to our own event
             ams::bluetooth::core::GetSystemEvent()->AttachReadableHandle(handle, false, os::EventClearMode_ManualClear);
@@ -51,7 +51,7 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::EnableBluetooth(void) {
-        R_TRY(btdrvEnableBluetoothFwd(this->forward_service.get()));
+        R_TRY(btdrvEnableBluetoothFwd(m_forward_service.get()));
         ams::bluetooth::core::SignalEnabled();
 
         // Wait until mc.mitm module initialisation has completed before returning
@@ -61,7 +61,7 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        R_TRY(ams::bluetooth::core::GetEventInfo(this->client_info.program_id,
+        R_TRY(ams::bluetooth::core::GetEventInfo(m_client_info.program_id,
             out_type.GetPointer(),
             static_cast<uint8_t *>(out_buffer.GetPointer()),
             static_cast<size_t>(out_buffer.GetSize())
@@ -74,7 +74,7 @@ namespace ams::mitm::bluetooth {
         if (!ams::bluetooth::hid::IsInitialized()) {
             // Forward to the real function to obtain the system event handle
             os::NativeHandle handle = os::InvalidNativeHandle;
-            R_TRY(btdrvInitializeHidFwd(this->forward_service.get(), &handle, version));
+            R_TRY(btdrvInitializeHidFwd(m_forward_service.get(), &handle, version));
 
             // Attach the real system event handle to our own event
             ams::bluetooth::hid::GetSystemEvent()->AttachReadableHandle(handle, false, os::EventClearMode_ManualClear);
@@ -95,14 +95,14 @@ namespace ams::mitm::bluetooth {
     Result BtdrvMitmService::WriteHidData(ams::bluetooth::Address address, const sf::InPointerBuffer &buffer) {
         auto report = reinterpret_cast<const ams::bluetooth::HidReport *>(buffer.GetPointer());
 
-        if (this->client_info.program_id == ncm::SystemProgramId::Hid) {
+        if (m_client_info.program_id == ncm::SystemProgramId::Hid) {
             auto device = controller::LocateHandler(&address);
             if (device) {
                 device->HandleOutgoingReport(report);
             }
         }
         else {
-            R_TRY(btdrvWriteHidDataFwd(this->forward_service.get(), &address, report));
+            R_TRY(btdrvWriteHidDataFwd(m_forward_service.get(), &address, report));
         }
 
         return ams::ResultSuccess();
@@ -164,8 +164,8 @@ namespace ams::mitm::bluetooth {
     Result BtdrvMitmService::RegisterHidReportEvent(sf::OutCopyHandle out_handle) {
         if (!ams::bluetooth::hid::report::IsInitialized()) {
             os::NativeHandle handle = os::InvalidNativeHandle;
-            R_TRY(btdrvRegisterHidReportEventFwd(this->forward_service.get(), &handle));
-            R_TRY(ams::bluetooth::hid::report::Initialize(handle, this->forward_service.get(), os::GetThreadId(os::GetCurrentThread())));
+            R_TRY(btdrvRegisterHidReportEventFwd(m_forward_service.get(), &handle));
+            R_TRY(ams::bluetooth::hid::report::Initialize(handle, m_forward_service.get(), os::GetThreadId(os::GetCurrentThread())));
             out_handle.SetValue(ams::bluetooth::hid::report::GetForwardEvent()->GetReadableHandle(), false);
         }
         else {
@@ -189,18 +189,18 @@ namespace ams::mitm::bluetooth {
 
     /* 1.0.0 - 3.0.2 */
     Result BtdrvMitmService::GetHidReportEventInfoDeprecated1(sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        return _GetHidReportEventInfoDeprecated(this->forward_service.get(), out_type, out_buffer);
+        return _GetHidReportEventInfoDeprecated(m_forward_service.get(), out_type, out_buffer);
     }
 
     /* 4.0.0 - 6.2.0 */
     Result BtdrvMitmService::GetHidReportEventInfoDeprecated2(sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        return _GetHidReportEventInfoDeprecated(this->forward_service.get(), out_type, out_buffer);
+        return _GetHidReportEventInfoDeprecated(m_forward_service.get(), out_type, out_buffer);
     }
 
     /* 7.0.0+ */
     Result BtdrvMitmService::GetHidReportEventInfo(sf::OutCopyHandle out_handle) {
         os::NativeHandle handle = os::InvalidNativeHandle;
-        R_TRY(btdrvGetHidReportEventInfoFwd(this->forward_service.get(), &handle));
+        R_TRY(btdrvGetHidReportEventInfoFwd(m_forward_service.get(), &handle));
         R_TRY(ams::bluetooth::hid::report::MapRemoteSharedMemory(handle));
         out_handle.SetValue(ams::bluetooth::hid::report::GetFakeSharedMemory()->handle, false);
 
@@ -211,7 +211,7 @@ namespace ams::mitm::bluetooth {
         if (!ams::bluetooth::ble::IsInitialized()) {
             // Forward to the real function to obtain the system event handle
             os::NativeHandle handle = os::InvalidNativeHandle;
-            R_TRY(btdrvInitializeBleFwd(this->forward_service.get(), &handle));
+            R_TRY(btdrvInitializeBleFwd(m_forward_service.get(), &handle));
 
             // Attach the real system event handle to our own event
             ams::bluetooth::ble::GetSystemEvent()->AttachReadableHandle(handle, false, os::EventClearMode_ManualClear);
