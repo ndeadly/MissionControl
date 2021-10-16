@@ -24,17 +24,17 @@ namespace ams::bluetooth::hid::report {
     void WaitInitialized(void);
     void SignalReportRead(void);
 
-    SharedMemory *GetRealSharedMemory(void);
-    SharedMemory *GetFakeSharedMemory(void);
+    os::SharedMemory *GetRealSharedMemory(void);
+    os::SharedMemory *GetFakeSharedMemory(void);
 
     os::SystemEvent *GetSystemEvent(void);
     os::SystemEvent *GetForwardEvent(void);
     os::SystemEvent *GetUserForwardEvent(void);
 
-    Result Initialize(Handle event_handle, Service *forward_service, os::ThreadId main_thread_id);
+    Result Initialize(os::NativeHandle event_handle, Service *forward_service, os::ThreadId main_thread_id);
     void Finalize(void);
 
-    Result MapRemoteSharedMemory(Handle handle);
+    Result MapRemoteSharedMemory(os::NativeHandle handle);
     Result InitializeReportBuffer(void);
 
     Result WriteHidReportBuffer(const bluetooth::Address *address, const bluetooth::HidReport *report);
