@@ -25,35 +25,35 @@ namespace ams::bluetooth::events {
 
         os::ThreadType 						        g_event_handler_thread;
         alignas(os::ThreadStackAlignment) uint8_t   g_event_handler_thread_stack[0x2000];
-        
-        os::WaitableManagerType g_manager;
-        os::WaitableHolderType 	g_holder_bt_core;
-        os::WaitableHolderType 	g_holder_bt_hid;
-        os::WaitableHolderType 	g_holder_bt_ble;
 
-        void EventHandlerThreadFunc(void *arg) {
-            os::InitializeWaitableManager(&g_manager);
+        os::MultiWaitType g_manager;
+        os::MultiWaitHolderType 	g_holder_bt_core;
+        os::MultiWaitHolderType 	g_holder_bt_hid;
+        os::MultiWaitHolderType 	g_holder_bt_ble;
+
+        void EventHandlerThreadFunc(void *) {
+            os::InitializeMultiWait(&g_manager);
 
             ams::bluetooth::core::WaitInitialized();
-            os::InitializeWaitableHolder(&g_holder_bt_core, core::GetSystemEvent()->GetBase());
-            os::SetWaitableHolderUserData(&g_holder_bt_core, BtdrvEventType_BluetoothCore);
-            os::LinkWaitableHolder(&g_manager, &g_holder_bt_core);
+            os::InitializeMultiWaitHolder(&g_holder_bt_core, core::GetSystemEvent()->GetBase());
+            os::SetMultiWaitHolderUserData(&g_holder_bt_core, BtdrvEventType_BluetoothCore);
+            os::LinkMultiWaitHolder(&g_manager, &g_holder_bt_core);
 
             ams::bluetooth::hid::WaitInitialized();
-            os::InitializeWaitableHolder(&g_holder_bt_hid, hid::GetSystemEvent()->GetBase());
-            os::SetWaitableHolderUserData(&g_holder_bt_hid, BtdrvEventType_BluetoothHid);
-            os::LinkWaitableHolder(&g_manager, &g_holder_bt_hid);
+            os::InitializeMultiWaitHolder(&g_holder_bt_hid, hid::GetSystemEvent()->GetBase());
+            os::SetMultiWaitHolderUserData(&g_holder_bt_hid, BtdrvEventType_BluetoothHid);
+            os::LinkMultiWaitHolder(&g_manager, &g_holder_bt_hid);
 
             if (hos::GetVersion() >= hos::Version_5_0_0) {
                 ams::bluetooth::ble::WaitInitialized();
-                os::InitializeWaitableHolder(&g_holder_bt_ble, ble::GetSystemEvent()->GetBase());
-                os::SetWaitableHolderUserData(&g_holder_bt_ble, BtdrvEventType_BluetoothBle);
-                os::LinkWaitableHolder(&g_manager, &g_holder_bt_ble);
+                os::InitializeMultiWaitHolder(&g_holder_bt_ble, ble::GetSystemEvent()->GetBase());
+                os::SetMultiWaitHolderUserData(&g_holder_bt_ble, BtdrvEventType_BluetoothBle);
+                os::LinkMultiWaitHolder(&g_manager, &g_holder_bt_ble);
             }
 
             while (true) {
                 auto signalled_holder = os::WaitAny(&g_manager);
-                switch (os::GetWaitableHolderUserData(signalled_holder)) {
+                switch (os::GetMultiWaitHolderUserData(signalled_holder)) {
                     case BtdrvEventType_BluetoothCore:
                         core::GetSystemEvent()->Clear();
                         core::HandleEvent();
@@ -67,7 +67,7 @@ namespace ams::bluetooth::events {
                         ble::HandleEvent();
                         break;
                     default:
-                        break;	
+                        break;
                 }
             }
         }
@@ -75,15 +75,15 @@ namespace ams::bluetooth::events {
     }
 
     Result Initialize(void) {
-        R_TRY(os::CreateThread(&g_event_handler_thread, 
-            EventHandlerThreadFunc, 
-            nullptr, 
-            g_event_handler_thread_stack, 
-            sizeof(g_event_handler_thread_stack), 
+        R_TRY(os::CreateThread(&g_event_handler_thread,
+            EventHandlerThreadFunc,
+            nullptr,
+            g_event_handler_thread_stack,
+            sizeof(g_event_handler_thread_stack),
             9
         ));
 
-        os::StartThread(&g_event_handler_thread); 
+        os::StartThread(&g_event_handler_thread);
 
         return ams::ResultSuccess();
     }

@@ -30,16 +30,16 @@ namespace ams::controller {
 
             virtual Result Initialize(void);
             bool IsOfficialController(void) { return false; }
-            
+
             Result HandleIncomingReport(const bluetooth::HidReport *report);
             Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
         protected:
             void ClearControllerState(void);
-            virtual void UpdateControllerState(const bluetooth::HidReport *report) { }
-            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { return ams::ResultSuccess(); }
+            virtual void UpdateControllerState(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
+            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { AMS_UNUSED(rumble_data); return ams::ResultSuccess(); }
             virtual Result CancelVibration(void) { return ams::ResultSuccess(); }
-            virtual Result SetPlayerLed(uint8_t led_mask) { return ams::ResultSuccess(); }
+            virtual Result SetPlayerLed(uint8_t led_mask) { AMS_UNUSED(led_mask); return ams::ResultSuccess(); }
 
             Result HandleSubCmdReport(const bluetooth::HidReport *report);
             Result HandleRumbleReport(const bluetooth::HidReport *report);

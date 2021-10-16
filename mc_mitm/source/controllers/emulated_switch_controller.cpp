@@ -295,6 +295,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x82,
             .id = SubCmd_RequestDeviceInfo,
@@ -375,6 +377,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetInputReportMode
@@ -384,6 +388,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x83,
             .id = SubCmd_TriggersElapsedTime
@@ -393,6 +399,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetShipPowerState,
@@ -405,6 +413,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuConfig(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0xa0,
             .id = SubCmd_SetMcuConfig,
@@ -419,6 +429,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetMcuState(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetMcuState
@@ -441,6 +453,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetHomeLed(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetHomeLed
@@ -450,6 +464,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdEnableImu(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_EnableImu
@@ -459,6 +475,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_EnableVibration

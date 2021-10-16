@@ -19,7 +19,7 @@
 namespace ams::controller {
 
     namespace {
-        
+
         constexpr float stick_scale_factor = float(UINT12_MAX) / UINT16_MAX;
 
     }
@@ -76,13 +76,13 @@ namespace ams::controller {
         m_buttons.plus  = src->input0x01.buttons.start;
 
         m_buttons.lstick_press = src->input0x01.buttons.L3;
-        m_buttons.rstick_press = src->input0x01.buttons.R3;    
+        m_buttons.rstick_press = src->input0x01.buttons.R3;
 
         m_buttons.home = src->input0x01.home;
     }
 
     void NvidiaShieldController::HandleInputReport0x03(const NvidiaShieldReportData *src) {
-
+        AMS_UNUSED(src);
     }
 
 }

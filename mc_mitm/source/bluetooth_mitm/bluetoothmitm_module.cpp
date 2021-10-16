@@ -30,9 +30,11 @@ namespace ams::mitm::bluetooth {
         constexpr sm::ServiceName BtdrvMitmServiceName = sm::ServiceName::Encode("btdrv");
 
         struct ServerOptions {
-            static constexpr size_t PointerBufferSize = 0x1000;
-            static constexpr size_t MaxDomains = 0;
-            static constexpr size_t MaxDomainObjects = 0;
+            static constexpr size_t PointerBufferSize   = 0x1000;
+            static constexpr size_t MaxDomains          = 0;
+            static constexpr size_t MaxDomainObjects    = 0;
+            static constexpr bool CanDeferInvokeRequest = false;
+            static constexpr bool CanManageMitmServers  = true;
         };
 
         constexpr size_t MaxSessions = 6;
@@ -61,7 +63,7 @@ namespace ams::mitm::bluetooth {
         alignas(os::ThreadStackAlignment) u8 g_btdrv_mitm_thread_stack[0x2000];
         s32 g_btdrv_mitm_thread_priority = utils::ConvertToUserPriority(17);
 
-        void BtdrvMitmThreadFunction(void *arg) {
+        void BtdrvMitmThreadFunction(void *) {
             R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtdrvMitmService>(PortIndex_BtdrvMitm, BtdrvMitmServiceName)));
             g_server_manager.LoopProcess();
         }

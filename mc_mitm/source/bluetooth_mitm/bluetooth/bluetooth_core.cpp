@@ -36,7 +36,7 @@ namespace ams::bluetooth::core {
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
 
         bluetooth::Address ReverseBluetoothAddress(bluetooth::Address address) {
-            uint64_t tmp = util::SwapBytes48(*reinterpret_cast<uint64_t *>(&address)); 
+            uint64_t tmp = util::SwapBytes48(*reinterpret_cast<uint64_t *>(&address));
             return *reinterpret_cast<bluetooth::Address *>(&tmp);
         }
 
@@ -151,7 +151,7 @@ namespace ams::bluetooth::core {
         uint8_t pin_length = std::strlen(pin.code);
 
         // Reverse host address as pin code for wii devices
-        if (std::strncmp(g_event_info.pairing_pin_code_request.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
+        if (std::strncmp(event_info->pairing_pin_code_request.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
             // Fetch host adapter address
             bluetooth::Address host_address;
             R_ABORT_UNLESS(btdrvLegacyGetAdapterProperty(BtdrvBluetoothPropertyType_Address, &host_address, sizeof(bluetooth::Address)));
@@ -161,7 +161,7 @@ namespace ams::bluetooth::core {
             pin_length = sizeof(bluetooth::Address);
         }
 
-        R_ABORT_UNLESS(btdrvLegacyRespondToPinRequest(g_event_info.pairing_pin_code_request.addr, false, &pin, pin_length));
+        R_ABORT_UNLESS(btdrvLegacyRespondToPinRequest(event_info->pairing_pin_code_request.addr, false, &pin, pin_length));
     }
 
     inline void HandlePinCodeRequestEventV12(bluetooth::EventInfo *event_info) {
@@ -169,7 +169,7 @@ namespace ams::bluetooth::core {
         BtdrvPinCode pin = {"0000", 4};
 
         // Reverse host address as pin code for wii devices
-        if (std::strncmp(g_event_info.pairing_pin_code_request.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
+        if (std::strncmp(event_info->pairing_pin_code_request.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
             // Fetch host adapter address
             BtdrvAdapterProperty property;
             R_ABORT_UNLESS(btdrvGetAdapterProperty(BtdrvAdapterPropertyType_Address, &property));
@@ -181,7 +181,7 @@ namespace ams::bluetooth::core {
             pin.length = sizeof(bluetooth::Address);
         }
 
-        R_ABORT_UNLESS(btdrvRespondToPinRequest(g_event_info.pairing_pin_code_request.addr, &pin));
+        R_ABORT_UNLESS(btdrvRespondToPinRequest(event_info->pairing_pin_code_request.addr, &pin));
     }
 
     void HandleEvent(void) {

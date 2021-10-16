@@ -94,12 +94,12 @@ namespace ams::controller {
                 return ControllerType_Gembox;
             }
         }
-				
+
         for (auto hwId : IpegaController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Ipega;
             }
-        }  
+        }
 
         for (auto hwId : XiaomiController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
@@ -124,7 +124,7 @@ namespace ams::controller {
                 return ControllerType_NvidiaShield;
 			}
 		}
-		
+
         for (auto hwId : EightBitDoController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_8BitDo;
@@ -160,7 +160,7 @@ namespace ams::controller {
                 return ControllerType_ICade;
             }
         }
-		
+
 		for (auto hwId : LanShenController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_LanShen;
@@ -172,7 +172,7 @@ namespace ams::controller {
                 return ControllerType_AtGames;
             }
         }
-		
+
         return ControllerType_Unknown;
     }
 
