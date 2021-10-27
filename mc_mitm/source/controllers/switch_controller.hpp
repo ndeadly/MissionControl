@@ -267,24 +267,30 @@ namespace ams::controller {
 
             SwitchController(const bluetooth::Address *address, HardwareID id)
             : m_address(*address)
-            , m_id(id) { }
+            , m_id(id)
+            , m_settsi_supported(true) { }
 
             virtual ~SwitchController() { };
 
             const bluetooth::Address& Address(void) const { return m_address; }
 
             virtual bool IsOfficialController(void) { return true; }
-            virtual bool SupportsSetTsiCommand(void) { return true; }
+            virtual bool SupportsSetTsiCommand(void) { return m_settsi_supported; }
 
-            virtual Result Initialize(void) { return ams::ResultSuccess(); }
+            virtual Result Initialize(void);
             virtual Result HandleIncomingReport(const bluetooth::HidReport *report);
             virtual Result HandleOutgoingReport(const bluetooth::HidReport *report);
+
+        private:
+            bool HasSetTsiDisableFlag(void);
 
         protected:
             virtual void ApplyButtonCombos(SwitchButtonData *buttons);
 
             bluetooth::Address m_address;
             HardwareID m_id;
+
+            bool m_settsi_supported;
 
             static bluetooth::HidReport s_input_report;
             static bluetooth::HidReport s_output_report;

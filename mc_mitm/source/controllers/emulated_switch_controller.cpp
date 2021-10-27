@@ -156,6 +156,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::Initialize(void) {
+        SwitchController::Initialize();
+
         char path[0x100] = {};
 
         // Ensure config directory for this controller exists
