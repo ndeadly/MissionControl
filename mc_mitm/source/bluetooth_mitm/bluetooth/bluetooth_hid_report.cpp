@@ -43,8 +43,8 @@ namespace ams::bluetooth::hid::report {
         os::Event g_init_event(os::EventClearMode_ManualClear);
         os::Event g_report_read_event(os::EventClearMode_AutoClear);
 
-        SharedMemory g_real_bt_shmem;
-        SharedMemory g_fake_bt_shmem;
+        os::SharedMemory g_real_bt_shmem;
+        os::SharedMemory g_fake_bt_shmem(bluetooth_sharedmem_size, os::MemoryPermission_ReadWrite, os::MemoryPermission_ReadWrite);
 
         bluetooth::CircularBuffer *g_real_buffer;
         bluetooth::CircularBuffer *g_fake_buffer;
@@ -75,14 +75,14 @@ namespace ams::bluetooth::hid::report {
         g_report_read_event.Signal();
     }
 
-    SharedMemory *GetRealSharedMemory(void) {
+    os::SharedMemory *GetRealSharedMemory(void) {
         if (hos::GetVersion() < hos::Version_7_0_0)
             return nullptr;
 
         return &g_real_bt_shmem;
     }
 
-    SharedMemory *GetFakeSharedMemory(void) {
+    os::SharedMemory *GetFakeSharedMemory(void) {
         return &g_fake_bt_shmem;
     }
 
@@ -98,7 +98,7 @@ namespace ams::bluetooth::hid::report {
         return &g_system_event_user_fwd;
     }
 
-    Result Initialize(Handle event_handle, Service *forward_service, os::ThreadId main_thread_id) {
+    Result Initialize(os::NativeHandle event_handle, Service *forward_service, os::ThreadId main_thread_id) {
         g_system_event.AttachReadableHandle(event_handle, false, os::EventClearMode_AutoClear);
 
         R_TRY(os::CreateThread(&g_event_handler_thread,
@@ -123,19 +123,17 @@ namespace ams::bluetooth::hid::report {
         os::DestroyThread(&g_event_handler_thread);
     }
 
-    Result MapRemoteSharedMemory(Handle handle) {
-        shmemLoadRemote(&g_real_bt_shmem, handle, bluetooth_sharedmem_size, Perm_Rw);
-        R_TRY(shmemMap(&g_real_bt_shmem));
-        g_real_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(shmemGetAddr(&g_real_bt_shmem));
+    Result MapRemoteSharedMemory(os::NativeHandle handle) {
+        g_real_bt_shmem.Attach(bluetooth_sharedmem_size, handle, true);
+        g_real_bt_shmem.Map(os::MemoryPermission_ReadWrite);
+        g_real_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(g_real_bt_shmem.GetMappedAddress());
 
         return ams::ResultSuccess();
     }
 
     Result InitializeReportBuffer(void) {
-        R_TRY(shmemCreate(&g_fake_bt_shmem, bluetooth_sharedmem_size, Perm_Rw, Perm_Rw));
-        R_TRY(shmemMap(&g_fake_bt_shmem));
-        g_fake_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(shmemGetAddr(&g_fake_bt_shmem));
-
+        g_fake_bt_shmem.Map(os::MemoryPermission_ReadWrite);
+        g_fake_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(g_fake_bt_shmem.GetMappedAddress());
         g_fake_buffer->Initialize("HID Report");
         g_fake_buffer->type = bluetooth::CircularBufferType_HidReport;
         g_fake_buffer->_unk3 = 1;

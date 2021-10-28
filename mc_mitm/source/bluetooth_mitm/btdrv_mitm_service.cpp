@@ -202,7 +202,7 @@ namespace ams::mitm::bluetooth {
         os::NativeHandle handle = os::InvalidNativeHandle;
         R_TRY(btdrvGetHidReportEventInfoFwd(m_forward_service.get(), &handle));
         R_TRY(ams::bluetooth::hid::report::MapRemoteSharedMemory(handle));
-        out_handle.SetValue(ams::bluetooth::hid::report::GetFakeSharedMemory()->handle, false);
+        out_handle.SetValue(ams::bluetooth::hid::report::GetFakeSharedMemory()->GetHandle(), false);
 
         return ams::ResultSuccess();
     }
@@ -243,12 +243,12 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::GetRealSharedMemory(sf::OutCopyHandle out_handle) {
-        out_handle.SetValue(ams::bluetooth::hid::report::GetRealSharedMemory()->handle, false);
+        out_handle.SetValue(ams::bluetooth::hid::report::GetRealSharedMemory()->GetHandle(), false);
         return ams::ResultSuccess();
     }
 
     Result BtdrvMitmService::GetFakeSharedMemory(sf::OutCopyHandle out_handle) {
-        out_handle.SetValue(ams::bluetooth::hid::report::GetFakeSharedMemory()->handle, false);
+        out_handle.SetValue(ams::bluetooth::hid::report::GetFakeSharedMemory()->GetHandle(), false);
         return ams::ResultSuccess();
     }
 

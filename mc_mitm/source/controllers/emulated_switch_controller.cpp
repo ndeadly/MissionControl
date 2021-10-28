@@ -28,6 +28,9 @@ namespace ams::controller {
         SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
         SwitchAnalogStickFactoryCalibration rstick_factory_calib = {0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f};
 
+        // Stick parameters data that produce a 12.5% inner deadzone and a 5% outer deadzone (in relation to the full 12 bit range above)
+        SwitchAnalogStickParameters default_stick_params = {0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63};
+
         // Frequency in Hz rounded to nearest int
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#frequency-table
         const uint16_t rumble_freq_lut[] = {
@@ -118,6 +121,12 @@ namespace ams::controller {
             } data2 = { {0x32, 0x32, 0x32}, {0xe6, 0xe6, 0xe6}, {0x46, 0x46, 0x46}, {0x46, 0x46, 0x46} };
             R_TRY(fs::WriteFile(file, 0x6050, &data2, sizeof(data2), fs::WriteOption::None));
 
+            const struct {
+                SwitchAnalogStickParameters lstick_default_parameters;
+                SwitchAnalogStickParameters rstick_default_parameters;
+            } data3 = { default_stick_params, default_stick_params };
+            R_TRY(fs::WriteFile(file, 0x6086, &data3, sizeof(data3), fs::WriteOption::None));
+
             R_TRY(fs::FlushFile(file));
 
             return ams::ResultSuccess();
@@ -147,6 +156,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::Initialize(void) {
+        SwitchController::Initialize();
+
         char path[0x100] = {};
 
         // Ensure config directory for this controller exists

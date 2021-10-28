@@ -29,12 +29,16 @@ namespace ams::controller {
         uint16_t GetY(void);
         void InvertX(void);
         void InvertY(void);
-    
+
         uint8_t m_xy[3];
     };
 
     struct SwitchAnalogStickFactoryCalibration {
         uint8_t calib[9];
+    };
+
+    struct SwitchAnalogStickParameters {
+        uint8_t stickvalues[18];
     };
 
 }

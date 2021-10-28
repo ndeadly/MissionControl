@@ -14,6 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "switch_controller.hpp"
+#include "../utils.hpp"
+#include <string>
 
 namespace ams::controller {
 
@@ -48,8 +50,39 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
+    std::string GetControllerDirectory(const bluetooth::Address *address) {
+        char path[0x100];
+        util::SNPrintf(path, sizeof(path), "sdmc:/config/MissionControl/controllers/%02x%02x%02x%02x%02x%02x",
+            address->address[0],
+            address->address[1],
+            address->address[2],
+            address->address[3],
+            address->address[4],
+            address->address[5]
+        );
+        return path;
+    }
+
     bluetooth::HidReport SwitchController::s_input_report;
     bluetooth::HidReport SwitchController::s_output_report;
+
+    Result SwitchController::Initialize(void) {
+        if (this->HasSetTsiDisableFlag())
+            m_settsi_supported = false;
+
+        return ams::ResultSuccess(); 
+    }
+
+    bool SwitchController::HasSetTsiDisableFlag(void) {
+        std::string flag_file = GetControllerDirectory(&m_address) + "/settsi_disable.flag";
+
+        bool file_exists;
+        if (R_SUCCEEDED(fs::HasFile(&file_exists, flag_file.c_str()))) {
+            return file_exists;
+        }
+
+        return false;
+    }
 
     Result SwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
         s_input_report.size = report->size;

@@ -39,7 +39,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Sony Dualsense Controller__
 * __Microsoft Xbox One S/X Controller (not to be confused with Series S/X controllers - these use Bluetooth LE, which isn't currently supported)__*
 * __Microsoft Xbox Elite Wireless Controller Series 2__
-* __NVidia Shield Controller(2017 Model)__
+* __NVidia Shield Controller (2017 Model)__
 * __Ouya Controller__
 * __Gamestick Controller__
 * __Gembox Controller__
@@ -78,7 +78,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for Mission Control to become active.
 
 ***IMPORTANT: 
-Atmosphère >= 1.1.0 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash the system on boot.
+Atmosphère >= 1.2.0 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.
 Users upgrading from version 0.1.0 of Mission Control are also advised to wipe their pairing database and re-pair controllers running the latest version. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
 
 ### Usage
