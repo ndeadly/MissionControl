@@ -194,6 +194,13 @@ namespace ams::controller {
     Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
         this->UpdateControllerState(report);
 
+        // Apply config modifications
+        auto config = mitm::GetGlobalConfig();
+        if (config->general.left_stick_deadzone > 0)
+            m_left_stick.ForceDeadzone(config->general.left_stick_deadzone);
+        if (config->general.right_stick_deadzone > 0)
+            m_right_stick.ForceDeadzone(config->general.right_stick_deadzone);
+
         // Prepare Switch report
         s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
         auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
