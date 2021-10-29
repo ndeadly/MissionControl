@@ -51,4 +51,26 @@ namespace ams::controller {
         m_xy[2] ^= 0xff;
     }
 
+    void SwitchAnalogStick::ForceDeadzone(uint16_t zone) {
+        float zone_scale_factor = float(STICK_ZERO) / (STICK_ZERO - zone);
+        
+        uint16_t x = GetX();
+        if (x < STICK_ZERO - zone)
+            x = static_cast<uint16_t>(zone_scale_factor * x);
+        else if (x > STICK_ZERO + zone)
+            x = STICK_ZERO + static_cast<uint16_t>(zone_scale_factor * (x - STICK_ZERO - zone) + 1);
+        else
+            x = STICK_ZERO;
+        
+        uint16_t y = GetY();
+        if (y < STICK_ZERO - zone)
+            y = static_cast<uint16_t>(zone_scale_factor * y);
+        else if (y > STICK_ZERO + zone)
+            y = STICK_ZERO + static_cast<uint16_t>(zone_scale_factor * (y - STICK_ZERO - zone) + 1);
+        else
+            y = STICK_ZERO;
+        
+        SetData(x, y);
+    }
+
 }
