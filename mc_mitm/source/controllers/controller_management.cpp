@@ -25,13 +25,15 @@ namespace ams::controller {
     namespace {
 
         const std::string official_npad_names[] = {
+            "NintendoGamepad",
             "Joy-Con",
             "Pro Controller",
             "Lic Pro Controller",
             "NES Controller",
             "HVC Controller",
             "SNES Controller",
-            "NintendoGamepad",
+            "N64 Controller",
+            "MD/Gen Control Pad",
         };
 
         constexpr auto cod_major_peripheral  = 0x05;
