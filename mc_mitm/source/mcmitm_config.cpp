@@ -26,7 +26,9 @@ namespace ams::mitm {
         MissionControlConfig g_global_config = {
             .general = {
                 .enable_rumble = true,
-                .enable_motion = true
+                .enable_motion = true,
+                .left_stick_deadzone = 0,
+                .right_stick_deadzone = 0
             },
             .misc = {
                 .disable_sony_leds = false
