@@ -22,8 +22,6 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr const char *controller_base_path = "sdmc:/config/MissionControl/controllers/";
-
         // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
         SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
         SwitchAnalogStickFactoryCalibration rstick_factory_calib = {0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f};
@@ -158,28 +156,25 @@ namespace ams::controller {
     Result EmulatedSwitchController::Initialize(void) {
         SwitchController::Initialize();
 
-        char path[0x100] = {};
-
         // Ensure config directory for this controller exists
-        std::strcat(path, controller_base_path);
-        utils::BluetoothAddressToString(&m_address, path+std::strlen(path), sizeof(path)-std::strlen(path));
-        R_TRY(fs::EnsureDirectoryRecursively(path));
+        std::string path = GetControllerDirectory(&m_address);
+        R_TRY(fs::EnsureDirectoryRecursively(path.c_str()));
 
         // Check if the virtual spi flash file already exists and initialise it if not
+        path += "/spi_flash.bin";
         bool file_exists;
-        std::strcat(path, "/spi_flash.bin");
-        R_TRY(fs::HasFile(&file_exists, path));
+        R_TRY(fs::HasFile(&file_exists, path.c_str()));
         if (!file_exists) {
             auto spi_flash_size = 0x10000;
             // Create file representing first 64KB of SPI flash
-            R_TRY(fs::CreateFile(path, spi_flash_size));
+            R_TRY(fs::CreateFile(path.c_str(), spi_flash_size));
 
             // Initialise the spi flash data
-            R_TRY(InitializeVirtualSpiFlash(path, spi_flash_size));
+            R_TRY(InitializeVirtualSpiFlash(path.c_str(), spi_flash_size));
         }
 
         // Open the virtual spi flash file for read and write
-        R_TRY(fs::OpenFile(std::addressof(m_spi_flash_file), path, fs::OpenMode_ReadWrite));
+        R_TRY(fs::OpenFile(std::addressof(m_spi_flash_file), path.c_str(), fs::OpenMode_ReadWrite));
 
         return ams::ResultSuccess();
     }

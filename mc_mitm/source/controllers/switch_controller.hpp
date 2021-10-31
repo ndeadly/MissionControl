@@ -254,6 +254,8 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
+    
+    std::string GetControllerDirectory(const bluetooth::Address *address);
 
     class SwitchController {
 
