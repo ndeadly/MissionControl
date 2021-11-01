@@ -43,9 +43,9 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::Initialize(void) {
-        R_TRY(EmulatedSwitchController::Initialize());
         R_TRY(this->PushRumbleLedState());
-
+        R_TRY(EmulatedSwitchController::Initialize());
+        
         return ams::ResultSuccess();
     }
 
