@@ -266,6 +266,13 @@ namespace ams::controller {
                 R_TRY(this->SubCmdEnableVibration(report));
                 break;
             default:
+                const SwitchSubcommandResponse response = {
+                    .ack = 0x80,
+                    .id = report_data->output0x01.subcmd.id,
+                    .data = { 0x03 }
+                };
+
+                R_TRY(this->FakeSubCmdResponse(&response));
                 break;
         }
 
