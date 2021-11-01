@@ -131,18 +131,18 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::MapButtons(const Dualshock4ButtonData *buttons) {
-        m_buttons.dpad_down   = (buttons->dpad == Dualshock4DPad_S)  ||
-                                (buttons->dpad == Dualshock4DPad_SE) ||
-                                (buttons->dpad == Dualshock4DPad_SW);
-        m_buttons.dpad_up     = (buttons->dpad == Dualshock4DPad_N)  ||
-                                (buttons->dpad == Dualshock4DPad_NE) ||
-                                (buttons->dpad == Dualshock4DPad_NW);
-        m_buttons.dpad_right  = (buttons->dpad == Dualshock4DPad_E)  ||
-                                (buttons->dpad == Dualshock4DPad_NE) ||
-                                (buttons->dpad == Dualshock4DPad_SE);
-        m_buttons.dpad_left   = (buttons->dpad == Dualshock4DPad_W)  ||
-                                (buttons->dpad == Dualshock4DPad_NW) ||
-                                (buttons->dpad == Dualshock4DPad_SW);
+        m_buttons.dpad_down  = (buttons->dpad == Dualshock4DPad_S)  ||
+                               (buttons->dpad == Dualshock4DPad_SE) ||
+                               (buttons->dpad == Dualshock4DPad_SW);
+        m_buttons.dpad_up    = (buttons->dpad == Dualshock4DPad_N)  ||
+                               (buttons->dpad == Dualshock4DPad_NE) ||
+                               (buttons->dpad == Dualshock4DPad_NW);
+        m_buttons.dpad_right = (buttons->dpad == Dualshock4DPad_E)  ||
+                               (buttons->dpad == Dualshock4DPad_NE) ||
+                               (buttons->dpad == Dualshock4DPad_SE);
+        m_buttons.dpad_left  = (buttons->dpad == Dualshock4DPad_W)  ||
+                               (buttons->dpad == Dualshock4DPad_NW) ||
+                               (buttons->dpad == Dualshock4DPad_SW);
 
         m_buttons.A = buttons->circle;
         m_buttons.B = buttons->cross;
@@ -171,10 +171,10 @@ namespace ams::controller {
         };
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 
-        s_output_report.size = sizeof(report) - 1;
-        std::memcpy(s_output_report.data, &report.data[1], s_output_report.size);
+        m_output_report.size = sizeof(report) - 1;
+        std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
 }

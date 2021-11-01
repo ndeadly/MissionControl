@@ -26,17 +26,17 @@ namespace ams::controller {
     }
 
     Result XboxOneController::SetVibration(const SwitchRumbleData *rumble_data) {
-        auto report = reinterpret_cast<XboxOneReportData *>(s_output_report.data);
-        s_output_report.size = sizeof(XboxOneOutputReport0x03) + 1;
+        auto report = reinterpret_cast<XboxOneReportData *>(m_output_report.data);
+        m_output_report.size = sizeof(XboxOneOutputReport0x03) + 1;
         report->id = 0x03;
-        report->output0x03.enable                = 0x3;
-        report->output0x03.magnitude_strong      = static_cast<uint8_t>(100 * rumble_data->low_band_amp);
-        report->output0x03.magnitude_weak        = static_cast<uint8_t>(100 * rumble_data->high_band_amp);
-        report->output0x03.pulse_sustain_10ms    = 1;
-        report->output0x03.pulse_release_10ms    = 0;
-        report->output0x03.loop_count            = 0;
+        report->output0x03.enable             = 0x3;
+        report->output0x03.magnitude_strong   = static_cast<uint8_t>(100 * rumble_data->low_band_amp);
+        report->output0x03.magnitude_weak     = static_cast<uint8_t>(100 * rumble_data->high_band_amp);
+        report->output0x03.pulse_sustain_10ms = 1;
+        report->output0x03.pulse_release_10ms = 0;
+        report->output0x03.loop_count         = 0;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
     void XboxOneController::UpdateControllerState(const bluetooth::HidReport *report) {
@@ -71,26 +71,26 @@ namespace ams::controller {
         m_buttons.ZL = src->input0x01.left_trigger > 0;
 
         if (new_format) {
-            m_buttons.dpad_down   = (src->input0x01.buttons.dpad == XboxOneDPad_S)  ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_SE) ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_SW);
-            m_buttons.dpad_up     = (src->input0x01.buttons.dpad == XboxOneDPad_N)  ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_NE) ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_NW);
-            m_buttons.dpad_right  = (src->input0x01.buttons.dpad == XboxOneDPad_E)  ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_NE) ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_SE);
-            m_buttons.dpad_left   = (src->input0x01.buttons.dpad == XboxOneDPad_W)  ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_NW) ||
-                                    (src->input0x01.buttons.dpad == XboxOneDPad_SW);
+            m_buttons.dpad_down  = (src->input0x01.buttons.dpad == XboxOneDPad_S)  ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_SE) ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_SW);
+            m_buttons.dpad_up    = (src->input0x01.buttons.dpad == XboxOneDPad_N)  ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_NE) ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_NW);
+            m_buttons.dpad_right = (src->input0x01.buttons.dpad == XboxOneDPad_E)  ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_NE) ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_SE);
+            m_buttons.dpad_left  = (src->input0x01.buttons.dpad == XboxOneDPad_W)  ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_NW) ||
+                                   (src->input0x01.buttons.dpad == XboxOneDPad_SW);
 
             m_buttons.A = src->input0x01.buttons.B;
             m_buttons.B = src->input0x01.buttons.A;
             m_buttons.X = src->input0x01.buttons.Y;
             m_buttons.Y = src->input0x01.buttons.X;
 
-            m_buttons.R  = src->input0x01.buttons.RB;
-            m_buttons.L  = src->input0x01.buttons.LB;
+            m_buttons.R = src->input0x01.buttons.RB;
+            m_buttons.L = src->input0x01.buttons.LB;
 
             m_buttons.minus = src->input0x01.buttons.view;
             m_buttons.plus  = src->input0x01.buttons.menu;
@@ -101,26 +101,26 @@ namespace ams::controller {
             m_buttons.home = src->input0x01.buttons.guide;
         }
         else {
-            m_buttons.dpad_down   = (src->input0x01.old.buttons.dpad == XboxOneDPad_S)  ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_SE) ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_SW);
-            m_buttons.dpad_up     = (src->input0x01.old.buttons.dpad == XboxOneDPad_N)  ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_NW);
-            m_buttons.dpad_right  = (src->input0x01.old.buttons.dpad == XboxOneDPad_E)  ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_SE);
-            m_buttons.dpad_left   = (src->input0x01.old.buttons.dpad == XboxOneDPad_W)  ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_NW) ||
-                                    (src->input0x01.old.buttons.dpad == XboxOneDPad_SW);
+            m_buttons.dpad_down  = (src->input0x01.old.buttons.dpad == XboxOneDPad_S)  ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SE) ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SW);
+            m_buttons.dpad_up    = (src->input0x01.old.buttons.dpad == XboxOneDPad_N)  ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NW);
+            m_buttons.dpad_right = (src->input0x01.old.buttons.dpad == XboxOneDPad_E)  ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SE);
+            m_buttons.dpad_left  = (src->input0x01.old.buttons.dpad == XboxOneDPad_W)  ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NW) ||
+                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SW);
 
             m_buttons.A = src->input0x01.old.buttons.B;
             m_buttons.B = src->input0x01.old.buttons.A;
             m_buttons.X = src->input0x01.old.buttons.Y;
             m_buttons.Y = src->input0x01.old.buttons.X;
 
-            m_buttons.R  = src->input0x01.old.buttons.RB;
-            m_buttons.L  = src->input0x01.old.buttons.LB;
+            m_buttons.R = src->input0x01.old.buttons.RB;
+            m_buttons.L = src->input0x01.old.buttons.LB;
 
             m_buttons.minus = src->input0x01.old.buttons.view;
             m_buttons.plus  = src->input0x01.old.buttons.menu;

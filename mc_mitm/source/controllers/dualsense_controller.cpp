@@ -185,10 +185,10 @@ namespace ams::controller {
         report.data[49] = m_led_colour.b;
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 
-        s_output_report.size = sizeof(report) - 1;
-        std::memcpy(s_output_report.data, &report.data[1], s_output_report.size);
+        m_output_report.size = sizeof(report) - 1;
+        std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
 }

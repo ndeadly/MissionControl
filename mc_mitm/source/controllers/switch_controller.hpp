@@ -325,8 +325,8 @@ namespace ams::controller {
 
             bool m_settsi_supported;
 
-            static bluetooth::HidReport s_input_report;
-            static bluetooth::HidReport s_output_report;
+            bluetooth::HidReport m_input_report;
+            bluetooth::HidReport m_output_report;
     };
 
 }

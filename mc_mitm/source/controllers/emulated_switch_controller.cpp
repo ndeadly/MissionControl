@@ -191,8 +191,8 @@ namespace ams::controller {
         this->UpdateControllerState(report);
 
         // Prepare Switch report
-        s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
-        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        m_input_report.size = sizeof(SwitchInputReport0x30) + 1;
+        auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         switch_report->id = 0x30;
         switch_report->input0x30.conn_info   = (0 << 1) | m_ext_power;
         switch_report->input0x30.battery     = m_battery | m_charging;
@@ -204,7 +204,7 @@ namespace ams::controller {
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
 
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
     }
 
     Result EmulatedSwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
@@ -558,8 +558,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::FakeSubCmdResponse(const SwitchSubcommandResponse *response) {
-        s_input_report.size = sizeof(SwitchInputReport0x21) + 1;
-        auto report_data = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
+        auto report_data = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         report_data->id = 0x21;
         report_data->input0x21.conn_info   = (0 << 1) | m_ext_power;
         report_data->input0x21.battery     = m_battery | m_charging;
@@ -571,7 +571,7 @@ namespace ams::controller {
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
     }
 
     Result EmulatedSwitchController::VirtualSpiFlashRead(int offset, void *data, size_t size) {
