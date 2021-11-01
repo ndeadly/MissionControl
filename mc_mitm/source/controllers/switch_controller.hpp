@@ -142,6 +142,17 @@ namespace ams::controller {
             struct {
                 uint32_t address;
             } spi_flash_sector_erase;
+
+            struct {
+                union {
+                    uint8_t leds;
+
+                    struct {
+                        uint8_t leds_flash : 4;
+                        uint8_t leds_on    : 4;
+                    };
+                };
+            } set_player_leds;
         };
     } __attribute__ ((__packed__));
 

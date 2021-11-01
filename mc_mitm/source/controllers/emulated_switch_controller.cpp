@@ -437,9 +437,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetPlayerLeds(const bluetooth::HidReport *report) {
-        const uint8_t *subCmd = &report->data[10];
-        uint8_t led_mask = subCmd[1];
-        R_TRY(this->SetPlayerLed(led_mask));
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+        R_TRY(this->SetPlayerLed(switch_report->output0x01.subcmd.set_player_leds.leds));
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
