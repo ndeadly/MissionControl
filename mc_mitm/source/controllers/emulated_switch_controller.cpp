@@ -136,7 +136,8 @@ namespace ams::controller {
     : SwitchController(address, id)
     , m_charging(false)
     , m_ext_power(false)
-    , m_battery(BATTERY_MAX) {
+    , m_battery(BATTERY_MAX)
+    , m_led_pattern(0) {
         this->ClearControllerState();
 
         m_colours.body       = {0x32, 0x32, 0x32};
@@ -255,6 +256,9 @@ namespace ams::controller {
                 break;
             case SubCmd_SetPlayerLeds:
                 R_TRY(this->SubCmdSetPlayerLeds(report));
+                break;
+            case SubCmd_GetPlayerLeds:
+                R_TRY(this->SubCmdGetPlayerLeds(report));
                 break;
             case SubCmd_SetHomeLed:
                 R_TRY(this->SubCmdSetHomeLed(report));
@@ -445,11 +449,27 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::SubCmdSetPlayerLeds(const bluetooth::HidReport *report) {
         auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-        R_TRY(this->SetPlayerLed(switch_report->output0x01.subcmd.set_player_leds.leds));
+
+        m_led_pattern = switch_report->output0x01.subcmd.set_player_leds.leds;
+        R_TRY(this->SetPlayerLed(m_led_pattern));
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetPlayerLeds
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdGetPlayerLeds(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_GetPlayerLeds,
+            .get_player_leds = {
+                .leds = m_led_pattern
+            }
         };
 
         return this->FakeSubCmdResponse(&response);

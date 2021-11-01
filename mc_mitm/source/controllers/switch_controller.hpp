@@ -195,6 +195,17 @@ namespace ams::controller {
             struct {
                 uint8_t status;
             } spi_sector_erase;
+
+            struct {
+                union {
+                    uint8_t leds;
+
+                    struct {
+                        uint8_t leds_flash : 4;
+                        uint8_t leds_on    : 4;
+                    };
+                };
+            } get_player_leds;
         };
     } __attribute__ ((__packed__));
 
@@ -269,7 +280,7 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
-    
+
     std::string GetControllerDirectory(const bluetooth::Address *address);
 
     class SwitchController {

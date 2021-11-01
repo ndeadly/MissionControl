@@ -54,6 +54,7 @@ namespace ams::controller {
             Result SubCmdSetMcuConfig(const bluetooth::HidReport *report);
             Result SubCmdSetMcuState(const bluetooth::HidReport *report);
             Result SubCmdSetPlayerLeds(const bluetooth::HidReport *report);
+            Result SubCmdGetPlayerLeds(const bluetooth::HidReport *report);
             Result SubCmdSetHomeLed(const bluetooth::HidReport *report);
             Result SubCmdEnableImu(const bluetooth::HidReport *report);
             Result SubCmdEnableVibration(const bluetooth::HidReport *report);
@@ -67,6 +68,7 @@ namespace ams::controller {
             bool m_charging;
             bool m_ext_power;
             uint8_t m_battery;
+            uint8_t m_led_pattern;
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
