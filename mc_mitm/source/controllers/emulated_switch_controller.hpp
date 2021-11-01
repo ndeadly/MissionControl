@@ -45,12 +45,15 @@ namespace ams::controller {
             Result HandleRumbleReport(const bluetooth::HidReport *report);
 
             Result SubCmdRequestDeviceInfo(const bluetooth::HidReport *report);
+            Result SubCmdSetInputReportMode(const bluetooth::HidReport *report);
+            Result SubCmdTriggersElapsedTime(const bluetooth::HidReport *report);
+            Result SubCmdResetPairingInfo(const bluetooth::HidReport *report);
+            Result SubCmdSetShipPowerState(const bluetooth::HidReport *report);
             Result SubCmdSpiFlashRead(const bluetooth::HidReport *report);
             Result SubCmdSpiFlashWrite(const bluetooth::HidReport *report);
             Result SubCmdSpiSectorErase(const bluetooth::HidReport *report);
-            Result SubCmdSetInputReportMode(const bluetooth::HidReport *report);
-            Result SubCmdTriggersElapsedTime(const bluetooth::HidReport *report);
-            Result SubCmdSetShipPowerState(const bluetooth::HidReport *report);
+            Result SubCmd0x24(const bluetooth::HidReport *report);
+            Result SubCmd0x25(const bluetooth::HidReport *report);
             Result SubCmdSetMcuConfig(const bluetooth::HidReport *report);
             Result SubCmdSetMcuState(const bluetooth::HidReport *report);
             Result SubCmdSetPlayerLeds(const bluetooth::HidReport *report);

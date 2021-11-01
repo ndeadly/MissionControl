@@ -208,8 +208,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
-        uint8_t cmdId = report->data[0];
-        switch (cmdId) {
+        auto report_data = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        switch (report_data->id) {
             case 0x01:
                 R_TRY(this->HandleSubCmdReport(report));
                 break;
@@ -230,6 +231,18 @@ namespace ams::controller {
             case SubCmd_RequestDeviceInfo:
                 R_TRY(this->SubCmdRequestDeviceInfo(report));
                 break;
+            case SubCmd_SetInputReportMode:
+                R_TRY(this->SubCmdSetInputReportMode(report));
+                break;
+            case SubCmd_TriggersElapsedTime:
+                R_TRY(this->SubCmdTriggersElapsedTime(report));
+                break;
+            case SubCmd_ResetPairingInfo:
+                R_TRY(this->SubCmdResetPairingInfo(report));
+                break;
+            case SubCmd_SetShipPowerState:
+                R_TRY(this->SubCmdSetShipPowerState(report));
+                break;
             case SubCmd_SpiFlashRead:
                 R_TRY(this->SubCmdSpiFlashRead(report));
                 break;
@@ -239,20 +252,17 @@ namespace ams::controller {
             case SubCmd_SpiSectorErase:
                 R_TRY(this->SubCmdSpiSectorErase(report));
                 break;
-            case SubCmd_SetInputReportMode:
-                R_TRY(this->SubCmdSetInputReportMode(report));
-                break;
-            case SubCmd_TriggersElapsedTime:
-                R_TRY(this->SubCmdTriggersElapsedTime(report));
-                break;
-            case SubCmd_SetShipPowerState:
-                R_TRY(this->SubCmdSetShipPowerState(report));
-                break;
             case SubCmd_SetMcuConfig:
                 R_TRY(this->SubCmdSetMcuConfig(report));
                 break;
             case SubCmd_SetMcuState:
                 R_TRY(this->SubCmdSetMcuState(report));
+                break;
+            case SubCmd_0x24:
+                R_TRY(this->SubCmd0x24(report));
+                break;
+            case SubCmd_0x25:
+                R_TRY(this->SubCmd0x25(report));
                 break;
             case SubCmd_SetPlayerLeds:
                 R_TRY(this->SubCmdSetPlayerLeds(report));
@@ -324,6 +334,55 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
+    Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetInputReportMode
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x83,
+            .id = SubCmd_TriggersElapsedTime
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdResetPairingInfo(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        R_TRY(this->VirtualSpiFlashSectorErase(0x2000));
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_ResetPairingInfo
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetShipPowerState,
+            .set_ship_power_state = {
+                .enabled = false
+            }
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
     Result EmulatedSwitchController::SubCmdSpiFlashRead(const bluetooth::HidReport *report) {
         // These are read from official Pro Controller
         // @ 0x00006000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff                            <= Serial
@@ -384,39 +443,27 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
+    Result EmulatedSwitchController::SubCmd0x24(const bluetooth::HidReport *report) {
         AMS_UNUSED(report);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetInputReportMode
+            .id = SubCmd_0x24,
+            .data = { 0x00 }
         };
 
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
-
-        const SwitchSubcommandResponse response = {
-            .ack = 0x83,
-            .id = SubCmd_TriggersElapsedTime
-        };
-
-        return this->FakeSubCmdResponse(&response);
-    }
-
-    Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
+    Result EmulatedSwitchController::SubCmd0x25(const bluetooth::HidReport *report) {
         AMS_UNUSED(report);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetShipPowerState,
-            .set_ship_power_state = {
-                .enabled = false
-            }
+            .id = SubCmd_0x25,
+            .data = { 0x00 }
         };
-
+        
         return this->FakeSubCmdResponse(&response);
     }
 
