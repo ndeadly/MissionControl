@@ -153,6 +153,10 @@ namespace ams::controller {
                     };
                 };
             } set_player_leds;
+
+            struct {
+                bool enabled;
+            } set_vibration;
         };
     } __attribute__ ((__packed__));
 
