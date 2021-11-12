@@ -51,6 +51,7 @@ namespace ams::controller {
             0x039d, 0x03b1, 0x03c6, 0x03db, 0x03f1, 0x0407, 0x041d, 0x0434, 0x044c,
             0x0464, 0x047d, 0x0496, 0x04af, 0x04ca, 0x04e5
         };
+        constexpr size_t rumble_freq_lut_size = sizeof(rumble_freq_lut) / sizeof(uint16_t);
 
         // Floats from dekunukem repo normalised and scaled by function used by yuzu
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#amplitude-table
@@ -71,19 +72,27 @@ namespace ams::controller {
             0.804178, 0.814858, 0.825726, 0.836787, 0.848044, 0.859502, 0.871165,
             0.883035, 0.895119, 0.907420, 0.919943, 0.932693, 0.945673, 0.958889,
             0.972345, 0.986048, 1.000000
-
         };
+        constexpr size_t rumble_amp_lut_f_size = sizeof(rumble_amp_lut_f) / sizeof(float);
 
-        inline void DecodeRumbleValues(const uint8_t enc[], SwitchRumbleData *dec) {
+        Result DecodeRumbleValues(const uint8_t enc[], SwitchRumbleData *dec) {
             uint8_t hi_freq_ind = 0x20 + (enc[0] >> 2) + ((enc[1] & 0x01) * 0x40) - 1;
             uint8_t hi_amp_ind  = (enc[1] & 0xfe) >> 1;
-            uint8_t lo_freq_ind = (enc[2] & 0x7f) - 1;;
+            uint8_t lo_freq_ind = (enc[2] & 0x7f) - 1;
             uint8_t lo_amp_ind  = ((enc[3] - 0x40) << 1) + ((enc[2] & 0x80) >> 7);
+
+            if (!((hi_freq_ind < rumble_freq_lut_size) &&
+                  (hi_amp_ind < rumble_amp_lut_f_size) &&
+                  (lo_freq_ind < rumble_freq_lut_size) &&
+                  (lo_amp_ind < rumble_amp_lut_f_size))) {
+                return -1;
+            }
 
             dec->high_band_freq = float(rumble_freq_lut[hi_freq_ind]);
             dec->high_band_amp  = rumble_amp_lut_f[hi_amp_ind];
             dec->low_band_freq  = float(rumble_freq_lut[lo_freq_ind]);
             dec->low_band_amp   = rumble_amp_lut_f[lo_amp_ind];
+            return ams::ResultSuccess();
         }
 
         Result InitializeVirtualSpiFlash(const char *path, size_t size) {
@@ -291,25 +300,27 @@ namespace ams::controller {
         }
 
         // This report can also contain rumble data
-        if (!m_enable_rumble || *reinterpret_cast<const uint32_t *>(report_data->output0x01.rumble.left_motor) == 0)
-            return ams::ResultSuccess();
+        if (m_enable_rumble) {
+            SwitchRumbleData rumble_data;
+            if (R_SUCCEEDED(DecodeRumbleValues(report_data->output0x01.rumble.left_motor, &rumble_data))) {
+                R_TRY(this->SetVibration(&rumble_data));
+            }
+        }
 
-        SwitchRumbleData rumble_data;
-        DecodeRumbleValues(report_data->output0x01.rumble.left_motor, &rumble_data);
-
-        return this->SetVibration(&rumble_data);
+        return ams::ResultSuccess();
     }
 
     Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
-        if (!m_enable_rumble)
-            return ams::ResultSuccess();
+        if (m_enable_rumble) {
+            auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
 
-        auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
+            SwitchRumbleData rumble_data;
+            if (R_SUCCEEDED(DecodeRumbleValues(report_data->output0x10.rumble.left_motor, &rumble_data))) {
+                R_TRY(this->SetVibration(&rumble_data));
+            }
+        }
 
-        SwitchRumbleData rumble_data;
-        DecodeRumbleValues(report_data->output0x10.rumble.left_motor, &rumble_data);
-
-        return this->SetVibration(&rumble_data);
+        return ams::ResultSuccess();
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
