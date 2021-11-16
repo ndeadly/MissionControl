@@ -85,6 +85,7 @@ namespace ams::controller {
                   (hi_amp_ind < rumble_amp_lut_f_size) &&
                   (lo_freq_ind < rumble_freq_lut_size) &&
                   (lo_amp_ind < rumble_amp_lut_f_size))) {
+                std::memset(dec, 0, sizeof(SwitchRumbleData));
                 return -1;
             }
 
@@ -301,10 +302,10 @@ namespace ams::controller {
 
         // This report can also contain rumble data
         if (m_enable_rumble) {
-            SwitchRumbleData rumble_data;
-            if (R_SUCCEEDED(DecodeRumbleValues(report_data->output0x01.rumble.left_motor, &rumble_data))) {
-                R_TRY(this->SetVibration(&rumble_data));
-            }
+            SwitchRumbleData rumble_data[2];
+            DecodeRumbleValues(report_data->output0x01.rumble.left_motor,  &rumble_data[0]);
+            DecodeRumbleValues(report_data->output0x01.rumble.right_motor, &rumble_data[1]);
+            R_TRY(this->SetVibration(rumble_data));
         }
 
         return ams::ResultSuccess();
@@ -314,10 +315,10 @@ namespace ams::controller {
         if (m_enable_rumble) {
             auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
 
-            SwitchRumbleData rumble_data;
-            if (R_SUCCEEDED(DecodeRumbleValues(report_data->output0x10.rumble.left_motor, &rumble_data))) {
-                R_TRY(this->SetVibration(&rumble_data));
-            }
+            SwitchRumbleData rumble_data[2];
+            DecodeRumbleValues(report_data->output0x10.rumble.left_motor,  &rumble_data[0]);
+            DecodeRumbleValues(report_data->output0x10.rumble.right_motor, &rumble_data[1]);
+            R_TRY(this->SetVibration(rumble_data));
         }
 
         return ams::ResultSuccess();

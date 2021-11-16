@@ -30,8 +30,8 @@ namespace ams::controller {
         m_output_report.size = sizeof(XboxOneOutputReport0x03) + 1;
         report->id = 0x03;
         report->output0x03.enable             = 0x3;
-        report->output0x03.magnitude_strong   = static_cast<uint8_t>(100 * rumble_data->low_band_amp);
-        report->output0x03.magnitude_weak     = static_cast<uint8_t>(100 * rumble_data->high_band_amp);
+        report->output0x03.magnitude_strong   = static_cast<uint8_t>(100 * std::max(rumble_data[0].low_band_amp, rumble_data[1].low_band_amp));
+        report->output0x03.magnitude_weak     = static_cast<uint8_t>(100 * std::max(rumble_data[0].high_band_amp, rumble_data[1].high_band_amp));
         report->output0x03.pulse_sustain_10ms = 1;
         report->output0x03.pulse_release_10ms = 0;
         report->output0x03.loop_count         = 0;

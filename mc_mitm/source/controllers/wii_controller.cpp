@@ -357,7 +357,10 @@ namespace ams::controller {
     }
 
     Result WiiController::SetVibration(const SwitchRumbleData *rumble_data) {
-        m_rumble_state = rumble_data->high_band_amp > 0; //rumble_data->low_band_amp > 0 || rumble_data->high_band_amp > 0;
+        m_rumble_state = rumble_data[0].low_band_amp > 0 || 
+                         rumble_data[0].high_band_amp > 0 ||
+                         rumble_data[1].low_band_amp > 0 ||
+                         rumble_data[1].high_band_amp > 0;
 
         m_output_report.size = sizeof(WiiOutputReport0x10) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
