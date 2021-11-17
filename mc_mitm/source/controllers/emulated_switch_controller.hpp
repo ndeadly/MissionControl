@@ -45,15 +45,19 @@ namespace ams::controller {
             Result HandleRumbleReport(const bluetooth::HidReport *report);
 
             Result SubCmdRequestDeviceInfo(const bluetooth::HidReport *report);
+            Result SubCmdSetInputReportMode(const bluetooth::HidReport *report);
+            Result SubCmdTriggersElapsedTime(const bluetooth::HidReport *report);
+            Result SubCmdResetPairingInfo(const bluetooth::HidReport *report);
+            Result SubCmdSetShipPowerState(const bluetooth::HidReport *report);
             Result SubCmdSpiFlashRead(const bluetooth::HidReport *report);
             Result SubCmdSpiFlashWrite(const bluetooth::HidReport *report);
             Result SubCmdSpiSectorErase(const bluetooth::HidReport *report);
-            Result SubCmdSetInputReportMode(const bluetooth::HidReport *report);
-            Result SubCmdTriggersElapsedTime(const bluetooth::HidReport *report);
-            Result SubCmdSetShipPowerState(const bluetooth::HidReport *report);
+            Result SubCmd0x24(const bluetooth::HidReport *report);
+            Result SubCmd0x25(const bluetooth::HidReport *report);
             Result SubCmdSetMcuConfig(const bluetooth::HidReport *report);
             Result SubCmdSetMcuState(const bluetooth::HidReport *report);
             Result SubCmdSetPlayerLeds(const bluetooth::HidReport *report);
+            Result SubCmdGetPlayerLeds(const bluetooth::HidReport *report);
             Result SubCmdSetHomeLed(const bluetooth::HidReport *report);
             Result SubCmdEnableImu(const bluetooth::HidReport *report);
             Result SubCmdEnableVibration(const bluetooth::HidReport *report);
@@ -67,6 +71,7 @@ namespace ams::controller {
             bool m_charging;
             bool m_ext_power;
             uint8_t m_battery;
+            uint8_t m_led_pattern;
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;

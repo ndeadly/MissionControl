@@ -22,8 +22,6 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr const char *controller_base_path = "sdmc:/config/MissionControl/controllers/";
-
         // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
         SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
         SwitchAnalogStickFactoryCalibration rstick_factory_calib = {0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f};
@@ -53,6 +51,7 @@ namespace ams::controller {
             0x039d, 0x03b1, 0x03c6, 0x03db, 0x03f1, 0x0407, 0x041d, 0x0434, 0x044c,
             0x0464, 0x047d, 0x0496, 0x04af, 0x04ca, 0x04e5
         };
+        constexpr size_t rumble_freq_lut_size = sizeof(rumble_freq_lut) / sizeof(uint16_t);
 
         // Floats from dekunukem repo normalised and scaled by function used by yuzu
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#amplitude-table
@@ -73,19 +72,28 @@ namespace ams::controller {
             0.804178, 0.814858, 0.825726, 0.836787, 0.848044, 0.859502, 0.871165,
             0.883035, 0.895119, 0.907420, 0.919943, 0.932693, 0.945673, 0.958889,
             0.972345, 0.986048, 1.000000
-
         };
+        constexpr size_t rumble_amp_lut_f_size = sizeof(rumble_amp_lut_f) / sizeof(float);
 
-        inline void DecodeRumbleValues(const uint8_t enc[], SwitchRumbleData *dec) {
+        Result DecodeRumbleValues(const uint8_t enc[], SwitchRumbleData *dec) {
             uint8_t hi_freq_ind = 0x20 + (enc[0] >> 2) + ((enc[1] & 0x01) * 0x40) - 1;
             uint8_t hi_amp_ind  = (enc[1] & 0xfe) >> 1;
-            uint8_t lo_freq_ind = (enc[2] & 0x7f) - 1;;
+            uint8_t lo_freq_ind = (enc[2] & 0x7f) - 1;
             uint8_t lo_amp_ind  = ((enc[3] - 0x40) << 1) + ((enc[2] & 0x80) >> 7);
+
+            if (!((hi_freq_ind < rumble_freq_lut_size) &&
+                  (hi_amp_ind < rumble_amp_lut_f_size) &&
+                  (lo_freq_ind < rumble_freq_lut_size) &&
+                  (lo_amp_ind < rumble_amp_lut_f_size))) {
+                std::memset(dec, 0, sizeof(SwitchRumbleData));
+                return -1;
+            }
 
             dec->high_band_freq = float(rumble_freq_lut[hi_freq_ind]);
             dec->high_band_amp  = rumble_amp_lut_f[hi_amp_ind];
             dec->low_band_freq  = float(rumble_freq_lut[lo_freq_ind]);
             dec->low_band_amp   = rumble_amp_lut_f[lo_amp_ind];
+            return ams::ResultSuccess();
         }
 
         Result InitializeVirtualSpiFlash(const char *path, size_t size) {
@@ -138,7 +146,8 @@ namespace ams::controller {
     : SwitchController(address, id)
     , m_charging(false)
     , m_ext_power(false)
-    , m_battery(BATTERY_MAX) {
+    , m_battery(BATTERY_MAX)
+    , m_led_pattern(0) {
         this->ClearControllerState();
 
         m_colours.body       = {0x32, 0x32, 0x32};
@@ -158,28 +167,25 @@ namespace ams::controller {
     Result EmulatedSwitchController::Initialize(void) {
         SwitchController::Initialize();
 
-        char path[0x100] = {};
-
         // Ensure config directory for this controller exists
-        std::strcat(path, controller_base_path);
-        utils::BluetoothAddressToString(&m_address, path+std::strlen(path), sizeof(path)-std::strlen(path));
-        R_TRY(fs::EnsureDirectoryRecursively(path));
+        std::string path = GetControllerDirectory(&m_address);
+        R_TRY(fs::EnsureDirectoryRecursively(path.c_str()));
 
         // Check if the virtual spi flash file already exists and initialise it if not
+        path += "/spi_flash.bin";
         bool file_exists;
-        std::strcat(path, "/spi_flash.bin");
-        R_TRY(fs::HasFile(&file_exists, path));
+        R_TRY(fs::HasFile(&file_exists, path.c_str()));
         if (!file_exists) {
             auto spi_flash_size = 0x10000;
             // Create file representing first 64KB of SPI flash
-            R_TRY(fs::CreateFile(path, spi_flash_size));
+            R_TRY(fs::CreateFile(path.c_str(), spi_flash_size));
 
             // Initialise the spi flash data
-            R_TRY(InitializeVirtualSpiFlash(path, spi_flash_size));
+            R_TRY(InitializeVirtualSpiFlash(path.c_str(), spi_flash_size));
         }
 
         // Open the virtual spi flash file for read and write
-        R_TRY(fs::OpenFile(std::addressof(m_spi_flash_file), path, fs::OpenMode_ReadWrite));
+        R_TRY(fs::OpenFile(std::addressof(m_spi_flash_file), path.c_str(), fs::OpenMode_ReadWrite));
 
         return ams::ResultSuccess();
     }
@@ -195,8 +201,8 @@ namespace ams::controller {
         this->UpdateControllerState(report);
 
         // Prepare Switch report
-        s_input_report.size = sizeof(SwitchInputReport0x30) + 1;
-        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        m_input_report.size = sizeof(SwitchInputReport0x30) + 1;
+        auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         switch_report->id = 0x30;
         switch_report->input0x30.conn_info   = (0 << 1) | m_ext_power;
         switch_report->input0x30.battery     = m_battery | m_charging;
@@ -208,12 +214,13 @@ namespace ams::controller {
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
 
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
     }
 
     Result EmulatedSwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
-        uint8_t cmdId = report->data[0];
-        switch (cmdId) {
+        auto report_data = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        switch (report_data->id) {
             case 0x01:
                 R_TRY(this->HandleSubCmdReport(report));
                 break;
@@ -234,6 +241,18 @@ namespace ams::controller {
             case SubCmd_RequestDeviceInfo:
                 R_TRY(this->SubCmdRequestDeviceInfo(report));
                 break;
+            case SubCmd_SetInputReportMode:
+                R_TRY(this->SubCmdSetInputReportMode(report));
+                break;
+            case SubCmd_TriggersElapsedTime:
+                R_TRY(this->SubCmdTriggersElapsedTime(report));
+                break;
+            case SubCmd_ResetPairingInfo:
+                R_TRY(this->SubCmdResetPairingInfo(report));
+                break;
+            case SubCmd_SetShipPowerState:
+                R_TRY(this->SubCmdSetShipPowerState(report));
+                break;
             case SubCmd_SpiFlashRead:
                 R_TRY(this->SubCmdSpiFlashRead(report));
                 break;
@@ -243,23 +262,23 @@ namespace ams::controller {
             case SubCmd_SpiSectorErase:
                 R_TRY(this->SubCmdSpiSectorErase(report));
                 break;
-            case SubCmd_SetInputReportMode:
-                R_TRY(this->SubCmdSetInputReportMode(report));
-                break;
-            case SubCmd_TriggersElapsedTime:
-                R_TRY(this->SubCmdTriggersElapsedTime(report));
-                break;
-            case SubCmd_SetShipPowerState:
-                R_TRY(this->SubCmdSetShipPowerState(report));
-                break;
             case SubCmd_SetMcuConfig:
                 R_TRY(this->SubCmdSetMcuConfig(report));
                 break;
             case SubCmd_SetMcuState:
                 R_TRY(this->SubCmdSetMcuState(report));
                 break;
+            case SubCmd_0x24:
+                R_TRY(this->SubCmd0x24(report));
+                break;
+            case SubCmd_0x25:
+                R_TRY(this->SubCmd0x25(report));
+                break;
             case SubCmd_SetPlayerLeds:
                 R_TRY(this->SubCmdSetPlayerLeds(report));
+                break;
+            case SubCmd_GetPlayerLeds:
+                R_TRY(this->SubCmdGetPlayerLeds(report));
                 break;
             case SubCmd_SetHomeLed:
                 R_TRY(this->SubCmdSetHomeLed(report));
@@ -271,29 +290,38 @@ namespace ams::controller {
                 R_TRY(this->SubCmdEnableVibration(report));
                 break;
             default:
+                const SwitchSubcommandResponse response = {
+                    .ack = 0x80,
+                    .id = report_data->output0x01.subcmd.id,
+                    .data = { 0x03 }
+                };
+
+                R_TRY(this->FakeSubCmdResponse(&response));
                 break;
         }
 
         // This report can also contain rumble data
-        if (!m_enable_rumble || *reinterpret_cast<const uint32_t *>(report_data->output0x01.rumble.left_motor) == 0)
-            return ams::ResultSuccess();
+        if (m_enable_rumble) {
+            SwitchRumbleData rumble_data[2];
+            DecodeRumbleValues(report_data->output0x01.rumble.left_motor,  &rumble_data[0]);
+            DecodeRumbleValues(report_data->output0x01.rumble.right_motor, &rumble_data[1]);
+            R_TRY(this->SetVibration(rumble_data));
+        }
 
-        SwitchRumbleData rumble_data;
-        DecodeRumbleValues(report_data->output0x01.rumble.left_motor, &rumble_data);
-
-        return this->SetVibration(&rumble_data);
+        return ams::ResultSuccess();
     }
 
     Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
-        if (!m_enable_rumble)
-            return ams::ResultSuccess();
+        if (m_enable_rumble) {
+            auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
 
-        auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
+            SwitchRumbleData rumble_data[2];
+            DecodeRumbleValues(report_data->output0x10.rumble.left_motor,  &rumble_data[0]);
+            DecodeRumbleValues(report_data->output0x10.rumble.right_motor, &rumble_data[1]);
+            R_TRY(this->SetVibration(rumble_data));
+        }
 
-        SwitchRumbleData rumble_data;
-        DecodeRumbleValues(report_data->output0x10.rumble.left_motor, &rumble_data);
-
-        return this->SetVibration(&rumble_data);
+        return ams::ResultSuccess();
     }
 
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
@@ -312,6 +340,55 @@ namespace ams::controller {
                 .address = m_address,
                 ._unk1 = 0x01,
                 ._unk2 = 0x02
+            }
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetInputReportMode
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x83,
+            .id = SubCmd_TriggersElapsedTime
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdResetPairingInfo(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        R_TRY(this->VirtualSpiFlashSectorErase(0x2000));
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_ResetPairingInfo
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetShipPowerState,
+            .set_ship_power_state = {
+                .enabled = false
             }
         };
 
@@ -378,39 +455,27 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
+    Result EmulatedSwitchController::SubCmd0x24(const bluetooth::HidReport *report) {
         AMS_UNUSED(report);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetInputReportMode
+            .id = SubCmd_0x24,
+            .data = { 0x00 }
         };
 
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
-
-        const SwitchSubcommandResponse response = {
-            .ack = 0x83,
-            .id = SubCmd_TriggersElapsedTime
-        };
-
-        return this->FakeSubCmdResponse(&response);
-    }
-
-    Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
+    Result EmulatedSwitchController::SubCmd0x25(const bluetooth::HidReport *report) {
         AMS_UNUSED(report);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetShipPowerState,
-            .set_ship_power_state = {
-                .enabled = false
-            }
+            .id = SubCmd_0x25,
+            .data = { 0x00 }
         };
-
+        
         return this->FakeSubCmdResponse(&response);
     }
 
@@ -442,13 +507,28 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdSetPlayerLeds(const bluetooth::HidReport *report) {
-        const uint8_t *subCmd = &report->data[10];
-        uint8_t led_mask = subCmd[1];
-        R_TRY(this->SetPlayerLed(led_mask));
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        m_led_pattern = switch_report->output0x01.subcmd.set_player_leds.leds;
+        R_TRY(this->SetPlayerLed(m_led_pattern));
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetPlayerLeds
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
+    Result EmulatedSwitchController::SubCmdGetPlayerLeds(const bluetooth::HidReport *report) {
+        AMS_UNUSED(report);
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_GetPlayerLeds,
+            .get_player_leds = {
+                .leds = m_led_pattern
+            }
         };
 
         return this->FakeSubCmdResponse(&response);
@@ -477,7 +557,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble | switch_report->output0x01.subcmd.set_vibration.enabled;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -488,8 +570,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::FakeSubCmdResponse(const SwitchSubcommandResponse *response) {
-        s_input_report.size = sizeof(SwitchInputReport0x21) + 1;
-        auto report_data = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
+        auto report_data = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         report_data->id = 0x21;
         report_data->input0x21.conn_info   = (0 << 1) | m_ext_power;
         report_data->input0x21.battery     = m_battery | m_charging;
@@ -501,7 +583,7 @@ namespace ams::controller {
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
         //Write a fake response into the report buffer
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
     }
 
     Result EmulatedSwitchController::VirtualSpiFlashRead(int offset, void *data, size_t size) {
