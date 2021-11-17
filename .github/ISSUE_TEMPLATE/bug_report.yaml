@@ -21,13 +21,6 @@ body:
         - 12.0.0
         - 11.0.1
         - 11.0.0
-        - 10.2.0
-        - 10.1.0
-        - 10.0.4
-        - 10.0.3
-        - 10.0.2
-        - 10.0.1
-        - 10.0.0
         - Other (please specify in issue description)
     validations:
       required: true
@@ -37,7 +30,10 @@ body:
       label: Atmosphère Version
       description: Which version of Atmosphère are you using?
       options:
-        - 1.2.1 (Latest)
+        - 1.2.4 (Latest)
+        - 1.2.3
+        - 1.2.2
+        - 1.2.1
         - 1.2.0
         - 1.1.1
         - 1.1.0
@@ -50,8 +46,6 @@ body:
         - 0.19.2
         - 0.19.1
         - 0.19.0
-        - 0.18.1
-        - 0.18.0
         - Other (please specify in issue description)
     validations:
       required: true
@@ -61,11 +55,11 @@ body:
       label: Mission Control Version
       description: Which version of Mission Control are you using?
       options:
-        - 0.6.1 (Latest)
+        - 0.6.2 (Latest)
+        - 0.6.1
         - 0.6.0
         - 0.5.1
         - 0.5.0
-        - 0.4.1
         - Other (please specify in issue description)
     validations:
       required: true
