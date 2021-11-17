@@ -78,9 +78,7 @@ namespace ams::controller {
         else if (src->input0x20.extension_connected && (m_extension == WiiExtensionController_None)) {
             // Initialise extension
             this->WriteMemory(0x04a400f0, init_data1, sizeof(init_data1));
-            svcSleepThread(20'000'000ULL);
             this->WriteMemory(0x04a400fb, init_data2, sizeof(init_data2));
-            svcSleepThread(20'000'000ULL);
 
             // Read extension type
             this->ReadMemory(0x04a400fa, 6);
