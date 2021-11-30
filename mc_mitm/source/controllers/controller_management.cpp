@@ -175,6 +175,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : HyperkinController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Hyperkin;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -263,6 +269,9 @@ namespace ams::controller {
                 break;
             case ControllerType_AtGames:
                 g_controllers.push_back(std::make_unique<AtGamesController>(address, id));
+                break;
+            case ControllerType_Hyperkin:
+                g_controllers.push_back(std::make_unique<HyperkinController>(address, id));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<UnknownController>(address, id));
