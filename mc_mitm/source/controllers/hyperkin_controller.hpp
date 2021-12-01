@@ -36,8 +36,8 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct HyperkinButtonData {
-        uint8_t A       : 1;
         uint8_t B       : 1;
+        uint8_t A       : 1;
         uint8_t Y       : 1;
         uint8_t X       : 1;
         uint8_t L       : 1;
