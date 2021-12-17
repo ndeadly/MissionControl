@@ -38,6 +38,14 @@ namespace ams::controller {
                         utils::ParseBoolean(value, &config->misc.disable_sony_leds);
                     else if (strcasecmp(name, "swap_dpad_lstick") == 0)
                         utils::ParseBoolean(value, &config->misc.swap_dpad_lstick);
+                    else if (strcasecmp(name, "invert_lstick_xaxis") == 0)
+                        utils::ParseBoolean(value, &config->misc.invert_lstick_xaxis);
+                    else if (strcasecmp(name, "invert_lstick_yaxis") == 0)
+                        utils::ParseBoolean(value, &config->misc.invert_lstick_yaxis);
+                    else if (strcasecmp(name, "invert_rstick_xaxis") == 0)
+                        utils::ParseBoolean(value, &config->misc.invert_rstick_xaxis);
+                    else if (strcasecmp(name, "invert_rstick_yaxis") == 0)
+                        utils::ParseBoolean(value, &config->misc.invert_rstick_yaxis);
                 }
                 else {
                     return 0;

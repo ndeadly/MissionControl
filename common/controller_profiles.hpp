@@ -24,6 +24,10 @@ struct ControllerProfileConfig {
         struct {
             bool disable_sony_leds;
             bool swap_dpad_lstick;
+            bool invert_lstick_xaxis;
+            bool invert_lstick_yaxis;
+            bool invert_rstick_xaxis;
+            bool invert_rstick_yaxis;
         } misc;
 };
 
@@ -34,6 +38,10 @@ constexpr ControllerProfileConfig g_cp_global_config = {
     },
     .misc = {
         .disable_sony_leds = false,
-        .swap_dpad_lstick = false
+        .swap_dpad_lstick = false,
+        .invert_lstick_xaxis = false,
+        .invert_lstick_yaxis = false,
+        .invert_rstick_xaxis = false,
+        .invert_rstick_yaxis = false
     }
 };

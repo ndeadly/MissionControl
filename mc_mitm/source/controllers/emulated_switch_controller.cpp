@@ -231,6 +231,15 @@ namespace ams::controller {
             switch_report->input0x30.left_stick.SetData(temp_lstick_x, temp_lstick_y);
         }
 
+        if (m_profile.misc.invert_lstick_xaxis)
+            switch_report->input0x30.left_stick.InvertX();
+        if (m_profile.misc.invert_lstick_yaxis)
+            switch_report->input0x30.left_stick.InvertY();
+        if (m_profile.misc.invert_rstick_xaxis)
+            switch_report->input0x30.right_stick.InvertX();
+        if (m_profile.misc.invert_rstick_yaxis)
+            switch_report->input0x30.right_stick.InvertY();
+
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
     }
