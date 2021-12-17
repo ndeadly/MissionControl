@@ -67,7 +67,7 @@ namespace ams::controller {
         uint8_t cross      : 1;
         uint8_t circle     : 1;
         uint8_t triangle   : 1;
-        
+
         uint8_t L1         : 1;
         uint8_t R1         : 1;
         uint8_t L2         : 1;
@@ -76,7 +76,7 @@ namespace ams::controller {
         uint8_t options    : 1;
         uint8_t L3         : 1;
         uint8_t R3         : 1;
-        
+
         uint8_t ps         : 1;
         uint8_t tpad       : 1;
         uint8_t counter    : 6;
@@ -151,7 +151,6 @@ namespace ams::controller {
 
             Dualshock4Controller(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id)
-            , m_report_rate(Dualshock4ReportRate_125Hz)
             , m_led_colour({0, 0, 0})
             , m_rumble_state({0, 0}) { }
 
@@ -168,11 +167,10 @@ namespace ams::controller {
             void HandleInputReport0x11(const Dualshock4ReportData *src);
 
             void MapButtons(const Dualshock4ButtonData *buttons);
-            
+
             Result PushRumbleLedState(void);
 
-            Dualshock4ReportRate m_report_rate;
-            RGBColour m_led_colour; 
+            RGBColour m_led_colour;
             Dualshock4RumbleData m_rumble_state;
     };
 

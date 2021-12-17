@@ -24,6 +24,7 @@ struct ControllerProfileConfig {
         struct {
             bool use_western_layout;
             uint32_t sony_led_brightness;
+            uint32_t dualshock_reportrate;
             bool swap_dpad_lstick;
             bool invert_lstick_xaxis;
             bool invert_lstick_yaxis;
@@ -41,6 +42,7 @@ constexpr ControllerProfileConfig g_cp_global_config = {
     .misc = {
         .use_western_layout = false,
         .sony_led_brightness = 8,
+        .dualshock_reportrate = 8,
         .swap_dpad_lstick = false,
         .invert_lstick_xaxis = false,
         .invert_lstick_yaxis = false,

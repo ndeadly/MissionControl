@@ -164,7 +164,7 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::PushRumbleLedState(void) {
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff)), 0x20, 0xf3, 0x04, 0x00,
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (static_cast<Dualshock4ReportRate>(m_profile.misc.dualshock_reportrate) & 0xff)), 0x20, 0xf3, 0x04, 0x00,
             m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left,
             m_led_colour.r, m_led_colour.g, m_led_colour.b
         };
