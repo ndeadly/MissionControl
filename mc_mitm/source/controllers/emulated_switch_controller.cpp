@@ -214,6 +214,15 @@ namespace ams::controller {
 
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
 
+        if(m_profile.misc.use_western_layout) {
+            uint8_t temp = switch_report->input0x30.buttons.A;
+            switch_report->input0x30.buttons.A = switch_report->input0x30.buttons.B;
+            switch_report->input0x30.buttons.B = temp;
+            temp = switch_report->input0x30.buttons.X;
+            switch_report->input0x30.buttons.X = switch_report->input0x30.buttons.Y;
+            switch_report->input0x30.buttons.Y = temp;
+        }
+
         if (m_profile.misc.swap_dpad_lstick) {
             uint16_t temp_lstick_x = STICK_ZERO; //Start in a neutral position
             uint16_t temp_lstick_y = STICK_ZERO;

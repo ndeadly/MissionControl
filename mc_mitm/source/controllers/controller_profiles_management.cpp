@@ -34,7 +34,9 @@ namespace ams::controller {
                         utils::ParseBoolean(value, &config->general.enable_motion);
                 }
                 else if (strcasecmp(section, "misc") == 0) {
-                    if (strcasecmp(name, "disable_sony_leds") == 0)
+                    if (strcasecmp(name, "use_western_layout") == 0)
+                        utils::ParseBoolean(value, &config->misc.use_western_layout);
+                    else if (strcasecmp(name, "disable_sony_leds") == 0)
                         utils::ParseBoolean(value, &config->misc.disable_sony_leds);
                     else if (strcasecmp(name, "swap_dpad_lstick") == 0)
                         utils::ParseBoolean(value, &config->misc.swap_dpad_lstick);
