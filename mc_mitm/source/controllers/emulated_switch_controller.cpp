@@ -559,7 +559,7 @@ namespace ams::controller {
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
         auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
 
-        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble | switch_report->output0x01.subcmd.set_vibration.enabled;
+        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & switch_report->output0x01.subcmd.set_vibration.enabled;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
