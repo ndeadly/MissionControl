@@ -209,6 +209,9 @@ namespace ams::controller {
         switch_report->input0x30.right_stick = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
 
+        if (m_profile.misc.disable_home_button)
+            switch_report->input0x30.buttons.home = 0;
+
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
 
         if (m_profile.misc.swap_dpad_lstick) {

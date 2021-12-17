@@ -28,6 +28,7 @@ struct ControllerProfileConfig {
             bool invert_lstick_yaxis;
             bool invert_rstick_xaxis;
             bool invert_rstick_yaxis;
+            bool disable_home_button;
         } misc;
 };
 
@@ -42,6 +43,7 @@ constexpr ControllerProfileConfig g_cp_global_config = {
         .invert_lstick_xaxis = false,
         .invert_lstick_yaxis = false,
         .invert_rstick_xaxis = false,
-        .invert_rstick_yaxis = false
+        .invert_rstick_yaxis = false,
+        .disable_home_button = false
     }
 };

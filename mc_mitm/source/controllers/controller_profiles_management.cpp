@@ -46,6 +46,8 @@ namespace ams::controller {
                         utils::ParseBoolean(value, &config->misc.invert_rstick_xaxis);
                     else if (strcasecmp(name, "invert_rstick_yaxis") == 0)
                         utils::ParseBoolean(value, &config->misc.invert_rstick_yaxis);
+                    else if (strcasecmp(name, "disable_home_button") == 0)
+                        utils::ParseBoolean(value, &config->misc.disable_home_button);
                 }
                 else {
                     return 0;
