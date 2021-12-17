@@ -22,6 +22,9 @@ namespace ams::controller {
 
     namespace {
 
+        constexpr auto DPAD_THRESHOLD_BEGIN = STICK_ZERO - UINT12_MAX / 4;
+        constexpr auto DPAD_THRESHOLD_END   = STICK_ZERO + UINT12_MAX / 4;
+
         // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
         SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
         SwitchAnalogStickFactoryCalibration rstick_factory_calib = {0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f};
@@ -207,6 +210,26 @@ namespace ams::controller {
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
 
         this->ApplyButtonCombos(&switch_report->input0x30.buttons);
+
+        if (m_profile.misc.swap_dpad_lstick) {
+            uint16_t temp_lstick_x = STICK_ZERO; //Start in a neutral position
+            uint16_t temp_lstick_y = STICK_ZERO;
+            if (switch_report->input0x30.buttons.dpad_down)
+                temp_lstick_y -= (UINT12_MAX / 2);
+            if (switch_report->input0x30.buttons.dpad_up) //Should be if else, but some controllers don't have an actual dpad, so both states are allowed
+                temp_lstick_y += (UINT12_MAX / 2);
+            if (switch_report->input0x30.buttons.dpad_right)
+                temp_lstick_x += (UINT12_MAX / 2);
+            if (switch_report->input0x30.buttons.dpad_left)
+                temp_lstick_x -= (UINT12_MAX / 2);
+
+            switch_report->input0x30.buttons.dpad_left = switch_report->input0x30.left_stick.GetX() < DPAD_THRESHOLD_BEGIN ? 1 : 0;
+            switch_report->input0x30.buttons.dpad_right = switch_report->input0x30.left_stick.GetX() > DPAD_THRESHOLD_END ? 1 : 0;
+            switch_report->input0x30.buttons.dpad_down = switch_report->input0x30.left_stick.GetY() < DPAD_THRESHOLD_BEGIN ? 1 : 0;
+            switch_report->input0x30.buttons.dpad_up = switch_report->input0x30.left_stick.GetY() > DPAD_THRESHOLD_END ? 1 : 0;
+
+            switch_report->input0x30.left_stick.SetData(temp_lstick_x, temp_lstick_y);
+        }
 
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);

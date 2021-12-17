@@ -23,6 +23,7 @@ struct ControllerProfileConfig {
 
         struct {
             bool disable_sony_leds;
+            bool swap_dpad_lstick;
         } misc;
 };
 
@@ -32,6 +33,7 @@ constexpr ControllerProfileConfig g_cp_global_config = {
         .enable_motion = true
     },
     .misc = {
-        .disable_sony_leds = false
+        .disable_sony_leds = false,
+        .swap_dpad_lstick = false
     }
 };
