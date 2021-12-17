@@ -24,6 +24,14 @@ namespace ams::controller {
         constexpr const char controllers_folder[] = "sdmc:/config/MissionControl/controllers/";
         constexpr const char profile_container[] = "profile.ini";
 
+        void ValidateBrightness(const char *value, uint32_t *out){
+            uint32_t temp=8;
+            utils::ParseUInt32(value, &temp);
+            if(temp <= 63)
+                *out = temp;
+            else *out = 8;
+        }
+
         int ControllerProfileIniHandler(void *user, const char *section, const char *name, const char *value) {
                 auto config = reinterpret_cast<ControllerProfileConfig *>(user);
 
@@ -36,8 +44,8 @@ namespace ams::controller {
                 else if (strcasecmp(section, "misc") == 0) {
                     if (strcasecmp(name, "use_western_layout") == 0)
                         utils::ParseBoolean(value, &config->misc.use_western_layout);
-                    else if (strcasecmp(name, "disable_sony_leds") == 0)
-                        utils::ParseBoolean(value, &config->misc.disable_sony_leds);
+                    else if (strcasecmp(name, "sony_led_brightness") == 0)
+                        ValidateBrightness(value, &config->misc.sony_led_brightness);
                     else if (strcasecmp(name, "swap_dpad_lstick") == 0)
                         utils::ParseBoolean(value, &config->misc.swap_dpad_lstick);
                     else if (strcasecmp(name, "invert_lstick_xaxis") == 0)

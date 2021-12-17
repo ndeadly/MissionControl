@@ -23,6 +23,7 @@ namespace ams::utils {
 
     Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size);
     void ParseBoolean(const char *value, bool *out);
+    void ParseUInt32(const char *value, uint32_t *out);
     void ParseBluetoothAddress(const char *value, bluetooth::Address *out);
 
 }

@@ -54,10 +54,14 @@ namespace ams::utils {
     }
 
     void ParseBoolean(const char *value, bool *out) {
-            if (strcasecmp(value, "true") == 0)
-                *out = true;
-            else if (strcasecmp(value, "false") == 0)
-                *out = false;
+        if (strcasecmp(value, "true") == 0)
+            *out = true;
+        else if (strcasecmp(value, "false") == 0)
+            *out = false;
+    }
+
+    void ParseUInt32(const char *value, uint32_t *out) {
+        *out = atoi(value);
     }
 
     void ParseBluetoothAddress(const char *value, bluetooth::Address *out) {

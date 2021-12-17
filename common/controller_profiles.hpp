@@ -23,7 +23,7 @@ struct ControllerProfileConfig {
 
         struct {
             bool use_western_layout;
-            bool disable_sony_leds;
+            uint32_t sony_led_brightness;
             bool swap_dpad_lstick;
             bool invert_lstick_xaxis;
             bool invert_lstick_yaxis;
@@ -39,8 +39,8 @@ constexpr ControllerProfileConfig g_cp_global_config = {
         .enable_motion = true
     },
     .misc = {
-        .use_western_layout=false,
-        .disable_sony_leds = false,
+        .use_western_layout = false,
+        .sony_led_brightness = 8,
         .swap_dpad_lstick = false,
         .invert_lstick_xaxis = false,
         .invert_lstick_yaxis = false,
