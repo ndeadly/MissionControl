@@ -69,9 +69,7 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
-        ControllerProfileConfig config;
-        GetControllerConfig(&config);
-        m_led_colour = config.misc.disable_sony_leds ? led_disable : colour;
+        m_led_colour = m_profile.misc.disable_sony_leds ? led_disable : colour;
         return this->PushRumbleLedState();
     }
 

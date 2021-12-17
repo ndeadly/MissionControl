@@ -24,12 +24,20 @@ namespace ams::mitm {
 
         constexpr const char *config_file_location = "sdmc:/config/MissionControl/missioncontrol.ini";
 
-        MissionControlConfig g_global_config;
+        MissionControlConfig g_global_config = {
+            .general = {
+                .disable_custom_profiles=false
+            }
+        };
 
         int ConfigIniHandler(void *user, const char *section, const char *name, const char *value) {
             auto config = reinterpret_cast<MissionControlConfig *>(user);
 
-            if (strcasecmp(section, "bluetooth") == 0) {
+            if (strcasecmp(section, "general") == 0) {
+                if (strcasecmp(name, "disable_custom_profiles") == 0)
+                    utils::ParseBoolean(value, &config->general.disable_custom_profiles);
+            }
+            else if (strcasecmp(section, "bluetooth") == 0) {
                 if (strcasecmp(name, "host_name") == 0)
                     std::strncpy(config->bluetooth.host_name, value, sizeof(config->bluetooth.host_name));
                 else if (strcasecmp(name, "host_address") == 0)

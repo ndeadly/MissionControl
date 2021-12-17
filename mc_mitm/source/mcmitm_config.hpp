@@ -18,6 +18,10 @@
 namespace ams::mitm {
 
     struct MissionControlConfig {
+        struct{
+            bool disable_custom_profiles;
+        } general;
+
         struct {
             char host_name[0x20];
             bluetooth::Address host_address;

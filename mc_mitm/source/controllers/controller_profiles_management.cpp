@@ -15,11 +15,14 @@
  */
 #include "controller_profiles_management.hpp"
 #include "../utils.hpp"
+#include "../mcmitm_config.hpp"
 
 namespace ams::controller {
 
     namespace {
         constexpr const char cp_default_path[] = "sdmc:/config/MissionControl/controllers/default.ini";
+        constexpr const char controllers_folder[] = "sdmc:/config/MissionControl/controllers/";
+        constexpr const char profile_container[] = "profile.ini";
 
         int ControllerProfileIniHandler(void *user, const char *section, const char *name, const char *value) {
                 auto config = reinterpret_cast<ControllerProfileConfig *>(user);
@@ -42,19 +45,31 @@ namespace ams::controller {
         }
     }
 
-    void GetControllerConfig(ControllerProfileConfig *config) {
+    Result GetControllerConfig(const bluetooth::Address *address, ControllerProfileConfig *config) {
+        *config = g_cp_global_config;
+        if (mitm::GetGlobalConfig()->general.disable_custom_profiles)
+            return 1;
+        char custom_config_path[100] = "";
+        std::strcat(custom_config_path, controllers_folder);
+        char btaddress_string[2 * sizeof(bluetooth::Address) + 1] = "";
+        utils::BluetoothAddressToString(address, btaddress_string, 2 * sizeof(bluetooth::Address) + 1);
+        std::strcat(custom_config_path, btaddress_string);
+        std::strcat(custom_config_path, "/");
+        std::strcat(custom_config_path, profile_container);
+        bool has_file = false;
+        R_TRY(fs::HasFile(&has_file, custom_config_path));
+        if (!has_file) {
+            std::strcpy(custom_config_path, cp_default_path);
+        }
         /* Open the file. */
         fs::FileHandle file;
         {
-            if (R_FAILED(fs::OpenFile(std::addressof(file), cp_default_path, fs::OpenMode_Read))) {
-                return;
+            if (R_FAILED(fs::OpenFile(std::addressof(file), custom_config_path, fs::OpenMode_Read))) {
+                return 1;
             }
         }
         ON_SCOPE_EXIT { fs::CloseFile(file); };
-
-        *config = g_cp_global_config;
-        /* Parse the config. */
         util::ini::ParseFile(file, config, ControllerProfileIniHandler);
-        return;
+        return ams::ResultSuccess();
     }
 }

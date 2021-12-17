@@ -150,15 +150,9 @@ namespace ams::controller {
     , m_led_pattern(0) {
         this->ClearControllerState();
 
-        m_colours.body       = {0x32, 0x32, 0x32};
-        m_colours.buttons    = {0xe6, 0xe6, 0xe6};
-        m_colours.left_grip  = {0x46, 0x46, 0x46};
-        m_colours.right_grip = {0x46, 0x46, 0x46};
+        GetControllerConfig(address, &m_profile);
 
-        ControllerProfileConfig config;
-        GetControllerConfig(&config);
-
-        m_enable_rumble = config.general.enable_rumble;
+        m_enable_rumble = m_profile.general.enable_rumble;
     };
 
     EmulatedSwitchController::~EmulatedSwitchController() {
@@ -560,9 +554,7 @@ namespace ams::controller {
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
         auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
 
-        ControllerProfileConfig config;
-        GetControllerConfig(&config);
-        m_enable_rumble = config.general.enable_rumble & switch_report->output0x01.subcmd.set_vibration.enabled;
+        m_enable_rumble = m_profile.general.enable_rumble & switch_report->output0x01.subcmd.set_vibration.enabled;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,

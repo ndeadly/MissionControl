@@ -77,7 +77,6 @@ namespace ams::controller {
             SwitchAnalogStick m_right_stick;
             Switch6AxisData m_motion_data[3];
 
-            ProControllerColours m_colours;
             bool m_enable_rumble;
 
             fs::FileHandle m_spi_flash_file;

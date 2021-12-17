@@ -327,6 +327,7 @@ namespace ams::controller {
             HardwareID m_id;
 
             bool m_settsi_supported;
+            ControllerProfileConfig m_profile;
 
             bluetooth::HidReport m_input_report;
             bluetooth::HidReport m_output_report;

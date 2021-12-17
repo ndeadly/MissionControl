@@ -16,9 +16,10 @@
 #pragma once
 #include <stratosphere.hpp>
 #include "../../../common/controller_profiles.hpp"
+#include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 
 namespace ams::controller {
 
-    void GetControllerConfig(ControllerProfileConfig *config);
+    Result GetControllerConfig(const bluetooth::Address *address, ControllerProfileConfig *config);
 
 }
