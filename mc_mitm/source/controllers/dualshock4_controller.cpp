@@ -45,7 +45,7 @@ namespace ams::controller {
     Result Dualshock4Controller::Initialize(void) {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
-        
+
         return ams::ResultSuccess();
     }
 
@@ -69,8 +69,9 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
-        auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        ControllerProfileConfig config;
+        GetControllerConfig(&config);
+        m_led_colour = config.misc.disable_sony_leds ? led_disable : colour;
         return this->PushRumbleLedState();
     }
 
@@ -89,7 +90,7 @@ namespace ams::controller {
         }
     }
 
-    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {       
+    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff

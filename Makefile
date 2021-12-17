@@ -39,6 +39,7 @@ dist: all
 	mkdir -p dist/config/MissionControl
 	mkdir -p dist/config/MissionControl/controllers
 	cp mc_mitm/config.ini dist/config/MissionControl/missioncontrol.ini.template
+	cp mc_mitm/default.ini dist/config/MissionControl/controllers/default.ini
 	
 	cd dist; zip -r $(PROJECT_NAME)-$(BUILD_VERSION).zip ./*; cd ../;
 	

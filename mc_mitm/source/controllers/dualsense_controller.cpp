@@ -80,8 +80,9 @@ namespace ams::controller {
     }
 
     Result DualsenseController::SetLightbarColour(RGBColour colour) {
-        auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        ControllerProfileConfig config;
+        GetControllerConfig(&config);
+        m_led_colour = config.misc.disable_sony_leds ? led_disable : colour;
         return this->PushRumbleLedState();
     }
 
@@ -128,7 +129,7 @@ namespace ams::controller {
             battery_level = 10;
 
         m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
-    
+
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x31.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x31.left_stick.y)) & 0xfff

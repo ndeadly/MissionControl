@@ -19,18 +19,9 @@ namespace ams::mitm {
 
     struct MissionControlConfig {
         struct {
-            bool enable_rumble;
-            bool enable_motion;
-        } general;
-
-        struct {
             char host_name[0x20];
             bluetooth::Address host_address;
         } bluetooth;
-
-        struct {
-            bool disable_sony_leds;
-        } misc;
     };
 
     MissionControlConfig *GetGlobalConfig(void);

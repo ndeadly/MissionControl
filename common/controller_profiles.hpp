@@ -13,16 +13,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stratosphere.hpp>
-#include "bluetooth_mitm/bluetooth/bluetooth_types.hpp"
+#pragma once
 
-namespace ams::utils {
+struct ControllerProfileConfig {
+         struct {
+            bool enable_rumble;
+            bool enable_motion;
+        } general;
 
-    s32 ConvertToHorizonPriority(s32 user_priority);
-    s32 ConvertToUserPriority(s32 horizon_priority);
+        struct {
+            bool disable_sony_leds;
+        } misc;
+};
 
-    Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size);
-    void ParseBoolean(const char *value, bool *out);
-    void ParseBluetoothAddress(const char *value, bluetooth::Address *out);
-
-}
+constexpr ControllerProfileConfig g_cp_global_config = {
+    .general = {
+        .enable_rumble = true,
+        .enable_motion = true
+    },
+    .misc = {
+        .disable_sony_leds = false
+    }
+};
