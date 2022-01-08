@@ -30,6 +30,7 @@ namespace ams::controller {
 
             virtual Result Initialize(void);
             bool IsOfficialController(void) { return false; }
+            SwitchControllerType GetControllerType(void) { return static_cast<SwitchControllerType>(m_profile.general.controller_type); };
 
             Result HandleIncomingReport(const bluetooth::HidReport *report);
             Result HandleOutgoingReport(const bluetooth::HidReport *report);

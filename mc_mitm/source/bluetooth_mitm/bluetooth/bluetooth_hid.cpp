@@ -67,6 +67,51 @@ namespace ams::bluetooth::hid {
         g_system_event_fwd.Signal();
     }
 
+    Result VirtualReconnect(const bluetooth::Address *address) {
+
+        if (hos::GetVersion() >= hos::Version_12_0_0) {
+            struct ConnectionState {
+                BtdrvHidConnectionStatus status;
+                BtdrvAddress address;
+            };
+
+            // Signal fake disconnection event
+            ConnectionState disconnected = { BtdrvHidConnectionStatus_Closed, *address };
+            SignalFakeEvent(BtdrvHidEventType_Connection, &disconnected, sizeof(disconnected));
+            g_data_read_event.Wait();
+
+            // If we don't wait a bit the console disconnects the controller for real
+            svcSleepThread(100'000'000ULL);
+
+            // Signal fake connection event
+            ConnectionState connected = { BtdrvHidConnectionStatus_Opened, *address };
+            SignalFakeEvent(BtdrvHidEventType_Connection, &connected, sizeof(connected));
+            g_data_read_event.Wait();
+        }
+        else {
+            struct ConnectionState {
+                BtdrvAddress address;
+                uint8_t pad[2];
+                BtdrvHidConnectionStatus status;
+            };
+
+            // Signal fake disconnection event
+            ConnectionState disconnected = { *address, {0}, BtdrvHidConnectionStatusOld_Closed };
+            SignalFakeEvent(BtdrvHidEventTypeOld_Connection, &disconnected, sizeof(disconnected));
+            g_data_read_event.Wait();
+
+            // If we don't wait a bit the console disconnects the controller for real
+            svcSleepThread(100'000'000ULL);
+
+            // Signal fake connection event
+            ConnectionState connected = { *address, {0}, BtdrvHidConnectionStatusOld_Opened };
+            SignalFakeEvent(BtdrvHidEventTypeOld_Connection, &connected, sizeof(connected));
+            g_data_read_event.Wait();
+        }
+
+        return ams::ResultSuccess();
+    }
+
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size) {
         std::scoped_lock lk(g_event_info_lock);
 

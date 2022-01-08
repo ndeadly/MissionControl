@@ -18,6 +18,8 @@
 #include "../mcmitm_config.hpp"
 #include <memory>
 
+#include "../bluetooth_mitm/bluetooth/bluetooth_hid.hpp"
+
 namespace ams::controller {
 
     namespace {
@@ -143,6 +145,37 @@ namespace ams::controller {
             return ams::ResultSuccess();
         }
 
+
+        const uint8_t mcu_config_pro_controller[] = {
+            0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x5c
+        };
+
+        const uint8_t mcu_config_joycon[] = {
+            0x01, 0x00, 0xff, 0x00, 0x08, 0x00, 0x1b, 0x06,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0xf6
+        };
+
+        const SwitchControllerColours default_colours_pro_controller = {
+            .body       = {0x32, 0x32, 0x32},
+            .buttons    = {0xe6, 0xe6, 0xe6},
+            .left_grip  = {0x46, 0x46, 0x46},
+            .right_grip = {0x46, 0x46, 0x46}
+        };
+
+        const SwitchControllerColours default_colours_joycon = {
+            .body       = {0x82, 0x82, 0x82},
+            .buttons    = {0x0f, 0x0f, 0x0f},
+            .left_grip  = {0xff, 0xff, 0xff},
+            .right_grip = {0xff, 0xff, 0xff}
+        };
+
     }
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id)
@@ -152,7 +185,6 @@ namespace ams::controller {
     , m_battery(BATTERY_MAX)
     , m_led_pattern(0) {
         this->ClearControllerState();
-
         GetControllerConfig(address, &m_profile);
 
         m_enable_rumble = m_profile.general.enable_rumble;
@@ -251,6 +283,48 @@ namespace ams::controller {
             switch_report->input0x30.right_stick.InvertX();
         if (m_profile.misc.invert_rstick_yaxis)
             switch_report->input0x30.right_stick.InvertY();
+
+        // Fixup for identifying as horizontal joycon
+        switch (m_profile.general.controller_type) {
+            case SwitchControllerType_RightJoyCon:
+                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
+                    switch_report->input0x30.right_stick.SetData(
+                        m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_up ? 0 : STICK_ZERO),
+                        m_buttons.dpad_right ? UINT12_MAX : (m_buttons.dpad_left ? 0 : STICK_ZERO)
+                    );
+                }
+                else {
+                    switch_report->input0x30.right_stick.SetData(-m_left_stick.GetY(), m_left_stick.GetX());
+                }
+
+                switch_report->input0x30.buttons.SL_R = m_buttons.L | m_buttons.ZL;
+                switch_report->input0x30.buttons.SR_R = m_buttons.R | m_buttons.ZR;
+                switch_report->input0x30.buttons.A = m_buttons.B;
+                switch_report->input0x30.buttons.B = m_buttons.Y;
+                switch_report->input0x30.buttons.X = m_buttons.A;
+                switch_report->input0x30.buttons.Y = m_buttons.X;
+                break;
+            case SwitchControllerType_LeftJoyCon:
+                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
+                    switch_report->input0x30.left_stick.SetData(
+                        m_buttons.dpad_up ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_ZERO),
+                        m_buttons.dpad_left ? UINT12_MAX : (m_buttons.dpad_right ? 0 : STICK_ZERO)
+                    );
+                }
+                else {
+                    switch_report->input0x30.left_stick.SetData(m_left_stick.GetY(), -m_left_stick.GetX());
+                }
+
+                switch_report->input0x30.buttons.SL_L = m_buttons.L | m_buttons.ZL;
+                switch_report->input0x30.buttons.SR_L = m_buttons.R | m_buttons.ZR;
+                switch_report->input0x30.buttons.dpad_down = m_buttons.A;
+                switch_report->input0x30.buttons.dpad_left = m_buttons.B;
+                switch_report->input0x30.buttons.dpad_up = m_buttons.Y;
+                switch_report->input0x30.buttons.dpad_right = m_buttons.X;
+                break;
+            default:
+                break;
+        }
 
         switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
@@ -366,19 +440,21 @@ namespace ams::controller {
     Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
         AMS_UNUSED(report);
 
+        const FirmwareVersion fw = (m_profile.general.controller_type == SwitchControllerType_ProController) ? pro_controller_fw_version : joycon_fw_version;
+
         const SwitchSubcommandResponse response = {
             .ack = 0x82,
             .id = SubCmd_RequestDeviceInfo,
             .device_info = {
                 .fw_ver = {
-                    .major = 0x03,
-                    .minor = 0x48
+                    .major = fw.major,
+                    .minor = fw.minor
                 },
                 .type = m_profile.general.controller_type,
                 ._unk0 = 0x02,
                 .address = m_address,
-                ._unk1 = 0x01,
-                ._unk2 = 0x02
+                ._unk1 = static_cast<uint8_t>(m_profile.general.controller_type == SwitchControllerType_LeftJoyCon ? 0x03 : 0x01),
+                ._unk2 = static_cast<uint8_t>(m_profile.general.controller_type == SwitchControllerType_ProController ? 0x02 : 0x01)
             }
         };
 
@@ -521,7 +597,7 @@ namespace ams::controller {
     Result EmulatedSwitchController::SubCmdSetMcuConfig(const bluetooth::HidReport *report) {
         AMS_UNUSED(report);
 
-        const SwitchSubcommandResponse response = {
+        SwitchSubcommandResponse response = {
             .ack = 0xa0,
             .id = SubCmd_SetMcuConfig,
             .data = {0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
@@ -530,6 +606,11 @@ namespace ams::controller {
                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                      0x00, 0x5c}
         };
+
+        if (m_profile.general.controller_type == SwitchControllerType_ProController)
+            std::memcpy(response.data, mcu_config_pro_controller, sizeof(mcu_config_pro_controller));
+        else
+            std::memcpy(response.data, mcu_config_joycon, sizeof(mcu_config_joycon));
 
         return this->FakeSubCmdResponse(&response);
     }

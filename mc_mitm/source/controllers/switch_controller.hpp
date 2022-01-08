@@ -33,6 +33,17 @@ namespace ams::controller {
         SwitchPlayerNumber_Seven,
         SwitchPlayerNumber_Eight,
         SwitchPlayerNumber_Unknown = 0xf
+	};
+
+    enum SwitchControllerType : uint8_t {
+        SwitchControllerType_LeftJoyCon     = 1,
+        SwitchControllerType_RightJoyCon    = 2,
+        SwitchControllerType_ProController  = 3,
+    };
+
+    struct FirmwareVersion {
+        uint8_t major;
+        uint8_t minor;
     };
 
     struct HardwareID {
@@ -46,7 +57,7 @@ namespace ams::controller {
         uint8_t b;
     } __attribute__ ((__packed__));
 
-    struct ProControllerColours {
+    struct SwitchControllerColours {
         RGBColour body;
         RGBColour buttons;
         RGBColour left_grip;
@@ -58,7 +69,8 @@ namespace ams::controller {
         uint8_t X              : 1;
         uint8_t B              : 1;
         uint8_t A              : 1;
-        uint8_t                : 2; // SR, SL (Right Joy)
+        uint8_t SR_R           : 1;
+        uint8_t SL_R           : 1;
         uint8_t R              : 1;
         uint8_t ZR             : 1;
 
@@ -74,7 +86,8 @@ namespace ams::controller {
         uint8_t dpad_up        : 1;
         uint8_t dpad_right     : 1;
         uint8_t dpad_left      : 1;
-        uint8_t                : 2; // SR, SL (Left Joy)
+        uint8_t SR_L           : 1;
+        uint8_t SL_L           : 1;
         uint8_t L              : 1;
         uint8_t ZL             : 1;
     } __attribute__ ((__packed__));
@@ -287,6 +300,9 @@ namespace ams::controller {
 
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
 
+    constexpr const FirmwareVersion joycon_fw_version         = {0x04, 0x07};
+    constexpr const FirmwareVersion pro_controller_fw_version = {0x03, 0x48};
+
     std::string GetControllerDirectory(const bluetooth::Address *address);
 
     class SwitchController {
@@ -312,6 +328,7 @@ namespace ams::controller {
 
             virtual bool IsOfficialController(void) { return true; }
             virtual bool SupportsSetTsiCommand(void) { return m_settsi_supported; }
+            virtual SwitchControllerType GetControllerType(void) { return SwitchControllerType_ProController; };  //.Todo: handle this properly for official controllers
 
             virtual Result Initialize(void);
             virtual Result HandleIncomingReport(const bluetooth::HidReport *report);
