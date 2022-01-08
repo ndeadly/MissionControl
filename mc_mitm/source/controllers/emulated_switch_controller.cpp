@@ -294,7 +294,8 @@ namespace ams::controller {
                     );
                 }
                 else {
-                    switch_report->input0x30.right_stick.SetData(-m_left_stick.GetY(), m_left_stick.GetX());
+                    switch_report->input0x30.left_stick.InvertY();
+                    switch_report->input0x30.right_stick.SetData(switch_report->input0x30.left_stick.GetY(), switch_report->input0x30.left_stick.GetX());
                 }
 
                 switch_report->input0x30.buttons.SL_R = m_buttons.L | m_buttons.ZL;
@@ -312,7 +313,8 @@ namespace ams::controller {
                     );
                 }
                 else {
-                    switch_report->input0x30.left_stick.SetData(m_left_stick.GetY(), -m_left_stick.GetX());
+                    switch_report->input0x30.left_stick.InvertX();
+                    switch_report->input0x30.left_stick.SetData(switch_report->input0x30.left_stick.GetY(), switch_report->input0x30.left_stick.GetX());
                 }
 
                 switch_report->input0x30.buttons.SL_L = m_buttons.L | m_buttons.ZL;
