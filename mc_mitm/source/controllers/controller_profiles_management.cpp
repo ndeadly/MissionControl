@@ -40,11 +40,21 @@ namespace ams::controller {
             else *out = 8;
         }
 
+        void ValidateControllerType(const char *value, uint8_t *out){
+            uint32_t temp=3;
+            utils::ParseUInt32(value, &temp);
+            if(temp>=1 && temp <= 3)
+                *out = static_cast<uint8_t>(temp);
+            else *out = 3;
+        }
+
         int ControllerProfileIniHandler(void *user, const char *section, const char *name, const char *value) {
                 auto config = reinterpret_cast<ControllerProfileConfig *>(user);
 
                 if (strcasecmp(section, "general") == 0) {
-                    if (strcasecmp(name, "enable_rumble") == 0)
+                    if (strcasecmp(name, "controller_type") == 0)
+                        ValidateControllerType(value, &config->general.controller_type);
+                    else if (strcasecmp(name, "enable_rumble") == 0)
                         utils::ParseBoolean(value, &config->general.enable_rumble);
                     else if (strcasecmp(name, "enable_motion") == 0)
                         utils::ParseBoolean(value, &config->general.enable_motion);

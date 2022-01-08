@@ -374,7 +374,7 @@ namespace ams::controller {
                     .major = 0x03,
                     .minor = 0x48
                 },
-                .type = 0x03,
+                .type = m_profile.general.controller_type,
                 ._unk0 = 0x02,
                 .address = m_address,
                 ._unk1 = 0x01,

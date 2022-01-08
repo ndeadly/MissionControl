@@ -16,7 +16,8 @@
 #pragma once
 
 struct ControllerProfileConfig {
-         struct {
+        struct {
+            uint8_t controller_type;
             bool enable_rumble;
             bool enable_motion;
         } general;
@@ -36,6 +37,7 @@ struct ControllerProfileConfig {
 
 constexpr ControllerProfileConfig g_cp_global_config = {
     .general = {
+        .controller_type = 3,
         .enable_rumble = true,
         .enable_motion = true
     },
