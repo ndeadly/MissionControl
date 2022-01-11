@@ -293,7 +293,9 @@ namespace ams::controller {
                 const SwitchSubcommandResponse response = {
                     .ack = 0x80,
                     .id = report_data->output0x01.subcmd.id,
-                    .data = { 0x03 }
+                    .data = {
+                        .raw = { 0x03 }
+                    }
                 };
 
                 R_TRY(this->FakeSubCmdResponse(&response));
@@ -330,16 +332,18 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0x82,
             .id = SubCmd_RequestDeviceInfo,
-            .device_info = {
-                .fw_ver = {
-                    .major = 0x03,
-                    .minor = 0x48
-                },
-                .type = 0x03,
-                ._unk0 = 0x02,
-                .address = m_address,
-                ._unk1 = 0x01,
-                ._unk2 = 0x02
+            .data = {
+                .device_info = {
+                    .fw_ver = {
+                        .major = 0x03,
+                        .minor = 0x48
+                    },
+                    .type = 0x03,
+                    ._unk0 = 0x02,
+                    .address = m_address,
+                    ._unk1 = 0x01,
+                    ._unk2 = 0x02
+                }
             }
         };
 
@@ -387,8 +391,10 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SetShipPowerState,
-            .set_ship_power_state = {
-                .enabled = false
+            .data = {
+                .set_ship_power_state = {
+                    .enabled = false
+                }
             }
         };
 
@@ -412,13 +418,15 @@ namespace ams::controller {
         SwitchSubcommandResponse response = {
             .ack = 0x90,
             .id = SubCmd_SpiFlashRead,
-            .spi_flash_read = {
-                .address = read_addr,
-                .size = read_size
+            .data = {
+                .spi_flash_read = {
+                    .address = read_addr,
+                    .size = read_size
+                }
             }
         };
 
-        R_TRY(this->VirtualSpiFlashRead(read_addr, response.spi_flash_read.data, read_size));
+            R_TRY(this->VirtualSpiFlashRead(read_addr, response.data.spi_flash_read.data, read_size));
 
         return this->FakeSubCmdResponse(&response);
     }
@@ -432,8 +440,10 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SpiFlashWrite,
-            .spi_flash_write = {
-                .status = this->VirtualSpiFlashWrite(write_addr, write_data, write_size).IsFailure()
+            .data = {
+                .spi_flash_write = {
+                    .status = this->VirtualSpiFlashWrite(write_addr, write_data, write_size).IsFailure()
+                }
             }
         };
 
@@ -447,8 +457,10 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_SpiSectorErase,
-            .spi_sector_erase = {
-                .status = this->VirtualSpiFlashSectorErase(erase_addr).IsFailure()
+            .data = {
+                .spi_sector_erase = {
+                    .status = this->VirtualSpiFlashSectorErase(erase_addr).IsFailure()
+                }
             }
         };
 
@@ -461,7 +473,9 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_0x24,
-            .data = { 0x00 }
+            .data = {
+                .raw = { 0x00 }
+            }
         };
 
         return this->FakeSubCmdResponse(&response);
@@ -473,7 +487,9 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_0x25,
-            .data = { 0x00 }
+            .data = {
+                .raw = { 0x00 }
+            }
         };
         
         return this->FakeSubCmdResponse(&response);
@@ -485,11 +501,15 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0xa0,
             .id = SubCmd_SetMcuConfig,
-            .data = {0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                     0x00, 0x5c}
+            .data = {
+                .raw = {
+                    0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x5c
+                }
+            }
         };
 
         return this->FakeSubCmdResponse(&response);
@@ -526,8 +546,10 @@ namespace ams::controller {
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
             .id = SubCmd_GetPlayerLeds,
-            .get_player_leds = {
-                .leds = m_led_pattern
+            .data = {
+                .get_player_leds = {
+                    .leds = m_led_pattern
+                }
             }
         };
 

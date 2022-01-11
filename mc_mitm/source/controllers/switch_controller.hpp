@@ -169,7 +169,7 @@ namespace ams::controller {
         uint8_t ack;
         uint8_t id;
         union {
-            uint8_t data[0x23];
+            uint8_t raw[0x23];
 
             struct {
                 struct {
@@ -211,7 +211,7 @@ namespace ams::controller {
                     };
                 };
             } get_player_leds;
-        };
+        } data;
     } __attribute__ ((__packed__));
 
     struct SwitchOutputReport0x01 {
