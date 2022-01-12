@@ -79,12 +79,12 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct Switch6AxisData {
-        uint16_t accel_x;
-        uint16_t accel_y;
-        uint16_t accel_z;
-        uint16_t gyro_1;
-        uint16_t gyro_2;
-        uint16_t gyro_3;
+        int16_t accel_x;
+        int16_t accel_y;
+        int16_t accel_z;
+        int16_t gyro_1;
+        int16_t gyro_2;
+        int16_t gyro_3;
     } __attribute__ ((__packed__));
 
     struct Switch6AxisCalibrationData {

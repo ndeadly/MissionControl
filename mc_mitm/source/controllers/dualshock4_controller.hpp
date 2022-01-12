@@ -140,12 +140,12 @@ namespace ams::controller {
         uint8_t                 right_trigger;
         uint16_t                timestamp;
         uint8_t                 battery;
-        uint16_t                vel_x;
-        uint16_t                vel_y;
-        uint16_t                vel_z;
-        uint16_t                acc_x;
-        uint16_t                acc_y;
-        uint16_t                acc_z;
+        int16_t                vel_x;
+        int16_t                vel_y;
+        int16_t                vel_z;
+        int16_t                acc_x;
+        int16_t                acc_y;
+        int16_t                acc_z;
         uint8_t                 _unk1[5];
 
         uint8_t battery_level    : 4;
