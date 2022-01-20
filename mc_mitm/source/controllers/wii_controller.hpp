@@ -39,6 +39,7 @@ namespace ams::controller {
         WiiExtensionController_MotionPlusNunchuckPassthrough,
         WiiExtensionController_MotionPlusClassicControllerPassthrough,
         WiiExtensionController_TaTaCon,
+        WiiExtensionController_BalanceBoard,
         WiiExtensionController_Unrecognised,
     };
 
@@ -291,6 +292,33 @@ namespace ams::controller {
         uint8_t             : 0;
     } __attribute__ ((__packed__));
 
+    struct BalanceBoardExtensionData {
+        uint16_t top_right;
+        uint16_t bottom_right;
+        uint16_t top_left;
+        uint16_t bottom_left;
+        uint8_t temperature;
+        uint8_t _pad;
+        uint8_t battery;
+    } __attribute__ ((__packed__));
+
+    struct BalanceBoardCalibrationData {
+        uint16_t top_right_0kg;
+        uint16_t bottom_right_0kg;
+        uint16_t top_left_0kg;
+        uint16_t bottom_left_0kg;
+
+        uint16_t top_right_17kg;
+        uint16_t bottom_right_17kg;
+        uint16_t top_left_17kg;
+        uint16_t bottom_left_17kg;
+
+        uint16_t top_right_34kg;
+        uint16_t bottom_right_34kg;
+        uint16_t top_left_34kg;
+        uint16_t bottom_left_34kg;
+    } __attribute__ ((__packed__));
+
     struct WiiOutputReport0x10 {
         uint8_t rumble  : 1;
         uint8_t         : 0;
@@ -459,7 +487,7 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
-                {0x057e, 0x0306},  // Official Wiimote
+                {0x057e, 0x0306},  // Official Wiimote/Balance Board
                 {0x057e, 0x0330},  // Official Wii U Pro Controller
             };
 
@@ -495,6 +523,7 @@ namespace ams::controller {
             void MapClassicControllerExtension(const uint8_t ext[]);
             void MapWiiUProControllerExtension(const uint8_t ext[]);
             void MapTaTaConExtension(const uint8_t ext[]);
+			void MapBalanceBoardExtension(const uint8_t ext[]);
             void MapMotionPlusExtension(const uint8_t ext[]);
             void MapNunchuckExtensionPassthroughMode(const uint8_t ext[]);
             void MapClassicControllerExtensionPassthroughMode(const uint8_t ext[]);
@@ -506,6 +535,8 @@ namespace ams::controller {
 
             Result GetAccelerometerCalibration(WiiAccelerometerCalibrationData *calibration);
             Result GetMotionPlusCalibration(MotionPlusCalibrationData *calibration);
+            Result GetBalanceBoardCalibration(BalanceBoardCalibrationData *calibration);
+
             Result SetReportMode(uint8_t mode);
             Result QueryStatus();
 
@@ -529,7 +560,11 @@ namespace ams::controller {
             bool m_mp_state_changing;
 
             WiiAccelerometerCalibrationData m_accel_calibration;
-            MotionPlusCalibrationData m_gyro_calibration;
+
+            union {
+                MotionPlusCalibrationData motion_plus;
+                BalanceBoardCalibrationData balance_board;
+            } m_ext_calibration;
     };
 
 }
