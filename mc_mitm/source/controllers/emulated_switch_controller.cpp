@@ -147,7 +147,9 @@ namespace ams::controller {
     , m_charging(false)
     , m_ext_power(false)
     , m_battery(BATTERY_MAX)
-    , m_led_pattern(0) {
+    , m_led_pattern(0)
+    , m_gyro_sensitivity(2000)
+    , m_acc_sensitivity(8000) {
         this->ClearControllerState();
 
         m_colours.body       = {0x32, 0x32, 0x32};
@@ -286,6 +288,9 @@ namespace ams::controller {
                 break;
             case SubCmd_EnableImu:
                 R_TRY(this->SubCmdEnableImu(report));
+                break;
+            case SubCmd_SetImuSensitivity:
+                R_TRY(this->SubCmdSetImuSensitivity(report));
                 break;
             case SubCmd_EnableVibration:
                 R_TRY(this->SubCmdEnableVibration(report));
@@ -426,20 +431,9 @@ namespace ams::controller {
                 }
             }
         };
-
-        //Todo: remove this when calibration is properly handled
-        if (read_addr == 0x6020) {
-            std::memcpy(response.data.spi_flash_read.data, &m_motion_calibration, read_size);
-        }
-        else {
+		
         R_TRY(this->VirtualSpiFlashRead(read_addr, response.data.spi_flash_read.data, read_size));
-        }
-
-        // Todo: also remove this
-        if (read_addr == 0x6080) {
-            std::memset(response.data.spi_flash_read.data, 0x00, 6);
-        }
-
+		
         if (read_addr == 0x6050) {
             if (ams::mitm::GetSystemLanguage() == 10) {
                 uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
@@ -587,7 +581,16 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::SubCmdEnableImu(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        if (switch_report->output0x01.subcmd.enable_imu.enabled) {
+            if (!m_enable_motion) {
+                m_gyro_sensitivity = 2000;
+                m_acc_sensitivity = 8000;
+            }
+        }
+
+        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion & switch_report->output0x01.subcmd.enable_imu.enabled;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -597,10 +600,37 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
+    Result EmulatedSwitchController::SubCmdSetImuSensitivity(const bluetooth::HidReport *report) {
+        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
+
+        switch (switch_report->output0x01.subcmd.set_imu_sensitivity.gyro_sensitivity) {
+            case 0: m_gyro_sensitivity = 250; break;
+            case 1: m_gyro_sensitivity = 500; break;
+            case 2: m_gyro_sensitivity = 1000; break;
+            case 3: m_gyro_sensitivity = 2000; break;
+            AMS_UNREACHABLE_DEFAULT_CASE();
+        }
+
+        switch (switch_report->output0x01.subcmd.set_imu_sensitivity.acc_sensitivity) {
+            case 0: m_acc_sensitivity = 8000; break;
+            case 1: m_acc_sensitivity = 4000; break;
+            case 2: m_acc_sensitivity = 2000; break;
+            case 3: m_acc_sensitivity = 16000; break;
+            AMS_UNREACHABLE_DEFAULT_CASE();
+        }
+
+        const SwitchSubcommandResponse response = {
+            .ack = 0x80,
+            .id = SubCmd_SetImuSensitivity
+        };
+
+        return this->FakeSubCmdResponse(&response);
+    }
+
     Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
         auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
 
-        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & switch_report->output0x01.subcmd.set_vibration.enabled;
+        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & switch_report->output0x01.subcmd.enable_vibration.enabled;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,

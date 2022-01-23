@@ -187,7 +187,18 @@ namespace ams::controller {
 
             struct {
                 bool enabled;
-            } set_vibration;
+            } enable_imu;
+
+            struct {
+                uint8_t gyro_sensitivity;
+                uint8_t acc_sensitivity;
+                uint8_t gyro_perf_rate;
+                uint8_t acc_aa_bandwidth;
+            } set_imu_sensitivity;
+
+            struct {
+                bool enabled;
+            } enable_vibration;
         };
     } __attribute__ ((__packed__));
 

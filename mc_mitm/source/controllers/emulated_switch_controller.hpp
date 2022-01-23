@@ -60,6 +60,7 @@ namespace ams::controller {
             Result SubCmdGetPlayerLeds(const bluetooth::HidReport *report);
             Result SubCmdSetHomeLed(const bluetooth::HidReport *report);
             Result SubCmdEnableImu(const bluetooth::HidReport *report);
+            Result SubCmdSetImuSensitivity(const bluetooth::HidReport *report);
             Result SubCmdEnableVibration(const bluetooth::HidReport *report);
 
             Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
@@ -78,6 +79,8 @@ namespace ams::controller {
             Switch6AxisData m_motion_data[3];
 
             Switch6AxisCalibrationData m_motion_calibration;
+            uint16_t m_gyro_sensitivity;
+            uint16_t m_acc_sensitivity;
 
             ProControllerColours m_colours;
             bool m_enable_rumble;
