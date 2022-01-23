@@ -51,22 +51,42 @@ namespace ams::controller {
         m_xy[2] ^= 0xff;
     }
 
-    void SwitchAnalogStick::ForceDeadzone(uint16_t zone) {
-        float zone_scale_factor = float(STICK_ZERO) / (STICK_ZERO - zone);
-        
+    void SwitchAnalogStick::ForceDeadzone(uint16_t zone, uint16_t outerZone) {
+        float zone_scale_factor = float(STICK_ZERO) / (STICK_ZERO - zone - outerZone);
+
         uint16_t x = GetX();
         if (x < STICK_ZERO - zone)
-            x = static_cast<uint16_t>(zone_scale_factor * x);
+        {
+            if (x < outerZone)
+                x = 0;
+            else
+                x = static_cast<uint16_t>(zone_scale_factor * x) - outerZone;
+        }
         else if (x > STICK_ZERO + zone)
-            x = STICK_ZERO + static_cast<uint16_t>(zone_scale_factor * (x - STICK_ZERO - zone) + 1);
+        {
+            if (x > 0xFFF - outerZone)
+                x = 0xFFF;
+            else
+                x = STICK_ZERO + static_cast<uint16_t>(zone_scale_factor * (x - STICK_ZERO - zone) + 1);
+        }
         else
             x = STICK_ZERO;
-        
+
         uint16_t y = GetY();
         if (y < STICK_ZERO - zone)
-            y = static_cast<uint16_t>(zone_scale_factor * y);
+        {
+            if (y < outerZone)
+                y = 0;
+            else
+                y = static_cast<uint16_t>(zone_scale_factor * y) - outerZone;
+        }
         else if (y > STICK_ZERO + zone)
-            y = STICK_ZERO + static_cast<uint16_t>(zone_scale_factor * (y - STICK_ZERO - zone) + 1);
+        {
+            if (y > 0xFFF - outerZone)
+                y = 0xFFF;
+            else
+                y = STICK_ZERO + static_cast<uint16_t>(zone_scale_factor * (y - STICK_ZERO - zone) + 1);
+        }
         else
             y = STICK_ZERO;
         
