@@ -26,7 +26,11 @@ namespace ams::mitm {
         MissionControlConfig g_global_config = {
             .general = {
                 .enable_rumble = true,
-                .enable_motion = true
+                .enable_motion = true,
+                .left_stick_deadzone = 0,
+                .left_stick_outer_deadzone = 0,
+                .right_stick_deadzone = 0,
+                .right_stick_outer_deadzone = 0
             },
             .misc = {
                 .disable_sony_leds = false
@@ -38,6 +42,24 @@ namespace ams::mitm {
                 *out = true;
             else if (strcasecmp(value, "false") == 0)
                 *out = false; 
+        }
+
+        void ParseInt(const char *value, int *out) {
+            unsigned int len = std::strlen(value);
+            if (len > 10) return;
+            
+            bool neg = (value[0] == '-');
+            unsigned int idx = (neg ? 1 : 0);
+            
+            int res = 0;
+            for (; idx < len; idx++)
+            {
+                char val = value[idx];
+                if (val < '0' || val > '9')
+                    return;
+                res = (10 * res) + (val - '0');
+            }
+            *out = (neg ? -1 : 1) * res;
         }
 
         void ParseBluetoothAddress(const char *value, bluetooth::Address *out) {
@@ -65,9 +87,37 @@ namespace ams::mitm {
 
             if (strcasecmp(section, "general") == 0) {
                 if (strcasecmp(name, "enable_rumble") == 0)
-                    ParseBoolean(value, &config->general.enable_rumble);  
+                    ParseBoolean(value, &config->general.enable_rumble);
                 else if (strcasecmp(name, "enable_motion") == 0)
-                    ParseBoolean(value, &config->general.enable_motion); 
+                    ParseBoolean(value, &config->general.enable_motion);
+                else if (strcasecmp(name, "left_stick_deadzone") == 0)
+                {
+                    int percent = 0;
+                    ParseInt(value, &percent);
+                    if (percent > 0 && percent < 101)
+                        config->general.left_stick_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
+                }
+                else if (strcasecmp(name, "left_stick_outer_deadzone") == 0)
+                {
+                    int percent = 0;
+                    ParseInt(value, &percent);
+                    if (percent > 0 && percent < 101)
+                        config->general.left_stick_outer_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
+                }
+                else if (strcasecmp(name, "right_stick_deadzone") == 0)
+                {
+                    int percent = 0;
+                    ParseInt(value, &percent);
+                    if (percent > 0 && percent < 101)
+                        config->general.right_stick_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
+                }
+                else if (strcasecmp(name, "right_stick_outer_deadzone") == 0)
+                {
+                    int percent = 0;
+                    ParseInt(value, &percent);
+                    if (percent > 0 && percent < 101)
+                        config->general.right_stick_outer_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
+                }
             }
             else if (strcasecmp(section, "bluetooth") == 0) {
                 if (strcasecmp(name, "host_name") == 0)

@@ -120,6 +120,10 @@ A template for the config .ini file will be installed to `/config/MissionControl
 These are general settings for mission control features. 
 	- `enable_rumble` Enables/disables rumble support for unofficial controllers.
 	- `enable_motion` Enables/disables motion controls support. Not currently used
+	- `left_stick_deadzone` Sets an inner deadzone for the left stick in percent (100 means that the stick will be deactivated)
+	- `left_stick_outer_deadzone` Sets an outer deadzone for the left stick in percent (value must not exceed 100 minus `left_stick_deadzone`)
+	- `right_stick_deadzone` Sets an inner deadzone for the right stick in percent (100 means that the stick will be deactivated)
+	- `right_stick_outer_deadzone` Sets an outer deadzone for the right stick in percent (value must not exceed 100 minus `right_stick_deadzone`)
 
 - `[bluetooth]`
 These settings can be used to spoof your switch bluetooth to appear as another device. This may be useful (in conjunction with a link key) if you want to use your controller across multiple devices without having to re-pair every time you switch. Note that changing these settings will invalidate your console information stored in any previously paired controllers and will require re-pairing.

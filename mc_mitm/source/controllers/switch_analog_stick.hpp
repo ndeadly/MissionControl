@@ -29,6 +29,7 @@ namespace ams::controller {
         uint16_t GetY(void);
         void InvertX(void);
         void InvertY(void);
+        void ForceDeadzone(uint16_t zone, uint16_t outerZone);
 
         uint8_t m_xy[3];
     };
