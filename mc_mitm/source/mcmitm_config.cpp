@@ -28,7 +28,9 @@ namespace ams::mitm {
                 .enable_rumble = true,
                 .enable_motion = true,
                 .left_stick_deadzone = 0,
-                .right_stick_deadzone = 0
+                .left_stick_outer_deadzone = 0,
+                .right_stick_deadzone = 0,
+                .right_stick_outer_deadzone = 0
             },
             .misc = {
                 .disable_sony_leds = false
@@ -95,12 +97,26 @@ namespace ams::mitm {
                     if (percent > 0 && percent < 101)
                         config->general.left_stick_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
                 }
+                else if (strcasecmp(name, "left_stick_outer_deadzone") == 0)
+                {
+                    int percent = 0;
+                    ParseInt(value, &percent);
+                    if (percent > 0 && percent < 101)
+                        config->general.left_stick_outer_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
+                }
                 else if (strcasecmp(name, "right_stick_deadzone") == 0)
                 {
                     int percent = 0;
                     ParseInt(value, &percent);
                     if (percent > 0 && percent < 101)
                         config->general.right_stick_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
+                }
+                else if (strcasecmp(name, "right_stick_outer_deadzone") == 0)
+                {
+                    int percent = 0;
+                    ParseInt(value, &percent);
+                    if (percent > 0 && percent < 101)
+                        config->general.right_stick_outer_deadzone = static_cast<uint16_t>(float(0x7FF) * percent / 100.f);
                 }
             }
             else if (strcasecmp(section, "bluetooth") == 0) {
