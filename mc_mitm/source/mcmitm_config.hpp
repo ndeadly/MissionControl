@@ -22,7 +22,9 @@ namespace ams::mitm {
             bool enable_rumble;
             bool enable_motion;
             uint16_t left_stick_deadzone;
+            uint16_t left_stick_outer_deadzone;
             uint16_t right_stick_deadzone;
+            uint16_t right_stick_outer_deadzone;
         } general;
 
         struct {
