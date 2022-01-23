@@ -202,7 +202,7 @@ namespace ams::controller {
 
         // Apply config modifications
         auto config = mitm::GetGlobalConfig();
-        if (config->general.left_stick_deadzone > 0 || config->general.left_stick_outer_deadzone > 0 )
+        if (config->general.left_stick_deadzone > 0 || config->general.left_stick_outer_deadzone > 0)
             m_left_stick.ForceDeadzone(config->general.left_stick_deadzone, config->general.left_stick_outer_deadzone);
         if (config->general.right_stick_deadzone > 0 || config->general.right_stick_outer_deadzone > 0)
             m_right_stick.ForceDeadzone(config->general.right_stick_deadzone, config->general.right_stick_outer_deadzone);
