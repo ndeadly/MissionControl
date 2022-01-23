@@ -65,6 +65,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Mocute 050__
 * __Gen Game S3__
 * __AtGames Legends Pinball Controller__
+* __Hyperkin Scout__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
@@ -78,7 +79,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for Mission Control to become active.
 
 ***IMPORTANT: 
-Atmosphère >= 1.2.0 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.
+Atmosphère >= 1.2.5 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.
 Users upgrading from version 0.1.0 of Mission Control are also advised to wipe their pairing database and re-pair controllers running the latest version. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
 
 ### Usage
@@ -89,7 +90,7 @@ Mission Control runs as a background process and makes use of the system's nativ
 
 Controllers that successfully pair but haven't been supported yet will display with red buttons on the `Controllers` menu to indicate their controls are not being mapped. Please open an issue to request support for such controllers.
 
-Your controller's buttons are mapped as closely as possible to the physical layout of a Switch Pro controller. This means that A/B and X/Y buttons will be swapped for controllers that use an Xbox style button layout rather than using what is printed on the button. The button combos `MINUS + DPAD_UP` and `MINUS + DPAD_DOWN` are provided for all controllers to function as an alternative for `HOME` and `CAPTURE` buttons in cases where there are not enough face buttons available.
+Your controller's buttons are mapped as closely as possible to the physical layout of a Switch Pro controller. This means that A/B and X/Y buttons will be swapped for controllers that use an Xbox style button layout rather than using what is printed on the button. The button combos `MINUS + DPAD_UP` and `MINUS + DPAD_DOWN` are provided for all controllers to function as an alternative for `CAPTURE` and `HOME` buttons in cases where there are not enough face buttons available.
 
 Most native features *should* just work (with the exception of things like firmware update). If you find something that's broken please open a support issue on this github page.
 

@@ -78,9 +78,7 @@ namespace ams::controller {
         else if (src->input0x20.extension_connected && (m_extension == WiiExtensionController_None)) {
             // Initialise extension
             this->WriteMemory(0x04a400f0, init_data1, sizeof(init_data1));
-            svcSleepThread(20'000'000ULL);
             this->WriteMemory(0x04a400fb, init_data2, sizeof(init_data2));
-            svcSleepThread(20'000'000ULL);
 
             // Read extension type
             this->ReadMemory(0x04a400fa, 6);
@@ -317,75 +315,78 @@ namespace ams::controller {
     }
 
     Result WiiController::WriteMemory(uint32_t write_addr, const uint8_t *data, uint8_t size) {
-        s_output_report.size = sizeof(WiiOutputReport0x16) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        m_output_report.size = sizeof(WiiOutputReport0x16) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x16;
         report_data->output0x16.address = ams::util::SwapBytes(write_addr);
         report_data->output0x16.size = size;
         std::memcpy(&report_data->output0x16.data, data, size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
     Result WiiController::ReadMemory(uint32_t read_addr, uint16_t size) {
-        s_output_report.size = sizeof(WiiOutputReport0x17) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        m_output_report.size = sizeof(WiiOutputReport0x17) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x17;
         report_data->output0x17.address = ams::util::SwapBytes(read_addr);
         report_data->output0x17.size = ams::util::SwapBytes(size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
     Result WiiController::SetReportMode(uint8_t mode) {
-        s_output_report.size = sizeof(WiiOutputReport0x12) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        m_output_report.size = sizeof(WiiOutputReport0x12) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x12;
         report_data->output0x12.rumble = m_rumble_state;
         report_data->output0x12.report_mode = mode;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
     Result WiiController::QueryStatus(void) {
-        s_output_report.size = sizeof(WiiOutputReport0x15) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        m_output_report.size = sizeof(WiiOutputReport0x15) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x15;
         report_data->output0x15.rumble = m_rumble_state;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
     Result WiiController::SetVibration(const SwitchRumbleData *rumble_data) {
-        m_rumble_state = rumble_data->high_band_amp > 0; //rumble_data->low_band_amp > 0 || rumble_data->high_band_amp > 0;
+        m_rumble_state = rumble_data[0].low_band_amp > 0 || 
+                         rumble_data[0].high_band_amp > 0 ||
+                         rumble_data[1].low_band_amp > 0 ||
+                         rumble_data[1].high_band_amp > 0;
 
-        s_output_report.size = sizeof(WiiOutputReport0x10) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        m_output_report.size = sizeof(WiiOutputReport0x10) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x10;
         report_data->output0x10.rumble = m_rumble_state;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
     Result WiiController::CancelVibration(void) {
         m_rumble_state = 0;
 
-        s_output_report.size = sizeof(WiiOutputReport0x10) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        m_output_report.size = sizeof(WiiOutputReport0x10) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x10;
         report_data->output0x10.rumble = m_rumble_state;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
     Result WiiController::SetPlayerLed(uint8_t led_mask) {
-        s_output_report.size = sizeof(WiiOutputReport0x11) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(s_output_report.data);
+        m_output_report.size = sizeof(WiiOutputReport0x11) + 1;
+        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x11;
         report_data->output0x11.rumble = m_rumble_state;
         report_data->output0x11.leds = led_mask & 0xf;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
 }

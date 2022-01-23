@@ -25,13 +25,15 @@ namespace ams::controller {
     namespace {
 
         const std::string official_npad_names[] = {
+            "NintendoGamepad",
             "Joy-Con",
             "Pro Controller",
             "Lic Pro Controller",
             "NES Controller",
             "HVC Controller",
             "SNES Controller",
-            "NintendoGamepad",
+            "N64 Controller",
+            "MD/Gen Control Pad",
         };
 
         constexpr auto cod_major_peripheral  = 0x05;
@@ -173,6 +175,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : HyperkinController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Hyperkin;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -261,6 +269,9 @@ namespace ams::controller {
                 break;
             case ControllerType_AtGames:
                 g_controllers.push_back(std::make_unique<AtGamesController>(address, id));
+                break;
+            case ControllerType_Hyperkin:
+                g_controllers.push_back(std::make_unique<HyperkinController>(address, id));
                 break;
             default:
                 g_controllers.push_back(std::make_unique<UnknownController>(address, id));

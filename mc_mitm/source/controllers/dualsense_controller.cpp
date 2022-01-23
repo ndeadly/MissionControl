@@ -53,15 +53,15 @@ namespace ams::controller {
     }
 
     Result DualsenseController::Initialize(void) {
-        R_TRY(EmulatedSwitchController::Initialize());
         R_TRY(this->PushRumbleLedState());
+        R_TRY(EmulatedSwitchController::Initialize());
 
         return ams::ResultSuccess();
     }
 
     Result DualsenseController::SetVibration(const SwitchRumbleData *rumble_data) {
-        m_rumble_state.amp_motor_left  = static_cast<uint8_t>(255 * rumble_data->low_band_amp);
-        m_rumble_state.amp_motor_right = static_cast<uint8_t>(255 * rumble_data->high_band_amp);
+        m_rumble_state.amp_motor_left  = static_cast<uint8_t>(255 * std::max(rumble_data[0].low_band_amp, rumble_data[1].low_band_amp));
+        m_rumble_state.amp_motor_right = static_cast<uint8_t>(255 * std::max(rumble_data[0].high_band_amp, rumble_data[1].high_band_amp));
         return this->PushRumbleLedState();
     }
 
@@ -185,10 +185,10 @@ namespace ams::controller {
         report.data[49] = m_led_colour.b;
         report.crc = crc32Calculate(report.data, sizeof(report.data));
 
-        s_output_report.size = sizeof(report) - 1;
-        std::memcpy(s_output_report.data, &report.data[1], s_output_report.size);
+        m_output_report.size = sizeof(report) - 1;
+        std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &s_output_report);
+        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
 
 }

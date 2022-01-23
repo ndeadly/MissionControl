@@ -110,6 +110,11 @@ namespace ams::controller {
         SubCmd_ResetMcu             = 0x20,
         SubCmd_SetMcuConfig         = 0x21,
         SubCmd_SetMcuState          = 0x22,
+        SubCmd_0x24                 = 0x24,
+        SubCmd_0x25                 = 0x25,
+        SubCmd_0x28                 = 0x28,
+        SubCmd_SetNfcIrMcuData      = 0x29,
+        SubCmd_GetNfcIrMcuData      = 0x2b,
         SubCmd_SetPlayerLeds        = 0x30,
         SubCmd_GetPlayerLeds        = 0x31,
         SubCmd_SetHomeLed           = 0x38,
@@ -142,6 +147,21 @@ namespace ams::controller {
             struct {
                 uint32_t address;
             } spi_flash_sector_erase;
+
+            struct {
+                union {
+                    uint8_t leds;
+
+                    struct {
+                        uint8_t leds_flash : 4;
+                        uint8_t leds_on    : 4;
+                    };
+                };
+            } set_player_leds;
+
+            struct {
+                bool enabled;
+            } set_vibration;
         };
     } __attribute__ ((__packed__));
 
@@ -149,7 +169,7 @@ namespace ams::controller {
         uint8_t ack;
         uint8_t id;
         union {
-            uint8_t data[0x23];
+            uint8_t raw[0x23];
 
             struct {
                 struct {
@@ -180,7 +200,18 @@ namespace ams::controller {
             struct {
                 uint8_t status;
             } spi_sector_erase;
-        };
+
+            struct {
+                union {
+                    uint8_t leds;
+
+                    struct {
+                        uint8_t leds_flash : 4;
+                        uint8_t leds_on    : 4;
+                    };
+                };
+            } get_player_leds;
+        } data;
     } __attribute__ ((__packed__));
 
     struct SwitchOutputReport0x01 {
@@ -255,6 +286,8 @@ namespace ams::controller {
 
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
 
+    std::string GetControllerDirectory(const bluetooth::Address *address);
+
     class SwitchController {
 
         public: 
@@ -262,7 +295,9 @@ namespace ams::controller {
                 {0x057e, 0x2006},   // Official Joycon(L) Controller
                 {0x057e, 0x2007},   // Official Joycon(R) Controller/NES Online Controller
                 {0x057e, 0x2009},   // Official Switch Pro Controller
-                {0x057e, 0x2017}    // Official SNES Online Controller
+                {0x057e, 0x2017},   // Official SNES Online Controller
+                {0x057e, 0x2019},   // Official N64 Online Controller
+                {0x057e, 0x201a}    // Official Genesis/Megadrive Online Controller
             };
 
             SwitchController(const bluetooth::Address *address, HardwareID id)
@@ -292,8 +327,8 @@ namespace ams::controller {
 
             bool m_settsi_supported;
 
-            static bluetooth::HidReport s_input_report;
-            static bluetooth::HidReport s_output_report;
+            bluetooth::HidReport m_input_report;
+            bluetooth::HidReport m_output_report;
     };
 
 }

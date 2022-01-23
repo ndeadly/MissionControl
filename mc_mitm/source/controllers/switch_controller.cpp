@@ -63,9 +63,6 @@ namespace ams::controller {
         return path;
     }
 
-    bluetooth::HidReport SwitchController::s_input_report;
-    bluetooth::HidReport SwitchController::s_output_report;
-
     Result SwitchController::Initialize(void) {
         if (this->HasSetTsiDisableFlag())
             m_settsi_supported = false;
@@ -85,15 +82,15 @@ namespace ams::controller {
     }
 
     Result SwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
-        s_input_report.size = report->size;
-	    std::memcpy(s_input_report.data, report->data, report->size);
+        m_input_report.size = report->size;
+	    std::memcpy(m_input_report.data, report->data, report->size);
 
-        auto switch_report = reinterpret_cast<SwitchReportData *>(s_input_report.data);
+        auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         if (switch_report->id == 0x30) {
             this->ApplyButtonCombos(&switch_report->input0x30.buttons);
         }
 
-        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &s_input_report);
+        return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);
     }
 
     Result SwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {

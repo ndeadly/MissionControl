@@ -29,9 +29,9 @@ namespace ams::controller {
 
     Result XiaomiController::Initialize(void) {
         R_TRY(EmulatedSwitchController::Initialize());
-        s_output_report.size = sizeof(init_packet);
-        std::memcpy(s_output_report.data, init_packet, sizeof(init_packet));
-        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &s_output_report));
+        m_output_report.size = sizeof(init_packet);
+        std::memcpy(m_output_report.data, init_packet, sizeof(init_packet));
+        R_TRY(bluetooth::hid::report::SendHidReport(&m_address, &m_output_report));
         return ams::ResultSuccess();    
     }
     

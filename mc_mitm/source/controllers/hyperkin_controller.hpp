@@ -18,66 +18,61 @@
 
 namespace ams::controller {
 
-    enum PowerADPadDirection {
-        PowerADPad_N,
-        PowerADPad_NE,
-        PowerADPad_E,
-        PowerADPad_SE,
-        PowerADPad_S,
-        PowerADPad_SW,
-        PowerADPad_W,
-        PowerADPad_NW,
-        PowerADPad_Released = 0x0f
+    enum HyperkinDPadDirection {
+        HyperkinDPad_Released,
+        HyperkinDPad_N,
+        HyperkinDPad_NE,
+        HyperkinDPad_E,
+        HyperkinDPad_SE,
+        HyperkinDPad_S,
+        HyperkinDPad_SW,
+        HyperkinDPad_W,
+        HyperkinDPad_NW
     };
 
-    struct PowerAStickData {
-        uint8_t x;
-        uint8_t y;
-    } __attribute__((packed));
+    struct HyperkinStickData {
+        uint16_t x;
+        uint16_t y;
+    } __attribute__ ((__packed__));
 
-    struct PowerAButtonData {
-        uint8_t dpad    : 4;
-        uint8_t A       : 1;
+    struct HyperkinButtonData {
         uint8_t B       : 1;
-        uint8_t X       : 1;
+        uint8_t A       : 1;
         uint8_t Y       : 1;
-
-        uint8_t L1      : 1;
-        uint8_t R1      : 1;
+        uint8_t X       : 1;
+        uint8_t L       : 1;
+        uint8_t R       : 1;
+        uint8_t         : 0;
+        
         uint8_t select  : 1;
         uint8_t start   : 1;
-        uint8_t L3      : 1;
-        uint8_t R3      : 1;
         uint8_t         : 0;
+
+        uint8_t dpad;
     } __attribute__((packed));
 
-    struct PowerAInputReport0x03 {
-        PowerAStickData left_stick;
-        PowerAStickData right_stick;
-        PowerAButtonData buttons;
-        uint8_t L2;
-        uint8_t R2;
-        uint8_t battery;
-        uint8_t _unk;
-    } __attribute__((packed));
+    struct HyperkinInputReport0x3f{
+        HyperkinButtonData buttons;
+        HyperkinStickData left_stick;
+        HyperkinStickData right_stick;
+        uint8_t unk;
+    } __attribute__ ((__packed__));
 
-    struct PowerAReportData{
+    struct HyperkinReportData{
         uint8_t id;
         union {
-            PowerAInputReport0x03 input0x03;
+            HyperkinInputReport0x3f input0x3f;
         };
     } __attribute__((packed));
 
-    class PowerAController : public EmulatedSwitchController {
+    class HyperkinController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = { 
-                {0x20d6, 0x89e5},   // Moga Hero Controller
-                {0x20d6, 0x0dad},   // Moga Pro Controller
-                {0x20d6, 0x6271}    // Moga Pro 2 Controller
+                {0x2e24, 0x200a}    // Hyperkin Scout
             };  
 
-            PowerAController(const bluetooth::Address *address, HardwareID id) 
+            HyperkinController(const bluetooth::Address *address, HardwareID id) 
             : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand(void) { return false; }
@@ -85,7 +80,7 @@ namespace ams::controller {
             void UpdateControllerState(const bluetooth::HidReport *report);
 
         private:
-            void HandleInputReport0x03(const PowerAReportData *src);
+            void HandleInputReport0x3f(const HyperkinReportData *src);
 
     };
 
