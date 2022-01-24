@@ -75,7 +75,7 @@ namespace ams::controller {
         public:
             UnknownController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) {
-                m_colours.buttons = {0xff, 0x00, 0x00};
+                //m_colours.buttons = {0xff, 0x00, 0x00}; TODO: Replicate this behaviour with the SPI flash into account
             };
     };
 

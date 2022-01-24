@@ -25,19 +25,17 @@ namespace ams::controller {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
-        const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
-
         const RGBColour player_led_colours[] = {
             // Same colours used by PS4
-            {0x00, 0x00, 0x40}, // blue
-            {0x40, 0x00, 0x00}, // red
-            {0x00, 0x40, 0x00}, // green
-            {0x20, 0x00, 0x20}, // pink
+            {0x00, 0x00, 0x04}, // blue
+            {0x04, 0x00, 0x00}, // red
+            {0x00, 0x04, 0x00}, // green
+            {0x02, 0x00, 0x02}, // pink
             // New colours for controllers 5-8
-            {0x00, 0x20, 0x20}, // cyan
-            {0x30, 0x10, 0x00}, // orange
-            {0x20, 0x20, 0x00}, // yellow
-            {0x10, 0x00, 0x30}  // purple
+            {0x00, 0x02, 0x02}, // cyan
+            {0x03, 0x01, 0x00}, // orange
+            {0x02, 0x02, 0x00}, // yellow
+            {0x01, 0x00, 0x03}  // purple
         };
 
     }
@@ -45,7 +43,7 @@ namespace ams::controller {
     Result Dualshock4Controller::Initialize(void) {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
-        
+
         return ams::ResultSuccess();
     }
 
@@ -69,8 +67,9 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
-        auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        m_led_colour.r = colour.r * m_profile.misc.sony_led_brightness;
+        m_led_colour.g = colour.g * m_profile.misc.sony_led_brightness;
+        m_led_colour.b = colour.b * m_profile.misc.sony_led_brightness;
         return this->PushRumbleLedState();
     }
 
@@ -89,7 +88,7 @@ namespace ams::controller {
         }
     }
 
-    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {       
+    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
@@ -165,7 +164,7 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::PushRumbleLedState(void) {
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff)), 0x20, 0xf3, 0x04, 0x00,
+        Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (static_cast<Dualshock4ReportRate>(m_profile.misc.dualshock_reportrate) & 0xff)), 0x20, 0xf3, 0x04, 0x00,
             m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left,
             m_led_colour.r, m_led_colour.g, m_led_colour.b
         };

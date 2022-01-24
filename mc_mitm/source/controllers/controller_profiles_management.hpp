@@ -13,17 +13,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 #include <stratosphere.hpp>
-#include "bluetooth_mitm/bluetooth/bluetooth_types.hpp"
+#include "../../../common/controller_profiles.hpp"
+#include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 
-namespace ams::utils {
+namespace ams::controller {
 
-    s32 ConvertToHorizonPriority(s32 user_priority);
-    s32 ConvertToUserPriority(s32 horizon_priority);
-
-    Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size);
-    void ParseBoolean(const char *value, bool *out);
-    void ParseUInt32(const char *value, uint32_t *out);
-    void ParseBluetoothAddress(const char *value, bluetooth::Address *out);
+    Result GetControllerConfig(const bluetooth::Address *address, ControllerProfileConfig *config);
 
 }

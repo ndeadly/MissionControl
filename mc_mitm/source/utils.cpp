@@ -53,4 +53,35 @@ namespace ams::utils {
         return ams::ResultSuccess();
     }
 
+    void ParseBoolean(const char *value, bool *out) {
+        if (strcasecmp(value, "true") == 0)
+            *out = true;
+        else if (strcasecmp(value, "false") == 0)
+            *out = false;
+    }
+
+    void ParseUInt32(const char *value, uint32_t *out) {
+        *out = atoi(value);
+    }
+
+    void ParseBluetoothAddress(const char *value, bluetooth::Address *out) {
+        // Check length of address string is correct
+        if (std::strlen(value) != 3*sizeof(bluetooth::Address) - 1) return;
+
+        // Parse bluetooth mac address
+        char buf[2 + 1];
+        bluetooth::Address address = {};
+        for (uint32_t i = 0; i < sizeof(bluetooth::Address); ++i) {
+            // Convert hex pair to number
+            std::memcpy(buf, &value[i*3], 2);
+            address.address[i] = static_cast<uint8_t>(std::strtoul(buf, nullptr, 16));
+
+            // Check for colon separator
+            if ((i < sizeof(bluetooth::Address) - 1) && (value[i*3 + 2] != ':'))
+                return;
+        }
+
+        *out = address;
+    }
+
 }

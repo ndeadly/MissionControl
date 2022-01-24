@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "switch_analog_stick.hpp"
+#include "controller_profiles_management.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 
@@ -51,7 +52,7 @@ namespace ams::controller {
         RGBColour left_grip;
         RGBColour right_grip;
     } __attribute__ ((__packed__));
-        
+
     struct SwitchButtonData {
         uint8_t Y              : 1;
         uint8_t X              : 1;
@@ -290,8 +291,8 @@ namespace ams::controller {
 
     class SwitchController {
 
-        public: 
-            static constexpr const HardwareID hardware_ids[] = { 
+        public:
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x057e, 0x2006},   // Official Joycon(L) Controller
                 {0x057e, 0x2007},   // Official Joycon(R) Controller/NES Online Controller
                 {0x057e, 0x2009},   // Official Switch Pro Controller
@@ -326,6 +327,7 @@ namespace ams::controller {
             HardwareID m_id;
 
             bool m_settsi_supported;
+            ControllerProfileConfig m_profile;
 
             bluetooth::HidReport m_input_report;
             bluetooth::HidReport m_output_report;

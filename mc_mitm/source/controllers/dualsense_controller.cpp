@@ -35,19 +35,17 @@ namespace ams::controller {
             0x0A
         };
 
-        const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
-
         const RGBColour player_led_colours[] = {
             // Same colours used by PS4
-            {0x00, 0x00, 0x40}, // blue
-            {0x40, 0x00, 0x00}, // red
-            {0x00, 0x40, 0x00}, // green
-            {0x20, 0x00, 0x20}, // pink
+            {0x00, 0x00, 0x04}, // blue
+            {0x04, 0x00, 0x00}, // red
+            {0x00, 0x04, 0x00}, // green
+            {0x02, 0x00, 0x02}, // pink
             // New colours for controllers 5-8
-            {0x00, 0x20, 0x20}, // cyan
-            {0x30, 0x10, 0x00}, // orange
-            {0x20, 0x20, 0x00}, // yellow
-            {0x10, 0x00, 0x30}  // purple
+            {0x00, 0x02, 0x02}, // cyan
+            {0x03, 0x01, 0x00}, // orange
+            {0x02, 0x02, 0x00}, // yellow
+            {0x01, 0x00, 0x03}  // purple
         };
 
     }
@@ -80,8 +78,9 @@ namespace ams::controller {
     }
 
     Result DualsenseController::SetLightbarColour(RGBColour colour) {
-        auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        m_led_colour.r = colour.r * m_profile.misc.sony_led_brightness;
+        m_led_colour.g = colour.g * m_profile.misc.sony_led_brightness;
+        m_led_colour.b = colour.b * m_profile.misc.sony_led_brightness;
         return this->PushRumbleLedState();
     }
 
@@ -128,7 +127,7 @@ namespace ams::controller {
             battery_level = 10;
 
         m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
-    
+
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x31.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x31.left_stick.y)) & 0xfff
