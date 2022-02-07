@@ -79,8 +79,8 @@ namespace ams::controller {
         m_buttons.minus = src->input0x07.buttons.view;
         m_buttons.plus  = src->input0x07.buttons.menu;
 
-        m_buttons.lstick_press = src->input0x07.buttons.lstick_press;
-        m_buttons.rstick_press = src->input0x07.buttons.rstick_press;
+        m_buttons.lstick_press = src->input0x07.buttons.lstick_press | src->input0x07.buttons.L3_g910;
+        m_buttons.rstick_press = src->input0x07.buttons.rstick_press | src->input0x07.buttons.R3_g910;
     }
 
 }
