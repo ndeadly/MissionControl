@@ -18,18 +18,21 @@
 #include "bluetooth_core.hpp"
 #include "bluetooth_hid.hpp"
 #include "bluetooth_ble.hpp"
+#include "../../utils.hpp"
 
 namespace ams::bluetooth::events {
 
     namespace {
 
-        os::ThreadType 						        g_event_handler_thread;
-        alignas(os::ThreadStackAlignment) uint8_t   g_event_handler_thread_stack[0x2000];
+        const s32 ThreadPriority = utils::ConvertToUserPriority(37);
+        const size_t ThreadStackSize = 0x2000;
+        alignas(os::ThreadStackAlignment) uint8_t g_thread_stack[ThreadStackSize];
+        os::ThreadType g_thread;
 
         os::MultiWaitType g_manager;
-        os::MultiWaitHolderType 	g_holder_bt_core;
-        os::MultiWaitHolderType 	g_holder_bt_hid;
-        os::MultiWaitHolderType 	g_holder_bt_ble;
+        os::MultiWaitHolderType g_holder_bt_core;
+        os::MultiWaitHolderType g_holder_bt_hid;
+        os::MultiWaitHolderType g_holder_bt_ble;
 
         void EventHandlerThreadFunc(void *) {
             os::InitializeMultiWait(&g_manager);
@@ -75,21 +78,21 @@ namespace ams::bluetooth::events {
     }
 
     Result Initialize(void) {
-        R_TRY(os::CreateThread(&g_event_handler_thread,
+        R_TRY(os::CreateThread(&g_thread,
             EventHandlerThreadFunc,
             nullptr,
-            g_event_handler_thread_stack,
-            sizeof(g_event_handler_thread_stack),
-            9
+            g_thread_stack,
+            ThreadStackSize,
+            ThreadPriority
         ));
 
-        os::StartThread(&g_event_handler_thread);
+        os::StartThread(&g_thread);
 
         return ams::ResultSuccess();
     }
 
     void Finalize(void) {
-        os::DestroyThread(&g_event_handler_thread);
+        os::DestroyThread(&g_thread);
     }
 
 }

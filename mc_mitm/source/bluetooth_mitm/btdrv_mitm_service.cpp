@@ -163,10 +163,18 @@ namespace ams::mitm::bluetooth {
     /* 4.0.0+ */
     Result BtdrvMitmService::RegisterHidReportEvent(sf::OutCopyHandle out_handle) {
         if (!ams::bluetooth::hid::report::IsInitialized()) {
+            // Forward to the real function to obtain the system event handle
             os::NativeHandle handle = os::InvalidNativeHandle;
             R_TRY(btdrvRegisterHidReportEventFwd(m_forward_service.get(), &handle));
-            R_TRY(ams::bluetooth::hid::report::Initialize(handle, m_forward_service.get(), os::GetThreadId(os::GetCurrentThread())));
+            
+            // Attach the real system event handle to our own event
+            ams::bluetooth::hid::report::GetSystemEvent()->AttachReadableHandle(handle, false, os::EventClearMode_AutoClear);
+            
+            // Return our forwarder event handle to the caller instead
             out_handle.SetValue(ams::bluetooth::hid::report::GetForwardEvent()->GetReadableHandle(), false);
+
+            // Signal that the interface is initialised
+            ams::bluetooth::hid::report::SignalInitialized();
         }
         else {
             out_handle.SetValue(ams::bluetooth::hid::report::GetUserForwardEvent()->GetReadableHandle(), false);

@@ -22,6 +22,7 @@ namespace ams::bluetooth::hid::report {
 
     bool IsInitialized(void);
     void WaitInitialized(void);
+    void SignalInitialized(void);
     void SignalReportRead(void);
 
     os::SharedMemory *GetRealSharedMemory(void);
@@ -31,7 +32,7 @@ namespace ams::bluetooth::hid::report {
     os::SystemEvent *GetForwardEvent(void);
     os::SystemEvent *GetUserForwardEvent(void);
 
-    Result Initialize(os::NativeHandle event_handle, Service *forward_service, os::ThreadId main_thread_id);
+    Result Initialize(void);
     void Finalize(void);
 
     Result MapRemoteSharedMemory(os::NativeHandle handle);

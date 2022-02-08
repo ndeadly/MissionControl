@@ -26,11 +26,12 @@ namespace ams::bluetooth::hid::report {
 
     namespace {
 
-        constexpr auto bluetooth_sharedmem_size = 0x3000;
+        constexpr size_t bluetooth_sharedmem_size = 0x3000;
 
-        os::ThreadType g_event_handler_thread;
-        alignas(os::ThreadStackAlignment) uint8_t g_event_handler_thread_stack[0x1000];
-        s32 g_event_handler_thread_priority = utils::ConvertToUserPriority(17);
+        const s32 ThreadPriority = utils::ConvertToUserPriority(17);
+        const size_t ThreadStackSize = 0x1000;
+        alignas(os::ThreadStackAlignment) uint8_t g_thread_stack[ThreadStackSize];
+        os::ThreadType g_thread;
 
         // This is only required  on fw < 7.0.0
         bluetooth::HidReportEventInfo g_event_info;
@@ -51,10 +52,9 @@ namespace ams::bluetooth::hid::report {
 
         bluetooth::HidReportEventInfo g_fake_report_event_info;
 
-        Service *g_forward_service;
-        os::ThreadId g_main_thread_id;
-
         void EventThreadFunc(void *) {
+            WaitInitialized();
+
             while (true) {
                 g_system_event.Wait();
                 HandleEvent();
@@ -69,6 +69,10 @@ namespace ams::bluetooth::hid::report {
 
     void WaitInitialized(void) {
         g_init_event.Wait();
+    }
+
+    void SignalInitialized(void) {
+        g_init_event.Signal();
     }
 
     void SignalReportRead(void) {
@@ -98,29 +102,22 @@ namespace ams::bluetooth::hid::report {
         return &g_system_event_user_fwd;
     }
 
-    Result Initialize(os::NativeHandle event_handle, Service *forward_service, os::ThreadId main_thread_id) {
-        g_system_event.AttachReadableHandle(event_handle, false, os::EventClearMode_AutoClear);
-
-        R_TRY(os::CreateThread(&g_event_handler_thread,
+    Result Initialize(void) {
+        R_TRY(os::CreateThread(&g_thread,
             EventThreadFunc,
             nullptr,
-            g_event_handler_thread_stack,
-            sizeof(g_event_handler_thread_stack),
-            g_event_handler_thread_priority
+            g_thread_stack,
+            ThreadStackSize,
+            ThreadPriority
         ));
 
-        g_forward_service = forward_service;
-        g_main_thread_id = main_thread_id;
-
-        os::StartThread(&g_event_handler_thread);
-
-        g_init_event.Signal();
+        os::StartThread(&g_thread);
 
         return ams::ResultSuccess();
     }
 
     void Finalize(void) {
-        os::DestroyThread(&g_event_handler_thread);
+        os::DestroyThread(&g_thread);
     }
 
     Result MapRemoteSharedMemory(os::NativeHandle handle) {
@@ -164,12 +161,7 @@ namespace ams::bluetooth::hid::report {
     }
 
     Result SendHidReport(const bluetooth::Address *address, const bluetooth::HidReport *report) {
-        if (os::GetThreadId(os::GetCurrentThread()) == g_main_thread_id)
-            R_TRY(btdrvWriteHidDataFwd(g_forward_service, address, report));
-        else
-            R_TRY(btdrvWriteHidData(*address, report));
-
-        return ams::ResultSuccess();
+        return btdrvWriteHidData(*address, report);
     }
 
     /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */
