@@ -284,45 +284,62 @@ namespace ams::controller {
         if (m_profile.misc.invert_rstick_yaxis)
             switch_report->input0x30.right_stick.InvertY();
 
-        // Fixup for identifying as horizontal joycon
+        uint8_t playernumber = 0xff;
+        HidNpadSystemProperties out;
         switch (m_profile.general.controller_type) {
             case SwitchControllerType_RightJoyCon:
-                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    switch_report->input0x30.right_stick.SetData(
-                        m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_up ? 0 : STICK_ZERO),
-                        m_buttons.dpad_right ? UINT12_MAX : (m_buttons.dpad_left ? 0 : STICK_ZERO)
-                    );
-                }
-                else {
-                    switch_report->input0x30.left_stick.InvertY();
-                    switch_report->input0x30.right_stick.SetData(switch_report->input0x30.left_stick.GetY(), switch_report->input0x30.left_stick.GetX());
-                }
+                switch_report->input0x30.buttons.SL_R = switch_report->input0x30.buttons.L | switch_report->input0x30.buttons.ZL;
+                switch_report->input0x30.buttons.SR_R = switch_report->input0x30.buttons.R | switch_report->input0x30.buttons.ZR;
+                LedsMaskToPlayerNumber(m_led_pattern, &playernumber); //There might be a better way to do this, but as of now, it works
+                if(playernumber<8){
+                    hidGetNpadSystemProperties(static_cast<HidNpadIdType>(playernumber), &out);
 
-                switch_report->input0x30.buttons.SL_R = m_buttons.L | m_buttons.ZL;
-                switch_report->input0x30.buttons.SR_R = m_buttons.R | m_buttons.ZR;
-                switch_report->input0x30.buttons.A = m_buttons.B;
-                switch_report->input0x30.buttons.B = m_buttons.Y;
-                switch_report->input0x30.buttons.X = m_buttons.A;
-                switch_report->input0x30.buttons.Y = m_buttons.X;
+                    if(out.is_sl_sr_button_oriented){
+                        if (switch_report->input0x30.buttons.dpad_down | switch_report->input0x30.buttons.dpad_up | switch_report->input0x30.buttons.dpad_right | switch_report->input0x30.buttons.dpad_left){
+                            switch_report->input0x30.right_stick.SetData(
+                                switch_report->input0x30.buttons.dpad_down ? UINT12_MAX : (switch_report->input0x30.buttons.dpad_up ? 0 : STICK_ZERO),
+                                switch_report->input0x30.buttons.dpad_right ? UINT12_MAX : (switch_report->input0x30.buttons.dpad_left ? 0 : STICK_ZERO)
+                            );
+                        }
+                        else {
+                            switch_report->input0x30.left_stick.InvertY();
+                            switch_report->input0x30.right_stick.SetData(switch_report->input0x30.left_stick.GetY(), switch_report->input0x30.left_stick.GetX());
+                        }
+                        uint8_t temp = switch_report->input0x30.buttons.Y;
+                        switch_report->input0x30.buttons.Y = switch_report->input0x30.buttons.X;
+                        switch_report->input0x30.buttons.X = switch_report->input0x30.buttons.A;
+                        switch_report->input0x30.buttons.A = switch_report->input0x30.buttons.B;
+                        switch_report->input0x30.buttons.B = temp;
+
+                    }
+                    else {
+                        switch_report->input0x30.right_stick.SetData(switch_report->input0x30.left_stick.GetX(), switch_report->input0x30.left_stick.GetY());
+                    }
+                }
                 break;
             case SwitchControllerType_LeftJoyCon:
-                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    switch_report->input0x30.left_stick.SetData(
-                        m_buttons.dpad_up ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_ZERO),
-                        m_buttons.dpad_left ? UINT12_MAX : (m_buttons.dpad_right ? 0 : STICK_ZERO)
-                    );
+                switch_report->input0x30.buttons.SL_L = switch_report->input0x30.buttons.L | switch_report->input0x30.buttons.ZL;
+                switch_report->input0x30.buttons.SR_L = switch_report->input0x30.buttons.R | switch_report->input0x30.buttons.ZR;
+                LedsMaskToPlayerNumber(m_led_pattern, &playernumber);
+                if(playernumber<8){
+                    hidGetNpadSystemProperties(static_cast<HidNpadIdType>(playernumber), &out);
+                    if(out.is_sl_sr_button_oriented){
+                        if (switch_report->input0x30.buttons.dpad_down | switch_report->input0x30.buttons.dpad_up | switch_report->input0x30.buttons.dpad_right | switch_report->input0x30.buttons.dpad_left){
+                            switch_report->input0x30.left_stick.SetData(
+                                switch_report->input0x30.buttons.dpad_up ? UINT12_MAX : (switch_report->input0x30.buttons.dpad_down ? 0 : STICK_ZERO),
+                                switch_report->input0x30.buttons.dpad_left ? UINT12_MAX : (switch_report->input0x30.buttons.dpad_right ? 0 : STICK_ZERO)
+                            );
+                        }
+                        else {
+                            switch_report->input0x30.left_stick.InvertX();
+                            switch_report->input0x30.left_stick.SetData(switch_report->input0x30.left_stick.GetY(), switch_report->input0x30.left_stick.GetX());
+                        }
+                        switch_report->input0x30.buttons.dpad_down = switch_report->input0x30.buttons.A;
+                        switch_report->input0x30.buttons.dpad_left = switch_report->input0x30.buttons.B;
+                        switch_report->input0x30.buttons.dpad_up = switch_report->input0x30.buttons.Y;
+                        switch_report->input0x30.buttons.dpad_right = switch_report->input0x30.buttons.X;
+                    }
                 }
-                else {
-                    switch_report->input0x30.left_stick.InvertX();
-                    switch_report->input0x30.left_stick.SetData(switch_report->input0x30.left_stick.GetY(), switch_report->input0x30.left_stick.GetX());
-                }
-
-                switch_report->input0x30.buttons.SL_L = m_buttons.L | m_buttons.ZL;
-                switch_report->input0x30.buttons.SR_L = m_buttons.R | m_buttons.ZR;
-                switch_report->input0x30.buttons.dpad_down = m_buttons.A;
-                switch_report->input0x30.buttons.dpad_left = m_buttons.B;
-                switch_report->input0x30.buttons.dpad_up = m_buttons.Y;
-                switch_report->input0x30.buttons.dpad_right = m_buttons.X;
                 break;
             default:
                 break;

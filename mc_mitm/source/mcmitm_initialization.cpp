@@ -79,6 +79,7 @@ namespace ams::mitm {
             }
 
             g_init_event.Signal();
+            R_ABORT_UNLESS(hidInitialize());
         }
 
     }
