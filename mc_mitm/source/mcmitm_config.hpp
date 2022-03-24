@@ -33,7 +33,8 @@ namespace ams::mitm {
         } misc;
     };
 
+    void InitializeConfig();
     MissionControlConfig *GetGlobalConfig(void);
-    void ParseIniConfig(void);
+    SetLanguage GetSystemLanguage();
 
 }

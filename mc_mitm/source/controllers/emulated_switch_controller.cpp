@@ -426,7 +426,14 @@ namespace ams::controller {
             }
         };
 
-            R_TRY(this->VirtualSpiFlashRead(read_addr, response.data.spi_flash_read.data, read_size));
+        R_TRY(this->VirtualSpiFlashRead(read_addr, response.data.spi_flash_read.data, read_size));
+
+        if (read_addr == 0x6050) {
+            if (ams::mitm::GetSystemLanguage() == 10) {
+                uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                std::memcpy(response.data.spi_flash_read.data, data, sizeof(data));
+            }
+        }
 
         return this->FakeSubCmdResponse(&response);
     }

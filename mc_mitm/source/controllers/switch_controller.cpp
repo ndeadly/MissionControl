@@ -15,6 +15,7 @@
  */
 #include "switch_controller.hpp"
 #include "../utils.hpp"
+#include "../mcmitm_config.hpp"
 #include <string>
 
 namespace ams::controller {
@@ -88,6 +89,16 @@ namespace ams::controller {
         auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         if (switch_report->id == 0x30) {
             this->ApplyButtonCombos(&switch_report->input0x30.buttons);
+        } else if (switch_report->id == 0x21) {
+            auto response = reinterpret_cast<SwitchSubcommandResponse *>(&switch_report->input0x21.response);
+            if (response->id == SubCmd_SpiFlashRead) {
+                if (response->data.spi_flash_read.address == 0x6050) {
+                    if (ams::mitm::GetSystemLanguage() == 10) {
+                        uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                        std::memcpy(response->data.spi_flash_read.data, data, sizeof(data));
+                    }
+                }
+            }
         }
 
         return bluetooth::hid::report::WriteHidReportBuffer(&m_address, &m_input_report);

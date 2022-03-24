@@ -77,8 +77,8 @@ namespace ams {
     }
 
     void Main() {
-        // Parse global module settings ini from sd card
-        mitm::ParseIniConfig();
+        // Initialise module configuration
+        mitm::InitializeConfig();
 
         // Start initialisation thread
         mitm::StartInitialize();

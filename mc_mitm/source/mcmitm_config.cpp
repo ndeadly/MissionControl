@@ -23,6 +23,8 @@ namespace ams::mitm {
 
         constexpr const char *config_file_location = "sdmc:/config/MissionControl/missioncontrol.ini";
 
+        SetLanguage g_system_language;
+
         MissionControlConfig g_global_config = {
             .general = {
                 .enable_rumble = true,
@@ -88,10 +90,6 @@ namespace ams::mitm {
 
     }
 
-    MissionControlConfig *GetGlobalConfig(void) {
-        return &g_global_config;
-    }
-
     void ParseIniConfig(void) {
         /* Open the file. */
         fs::FileHandle file;
@@ -104,6 +102,24 @@ namespace ams::mitm {
 
         /* Parse the config. */
         util::ini::ParseFile(file, &g_global_config, ConfigIniHandler);
+    }
+
+    void InitializeConfig() {
+        ParseIniConfig();
+
+        R_ABORT_UNLESS(setInitialize());
+        ON_SCOPE_EXIT { setExit(); };
+        u64 language_code = 0;
+        R_ABORT_UNLESS(setGetSystemLanguage(&language_code));
+        R_ABORT_UNLESS(setMakeLanguage(language_code, &g_system_language));
+    }
+
+    MissionControlConfig *GetGlobalConfig(void) {
+        return &g_global_config;
+    }
+
+    SetLanguage GetSystemLanguage() {
+        return g_system_language;
     }
 
 }
