@@ -79,7 +79,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. A console reboot is required in order for Mission Control to become active.
 
 ***IMPORTANT: 
-Atmosphère >= 1.2.5 is required to run the latest release of Mission Control. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.
+Atmosphère >= 1.3.1 is required to run the latest release of Mission Control on firmware 14.1.0. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.
 Users upgrading from version 0.1.0 of Mission Control are also advised to wipe their pairing database and re-pair controllers running the latest version. Failure to wipe the old entries may result in non-switch controllers being detected incorrectly.***
 
 ### Usage
@@ -245,9 +245,9 @@ cd lib/libnx
 make && make install
 ```
 
-Next build `Atmosphere-libs`
+Next build `libstratosphere`
 ```
-cd ../Atmosphere-libs
+cd ../Atmosphere-libs/libstratosphere
 make
 ```
 
