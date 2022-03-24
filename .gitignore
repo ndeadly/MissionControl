@@ -4,6 +4,7 @@
 tests/
 dist/
 mc_mitm/build/
+mc_mitm/out/
 *.log
 *.elf
 *.nro

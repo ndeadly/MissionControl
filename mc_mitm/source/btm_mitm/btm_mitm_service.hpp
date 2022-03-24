@@ -26,7 +26,7 @@
     AMS_SF_METHOD_INFO(C, H, 9,  Result, GetDeviceInfoDeprecated,       (sf::Out<ams::btm::DeviceInfoList> out),                                              (out),                hos::Version_1_0_0, hos::Version_12_1_0) \
     AMS_SF_METHOD_INFO(C, H, 9,  Result, GetDeviceInfo,                 (u32 id, const sf::OutArray<ams::btm::DeviceInfo> &out, sf::Out<s32> total_out),      (id, out, total_out), hos::Version_13_0_0)                     \
 
-AMS_SF_DEFINE_MITM_INTERFACE(ams::mitm::btm, IBtmMitmInterface, AMS_BTM_MITM_INTERFACE_INFO)
+AMS_SF_DEFINE_MITM_INTERFACE(ams::mitm::btm, IBtmMitmInterface, AMS_BTM_MITM_INTERFACE_INFO, 0xB5E45686)
 
 namespace ams::mitm::btm {
 

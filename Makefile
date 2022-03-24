@@ -23,9 +23,9 @@ clean:
 
 dist: all
 	rm -rf dist
-	
+
 	mkdir -p dist/atmosphere/contents/$(MC_MITM_TID)
-	cp mc_mitm/mc_mitm.nsp dist/atmosphere/contents/$(MC_MITM_TID)/exefs.nsp
+	cp mc_mitm/out/nintendo_nx_arm64_armv8a/release/mc_mitm.nsp dist/atmosphere/contents/$(MC_MITM_TID)/exefs.nsp
 	echo "btdrv" >> dist/atmosphere/contents/$(MC_MITM_TID)/mitm.lst
 	echo "btm" >> dist/atmosphere/contents/$(MC_MITM_TID)/mitm.lst
 
@@ -33,13 +33,13 @@ dist: all
 	touch dist/atmosphere/contents/$(MC_MITM_TID)/flags/boot2.flag
 
 	cp mc_mitm/toolbox.json dist/atmosphere/contents/$(MC_MITM_TID)/toolbox.json
-	
+
 	cp -r exefs_patches dist/atmosphere/
 
 	mkdir -p dist/config/MissionControl
 	mkdir -p dist/config/MissionControl/controllers
 	cp mc_mitm/config.ini dist/config/MissionControl/missioncontrol.ini.template
-	
+
 	cd dist; zip -r $(PROJECT_NAME)-$(BUILD_VERSION).zip ./*; cd ../;
-	
+
 .PHONY: all clean dist $(TARGETS)

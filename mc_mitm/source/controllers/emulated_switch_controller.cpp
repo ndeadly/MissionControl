@@ -169,7 +169,7 @@ namespace ams::controller {
 
         // Ensure config directory for this controller exists
         std::string path = GetControllerDirectory(&m_address);
-        R_TRY(fs::EnsureDirectoryRecursively(path.c_str()));
+        R_TRY(fs::EnsureDirectory(path.c_str()));
 
         // Check if the virtual spi flash file already exists and initialise it if not
         path += "/spi_flash.bin";
@@ -491,7 +491,7 @@ namespace ams::controller {
                 .raw = { 0x00 }
             }
         };
-        
+
         return this->FakeSubCmdResponse(&response);
     }
 
