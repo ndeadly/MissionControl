@@ -30,7 +30,7 @@ body:
     id: vid-pid
     attributes:
       label: Controller vendor and product ID
-      description: The vendor and product ID of the controller. If your controller can be paired to the console you can dump this information from the pairing database using my [btdb](https://github.com/ndeadly/MissionControl/releases/download/v0.3.0/btdb.nro) application.
+      description: The vendor and product ID of the controller. If your controller can be paired to the console you can dump this information from the pairing database using my [btdb](https://github.com/ndeadly/MissionControl/files/7227157/btdb-1300.zip) application.
       placeholder: ex. 057e:2009
   - type: checkboxes
     id: features
