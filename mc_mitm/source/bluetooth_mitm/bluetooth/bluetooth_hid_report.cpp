@@ -139,15 +139,15 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    Result WriteHidDataReport(const bluetooth::Address *address, const bluetooth::HidReport *report) {
+    Result WriteHidDataReport(const bluetooth::Address address, const bluetooth::HidReport *report) {
         if (hos::GetVersion() >= hos::Version_9_0_0) {
-            g_fake_report_event_info.data_report.v9.addr = *address;
+            g_fake_report_event_info.data_report.v9.addr = address;
             std::memcpy(&g_fake_report_event_info.data_report.v9.report, report, report->size + sizeof(report->size));
         }
         else {
             // Todo: check this may still be necessary
             //g_fake_report_event_info.data_report.v7.size = g_fake_report_event_info.data_report.v7.report.size + 0x11;
-            g_fake_report_event_info.data_report.v7.addr = *address;
+            g_fake_report_event_info.data_report.v7.addr = address;
             std::memcpy(&g_fake_report_event_info.data_report.v7.report, report, report->size + sizeof(report->size));
         }
 
@@ -157,8 +157,8 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    Result WriteHidSetReport(const bluetooth::Address *address, uint32_t status) {
-        g_fake_report_event_info.set_report.addr = *address;
+    Result WriteHidSetReport(const bluetooth::Address address, uint32_t status) {
+        g_fake_report_event_info.set_report.addr = address;
         g_fake_report_event_info.set_report.res = status;
 
         g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_Data : BtdrvHidEventTypeOld_Data, &g_fake_report_event_info, sizeof(g_fake_report_event_info.set_report));
@@ -167,14 +167,14 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    Result WriteHidGetReport(const bluetooth::Address *address, const bluetooth::HidReport *report) {
+    Result WriteHidGetReport(const bluetooth::Address address, const bluetooth::HidReport *report) {
         if (hos::GetVersion() >= hos::Version_9_0_0) {
-            g_fake_report_event_info.get_report.v9.addr = *address;
+            g_fake_report_event_info.get_report.v9.addr = address;
             g_fake_report_event_info.get_report.v9.res = 0;
             std::memcpy(&g_fake_report_event_info.get_report.v9.report, report, report->size + sizeof(report->size));
         }
         else {
-            g_fake_report_event_info.get_report.v1.addr = *address;
+            g_fake_report_event_info.get_report.v1.addr = address;
             g_fake_report_event_info.get_report.v1.res = 0;
             std::memcpy(&g_fake_report_event_info.get_report.v1.report, report, report->size + sizeof(report->size));
         }
@@ -183,10 +183,6 @@ namespace ams::bluetooth::hid::report {
         g_system_event_fwd.Signal();
 
         return ams::ResultSuccess();
-    }
-
-    Result SendHidReport(const bluetooth::Address *address, const bluetooth::HidReport *report) {
-        return btdrvWriteHidData(*address, report);
     }
 
     /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */
@@ -237,28 +233,25 @@ namespace ams::bluetooth::hid::report {
             case BtdrvHidEventTypeOld_Data:
                 {
                     auto device = controller::LocateHandler(&g_event_info.data_report.v1.addr);
-                    if (!device)
-                        return;
-
-                    device->HandleIncomingReport(reinterpret_cast<bluetooth::HidReport *>(&g_event_info.data_report.v1.report));
+                    if (device) {
+                        device->HandleDataReportEvent(&g_event_info);
+                    }
                 }
                 break;
             case BtdrvHidEventTypeOld_SetReport:
                 {
                     auto device = controller::LocateHandler(&g_event_info.set_report.addr);
-                    if (!device)
-                        return;
-
-                    device->HandleSetReport(g_event_info.set_report.res);
+                    if (device) {
+                        device->HandleSetReportEvent(&g_event_info);
+                    }
                 }
                 break;
             case BtdrvHidEventTypeOld_GetReport:
                 {
                     auto device = controller::LocateHandler(&g_event_info.get_report.v1.addr);
-                    if (!device)
-                        return;
-
-                    device->HandleGetReport(reinterpret_cast<bluetooth::HidReport *>(&g_event_info.get_report.v1.report));
+                    if (device) {
+                        device->HandleGetReportEvent(&g_event_info);
+                    }
                 }
                 break;
             default:
@@ -280,30 +273,25 @@ namespace ams::bluetooth::hid::report {
                 case BtdrvHidEventTypeOld_Data:
                     {
                         auto device = controller::LocateHandler(hos::GetVersion() < hos::Version_9_0_0 ? &real_packet->data.data_report.v7.addr : &real_packet->data.data_report.v9.addr);
-                        if (!device)
-                            continue;
-
-                        auto report = hos::GetVersion() < hos::Version_9_0_0 ? reinterpret_cast<bluetooth::HidReport *>(&real_packet->data.data_report.v7.report) : &real_packet->data.data_report.v9.report;
-                        device->HandleIncomingReport(report);
+                        if (device) {
+                            device->HandleDataReportEvent(&real_packet->data);
+                        }
                     }
                     break;
                 case BtdrvHidEventTypeOld_SetReport:
                     {
                         auto device = controller::LocateHandler(&real_packet->data.set_report.addr);
-                        if (!device)
-                            continue;
-
-                        device->HandleSetReport(real_packet->data.set_report.res);
+                        if (device) {
+                            device->HandleSetReportEvent(&real_packet->data);
+                        }
                     }
                     break;
                 case BtdrvHidEventTypeOld_GetReport:
                     {
                         auto device = controller::LocateHandler(&real_packet->data.get_report.v1.addr);
-                        if (!device)
-                            continue;
-
-                        auto report = hos::GetVersion() < hos::Version_9_0_0 ? reinterpret_cast<bluetooth::HidReport *>(&real_packet->data.get_report.v1.report) : &real_packet->data.get_report.v9.report;
-                        device->HandleGetReport(report);
+                        if (device) {
+                            device->HandleGetReportEvent(&real_packet->data);
+                        }
                     }
                     break;
                 default:
@@ -326,28 +314,25 @@ namespace ams::bluetooth::hid::report {
                 case BtdrvHidEventType_Data:
                     {
                         auto device = controller::LocateHandler(&real_packet->data.data_report.v9.addr);
-                        if (!device)
-                            continue;
-
-                        device->HandleIncomingReport(&real_packet->data.data_report.v9.report);
+                        if (device) {
+                            device->HandleDataReportEvent(&real_packet->data);
+                        }
                     }
                     break;
                 case BtdrvHidEventType_SetReport:
                     {
                         auto device = controller::LocateHandler(&real_packet->data.set_report.addr);
-                        if (!device)
-                            continue;
-
-                        device->HandleSetReport(real_packet->data.set_report.res);
+                        if (device) {
+                            device->HandleSetReportEvent(&real_packet->data);
+                        }
                     }
                     break;
                 case BtdrvHidEventType_GetReport:
                     {
                         auto device = controller::LocateHandler(&real_packet->data.get_report.v9.addr);
-                        if (!device)
-                            continue;
-
-                        device->HandleGetReport(&real_packet->data.get_report.v9.report);
+                        if (device) {
+                            device->HandleGetReportEvent(&real_packet->data);
+                        }
                     }
                     break;
                 default:
