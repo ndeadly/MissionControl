@@ -15,7 +15,6 @@
  */
 #include "bluetoothmitm_module.hpp"
 #include "btdrv_mitm_service.hpp"
-#include "../utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::mitm::bluetooth {
@@ -59,9 +58,10 @@ namespace ams::mitm::bluetooth {
             }
         }
 
-        os::ThreadType g_btdrv_mitm_thread;
-        alignas(os::ThreadStackAlignment) u8 g_btdrv_mitm_thread_stack[0x2000];
-        s32 g_btdrv_mitm_thread_priority = utils::ConvertToUserPriority(17);
+        const s32 ThreadPriority = -11;
+        const size_t ThreadStackSize = 0x1000;
+        alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
+        os::ThreadType g_thread;
 
         void BtdrvMitmThreadFunction(void *) {
             R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtdrvMitmService>(PortIndex_BtdrvMitm, BtdrvMitmServiceName)));
@@ -71,21 +71,22 @@ namespace ams::mitm::bluetooth {
     }
 
     Result Launch(void) {
-        R_TRY(os::CreateThread(&g_btdrv_mitm_thread,
+        R_TRY(os::CreateThread(&g_thread,
             BtdrvMitmThreadFunction,
             nullptr,
-            g_btdrv_mitm_thread_stack,
-            sizeof(g_btdrv_mitm_thread_stack),
-            g_btdrv_mitm_thread_priority
+            g_thread_stack,
+            ThreadStackSize,
+            ThreadPriority
         ));
 
-        os::StartThread(&g_btdrv_mitm_thread);
+        os::SetThreadNamePointer(&g_thread, "mc::BtdrvMitmThread");
+        os::StartThread(&g_thread);
 
         return ams::ResultSuccess();
     }
 
     void WaitFinished(void) {
-        os::WaitThread(&g_btdrv_mitm_thread);
+        os::WaitThread(&g_thread);
     }
 
 }

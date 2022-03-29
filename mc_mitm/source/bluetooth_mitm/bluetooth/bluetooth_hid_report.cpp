@@ -28,7 +28,7 @@ namespace ams::bluetooth::hid::report {
 
         constexpr size_t bluetooth_sharedmem_size = 0x3000;
 
-        const s32 ThreadPriority = utils::ConvertToUserPriority(17);
+        const s32 ThreadPriority = -11;
         const size_t ThreadStackSize = 0x1000;
         alignas(os::ThreadStackAlignment) uint8_t g_thread_stack[ThreadStackSize];
         os::ThreadType g_thread;
@@ -111,6 +111,7 @@ namespace ams::bluetooth::hid::report {
             ThreadPriority
         ));
 
+        os::SetThreadNamePointer(&g_thread, "mc::HidReportThread");
         os::StartThread(&g_thread);
 
         return ams::ResultSuccess();

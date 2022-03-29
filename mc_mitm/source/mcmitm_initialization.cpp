@@ -25,14 +25,13 @@
 #include "bluetooth_mitm/bluetooth/bluetooth_hid.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_ble.hpp"
-#include "utils.hpp"
 
 namespace ams::mitm {
 
     namespace {
 
+        const s32 ThreadPriority = -7;
         const size_t ThreadStackSize = 0x1000;
-        const s32 ThreadPriority = utils::ConvertToUserPriority(21);
         alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
         os::ThreadType g_thread;
 
@@ -97,6 +96,7 @@ namespace ams::mitm {
             ThreadPriority
         ));
 
+        os::SetThreadNamePointer(&g_thread, "mc::InitThread");
         os::StartThread(&g_thread);
     }
 

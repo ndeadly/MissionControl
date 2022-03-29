@@ -18,13 +18,12 @@
 #include "bluetooth_core.hpp"
 #include "bluetooth_hid.hpp"
 #include "bluetooth_ble.hpp"
-#include "../../utils.hpp"
 
 namespace ams::bluetooth::events {
 
     namespace {
 
-        const s32 ThreadPriority = utils::ConvertToUserPriority(37);
+        const s32 ThreadPriority = 9;
         const size_t ThreadStackSize = 0x2000;
         alignas(os::ThreadStackAlignment) uint8_t g_thread_stack[ThreadStackSize];
         os::ThreadType g_thread;
@@ -86,6 +85,7 @@ namespace ams::bluetooth::events {
             ThreadPriority
         ));
 
+        os::SetThreadNamePointer(&g_thread, "mc::EventThread");
         os::StartThread(&g_thread);
 
         return ams::ResultSuccess();
