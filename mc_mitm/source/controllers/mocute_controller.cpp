@@ -24,21 +24,20 @@ namespace ams::controller {
 
     }
 
-    void MocuteController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void MocuteController::ProcessInputData(const bluetooth::HidReport *report) {
         auto mocute_report = reinterpret_cast<const MocuteReportData *>(&report->data);
 
         switch(mocute_report->id) {
             case 0x01:
             case 0x04:
             case 0x06:
-                this->HandleInputReport(mocute_report);
-                break;
+                this->MapInputReport(mocute_report); break;
             default:
                 break;
         }
     }
 
-    void MocuteController::HandleInputReport(const MocuteReportData *src) {
+    void MocuteController::MapInputReport(const MocuteReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff

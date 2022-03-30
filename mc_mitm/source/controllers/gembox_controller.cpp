@@ -24,27 +24,25 @@ namespace ams::controller {
 
     }
 
-    void GemboxController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void GemboxController::ProcessInputData(const bluetooth::HidReport *report) {
         auto gembox_report = reinterpret_cast<const GemboxReportData *>(&report->data);
 
         switch(gembox_report->id) {
             case 0x02:
-                this->HandleInputReport0x02(gembox_report);
-                break;
+                this->MapInputReport0x02(gembox_report); break;
             case 0x07:
-                this->HandleInputReport0x07(gembox_report);
-                break;
+                this->MapInputReport0x07(gembox_report); break;
             default:
                 break;
         }
     }
 
-    void GemboxController::HandleInputReport0x02(const GemboxReportData *src) {
+    void GemboxController::MapInputReport0x02(const GemboxReportData *src) {
         m_buttons.minus = src->input0x02.back;
         //m_buttons.home = src->input0x02.buttons == 0;
     }
 
-    void GemboxController::HandleInputReport0x07(const GemboxReportData *src) {
+    void GemboxController::MapInputReport0x07(const GemboxReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x07.left_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x07.left_stick.y + 1)) + 0x7ff) & 0xfff

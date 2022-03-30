@@ -120,12 +120,12 @@ namespace ams::controller {
 
             bool SupportsSetTsiCommand(void) { return false; }
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x03(const GamesirReportData *src);
-            void HandleInputReport0x12(const GamesirReportData *src);
-            void HandleInputReport0xc4(const GamesirReportData *src);
+            void MapInputReport0x03(const GamesirReportData *src);
+            void MapInputReport0x12(const GamesirReportData *src);
+            void MapInputReport0xc4(const GamesirReportData *src);
 
     };
 

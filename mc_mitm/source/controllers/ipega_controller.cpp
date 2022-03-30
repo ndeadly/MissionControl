@@ -24,26 +24,24 @@ namespace ams::controller {
 
     }
 
-    void IpegaController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void IpegaController::ProcessInputData(const bluetooth::HidReport *report) {
         auto ipega_report = reinterpret_cast<const IpegaReportData *>(&report->data);
 
         switch(ipega_report->id) {
             case 0x02:
-                this->HandleInputReport0x02(ipega_report);
-                break;
+                this->MapInputReport0x02(ipega_report); break;
             case 0x07:
-                this->HandleInputReport0x07(ipega_report);
-                break;
+                this->MapInputReport0x07(ipega_report); break;
             default:
                 break;
         }
     }
 
-    void IpegaController::HandleInputReport0x02(const IpegaReportData *src) {
+    void IpegaController::MapInputReport0x02(const IpegaReportData *src) {
         m_buttons.home = src->input0x02.home;
     }
 
-    void IpegaController::HandleInputReport0x07(const IpegaReportData *src) {
+    void IpegaController::MapInputReport0x07(const IpegaReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x07.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x07.left_stick.y)) & 0xfff

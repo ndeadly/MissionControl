@@ -85,22 +85,20 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
-    void DualsenseController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void DualsenseController::ProcessInputData(const bluetooth::HidReport *report) {
         auto dualsense_report = reinterpret_cast<const DualsenseReportData *>(&report->data);
 
         switch(dualsense_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(dualsense_report);
-                break;
+                this->MapInputReport0x01(dualsense_report); break;
             case 0x31:
-                this->HandleInputReport0x31(dualsense_report);
-                break;
+                this->MapInputReport0x31(dualsense_report); break;
             default:
                 break;
         }
     }
 
-    void DualsenseController::HandleInputReport0x01(const DualsenseReportData *src) {
+    void DualsenseController::MapInputReport0x01(const DualsenseReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
@@ -113,7 +111,7 @@ namespace ams::controller {
         this->MapButtons(&src->input0x01.buttons);
     }
 
-    void DualsenseController::HandleInputReport0x31(const DualsenseReportData *src) {
+    void DualsenseController::MapInputReport0x31(const DualsenseReportData *src) {
         m_ext_power = src->input0x31.usb;
 
         if (!src->input0x31.usb || src->input0x31.full)
@@ -214,7 +212,7 @@ namespace ams::controller {
         m_output_report.size = sizeof(report) - 1;
         std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
+        return this->WriteDataReport(&m_output_report);
     }
 
 }

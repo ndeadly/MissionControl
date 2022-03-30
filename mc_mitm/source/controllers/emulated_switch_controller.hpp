@@ -31,15 +31,17 @@ namespace ams::controller {
             virtual Result Initialize(void);
             bool IsOfficialController(void) { return false; }
 
-            Result HandleIncomingReport(const bluetooth::HidReport *report);
-            Result HandleOutgoingReport(const bluetooth::HidReport *report);
+            //Result HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) override;
+            Result HandleOutputDataReport(const bluetooth::HidReport *report) override;
 
         protected:
             void ClearControllerState(void);
-            virtual void UpdateControllerState(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
             virtual Result SetVibration(const SwitchRumbleData *rumble_data) { AMS_UNUSED(rumble_data); return ams::ResultSuccess(); }
             virtual Result CancelVibration(void) { return ams::ResultSuccess(); }
             virtual Result SetPlayerLed(uint8_t led_mask) { AMS_UNUSED(led_mask); return ams::ResultSuccess(); }
+
+            void UpdateControllerState(const bluetooth::HidReport *report) override;
+            virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
             Result HandleSubCmdReport(const bluetooth::HidReport *report);
             Result HandleRumbleReport(const bluetooth::HidReport *report);
@@ -73,12 +75,12 @@ namespace ams::controller {
             bool m_ext_power;
             uint8_t m_battery;
             uint8_t m_led_pattern;
+
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
             Switch6AxisData m_motion_data[3];
 
-            Switch6AxisCalibrationData m_motion_calibration;
             uint16_t m_gyro_sensitivity;
             uint16_t m_acc_sensitivity;
 
@@ -87,7 +89,6 @@ namespace ams::controller {
             bool m_enable_motion;
 
             fs::FileHandle m_spi_flash_file;
-
     };
 
 }

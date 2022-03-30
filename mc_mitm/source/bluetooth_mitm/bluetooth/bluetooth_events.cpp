@@ -53,7 +53,7 @@ namespace ams::bluetooth::events {
                 os::LinkMultiWaitHolder(&g_manager, &g_holder_bt_ble);
             }
 
-            while (true) {
+            for (;;) {               
                 auto signalled_holder = os::WaitAny(&g_manager);
                 switch (os::GetMultiWaitHolderUserData(signalled_holder)) {
                     case BtdrvEventType_BluetoothCore:

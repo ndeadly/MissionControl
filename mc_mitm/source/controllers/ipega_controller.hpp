@@ -90,11 +90,11 @@ namespace ams::controller {
             IpegaController(const bluetooth::Address *address, HardwareID id) 
             : EmulatedSwitchController(address, id) { }
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x02(const IpegaReportData *src);
-            void HandleInputReport0x07(const IpegaReportData *src);
+            void MapInputReport0x02(const IpegaReportData *src);
+            void MapInputReport0x07(const IpegaReportData *src);
 
     };
 

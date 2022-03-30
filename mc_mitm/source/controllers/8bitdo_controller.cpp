@@ -24,22 +24,20 @@ namespace ams::controller {
 
     }
 
-    void EightBitDoController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void EightBitDoController::ProcessInputData(const bluetooth::HidReport *report) {
         auto eightbitdo_report = reinterpret_cast<const EightBitDoReportData *>(&report->data);
 
         switch(eightbitdo_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(eightbitdo_report, report->size == 9 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_Other);
-                break;
+                this->MapInputReport0x01(eightbitdo_report, report->size == 9 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_Other); break;
             case 0x03:
-                this->HandleInputReport0x03(eightbitdo_report, report->size == 11 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_ZeroV2);
-                break;
+                this->MapInputReport0x03(eightbitdo_report, report->size == 11 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_ZeroV2); break;
             default:
                 break;
         }
     }
 
-    void EightBitDoController::HandleInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt) {
+    void EightBitDoController::MapInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt) {
         if (fmt == EightBitDoReportFormat_ZeroV1) {
             m_buttons.dpad_down   = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
                                     (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
@@ -97,7 +95,7 @@ namespace ams::controller {
         }
     }
 
-    void EightBitDoController::HandleInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat fmt) {
+    void EightBitDoController::MapInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat fmt) {
         if (fmt == EightBitDoReportFormat_ZeroV1) {
             m_buttons.A = src->input0x03_v1.buttons.B;
             m_buttons.B = src->input0x03_v1.buttons.A;

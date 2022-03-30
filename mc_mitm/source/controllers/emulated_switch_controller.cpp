@@ -16,7 +16,6 @@
 #include "emulated_switch_controller.hpp"
 #include "../utils.hpp"
 #include "../mcmitm_config.hpp"
-#include <memory>
 
 namespace ams::controller {
 
@@ -200,36 +199,29 @@ namespace ams::controller {
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
     }
 
-    Result EmulatedSwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
-        this->UpdateControllerState(report);
+    void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
+        this->ProcessInputData(report);
 
-        // Prepare Switch report
         m_input_report.size = sizeof(SwitchInputReport0x30) + 1;
         auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         switch_report->id = 0x30;
-        switch_report->input0x30.conn_info   = (0 << 1) | m_ext_power;
-        switch_report->input0x30.battery     = m_battery | m_charging;
-        switch_report->input0x30.buttons     = m_buttons;
-        switch_report->input0x30.left_stick  = m_left_stick;
+        switch_report->input0x30.conn_info = (0 << 1) | m_ext_power;
+        switch_report->input0x30.battery = m_battery | m_charging;
+        switch_report->input0x30.buttons = m_buttons;
+        switch_report->input0x30.left_stick = m_left_stick;
         switch_report->input0x30.right_stick = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
-
-        this->ApplyButtonCombos(&switch_report->input0x30.buttons);
-
-        switch_report->input0x30.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
-        return bluetooth::hid::report::WriteHidDataReport(&m_address, &m_input_report);
+        switch_report->input0x30.timer = (switch_report->input0x30.timer + 3) & 0xff;
     }
 
-    Result EmulatedSwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
+    Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
         auto report_data = reinterpret_cast<const SwitchReportData *>(&report->data);
 
         switch (report_data->id) {
             case 0x01:
-                R_TRY(this->HandleSubCmdReport(report));
-                break;
+                R_TRY(this->HandleSubCmdReport(report)); break;
             case 0x10:
-                R_TRY(this->HandleRumbleReport(report));
-                break;
+                R_TRY(this->HandleRumbleReport(report)); break;
             default:
                 break;
         }
@@ -653,8 +645,8 @@ namespace ams::controller {
         std::memcpy(&report_data->input0x21.response, response, sizeof(SwitchSubcommandResponse));
         report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
 
-        //Write a fake response into the report buffer
-        return bluetooth::hid::report::WriteHidDataReport(&m_address, &m_input_report);
+        // Write a fake response into the report buffer
+        return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
     }
 
     Result EmulatedSwitchController::VirtualSpiFlashRead(int offset, void *data, size_t size) {

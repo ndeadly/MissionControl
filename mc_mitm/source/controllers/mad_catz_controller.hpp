@@ -92,11 +92,11 @@ namespace ams::controller {
             MadCatzController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x01(const MadCatzReportData *src);
-            void HandleInputReport0x02(const MadCatzReportData *src);
+            void MapInputReport0x01(const MadCatzReportData *src);
+            void MapInputReport0x02(const MadCatzReportData *src);
 
     };
 

@@ -17,6 +17,7 @@
 #include <switch.h>
 #include "mcmitm_initialization.hpp"
 #include "mcmitm_config.hpp"
+#include "async/async.hpp"
 #include "bluetooth_mitm/btdrv_mitm_service.hpp"
 #include "bluetooth_mitm/bluetoothmitm_module.hpp"
 #include "btm_mitm/btmmitm_module.hpp"
@@ -38,6 +39,9 @@ namespace ams::mitm {
         os::Event g_init_event(os::EventClearMode_ManualClear);
 
         void InitializeThreadFunc(void *) {
+            // Start async worker thread(s)
+            ams::async::Initialize();
+
             // Start bluetooth event handling thread
             ams::bluetooth::events::Initialize();
 

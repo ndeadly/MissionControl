@@ -112,8 +112,22 @@ namespace ams::controller {
         } acc;
     } __attribute__((packed));
 
+    struct Dualshock4VersionInfo {
+        char date[48];
+    } __attribute__((packed));
+
     struct Dualshock4FeatureReport0x05 {
-        Dualshock4ImuCalibrationData calib;
+        Dualshock4ImuCalibrationData calibration;
+        uint32_t crc;
+    } __attribute__((packed));
+
+    struct Dualshock4FeatureReport0x06 {
+        Dualshock4VersionInfo version_info;
+        uint32_t crc;
+    } __attribute__((packed));
+
+    struct Dualshock4FeatureReport0xa3 {
+        Dualshock4VersionInfo version_info;
     } __attribute__((packed));
 
     struct Dualshock4OutputReport0x11 {
@@ -124,29 +138,29 @@ namespace ams::controller {
     } __attribute__((packed));
 
     struct Dualshock4InputReport0x01 {
-        Dualshock4StickData     left_stick;
-        Dualshock4StickData     right_stick;
-        Dualshock4ButtonData    buttons;
-        uint8_t                 left_trigger;
-        uint8_t                 right_trigger;
+        Dualshock4StickData left_stick;
+        Dualshock4StickData right_stick;
+        Dualshock4ButtonData buttons;
+        uint8_t left_trigger;
+        uint8_t right_trigger;
     } __attribute__((packed));
 
     struct Dualshock4InputReport0x11 {
-        uint8_t                 _unk0[2];
-        Dualshock4StickData     left_stick;
-        Dualshock4StickData     right_stick;
-        Dualshock4ButtonData    buttons;
-        uint8_t                 left_trigger;
-        uint8_t                 right_trigger;
-        uint16_t                timestamp;
-        uint8_t                 battery;
-        int16_t                vel_x;
-        int16_t                vel_y;
-        int16_t                vel_z;
-        int16_t                acc_x;
-        int16_t                acc_y;
-        int16_t                acc_z;
-        uint8_t                 _unk1[5];
+        uint8_t _unk0[2];
+        Dualshock4StickData left_stick;
+        Dualshock4StickData right_stick;
+        Dualshock4ButtonData buttons;
+        uint8_t left_trigger;
+        uint8_t right_trigger;
+        uint16_t timestamp;
+        uint8_t battery;
+        int16_t vel_x;
+        int16_t vel_y;
+        int16_t vel_z;
+        int16_t acc_x;
+        int16_t acc_y;
+        int16_t acc_z;
+        uint8_t _unk1[5];
 
         uint8_t battery_level    : 4;
         uint8_t usb              : 1;
@@ -155,14 +169,16 @@ namespace ams::controller {
         uint8_t                  : 0;
 
         uint16_t _unk2;
-        uint8_t  tpad_packets;
-        uint8_t  packet_counter;
+        uint8_t tpad_packets;
+        uint8_t packet_counter;
     } __attribute__((packed));
 
     struct Dualshock4ReportData {
         uint8_t id;
         union {
             Dualshock4FeatureReport0x05 feature0x05;
+            Dualshock4FeatureReport0x06 feature0x06;
+            Dualshock4FeatureReport0xa3 feature0xa3;
             Dualshock4OutputReport0x11  output0x11;
             Dualshock4InputReport0x01   input0x01;
             Dualshock4InputReport0x11   input0x11;
@@ -191,19 +207,19 @@ namespace ams::controller {
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(RGBColour colour);
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x01(const Dualshock4ReportData *src);
-            void HandleInputReport0x11(const Dualshock4ReportData *src);
+            void MapInputReport0x01(const Dualshock4ReportData *src);
+            void MapInputReport0x11(const Dualshock4ReportData *src);
 
             void MapButtons(const Dualshock4ButtonData *buttons);
             
-            Result RequestVersionInfo(void);
-            Result RequestCalibrationData(void);
+            Result GetVersionInfo(Dualshock4VersionInfo *version_info);
+            Result GetCalibrationData(Dualshock4ImuCalibrationData *calibration);
             Result PushRumbleLedState(void);
 
-            Result HandleGetReport(const bluetooth::HidReport *report);
+            //Result HandleGetReportEvent(const bluetooth::HidReport *report);
 
             Dualshock4ReportRate m_report_rate;
             RGBColour m_led_colour; 

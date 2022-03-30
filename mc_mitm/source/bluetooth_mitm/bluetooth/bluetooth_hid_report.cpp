@@ -53,9 +53,9 @@ namespace ams::bluetooth::hid::report {
         bluetooth::HidReportEventInfo g_fake_report_event_info;
 
         void EventThreadFunc(void *) {
-            WaitInitialized();
 
-            while (true) {
+            WaitInitialized();
+            for (;;) {
                 g_system_event.Wait();
                 HandleEvent();
             }

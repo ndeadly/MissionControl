@@ -149,11 +149,11 @@ namespace ams::controller {
 
             bool SupportsSetTsiCommand(void) { return !((m_id.vid == 0x05a0) && (m_id.pid == 0x3232)); }
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
-            void HandleInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
+            void MapInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
+            void MapInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
 
     };
 

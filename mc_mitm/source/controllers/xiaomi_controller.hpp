@@ -95,10 +95,10 @@ namespace ams::controller {
 
             Result Initialize(void);
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x04(const XiaomiReportData *src);
+            void MapInputReport0x04(const XiaomiReportData *src);
 
     };
 

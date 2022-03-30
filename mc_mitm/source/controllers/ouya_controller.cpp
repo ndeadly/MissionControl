@@ -25,26 +25,24 @@ namespace ams::controller {
 
     }
 
-    void OuyaController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void OuyaController::ProcessInputData(const bluetooth::HidReport *report) {
         auto ouya_report = reinterpret_cast<const OuyaReportData *>(&report->data);
 
         switch(ouya_report->id) {
             case 0x03:
-                this->HandleInputReport0x03(ouya_report);
-                break;
+                this->MapInputReport0x03(ouya_report); break;
             case 0x07:
-                this->HandleInputReport0x07(ouya_report);
-                break;
+                this->MapInputReport0x07(ouya_report); break;
             default:
                 break;
         }
     }
 
-    void OuyaController::HandleInputReport0x03(const OuyaReportData *src) {
+    void OuyaController::MapInputReport0x03(const OuyaReportData *src) {
         m_battery = convert_battery_255(src->input0x03.battery);
     }
     
-    void OuyaController::HandleInputReport0x07(const OuyaReportData *src) {
+    void OuyaController::MapInputReport0x07(const OuyaReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x07.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x07.left_stick.y)) & 0xfff

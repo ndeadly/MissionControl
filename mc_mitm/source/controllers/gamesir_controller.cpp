@@ -24,25 +24,22 @@ namespace ams::controller {
 
     }
 
-    void GamesirController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void GamesirController::ProcessInputData(const bluetooth::HidReport *report) {
         auto gamesir_report = reinterpret_cast<const GamesirReportData *>(&report->data);
 
         switch(gamesir_report->id) {
             case 0x03:
-                this->HandleInputReport0x03(gamesir_report);
-                break;
+                this->MapInputReport0x03(gamesir_report); break;
             case 0x12:
-                this->HandleInputReport0x12(gamesir_report);
-                break;
+                this->MapInputReport0x12(gamesir_report); break;
             case 0xc4:
-                this->HandleInputReport0xc4(gamesir_report);
-                break;
+                this->MapInputReport0xc4(gamesir_report); break;
             default:
                 break;
         }
     }
 
-    void GamesirController::HandleInputReport0x03(const GamesirReportData *src) {
+    void GamesirController::MapInputReport0x03(const GamesirReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & 0xfff
@@ -84,11 +81,11 @@ namespace ams::controller {
         m_buttons.home = src->input0x03.buttons.home;
     }
 
-    void GamesirController::HandleInputReport0x12(const GamesirReportData *src) {
+    void GamesirController::MapInputReport0x12(const GamesirReportData *src) {
         m_buttons.home = src->input0x12.home;
     }
 
-    void GamesirController::HandleInputReport0xc4(const GamesirReportData *src) {
+    void GamesirController::MapInputReport0xc4(const GamesirReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0xc4.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & 0xfff

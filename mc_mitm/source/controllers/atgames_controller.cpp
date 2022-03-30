@@ -24,19 +24,18 @@ namespace ams::controller {
 
     }
 
-    void AtGamesController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void AtGamesController::ProcessInputData(const bluetooth::HidReport *report) {
         auto atgames_report = reinterpret_cast<const AtGamesReportData *>(&report->data);
 
         switch(atgames_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(atgames_report);
-                break;
+                this->MapInputReport0x01(atgames_report); break;
             default:
                 break;
         }
     }
 
-    void AtGamesController::HandleInputReport0x01(const AtGamesReportData *src) {
+    void AtGamesController::MapInputReport0x01(const AtGamesReportData *src) {
         m_left_stick.SetData(
             STICK_ZERO + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
             STICK_ZERO

@@ -76,11 +76,11 @@ namespace ams::controller {
 
             bool SupportsSetTsiCommand(void) { return false; }
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x03(const OuyaReportData *src);
-            void HandleInputReport0x07(const OuyaReportData *src);
+            void MapInputReport0x03(const OuyaReportData *src);
+            void MapInputReport0x07(const OuyaReportData *src);
 
     };
 

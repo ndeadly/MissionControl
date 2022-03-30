@@ -24,22 +24,20 @@ namespace ams::controller {
 
     }
 
-    void MadCatzController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void MadCatzController::ProcessInputData(const bluetooth::HidReport *report) {
         auto madcatz_report = reinterpret_cast<const MadCatzReportData *>(&report->data);
 
         switch(madcatz_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(madcatz_report);
-                break;
+                this->MapInputReport0x01(madcatz_report); break;
             case 0x02:
-                this->HandleInputReport0x02(madcatz_report);
-                break;
+                this->MapInputReport0x02(madcatz_report); break;
             default:
                 break;
         }
     }
 
-    void MadCatzController::HandleInputReport0x01(const MadCatzReportData *src) {
+    void MadCatzController::MapInputReport0x01(const MadCatzReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
@@ -81,7 +79,7 @@ namespace ams::controller {
         //m_buttons.home = src->input0x01.buttons.home;
     }
 
-    void MadCatzController::HandleInputReport0x02(const MadCatzReportData *src) {
+    void MadCatzController::MapInputReport0x02(const MadCatzReportData *src) {
         // Media buttons
         m_buttons.home = src->input0x02.play;
     }

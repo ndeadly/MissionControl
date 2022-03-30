@@ -24,19 +24,18 @@ namespace ams::controller {
 
     }
 
-    void LanShenController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void LanShenController::ProcessInputData(const bluetooth::HidReport *report) {
         auto LanShen_report = reinterpret_cast<const LanShenReportData *>(&report->data);
 
         switch(LanShen_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(LanShen_report);
-                break;
+                this->MapInputReport0x01(LanShen_report); break;
             default:
                 break;
         }
     }
 
-    void LanShenController::HandleInputReport0x01(const LanShenReportData *src) {
+    void LanShenController::MapInputReport0x01(const LanShenReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff

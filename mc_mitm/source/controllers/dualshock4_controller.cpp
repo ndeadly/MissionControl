@@ -73,43 +73,43 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::Initialize(void) {
-
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
-		
+
         // Check if factory calibration data has been inserted into virtual SPI flash
+        /*
         uint8_t calib[sizeof(Switch6AxisCalibrationData)];
         R_TRY(this->VirtualSpiFlashRead(0x6020, &calib, sizeof(calib)));
-        bool has_motion_calib = true;
+        bool has_motion_calib = false;
         for (unsigned int i = 0; i < sizeof(calib); ++i) {
             if (calib[i] != 0xff) {
                 has_motion_calib = true;
                 break;
             }
         }
+        */
+
+        // TODO: remove this once proven working
+        bool has_motion_calib = false;
 
         // Request calbration from the controller if it's not present
         if (!has_motion_calib) {
-            //Todo: make this command spawn a worker and return the value
-            R_TRY(this->RequestCalibrationData());
 
-            // Simulate having received the calibration data from a real controller
-            uint8_t raw_calib_data[] = {0xfc, 0xff, 0x06, 0x00, 0x07, 0x00, 0x4d, 0x22, 
-                                        0xd0, 0x22, 0x2a, 0x23, 0x00, 0xde, 0x3e, 0xdd, 
-                                        0x93, 0xdc, 0x1c, 0x02, 0x1c, 0x02, 0xfd, 0x1f, 
-                                        0xc6, 0xe0, 0x65, 0x20, 0x66, 0xe0, 0x18, 0x20, 
-                                        0x37, 0xdf, 0x0a, 0x00, 0xb6, 0xd3, 0x01, 0x5c};
+            Dualshock4ImuCalibrationData ds4_calib = {};
+            R_TRY(this->GetCalibrationData(&ds4_calib));
 
-            auto calib_data = reinterpret_cast<Dualshock4ImuCalibrationData *>(raw_calib_data);
+            // Convert to the format expected by the console
+            Switch6AxisCalibrationData switch_calib = {};
+            ConvertToSwitchCalibration(&ds4_calib, &switch_calib);
 
-            // Todo: Check CRC of calibration data
+            // Write the converted motion calibration to virtual SPI flash
+            R_TRY(this->VirtualSpiFlashWrite(0x6020, &switch_calib, sizeof(Switch6AxisCalibrationData)));
 
-            ConvertToSwitchCalibration(calib_data, &m_motion_calibration);
-
-            // Todo: Write converted calibration to virtual SPI file for future use
-            //R_TRY(this->VirtualSpiFlashWrite(0x6020, &m_motion_calibration, sizeof(m_motion_calibration)));
+            // Write 6-Axis Horizontal Offsets for DS4
+            int16_t offsets[] = {-858, -16, 3980};
+            R_TRY(this->VirtualSpiFlashWrite(0x6080, offsets, sizeof(offsets)));
         }
-        
+
         return ams::ResultSuccess();
     }
 
@@ -138,22 +138,20 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
-    void Dualshock4Controller::UpdateControllerState(const bluetooth::HidReport *report) {
+    void Dualshock4Controller::ProcessInputData(const bluetooth::HidReport *report) {
         auto ds4_report = reinterpret_cast<const Dualshock4ReportData *>(&report->data);
 
         switch(ds4_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(ds4_report);
-                break;
+                this->MapInputReport0x01(ds4_report); break;
             case 0x11:
-                this->HandleInputReport0x11(ds4_report);
-                break;
+                this->MapInputReport0x11(ds4_report); break;
             default:
                 break;
         }
     }
 
-    void Dualshock4Controller::HandleInputReport0x01(const Dualshock4ReportData *src) {       
+    void Dualshock4Controller::MapInputReport0x01(const Dualshock4ReportData *src) {       
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
@@ -166,7 +164,7 @@ namespace ams::controller {
         this->MapButtons(&src->input0x01.buttons);
     }
 
-    void Dualshock4Controller::HandleInputReport0x11(const Dualshock4ReportData *src) {
+    void Dualshock4Controller::MapInputReport0x11(const Dualshock4ReportData *src) {
         m_ext_power = src->input0x11.usb;
 
         if (!src->input0x11.usb || src->input0x11.battery_level > 10)
@@ -254,12 +252,24 @@ namespace ams::controller {
         m_buttons.home    = buttons->ps;
     }
 
-    Result Dualshock4Controller::RequestVersionInfo(void) {
-        return btdrvGetHidReport(m_address, 0xa3, BtdrvBluetoothHhReportType_Feature);
+    Result Dualshock4Controller::GetVersionInfo(Dualshock4VersionInfo *version_info) {
+        bluetooth::HidReport output;
+        R_TRY(this->GetFeatureReport(0x06, &output));
+
+        auto response = reinterpret_cast<Dualshock4ReportData *>(&output.data);
+        std::memcpy(version_info, &response->feature0x06.version_info, sizeof(Dualshock4VersionInfo));
+
+        return ams::ResultSuccess();
     }
 
-    Result Dualshock4Controller::RequestCalibrationData(void) {
-        return btdrvGetHidReport(m_address, 0x05, BtdrvBluetoothHhReportType_Feature);
+    Result Dualshock4Controller::GetCalibrationData(Dualshock4ImuCalibrationData *calibration) {
+        bluetooth::HidReport output;
+        R_TRY(this->GetFeatureReport(0x05, &output));
+
+        auto response = reinterpret_cast<Dualshock4ReportData *>(&output.data);
+        std::memcpy(calibration, &response->feature0x05.calibration, sizeof(Dualshock4ImuCalibrationData));
+
+        return ams::ResultSuccess();
     }
 
     Result Dualshock4Controller::PushRumbleLedState(void) {
@@ -272,13 +282,7 @@ namespace ams::controller {
         m_output_report.size = sizeof(report) - 1;
         std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
-    }
-
-    Result Dualshock4Controller::HandleGetReport(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
-
-        return ams::ResultSuccess();
+        return this->WriteDataReport(&m_output_report);
     }
 
 }

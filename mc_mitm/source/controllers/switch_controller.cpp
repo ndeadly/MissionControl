@@ -82,38 +82,161 @@ namespace ams::controller {
         return false;
     }
 
-    Result SwitchController::HandleIncomingReport(const bluetooth::HidReport *report) {
-        m_input_report.size = report->size;
-	    std::memcpy(m_input_report.data, report->data, report->size);
+    Result SwitchController::HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) {
+        const bluetooth::HidReport *report;
+        if (hos::GetVersion() >= hos::Version_9_0_0) {
+            report = &event_info->data_report.v9.report;
+        } else if (hos::GetVersion() >= hos::Version_7_0_0) {
+            report = reinterpret_cast<const bluetooth::HidReport *>(&event_info->data_report.v7.report);
+        } else {
+            report = reinterpret_cast<const bluetooth::HidReport *>(&event_info->data_report.v1.report);
+        }
 
-        auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
-        if (switch_report->id == 0x30) {
-            this->ApplyButtonCombos(&switch_report->input0x30.buttons);
-        } else if (switch_report->id == 0x21) {
-            auto response = reinterpret_cast<SwitchSubcommandResponse *>(&switch_report->input0x21.response);
-            if (response->id == SubCmd_SpiFlashRead) {
-                if (response->data.spi_flash_read.address == 0x6050) {
-                    if (ams::mitm::GetSystemLanguage() == 10) {
-                        uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
-                        std::memcpy(response->data.spi_flash_read.data, data, sizeof(data));
-                    }
-                }
+        if (!m_future_responses.empty()) {
+            if ((m_future_responses.back()->GetType() == BtdrvHidEventType_Data) && (m_future_responses.back()->GetUserData() == report->data[0])) {
+                m_future_responses.back()->SetData(*event_info);
             }
         }
 
-        return bluetooth::hid::report::WriteHidDataReport(&m_address, &m_input_report);
+        this->UpdateControllerState(report);
+
+        auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
+        switch (switch_report->id) {
+            case 0x21:
+                this->ApplyButtonCombos(&switch_report->input0x21.buttons); 
+
+	            if (switch_report->input0x21.response.id == SubCmd_SpiFlashRead) {
+	                if (switch_report->input0x21.response.data.spi_flash_read.address == 0x6050) {
+	                    if (ams::mitm::GetSystemLanguage() == 10) {
+	                        uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+	                        std::memcpy(switch_report->input0x21.response.data.spi_flash_read.data, data, sizeof(data));
+	                    }
+	                }
+	            }
+				break;
+            case 0x30:
+                this->ApplyButtonCombos(&switch_report->input0x30.buttons); break;
+            case 0x31:
+            case 0x32:
+            case 0x33:
+            case 0x3f:
+            default:
+                break;
+        }
+
+        return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
     }
 
-    Result SwitchController::HandleOutgoingReport(const bluetooth::HidReport *report) {
-        return bluetooth::hid::report::SendHidReport(&m_address, report);
+    Result SwitchController::HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
+        if (!m_future_responses.empty()) {
+            if (m_future_responses.back()->GetType() == BtdrvHidEventType_SetReport) {
+                m_future_responses.back()->SetData(*event_info);
+            }
+            return ams::ResultSuccess();
+        }
+
+        return bluetooth::hid::report::WriteHidSetReport(m_address, event_info->set_report.res);
     }
 
-    Result SwitchController::HandleSetReport(uint32_t status) {
-        return bluetooth::hid::report::WriteHidSetReport(&m_address, status);
+    Result SwitchController::HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
+        if (!m_future_responses.empty()) {
+            if (m_future_responses.back()->GetType() == BtdrvHidEventType_GetReport) {
+                m_future_responses.back()->SetData(*event_info);
+            }
+            return ams::ResultSuccess();
+        }
+
+        auto report = hos::GetVersion() >= hos::Version_9_0_0 ? &event_info->get_report.v9.report : reinterpret_cast<const bluetooth::HidReport *>(&event_info->get_report.v1.report);
+        return bluetooth::hid::report::WriteHidGetReport(m_address, report);
     }
 
-    Result SwitchController::HandleGetReport(const bluetooth::HidReport *report) {
-        return bluetooth::hid::report::WriteHidGetReport(&m_address, report);
+    Result SwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
+        return this->WriteDataReport(report);
+    }
+
+    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report) {
+        return btdrvWriteHidData(m_address, report);
+    }
+
+    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, uint8_t response_id, bluetooth::HidReport *out_report) {       
+        auto response = std::make_shared<HidResponse>(BtdrvHidEventType_Data);
+        response->SetUserData(response_id);
+        m_future_responses.push(response);
+        ON_SCOPE_EXIT { m_future_responses.pop(); };
+
+        R_TRY(btdrvWriteHidData(m_address, report));
+
+        if (!response->TimedWait(ams::TimeSpan::FromMilliSeconds(500))) {
+            return -1; // This should return a proper failure code
+        }
+
+        auto response_data = response->GetData();
+
+        const bluetooth::HidReport *data_report;
+        if (hos::GetVersion() >= hos::Version_9_0_0) {
+            data_report = &response_data.data_report.v9.report;
+        } else if (hos::GetVersion() >= hos::Version_7_0_0) {
+            data_report = reinterpret_cast<const bluetooth::HidReport *>(&response_data.data_report.v7.report);
+        } else {
+            data_report = reinterpret_cast<const bluetooth::HidReport *>(&response_data.data_report.v1.report);
+        }
+
+        out_report->size = data_report->size;
+        std::memcpy(&out_report->data, &data_report->data, data_report->size);
+
+        return ams::ResultSuccess();
+    }
+
+    Result SwitchController::SetFeatureReport(const bluetooth::HidReport *report) {
+        auto response = std::make_shared<HidResponse>(BtdrvHidEventType_SetReport);
+        m_future_responses.push(response);
+        ON_SCOPE_EXIT { m_future_responses.pop(); };
+
+        R_TRY(btdrvSetHidReport(m_address, BtdrvBluetoothHhReportType_Feature, report));
+
+        if (!response->TimedWait(ams::TimeSpan::FromMilliSeconds(500))) {
+            return -1; // This should return a proper failure code
+        }
+
+        auto response_data = response->GetData();
+
+        return response_data.set_report.res;
+    }
+
+    Result SwitchController::GetFeatureReport(uint8_t id, bluetooth::HidReport *out_report) {
+        auto response = std::make_shared<HidResponse>(BtdrvHidEventType_GetReport);
+        m_future_responses.push(response);
+        ON_SCOPE_EXIT { m_future_responses.pop(); };
+
+        R_TRY(btdrvGetHidReport(m_address, id, BtdrvBluetoothHhReportType_Feature));
+
+        if (!response->TimedWait(ams::TimeSpan::FromMilliSeconds(500))) {
+            return -1; // This should return a proper failure code
+        }
+
+        auto response_data = response->GetData();
+        
+        Result result;
+        const bluetooth::HidReport *get_report;
+        if (hos::GetVersion() >= hos::Version_9_0_0) {
+            result = response_data.get_report.v9.res;
+            get_report = &response_data.get_report.v9.report;
+        } else {
+            result = response_data.get_report.v1.res;
+            get_report = reinterpret_cast<const bluetooth::HidReport *>(&response_data.get_report.v1.report);
+        }
+
+        if (R_SUCCEEDED(result)) {
+            out_report->size = get_report->size;
+            std::memcpy(&out_report->data, &get_report->data, get_report->size);
+        }
+
+        return result;
+    }
+
+    void SwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
+        m_input_report.size = report->size;
+        std::memcpy(m_input_report.data, report->data, report->size);
     }
 
     void SwitchController::ApplyButtonCombos(SwitchButtonData *buttons) {

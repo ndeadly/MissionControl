@@ -36,28 +36,25 @@ namespace ams::controller {
         report->output0x03.pulse_release_10ms = 0;
         report->output0x03.loop_count         = 0;
 
-        return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
+        return this->WriteDataReport(&m_output_report);
     }
 
-    void XboxOneController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void XboxOneController::ProcessInputData(const bluetooth::HidReport *report) {
         auto xbox_report = reinterpret_cast<const XboxOneReportData *>(&report->data);
 
         switch(xbox_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(xbox_report, report->size >= sizeof(XboxOneInputReport0x01) + 1);
-                break;
+                this->MapInputReport0x01(xbox_report, report->size >= sizeof(XboxOneInputReport0x01) + 1); break;
             case 0x02:
-                this->HandleInputReport0x02(xbox_report);
-                break;
+                this->MapInputReport0x02(xbox_report); break;
             case 0x04:
-                this->HandleInputReport0x04(xbox_report);
-                break;
+                this->MapInputReport0x04(xbox_report); break;
             default:
                 break;
         }
     }
 
-    void XboxOneController::HandleInputReport0x01(const XboxOneReportData *src, bool new_format) {
+    void XboxOneController::MapInputReport0x01(const XboxOneReportData *src, bool new_format) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01.left_stick.y)) & 0xfff
@@ -130,11 +127,11 @@ namespace ams::controller {
         }
     }
 
-    void XboxOneController::HandleInputReport0x02(const XboxOneReportData *src) {
+    void XboxOneController::MapInputReport0x02(const XboxOneReportData *src) {
         m_buttons.home = src->input0x02.guide;
     }
 
-    void XboxOneController::HandleInputReport0x04(const XboxOneReportData *src) {
+    void XboxOneController::MapInputReport0x04(const XboxOneReportData *src) {
         m_ext_power = src->input0x04.mode != XboxOnePowerMode_Battery;
         m_battery = (src->input0x04.mode == XboxOnePowerMode_USB) ? BATTERY_MAX : src->input0x04.capacity << 1;
         m_charging = src->input0x04.charging;

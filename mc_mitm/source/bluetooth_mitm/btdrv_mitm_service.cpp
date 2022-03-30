@@ -98,7 +98,7 @@ namespace ams::mitm::bluetooth {
         if (m_client_info.program_id == ncm::SystemProgramId::Hid) {
             auto device = controller::LocateHandler(&address);
             if (device) {
-                device->HandleOutgoingReport(report);
+                device->HandleOutputDataReport(report);
             }
         }
         else {

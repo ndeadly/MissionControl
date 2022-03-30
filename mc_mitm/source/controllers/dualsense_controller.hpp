@@ -126,11 +126,11 @@ namespace ams::controller {
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(RGBColour colour);
 
-            void UpdateControllerState(const bluetooth::HidReport *report);
+            void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void HandleInputReport0x01(const DualsenseReportData *src);
-            void HandleInputReport0x31(const DualsenseReportData *src);
+            void MapInputReport0x01(const DualsenseReportData *src);
+            void MapInputReport0x31(const DualsenseReportData *src);
 
             void MapButtons(const DualsenseButtonData *buttons);
 

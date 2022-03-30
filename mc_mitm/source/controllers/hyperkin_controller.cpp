@@ -22,19 +22,18 @@ namespace ams::controller {
 
     }
 
-    void HyperkinController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void HyperkinController::ProcessInputData(const bluetooth::HidReport *report) {
         auto hyperkin_report = reinterpret_cast<const HyperkinReportData *>(&report->data);
 
         switch(hyperkin_report->id) {
             case 0x3f:
-                this->HandleInputReport0x3f(hyperkin_report);
-                break;
+                this->MapInputReport0x3f(hyperkin_report); break;
             default:
                 break;
         }
     }
 
-    void HyperkinController::HandleInputReport0x3f(const HyperkinReportData *src) {
+    void HyperkinController::MapInputReport0x3f(const HyperkinReportData *src) {
         m_buttons.dpad_down   = (src->input0x3f.buttons.dpad == HyperkinDPad_S)  ||
                                 (src->input0x3f.buttons.dpad == HyperkinDPad_SE) ||
                                 (src->input0x3f.buttons.dpad == HyperkinDPad_SW);

@@ -24,27 +24,24 @@ namespace ams::controller {
 
     }
 
-    void SteelseriesController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void SteelseriesController::ProcessInputData(const bluetooth::HidReport *report) {
         auto steelseries_report = reinterpret_cast<const SteelseriesReportData *>(&report->data);
 
         switch(steelseries_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(steelseries_report);
-                break;
+                this->MapInputReport0x01(steelseries_report); break;
             case 0x12:
-                this->HandleInputReport0x12(steelseries_report);
-                break;
+                this->MapInputReport0x12(steelseries_report); break;
             case 0xc4:
-                this->HandleInputReport0xc4(steelseries_report);
-                break;
+                this->MapInputReport0xc4(steelseries_report); break;
             default:
                 // Todo: handle this properly
-                this->HandleMfiInputReport(steelseries_report);
+                this->MapMfiInputReport(steelseries_report);
                 break;
         }
     }
 
-    void SteelseriesController::HandleInputReport0x01(const SteelseriesReportData *src) {
+    void SteelseriesController::MapInputReport0x01(const SteelseriesReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x01.left_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x01.left_stick.y + 1)) + 0x7ff) & 0xfff
@@ -79,11 +76,11 @@ namespace ams::controller {
         m_buttons.plus  = src->input0x01.buttons.start;
     }
 
-    void SteelseriesController::HandleInputReport0x12(const SteelseriesReportData *src) {
+    void SteelseriesController::MapInputReport0x12(const SteelseriesReportData *src) {
         m_buttons.home  = src->input0x12.home;
     }
 
-    void SteelseriesController::HandleInputReport0xc4(const SteelseriesReportData *src) {
+    void SteelseriesController::MapInputReport0xc4(const SteelseriesReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0xc4.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & 0xfff
@@ -123,7 +120,7 @@ namespace ams::controller {
         m_buttons.plus  = src->input0xc4.buttons.start;
     }
 
-    void SteelseriesController::HandleMfiInputReport(const SteelseriesReportData *src) {
+    void SteelseriesController::MapMfiInputReport(const SteelseriesReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (-static_cast<int8_t>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & 0xfff

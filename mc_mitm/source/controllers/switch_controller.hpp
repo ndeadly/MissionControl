@@ -18,7 +18,12 @@
 #include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 
+#include<queue>
+#include "../async/future_response.hpp"
+
 namespace ams::controller {
+
+    using HidResponse = FutureResponse<bluetooth::HidEventType, bluetooth::HidReportEventInfo, uint8_t>;
 
     constexpr auto BATTERY_MAX = 8;
 
@@ -350,15 +355,21 @@ namespace ams::controller {
             virtual bool SupportsSetTsiCommand(void) { return m_settsi_supported; }
 
             virtual Result Initialize(void);
-            virtual Result HandleIncomingReport(const bluetooth::HidReport *report);
-            virtual Result HandleOutgoingReport(const bluetooth::HidReport *report);
 
-            virtual Result HandleSetReport(uint32_t status);
-            virtual Result HandleGetReport(const bluetooth::HidReport *report);
+            virtual Result HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info);
+            virtual Result HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info);
+            virtual Result HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info);
+            virtual Result HandleOutputDataReport(const bluetooth::HidReport *report);
         private:
             bool HasSetTsiDisableFlag(void);
 
         protected:
+            Result WriteDataReport(const bluetooth::HidReport *report);
+            Result WriteDataReport(const bluetooth::HidReport *report, uint8_t response_id, bluetooth::HidReport *out_report);
+            Result SetFeatureReport(const bluetooth::HidReport *report);
+            Result GetFeatureReport(uint8_t id, bluetooth::HidReport *out_report);
+
+            virtual void UpdateControllerState(const bluetooth::HidReport *report);
             virtual void ApplyButtonCombos(SwitchButtonData *buttons);
 
             bluetooth::Address m_address;
@@ -368,6 +379,8 @@ namespace ams::controller {
 
             bluetooth::HidReport m_input_report;
             bluetooth::HidReport m_output_report;
+
+            std::queue<std::shared_ptr<HidResponse>> m_future_responses;
     };
 
 }

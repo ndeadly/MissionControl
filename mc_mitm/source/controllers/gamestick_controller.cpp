@@ -25,27 +25,25 @@ namespace ams::controller {
         
     }
 
-    void GamestickController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void GamestickController::ProcessInputData(const bluetooth::HidReport *report) {
         auto gamestick_report = reinterpret_cast<const GamestickReportData *>(&report->data);
 
         switch(gamestick_report->id) {
             case 0x01:
-                this->HandleInputReport0x01(gamestick_report);
-                break;
+                this->MapInputReport0x01(gamestick_report); break;
             case 0x03:
-                this->HandleInputReport0x03(gamestick_report);
-                break;
+                this->MapInputReport0x03(gamestick_report); break;
             default:
                 break;
         }
     }
 
-    void GamestickController::HandleInputReport0x01(const GamestickReportData *src) {
+    void GamestickController::MapInputReport0x01(const GamestickReportData *src) {
         m_buttons.minus = src->input0x01.buttons.back;
         m_buttons.home = src->input0x01.buttons.home;
     }
 
-    void GamestickController::HandleInputReport0x03(const GamestickReportData *src) {
+    void GamestickController::MapInputReport0x03(const GamestickReportData *src) {
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,
             static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & 0xfff

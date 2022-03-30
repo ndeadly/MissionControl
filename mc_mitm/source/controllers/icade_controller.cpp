@@ -18,7 +18,7 @@
 
 namespace ams::controller {
 
-    void ICadeController::UpdateControllerState(const bluetooth::HidReport *report) {
+    void ICadeController::ProcessInputData(const bluetooth::HidReport *report) {
         auto icade_report = reinterpret_cast<const ICadeReportData *>(&report->data);
 
         if (icade_report->id == 0x01) {
