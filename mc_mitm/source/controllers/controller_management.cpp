@@ -299,12 +299,12 @@ namespace ams::controller {
         }
     }
 
-    SwitchController *LocateHandler(const bluetooth::Address *address) {
+    std::shared_ptr<SwitchController> LocateHandler(const bluetooth::Address *address) {
         std::scoped_lock lk(g_controller_lock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
                 if (bdcmp(&(*it)->Address(), address)) {
-                    return (*it).get();
+                    return (*it);
                 }
         }
 

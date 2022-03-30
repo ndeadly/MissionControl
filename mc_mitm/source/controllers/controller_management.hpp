@@ -85,6 +85,6 @@ namespace ams::controller {
 
     void AttachHandler(const bluetooth::Address *address);
     void RemoveHandler(const bluetooth::Address *address);
-    SwitchController *LocateHandler(const bluetooth::Address *address);
+    std::shared_ptr<SwitchController> LocateHandler(const bluetooth::Address *address);
 
 }
