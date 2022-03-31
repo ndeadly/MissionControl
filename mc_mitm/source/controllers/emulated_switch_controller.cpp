@@ -211,7 +211,7 @@ namespace ams::controller {
         switch_report->input0x30.left_stick = m_left_stick;
         switch_report->input0x30.right_stick = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
-        switch_report->input0x30.timer = (switch_report->input0x30.timer + 3) & 0xff;
+        switch_report->input0x30.timer = (switch_report->input0x30.timer + 1) & 0xff;
     }
 
     Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
@@ -670,6 +670,21 @@ namespace ams::controller {
 
         R_TRY(fs::FlushFile(m_spi_flash_file));
 
+        return ams::ResultSuccess();
+    }
+
+    Result EmulatedSwitchController::VirtualSpiFlashCheckInitialized(int offset, size_t size, bool *is_initialized) {
+        auto data = std::unique_ptr<uint8_t[]>(new uint8_t[](size));
+
+        R_TRY(this->VirtualSpiFlashRead(offset, data.get(), size));
+        for (size_t i = 0; i < size; ++i) {
+            if ((data.get())[i] != 0xff) {
+                *is_initialized = true;
+                return ams::ResultSuccess();
+            }
+        }
+
+        *is_initialized = false;
         return ams::ResultSuccess();
     }
 

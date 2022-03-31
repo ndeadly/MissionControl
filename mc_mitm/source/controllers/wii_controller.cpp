@@ -27,10 +27,13 @@ namespace ams::controller {
         constexpr uint8_t init_data1[] = {0x55};
         constexpr uint8_t init_data2[] = {0x00};
 
-        constexpr float nunchuck_stick_scale_factor  = float(UINT12_MAX) / 0xb8;
-        constexpr float wiiu_scale_factor            = 2.0;
-        constexpr float left_stick_scale_factor      = float(UINT12_MAX) / 0x3f;
-        constexpr float right_stick_scale_factor     = float(UINT12_MAX) / 0x1f;
+        constexpr float nunchuck_stick_scale_factor = float(UINT12_MAX) / 0xb8;
+        constexpr float wiiu_scale_factor           = 2.0;
+        constexpr float left_stick_scale_factor     = float(UINT12_MAX) / 0x3f;
+        constexpr float right_stick_scale_factor    = float(UINT12_MAX) / 0x1f;
+
+        constexpr float accel_scal_factor = 65535 / 16000.0f * 1000;
+        constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
 
     }
 
@@ -38,26 +41,34 @@ namespace ams::controller {
         R_TRY(EmulatedSwitchController::Initialize());
         R_TRY(this->SetReportMode(0x31));
 
-        // Don't do this for WiiU Pro controller
+        // Only do this for Wiimotes, WiiU Pro controller doesn't like it
         if (m_id.pid == 0x0306) {
-            // Get the accelerometer calibration and write it to virtual SPI flash
-            if (true) {
-                WiiAccelerometerCalibrationData calibration;
-                R_TRY(this->GetAccelerometerCalibration(&calibration));
+            bool initialized;
 
-                // Accelerometer bias
-                uint16_t acc_bias[] = {calibration.acc_x_0g, calibration.acc_y_0g, calibration.acc_z_0g}; // These should be stored as signed
-                R_TRY(this->VirtualSpiFlashWrite(0x6020, acc_bias, sizeof(acc_bias)));
-                DEBUG_LOG("Accelerometer bias: %d, %d, %d", acc_bias[0], acc_bias[1], acc_bias[2]);
-
-                // Sensitivity coefficient
-                uint16_t acc_coeff[] = {calibration.acc_x_1g, calibration.acc_y_1g, calibration.acc_z_1g}; // These should be stored as signed
-                R_TRY(this->VirtualSpiFlashWrite(0x6026, acc_coeff, sizeof(acc_coeff)));
-                DEBUG_LOG("Accelerometer sensitivity coefficients: %d, %d, %d", acc_coeff[0], acc_coeff[1], acc_coeff[2]);
-
-                // Request a status report to check extension controller status
-                R_TRY(this->QueryStatus());
+            // Write accelerometer calibration parameters to virtual SPI flash
+            R_TRY(this->VirtualSpiFlashCheckInitialized(0x6020, sizeof(Switch6AxisCalibrationData), &initialized));
+            if (!initialized) {
+                Switch6AxisCalibrationData motion_calibration = {
+                    .acc_bias = {0, 0, 0},
+                    .acc_sensitivity = {16384, 16384, 16384},
+                    .gyro_bias = {0, 0, 0},
+                    .gyro_sensitivity = {13371, 13371, 13371}
+                };
+                R_TRY(this->VirtualSpiFlashWrite(0x6020, &motion_calibration, sizeof(motion_calibration)));
             }
+
+            // Write 6-Axis Horizontal Offsets for Wiimote
+            R_TRY(this->VirtualSpiFlashCheckInitialized(0x6080, sizeof(Switch6AxisHorizontalOffset), &initialized));
+            if (!initialized) {
+                Switch6AxisHorizontalOffset offset = {0, 0, 0};
+                R_TRY(this->VirtualSpiFlashWrite(0x6080, &offset, sizeof(offset)));
+            }
+
+            // Read the accelerometer calibration from Wiimote memory
+            R_TRY(this->GetAccelerometerCalibration(&m_accel_calibration));
+
+            // Request a status report to check extension controller status
+            R_TRY(this->QueryStatus());
         }
 
         return ams::ResultSuccess(); 
@@ -67,13 +78,13 @@ namespace ams::controller {
         auto wii_report = reinterpret_cast<const WiiReportData *>(&report->data);
 
         switch(wii_report->id) {
-            case 0x20:  // status
+            case 0x20:
                 this->MapInputReport0x20(wii_report);
                 this->HandleStatusReport(wii_report);
                 break;
-            case 0x21:  // memory read
+            case 0x21:
                 this->MapInputReport0x21(wii_report); break;
-            case 0x22:  // ack
+            case 0x22:
                 this->MapInputReport0x22(wii_report); break;
             case 0x30:
                 this->MapInputReport0x30(wii_report); break;
@@ -90,13 +101,6 @@ namespace ams::controller {
             default:
                 break;
         }
-
-
-
-
-
-        }
-
     }
 
     void WiiController::MapInputReport0x20(const WiiReportData *src) {
@@ -192,12 +196,14 @@ namespace ams::controller {
 
     void WiiController::MapAccelerometerData(const WiiAccelerometerData *accel, const WiiButtonData *buttons) {
         if (m_enable_motion) {
-            uint16_t x = (accel->x << 2) | ((buttons->raw[0] >> 5) & 0x3);
-            uint16_t y = (accel->y << 2) | (((buttons->raw[1] >> 4) & 0x1) << 1);
-            uint16_t z = (accel->z << 2) | (((buttons->raw[1] >> 5) & 0x1) << 1);
+            uint16_t x_raw = (accel->x << 2) | ((buttons->raw[0] >> 5) & 0x3);
+            uint16_t y_raw = (accel->y << 2) | (((buttons->raw[1] >> 4) & 0x1) << 1);
+            uint16_t z_raw = (accel->z << 2) | (((buttons->raw[1] >> 5) & 0x1) << 1);
 
-            // Todo: check orientation of quantities
-            // Todo: scale values
+            int16_t x = -static_cast<int16_t>(accel_scal_factor * (float(x_raw - m_accel_calibration.acc_x_0g) / float(m_accel_calibration.acc_x_1g - m_accel_calibration.acc_x_0g)));
+            int16_t y = -static_cast<int16_t>(accel_scal_factor * (float(y_raw - m_accel_calibration.acc_y_0g) / float(m_accel_calibration.acc_y_1g - m_accel_calibration.acc_y_0g)));
+            int16_t z =  static_cast<int16_t>(accel_scal_factor * (float(z_raw - m_accel_calibration.acc_z_0g) / float(m_accel_calibration.acc_z_1g - m_accel_calibration.acc_z_0g)));
+
             if (m_orientation == WiiControllerOrientation_Horizontal) {
                 m_motion_data[0].accel_x = x;
                 m_motion_data[0].accel_y = y;
@@ -211,17 +217,17 @@ namespace ams::controller {
                 m_motion_data[2].accel_y = y;
                 m_motion_data[2].accel_z = z;
             } else {
-                m_motion_data[0].accel_x = y;
-                m_motion_data[0].accel_y = x;
-                m_motion_data[0].accel_z = z;
+                m_motion_data[0].accel_x =  y;
+                m_motion_data[0].accel_y = -x;
+                m_motion_data[0].accel_z =  z;
 
-                m_motion_data[1].accel_x = y;
-                m_motion_data[1].accel_y = x;
-                m_motion_data[1].accel_z = z;
+                m_motion_data[1].accel_x =  y;
+                m_motion_data[1].accel_y = -x;
+                m_motion_data[1].accel_z =  z;
 
-                m_motion_data[2].accel_x = y;
-                m_motion_data[2].accel_y = x;
-                m_motion_data[2].accel_z = z;
+                m_motion_data[2].accel_x =  y;
+                m_motion_data[2].accel_y = -x;
+                m_motion_data[2].accel_z =  z;
             }
         }
         else {
@@ -348,13 +354,25 @@ namespace ams::controller {
         this->UpdateMotionPlusExtensionStatus(extension_data->extension_connected);
 
         if (extension_data->motionplus_report) {
-            //uint16_t pitch = (extension_data->pitch_slow_mode ? 1 : 2000/440) * ((extension_data->pitch_speed_hi << 8) | extension_data->pitch_speed_lo);
-            //uint16_t roll =  (extension_data->roll_slow_mode  ? 1 : 2000/440) * ((extension_data->roll_speed_hi  << 8) | extension_data->roll_speed_lo);
-            //uint16_t yaw =   (extension_data->yaw_slow_mode   ? 1 : 2000/440) * ((extension_data->yaw_speed_hi   << 8) | extension_data->yaw_speed_lo);
+            uint16_t pitch_raw = ((extension_data->pitch_speed_hi << 8) | extension_data->pitch_speed_lo) << 2;
+            uint16_t roll_raw =  ((extension_data->roll_speed_hi  << 8) | extension_data->roll_speed_lo) << 2;
+            uint16_t yaw_raw =   ((extension_data->yaw_speed_hi   << 8) | extension_data->yaw_speed_lo) << 2;
 
-            uint16_t pitch = ((extension_data->pitch_speed_hi << 8) | extension_data->pitch_speed_lo);
-            uint16_t roll =  ((extension_data->roll_speed_hi  << 8) | extension_data->roll_speed_lo);
-            uint16_t yaw =   ((extension_data->yaw_speed_hi   << 8) | extension_data->yaw_speed_lo);
+            uint16_t pitch_0deg = (extension_data->pitch_slow_mode ? m_gyro_calibration.slow.pitch_zero : m_gyro_calibration.fast.pitch_zero);
+            uint16_t roll_0deg  = (extension_data->roll_slow_mode  ? m_gyro_calibration.slow.roll_zero  : m_gyro_calibration.fast.roll_zero);
+            uint16_t yaw_0deg   = (extension_data->yaw_slow_mode   ? m_gyro_calibration.slow.yaw_zero   : m_gyro_calibration.fast.yaw_zero);
+
+            uint16_t pitch_scale = (extension_data->pitch_slow_mode ? m_gyro_calibration.slow.pitch_scale : m_gyro_calibration.fast.pitch_scale);
+            uint16_t roll_scale  = (extension_data->roll_slow_mode  ? m_gyro_calibration.slow.roll_scale  : m_gyro_calibration.fast.roll_scale);
+            uint16_t yaw_scale   = (extension_data->yaw_slow_mode   ? m_gyro_calibration.slow.yaw_scale   : m_gyro_calibration.fast.yaw_scale);
+
+            uint16_t scale_deg_pitch = 6 * (extension_data->pitch_slow_mode ? m_gyro_calibration.slow.degrees_div_6 : m_gyro_calibration.fast.degrees_div_6);
+            uint16_t scale_deg_roll  = 6 * (extension_data->roll_slow_mode  ? m_gyro_calibration.slow.degrees_div_6 : m_gyro_calibration.fast.degrees_div_6);
+            uint16_t scale_deg_yaw   = 6 * (extension_data->yaw_slow_mode   ? m_gyro_calibration.slow.degrees_div_6 : m_gyro_calibration.fast.degrees_div_6);
+
+            int16_t pitch = static_cast<int16_t>(gyro_scale_factor * (float(pitch_raw - pitch_0deg) / (float(pitch_scale - pitch_0deg) / scale_deg_pitch)));
+            int16_t roll = -static_cast<int16_t>(gyro_scale_factor * (float(roll_raw  - roll_0deg)  / (float(roll_scale  - roll_0deg)  / scale_deg_roll)));
+            int16_t yaw =  -static_cast<int16_t>(gyro_scale_factor * (float(yaw_raw   - yaw_0deg)   / (float(yaw_scale   - yaw_0deg)   / scale_deg_yaw)));
 
             if (m_orientation == WiiControllerOrientation_Horizontal) {
                 m_motion_data[0].gyro_1 = pitch;
@@ -369,17 +387,17 @@ namespace ams::controller {
                 m_motion_data[2].gyro_2 = roll;
                 m_motion_data[2].gyro_3 = yaw;
             } else {
-                m_motion_data[0].gyro_1 = roll;
-                m_motion_data[0].gyro_2 = pitch;
-                m_motion_data[0].gyro_3 = yaw;
+                m_motion_data[0].gyro_1 =  roll;
+                m_motion_data[0].gyro_2 = -pitch;
+                m_motion_data[0].gyro_3 =  yaw;
 
-                m_motion_data[1].gyro_1 = roll;
-                m_motion_data[1].gyro_2 = pitch;
-                m_motion_data[1].gyro_3 = yaw;
+                m_motion_data[1].gyro_1 =  roll;
+                m_motion_data[1].gyro_2 = -pitch;
+                m_motion_data[1].gyro_3 =  yaw;
 
-                m_motion_data[2].gyro_1 = roll;
-                m_motion_data[2].gyro_2 = pitch;
-                m_motion_data[2].gyro_3 = yaw;
+                m_motion_data[2].gyro_1 =  roll;
+                m_motion_data[2].gyro_2 = -pitch;
+                m_motion_data[2].gyro_3 =  yaw;
             }
         } else {
             if (m_extension == WiiExtensionController_MotionPlusNunchuckPassthrough) {
@@ -514,7 +532,6 @@ namespace ams::controller {
                 } else {
                     if ((m_extension == WiiExtensionController_MotionPlusNunchuckPassthrough) || (m_extension == WiiExtensionController_MotionPlusClassicControllerPassthrough)) {
                         R_TRY(this->DeactivateMotionPlus());
-                        //R_TRY(this->ActivateMotionPlus());
 
                         m_extension = WiiExtensionController_None;
                         //m_orientation = WiiControllerOrientation_Horizontal;
@@ -556,7 +573,6 @@ namespace ams::controller {
         if (R_SUCCEEDED(this->ReadMemory(0x04a400fc, 4, &extension_id))) {
             extension_id = util::SwapBytes(extension_id);
 
-
             switch (extension_id) {
                 case 0xffffffff:
                     return WiiExtensionController_None;
@@ -579,12 +595,10 @@ namespace ams::controller {
             }
         }
 
-
         return WiiExtensionController_None;
     }
 
     Result WiiController::GetAccelerometerCalibration(WiiAccelerometerCalibrationData *calibration) {
-
         struct {
             uint8_t acc_x_0g_92;
             uint8_t acc_y_0g_92;
@@ -611,11 +625,6 @@ namespace ams::controller {
 
         R_TRY(this->ReadMemory(0x0016, sizeof(calibration_raw), &calibration_raw));
 
-        // Todo: read this if checksum of the first one fails
-        if (false) {
-            R_TRY(this->ReadMemory(0x0020, sizeof(calibration_raw), &calibration_raw));
-        }
-
         calibration->acc_x_0g = (calibration_raw.acc_x_0g_92 << 2) | calibration_raw.acc_x_0g_10;
         calibration->acc_y_0g = (calibration_raw.acc_y_0g_92 << 2) | calibration_raw.acc_y_0g_10;
         calibration->acc_z_0g = (calibration_raw.acc_z_0g_92 << 2) | calibration_raw.acc_z_0g_10;
@@ -627,7 +636,6 @@ namespace ams::controller {
     }
 
     Result WiiController::GetMotionPlusCalibration(MotionPlusCalibrationData *calibration) {
-
         struct {
             union {
                 uint8_t raw[0x20];
@@ -651,12 +659,21 @@ namespace ams::controller {
         R_TRY(this->ReadMemory(0x04a60020, 16, &calibration_raw.raw));
         R_TRY(this->ReadMemory(0x04a60030, 16, &calibration_raw.raw[0x10]));
 
+        calibration->fast.yaw_zero    = util::SwapBytes(calibration_raw.fast.calib.yaw_zero);
+        calibration->fast.roll_zero   = util::SwapBytes(calibration_raw.fast.calib.roll_zero);
+        calibration->fast.pitch_zero  = util::SwapBytes(calibration_raw.fast.calib.pitch_zero);
+        calibration->fast.yaw_scale   = util::SwapBytes(calibration_raw.fast.calib.yaw_scale);
+        calibration->fast.roll_scale  = util::SwapBytes(calibration_raw.fast.calib.roll_scale);
+        calibration->fast.pitch_scale = util::SwapBytes(calibration_raw.fast.calib.pitch_scale);
+        calibration->fast.degrees_div_6 = calibration_raw.fast.calib.degrees_div_6;
 
-        // Todo: check CRC
-        //uint32_t crc = (calibration_raw.crc32_msb << 16) | calibration_raw.crc32_lsb;
-
-        calibration->fast = calibration_raw.fast.calib;
-        calibration->slow = calibration_raw.slow.calib;
+        calibration->slow.yaw_zero    = util::SwapBytes(calibration_raw.slow.calib.yaw_zero);
+        calibration->slow.roll_zero   = util::SwapBytes(calibration_raw.slow.calib.roll_zero);
+        calibration->slow.pitch_zero  = util::SwapBytes(calibration_raw.slow.calib.pitch_zero);
+        calibration->slow.yaw_scale   = util::SwapBytes(calibration_raw.slow.calib.yaw_scale);
+        calibration->slow.roll_scale  = util::SwapBytes(calibration_raw.slow.calib.roll_scale);
+        calibration->slow.pitch_scale = util::SwapBytes(calibration_raw.slow.calib.pitch_scale);
+        calibration->slow.degrees_div_6 = calibration_raw.slow.calib.degrees_div_6;
 
         return ams::ResultSuccess();
     }
@@ -724,12 +741,10 @@ namespace ams::controller {
             }
         } while (!(R_SUCCEEDED(result) || (++attempts >= 2)));
 
-
         return result;
     }
 
     Result WiiController::InitializeStandardExtension() {
-
         R_TRY(this->WriteMemory(0x04a400f0, init_data1, sizeof(init_data1)));
         R_TRY(this->WriteMemory(0x04a400fb, init_data2, sizeof(init_data2)));
 
@@ -737,41 +752,20 @@ namespace ams::controller {
     }
 
     Result WiiController::InitializeMotionPlus() {
-
-        // Write activation byte
         R_TRY(this->WriteMemory(0x04a600f0, init_data1, sizeof(init_data1)));
 
         // Get the MotionPlus calibration
-        if (true) {
-            MotionPlusCalibrationData mp_calibration;
-            R_TRY(this->GetMotionPlusCalibration(&mp_calibration));
-
-            // Todo: figure out how to handle slow vs fast mode calibration
-
-            /*
-            // Gyro bias
-            uint16_t gyro_bias[] = {mp_calibration.slow.yaw_zero, mp_calibration.slow.roll_zero, mp_calibration.slow.pitch_zero}; // These should be stored as signed
-            R_TRY(this->VirtualSpiFlashWrite(0x602c, gyro_bias, sizeof(gyro_bias)));
-
-            // Sensitivity coefficient
-            uint16_t gyro_coeff[] = {mp_calibration.slow.yaw_scale, mp_calibration.slow.roll_scale, mp_calibration.slow.pitch_scale}; // These should be stored as signed
-            R_TRY(this->VirtualSpiFlashWrite(0x6032, gyro_coeff, sizeof(gyro_coeff)));
-            */
-        }
+        R_TRY(this->GetMotionPlusCalibration(&m_gyro_calibration));
 
         return ams::ResultSuccess();
     }
 
     MotionPlusStatus WiiController::GetMotionPlusStatus() {
-
-        Result rc;
-        uint16_t extension_id = 0;
+        uint16_t extension_id;
 
         // Check for inactive motion plus addon
-        rc = this->ReadMemory(0x04a600fe, 2, &extension_id);
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(this->ReadMemory(0x04a600fe, 2, &extension_id))) {
             extension_id = util::SwapBytes(extension_id);
-
 
             switch (extension_id) {
                 case 0x0005:
@@ -783,12 +777,10 @@ namespace ams::controller {
                 default:
                     break;
             }
-        } else {
         }
 
         // Check for active motion plus addon
-        rc = this->ReadMemory(0x04a400fe, 2, &extension_id);
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(this->ReadMemory(0x04a400fe, 2, &extension_id))) {
             extension_id = util::SwapBytes(extension_id);
 
             switch (extension_id) {
@@ -799,15 +791,12 @@ namespace ams::controller {
                 default:
                     break;
             }
-        } else {
         }
-
 
         return MotionPlusStatus_None;
     }
 
     Result WiiController::ActivateMotionPlus() {
-
         uint8_t data[] = {0x04};
         R_TRY(this->WriteMemory(0x04a600fe, data, sizeof(data)));
 
@@ -815,7 +804,6 @@ namespace ams::controller {
     }
 
     Result WiiController::ActivateMotionPlusNunchuckPassthrough() {
-
         uint8_t data[] = {0x05};
         R_TRY(this->WriteMemory(0x04a600fe, data, sizeof(data)));
 
@@ -823,7 +811,6 @@ namespace ams::controller {
     }
 
     Result WiiController::ActivateMotionPlusClassicPassthrough() {
-
         uint8_t data[] = {0x07};
         R_TRY(this->WriteMemory(0x04a600fe, data, sizeof(data)));
 
@@ -831,14 +818,12 @@ namespace ams::controller {
     }
 
     Result WiiController::DeactivateMotionPlus() {
-
         R_TRY(this->WriteMemory(0x04a400f0, init_data1, sizeof(init_data1)));
 
         return ams::ResultSuccess();
     }
 
     Result WiiController::UpdateMotionPlusExtensionStatus(bool extension_connected) {
-
         if (!m_debounce_counter) {
             if (extension_connected != m_mp_extension_flag) {
                 m_debounce_counter ++;
@@ -853,12 +838,9 @@ namespace ams::controller {
             if (m_debounce_counter > 50) {
                 m_debounce_counter = 0;
 
-
                 m_mp_extension_flag = extension_connected;
 
                 R_TRY(this->QueryStatus());
-
-                
             }
         }
 

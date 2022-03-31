@@ -527,6 +527,9 @@ namespace ams::controller {
 
             bool m_mp_extension_flag;
             u64 m_debounce_counter;
+
+            WiiAccelerometerCalibrationData m_accel_calibration;
+            MotionPlusCalibrationData m_gyro_calibration;
     };
 
 }

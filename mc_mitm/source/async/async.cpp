@@ -39,7 +39,7 @@ namespace ams::async {
                 auto work_func = std::unique_ptr<AsyncFunction>(reinterpret_cast<AsyncFunction *>(ptr));
 
                 // Execute the work function
-                Result rc = (*work_func)();
+                (*work_func)();
             }
         }
 

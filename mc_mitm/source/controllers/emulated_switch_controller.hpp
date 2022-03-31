@@ -70,6 +70,7 @@ namespace ams::controller {
             Result VirtualSpiFlashRead(int offset, void *data, size_t size);
             Result VirtualSpiFlashWrite(int offset, const void *data, size_t size);
             Result VirtualSpiFlashSectorErase(int offset);
+            Result VirtualSpiFlashCheckInitialized(int offset, size_t size, bool *is_initialized);
 
             bool m_charging;
             bool m_ext_power;

@@ -118,6 +118,12 @@ namespace ams::controller {
         } gyro_sensitivity;
     } __attribute__((packed));
 
+    struct Switch6AxisHorizontalOffset {
+        int16_t x;
+        int16_t y;
+        int16_t z;
+    } __attribute__((packed));
+
     struct SwitchRumbleData {
         float high_band_freq;
         float high_band_amp;
