@@ -674,11 +674,11 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::VirtualSpiFlashCheckInitialized(int offset, size_t size, bool *is_initialized) {
-        auto data = std::unique_ptr<uint8_t[]>(new uint8_t[](size));
+        auto data = std::unique_ptr<uint8_t[]>(new uint8_t[size]());
 
         R_TRY(this->VirtualSpiFlashRead(offset, data.get(), size));
         for (size_t i = 0; i < size; ++i) {
-            if ((data.get())[i] != 0xff) {
+            if (data[i] != 0xff) {
                 *is_initialized = true;
                 return ams::ResultSuccess();
             }
