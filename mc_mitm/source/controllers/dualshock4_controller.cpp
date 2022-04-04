@@ -18,6 +18,7 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 #include <cstring>
+#include <cmath>
 
 namespace ams::controller {
 
@@ -25,8 +26,8 @@ namespace ams::controller {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
-        constexpr auto GYRO_RES_PER_DEG_S = 1024;
-        constexpr auto ACC_RES_PER_G = 8192;
+        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
+        constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
 
         const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
 
@@ -43,72 +44,35 @@ namespace ams::controller {
             {0x10, 0x00, 0x30}  // purple
         };
 
-        void ConvertToSwitchCalibration(const Dualshock4ImuCalibrationData *calib_data, Switch6AxisCalibrationData *switch_calib) {
-            /* Gyro */
-            //float numerator = (calib_data->gyro.speed_min + calib_data->gyro.speed_max) * GYRO_RES_PER_DEG_S;
-            switch_calib->gyro_bias.pitch = calib_data->gyro.pitch_bias;
-            switch_calib->gyro_sensitivity.pitch = (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min) / 2; //numerator / (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min);
-
-            switch_calib->gyro_bias.yaw = calib_data->gyro.yaw_bias;
-            switch_calib->gyro_sensitivity.yaw = (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min) / 2; //numerator / (calib_data->gyro.yaw_max - calib_data->gyro.yaw_min);
-
-            switch_calib->gyro_bias.roll = calib_data->gyro.roll_bias;
-            switch_calib->gyro_sensitivity.roll = (calib_data->gyro.pitch_max - calib_data->gyro.pitch_min) / 2; //numerator / (calib_data->gyro.roll_max - calib_data->gyro.roll_min);
-
-            /* Accelerometer */
-            int16_t acc_range_2g;
-            acc_range_2g = calib_data->acc.x_max - calib_data->acc.x_min;
-            switch_calib->acc_bias.x = calib_data->acc.x_max - acc_range_2g / 2;
-            switch_calib->acc_sensitivity.x = 2 * ACC_RES_PER_G / float(acc_range_2g);
-
-            acc_range_2g = calib_data->acc.y_max - calib_data->acc.y_min;
-            switch_calib->acc_bias.y = calib_data->acc.y_max - acc_range_2g / 2;
-            switch_calib->acc_sensitivity.y = 2 * ACC_RES_PER_G / float(acc_range_2g);
-            
-            acc_range_2g = calib_data->acc.z_max - calib_data->acc.z_min;
-            switch_calib->acc_bias.z = calib_data->acc.z_max - acc_range_2g / 2;
-            switch_calib->acc_sensitivity.z = 2 * ACC_RES_PER_G / float(acc_range_2g);
-        }
-
     }
 
     Result Dualshock4Controller::Initialize(void) {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
 
-        // Check if factory calibration data has been inserted into virtual SPI flash
-        /*
-        uint8_t calib[sizeof(Switch6AxisCalibrationData)];
-        R_TRY(this->VirtualSpiFlashRead(0x6020, &calib, sizeof(calib)));
-        bool has_motion_calib = false;
-        for (unsigned int i = 0; i < sizeof(calib); ++i) {
-            if (calib[i] != 0xff) {
-                has_motion_calib = true;
-                break;
-            }
+        bool initialized;
+
+        // Write motion calibration parameters to virtual SPI flash
+        R_TRY(this->VirtualSpiFlashCheckInitialized(0x6020, sizeof(Switch6AxisCalibrationData), &initialized));
+        if (!initialized) {
+            Switch6AxisCalibrationData motion_calibration = {
+                .acc_bias = {0, 0, 0},
+                .acc_sensitivity = {16384, 16384, 16384},
+                .gyro_bias = {0, 0, 0},
+                .gyro_sensitivity = {13371, 13371, 13371}
+            };
+            R_TRY(this->VirtualSpiFlashWrite(0x6020, &motion_calibration, sizeof(motion_calibration)));
         }
-        */
 
-        // TODO: remove this once proven working
-        bool has_motion_calib = false;
-
-        // Request calbration from the controller if it's not present
-        if (!has_motion_calib) {
-
-            Dualshock4ImuCalibrationData ds4_calib = {};
-            R_TRY(this->GetCalibrationData(&ds4_calib));
-
-            // Convert to the format expected by the console
-            Switch6AxisCalibrationData switch_calib = {};
-            ConvertToSwitchCalibration(&ds4_calib, &switch_calib);
-
-            // Write the converted motion calibration to virtual SPI flash
-            R_TRY(this->VirtualSpiFlashWrite(0x6020, &switch_calib, sizeof(Switch6AxisCalibrationData)));
-
-            // Write 6-Axis Horizontal Offsets for DS4
-            int16_t offsets[] = {-858, -16, 3980};
-            R_TRY(this->VirtualSpiFlashWrite(0x6080, offsets, sizeof(offsets)));
+        // Write 6-Axis Horizontal offsets
+        R_TRY(this->VirtualSpiFlashCheckInitialized(0x6080, sizeof(Switch6AxisHorizontalOffset), &initialized));
+        if (!initialized) {
+            Switch6AxisHorizontalOffset offset = {0, 0, 0};
+            R_TRY(this->VirtualSpiFlashWrite(0x6080, &offset, sizeof(offset)));
         }
+
+        // Request motion calibration data from Dualshock4
+        R_TRY(this->GetCalibrationData(&m_motion_calibration));
 
         return ams::ResultSuccess();
     }
@@ -192,26 +156,34 @@ namespace ams::controller {
         this->MapButtons(&src->input0x11.buttons);
 
         if (m_enable_motion) {
-            m_motion_data[0].gyro_1 = -src->input0x11.vel_z;
-            m_motion_data[0].gyro_2 = -src->input0x11.vel_x;
-            m_motion_data[0].gyro_3 = src->input0x11.vel_y;
-            m_motion_data[0].accel_x = -src->input0x11.acc_z;
-            m_motion_data[0].accel_y = -src->input0x11.acc_x;
-            m_motion_data[0].accel_z = src->input0x11.acc_y;
+            int16_t acc_x = -static_cast<int16_t>(accel_scale_factor * src->input0x11.acc_z / float(m_motion_calibration.acc.z_max));
+            int16_t acc_y = -static_cast<int16_t>(accel_scale_factor * src->input0x11.acc_x / float(m_motion_calibration.acc.x_max));
+            int16_t acc_z =  static_cast<int16_t>(accel_scale_factor * src->input0x11.acc_y / float(m_motion_calibration.acc.y_max));
 
-            m_motion_data[1].gyro_1 = -src->input0x11.vel_z;
-            m_motion_data[1].gyro_2 = -src->input0x11.vel_x;
-            m_motion_data[1].gyro_3 = src->input0x11.vel_y;
-            m_motion_data[1].accel_x = -src->input0x11.acc_z;
-            m_motion_data[1].accel_y = -src->input0x11.acc_x;
-            m_motion_data[1].accel_z = src->input0x11.acc_y;
+            int16_t vel_x = -static_cast<int16_t>(0.85 * gyro_scale_factor * (src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
+            int16_t vel_y = -static_cast<int16_t>(0.85 * gyro_scale_factor * (src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
+            int16_t vel_z =  static_cast<int16_t>(0.85 * gyro_scale_factor * (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
 
-            m_motion_data[2].gyro_1 = -src->input0x11.vel_z;
-            m_motion_data[2].gyro_2 = -src->input0x11.vel_x;
-            m_motion_data[2].gyro_3 = src->input0x11.vel_y;
-            m_motion_data[2].accel_x = -src->input0x11.acc_z;
-            m_motion_data[2].accel_y = -src->input0x11.acc_x;
-            m_motion_data[2].accel_z = src->input0x11.acc_y;
+            m_motion_data[0].gyro_1  = vel_x;
+            m_motion_data[0].gyro_2  = vel_y;
+            m_motion_data[0].gyro_3  = vel_z;
+            m_motion_data[0].accel_x = acc_x;
+            m_motion_data[0].accel_y = acc_y;
+            m_motion_data[0].accel_z = acc_z;
+
+            m_motion_data[1].gyro_1  = vel_x;
+            m_motion_data[1].gyro_2  = vel_y;
+            m_motion_data[1].gyro_3  = vel_z;
+            m_motion_data[1].accel_x = acc_x;
+            m_motion_data[1].accel_y = acc_y;
+            m_motion_data[1].accel_z = acc_z;
+
+            m_motion_data[2].gyro_1  = vel_x;
+            m_motion_data[2].gyro_2  = vel_y;
+            m_motion_data[2].gyro_3  = vel_z;
+            m_motion_data[2].accel_x = acc_x;
+            m_motion_data[2].accel_y = acc_y;
+            m_motion_data[2].accel_z = acc_z;
         }
         else {
             std::memset(&m_motion_data, 0, sizeof(m_motion_data));

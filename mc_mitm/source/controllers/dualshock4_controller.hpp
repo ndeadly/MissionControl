@@ -219,11 +219,11 @@ namespace ams::controller {
             Result GetCalibrationData(Dualshock4ImuCalibrationData *calibration);
             Result PushRumbleLedState(void);
 
-            //Result HandleGetReportEvent(const bluetooth::HidReport *report);
-
             Dualshock4ReportRate m_report_rate;
             RGBColour m_led_colour; 
             Dualshock4RumbleData m_rumble_state;
+
+            Dualshock4ImuCalibrationData m_motion_calibration;
     };
 
 }
