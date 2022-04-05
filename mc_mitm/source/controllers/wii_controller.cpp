@@ -90,11 +90,11 @@ namespace ams::controller {
     }
 
     void WiiController::HandleInputReport0x21(const WiiReportData *src) {
-        uint16_t read_addr = util::SwapBytes(src->input0x21.address);
+        uint16_t read_addr = util::SwapEndian(src->input0x21.address);
 
         if (read_addr == 0x00fa) {
             // Identify extension controller by ID
-            uint64_t extension_id = (util::SwapBytes(*reinterpret_cast<const uint64_t *>(&src->input0x21.data)) >> 16);
+            uint64_t extension_id = (util::SwapEndian(*reinterpret_cast<const uint64_t *>(&src->input0x21.data)) >> 16);
 
             switch (extension_id) {
                 case 0x0000A4200000ULL:
@@ -318,7 +318,7 @@ namespace ams::controller {
         m_output_report.size = sizeof(WiiOutputReport0x16) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x16;
-        report_data->output0x16.address = ams::util::SwapBytes(write_addr);
+        report_data->output0x16.address = ams::util::SwapEndian(write_addr);
         report_data->output0x16.size = size;
         std::memcpy(&report_data->output0x16.data, data, size);
 
@@ -329,8 +329,8 @@ namespace ams::controller {
         m_output_report.size = sizeof(WiiOutputReport0x17) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x17;
-        report_data->output0x17.address = ams::util::SwapBytes(read_addr);
-        report_data->output0x17.size = ams::util::SwapBytes(size);
+        report_data->output0x17.address = ams::util::SwapEndian(read_addr);
+        report_data->output0x17.size = ams::util::SwapEndian(size);
 
         return bluetooth::hid::report::SendHidReport(&m_address, &m_output_report);
     }
