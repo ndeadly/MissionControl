@@ -50,27 +50,6 @@ namespace ams::controller {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
 
-        bool initialized;
-
-        // Write motion calibration parameters to virtual SPI flash
-        R_TRY(this->VirtualSpiFlashCheckInitialized(0x6020, sizeof(Switch6AxisCalibrationData), &initialized));
-        if (!initialized) {
-            Switch6AxisCalibrationData motion_calibration = {
-                .acc_bias = {0, 0, 0},
-                .acc_sensitivity = {16384, 16384, 16384},
-                .gyro_bias = {0, 0, 0},
-                .gyro_sensitivity = {13371, 13371, 13371}
-            };
-            R_TRY(this->VirtualSpiFlashWrite(0x6020, &motion_calibration, sizeof(motion_calibration)));
-        }
-
-        // Write 6-Axis Horizontal offsets
-        R_TRY(this->VirtualSpiFlashCheckInitialized(0x6080, sizeof(Switch6AxisHorizontalOffset), &initialized));
-        if (!initialized) {
-            Switch6AxisHorizontalOffset offset = {0, 0, 0};
-            R_TRY(this->VirtualSpiFlashWrite(0x6080, &offset, sizeof(offset)));
-        }
-
         // Request motion calibration data from Dualshock4
         R_TRY(this->GetCalibrationData(&m_motion_calibration));
 
