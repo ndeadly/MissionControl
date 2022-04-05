@@ -32,7 +32,7 @@ namespace ams::controller {
         constexpr float left_stick_scale_factor     = float(UINT12_MAX) / 0x3f;
         constexpr float right_stick_scale_factor    = float(UINT12_MAX) / 0x1f;
 
-        constexpr float accel_scal_factor = 65535 / 16000.0f * 1000;
+        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
         constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
 
     }
@@ -178,9 +178,9 @@ namespace ams::controller {
             uint16_t y_raw = (accel->y << 2) | (((buttons->raw[1] >> 4) & 0x1) << 1);
             uint16_t z_raw = (accel->z << 2) | (((buttons->raw[1] >> 5) & 0x1) << 1);
 
-            int16_t x = -static_cast<int16_t>(accel_scal_factor * (float(x_raw - m_accel_calibration.acc_x_0g) / float(m_accel_calibration.acc_x_1g - m_accel_calibration.acc_x_0g)));
-            int16_t y = -static_cast<int16_t>(accel_scal_factor * (float(y_raw - m_accel_calibration.acc_y_0g) / float(m_accel_calibration.acc_y_1g - m_accel_calibration.acc_y_0g)));
-            int16_t z =  static_cast<int16_t>(accel_scal_factor * (float(z_raw - m_accel_calibration.acc_z_0g) / float(m_accel_calibration.acc_z_1g - m_accel_calibration.acc_z_0g)));
+            int16_t x = -static_cast<int16_t>(accel_scale_factor * (float(x_raw - m_accel_calibration.acc_x_0g) / float(m_accel_calibration.acc_x_1g - m_accel_calibration.acc_x_0g)));
+            int16_t y = -static_cast<int16_t>(accel_scale_factor * (float(y_raw - m_accel_calibration.acc_y_0g) / float(m_accel_calibration.acc_y_1g - m_accel_calibration.acc_y_0g)));
+            int16_t z =  static_cast<int16_t>(accel_scale_factor * (float(z_raw - m_accel_calibration.acc_z_0g) / float(m_accel_calibration.acc_z_1g - m_accel_calibration.acc_z_0g)));
 
             if (m_orientation == WiiControllerOrientation_Horizontal) {
                 m_motion_data[0].accel_x = x;
