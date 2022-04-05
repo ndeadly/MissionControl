@@ -41,7 +41,7 @@ namespace ams::controller {
         R_TRY(this->SetReportMode(0x31));
         R_TRY(EmulatedSwitchController::Initialize());
 
-        // Only do this for Wiimotes, WiiU Pro controller doesn't like it
+        // Only attempt to grab calibration and check for MotionPlus for Wiimote controllers
         if (m_id.pid == 0x0306) {
             // Read the accelerometer calibration from Wiimote memory
             R_TRY(this->GetAccelerometerCalibration(&m_accel_calibration));
@@ -91,8 +91,7 @@ namespace ams::controller {
     }
 
     void WiiController::MapInputReport0x21(const WiiReportData *src) {
-        uint16_t read_addr = util::SwapEndian(src->input0x21.address);
-            uint64_t extension_id = (util::SwapEndian(*reinterpret_cast<const uint64_t *>(&src->input0x21.data)) >> 16);
+        this->MapCoreButtons(&src->input0x21.buttons);
     }
 
     void WiiController::MapInputReport0x22(const WiiReportData *src) {
@@ -550,7 +549,7 @@ namespace ams::controller {
     WiiExtensionController WiiController::GetExtensionControllerType() {
         uint32_t extension_id = 0;
         if (R_SUCCEEDED(this->ReadMemory(0x04a400fc, 4, &extension_id))) {
-            extension_id = util::SwapBytes(extension_id);
+            extension_id = util::SwapEndian(extension_id);
 
             switch (extension_id) {
                 case 0xffffffff:
@@ -638,20 +637,20 @@ namespace ams::controller {
         R_TRY(this->ReadMemory(0x04a60020, 16, &calibration_raw.raw));
         R_TRY(this->ReadMemory(0x04a60030, 16, &calibration_raw.raw[0x10]));
 
-        calibration->fast.yaw_zero    = util::SwapBytes(calibration_raw.fast.calib.yaw_zero);
-        calibration->fast.roll_zero   = util::SwapBytes(calibration_raw.fast.calib.roll_zero);
-        calibration->fast.pitch_zero  = util::SwapBytes(calibration_raw.fast.calib.pitch_zero);
-        calibration->fast.yaw_scale   = util::SwapBytes(calibration_raw.fast.calib.yaw_scale);
-        calibration->fast.roll_scale  = util::SwapBytes(calibration_raw.fast.calib.roll_scale);
-        calibration->fast.pitch_scale = util::SwapBytes(calibration_raw.fast.calib.pitch_scale);
+        calibration->fast.yaw_zero    = util::SwapEndian(calibration_raw.fast.calib.yaw_zero);
+        calibration->fast.roll_zero   = util::SwapEndian(calibration_raw.fast.calib.roll_zero);
+        calibration->fast.pitch_zero  = util::SwapEndian(calibration_raw.fast.calib.pitch_zero);
+        calibration->fast.yaw_scale   = util::SwapEndian(calibration_raw.fast.calib.yaw_scale);
+        calibration->fast.roll_scale  = util::SwapEndian(calibration_raw.fast.calib.roll_scale);
+        calibration->fast.pitch_scale = util::SwapEndian(calibration_raw.fast.calib.pitch_scale);
         calibration->fast.degrees_div_6 = calibration_raw.fast.calib.degrees_div_6;
 
-        calibration->slow.yaw_zero    = util::SwapBytes(calibration_raw.slow.calib.yaw_zero);
-        calibration->slow.roll_zero   = util::SwapBytes(calibration_raw.slow.calib.roll_zero);
-        calibration->slow.pitch_zero  = util::SwapBytes(calibration_raw.slow.calib.pitch_zero);
-        calibration->slow.yaw_scale   = util::SwapBytes(calibration_raw.slow.calib.yaw_scale);
-        calibration->slow.roll_scale  = util::SwapBytes(calibration_raw.slow.calib.roll_scale);
-        calibration->slow.pitch_scale = util::SwapBytes(calibration_raw.slow.calib.pitch_scale);
+        calibration->slow.yaw_zero    = util::SwapEndian(calibration_raw.slow.calib.yaw_zero);
+        calibration->slow.roll_zero   = util::SwapEndian(calibration_raw.slow.calib.roll_zero);
+        calibration->slow.pitch_zero  = util::SwapEndian(calibration_raw.slow.calib.pitch_zero);
+        calibration->slow.yaw_scale   = util::SwapEndian(calibration_raw.slow.calib.yaw_scale);
+        calibration->slow.roll_scale  = util::SwapEndian(calibration_raw.slow.calib.roll_scale);
+        calibration->slow.pitch_scale = util::SwapEndian(calibration_raw.slow.calib.pitch_scale);
         calibration->slow.degrees_div_6 = calibration_raw.slow.calib.degrees_div_6;
 
         return ams::ResultSuccess();
@@ -744,7 +743,7 @@ namespace ams::controller {
 
         // Check for inactive motion plus addon
         if (R_SUCCEEDED(this->ReadMemory(0x04a600fe, 2, &extension_id))) {
-            extension_id = util::SwapBytes(extension_id);
+            extension_id = util::SwapEndian(extension_id);
 
             switch (extension_id) {
                 case 0x0005:
@@ -760,7 +759,7 @@ namespace ams::controller {
 
         // Check for active motion plus addon
         if (R_SUCCEEDED(this->ReadMemory(0x04a400fe, 2, &extension_id))) {
-            extension_id = util::SwapBytes(extension_id);
+            extension_id = util::SwapEndian(extension_id);
 
             switch (extension_id) {
                 case 0x0405:
