@@ -26,7 +26,7 @@ namespace ams::async {
         alignas(os::MemoryPageSize) uint8_t g_thread_stacks[ThreadCount][ThreadStackSize];
         os::ThreadType g_thread_pool[ThreadCount];
 
-        const size_t MessageBufferSize = 10;
+        const size_t MessageBufferSize = 32;
         uintptr_t g_message_buffer[MessageBufferSize];
         os::MessageQueueType g_work_queue;
 
