@@ -435,7 +435,6 @@ namespace ams::controller {
         if (wii_report->input0x20.extension_connected) {
 
             MC_RUN_ASYNC (
-
                 auto mp_status = MotionPlusStatus_None;
                 if (m_id.pid == 0x0306) {
                     mp_status = this->GetMotionPlusStatus();
@@ -446,10 +445,6 @@ namespace ams::controller {
                         }
 
                         R_TRY(this->ActivateMotionPlus());
-
-                        // A status report (0x20) will automatically be sent indicating that a normal extension has been plugged in, 
-                        // if and only if there was no extension plugged into the MotionPlus pass-through extension port.
-                        R_TRY(this->QueryStatus());
 
                         return ams::ResultSuccess();
                     }
@@ -492,29 +487,35 @@ namespace ams::controller {
                 }
 
                 // Check if passthrough mode needs updating
-                if (m_mp_extension_flag) {
+                if (m_mp_state_changing) {
+                    if (m_mp_extension_flag) {
+                        if (m_extension == WiiExtensionController_MotionPlus) {
+                            // Identify extension type
+                            R_TRY(this->InitializeStandardExtension());  // This also deactivates MotionPlus if activated
+                            extension = this->GetExtensionControllerType();
 
-                    if (m_extension == WiiExtensionController_MotionPlus) {
-                        // Identify extension type
-                        R_TRY(this->InitializeStandardExtension());  // This also deactivates MotionPLus if activated
-                        extension = this->GetExtensionControllerType();
+                            // Set appropriate passthrough MotionPlus mode
+                            if (extension == WiiExtensionController_Nunchuck) {
+                                R_TRY(this->ActivateMotionPlusNunchuckPassthrough());
+                            } else {
+                                R_TRY(this->ActivateMotionPlusClassicPassthrough());
+                            }
 
+                            // A status report (0x20) will automatically be sent indicating that a normal extension has been plugged in, 
+                            // if and only if there was no extension plugged into the MotionPlus pass-through extension port.
+                            R_TRY(this->QueryStatus());
+                        }
+                    } else {
+                        if ((m_extension == WiiExtensionController_MotionPlusNunchuckPassthrough) || (m_extension == WiiExtensionController_MotionPlusClassicControllerPassthrough)) {
+                            R_TRY(this->DeactivateMotionPlus());
 
-                        // Set appropriate passthrough MotionPlus mode
-                        if (extension == WiiExtensionController_Nunchuck) {
-                            R_TRY(this->ActivateMotionPlusNunchuckPassthrough());
-                        } else {
-                            R_TRY(this->ActivateMotionPlusClassicPassthrough());
+                            m_extension = WiiExtensionController_None;
+                            m_orientation = WiiControllerOrientation_Horizontal;
+                            R_TRY(this->SetReportMode(0x31));
                         }
                     }
-                } else {
-                    if ((m_extension == WiiExtensionController_MotionPlusNunchuckPassthrough) || (m_extension == WiiExtensionController_MotionPlusClassicControllerPassthrough)) {
-                        R_TRY(this->DeactivateMotionPlus());
 
-                        m_extension = WiiExtensionController_None;
-                        //m_orientation = WiiControllerOrientation_Horizontal;
-                        //R_TRY(this->SetReportMode(0x31));
-                    }
+                    m_mp_state_changing = false;
                 }
 
                 return ams::ResultSuccess();
@@ -523,9 +524,7 @@ namespace ams::controller {
         } else {
 
             MC_RUN_ASYNC (
-
                 auto mp_status = this->GetMotionPlusStatus();
-
 
                 if (mp_status == MotionPlusStatus_None) {
                     m_extension = WiiExtensionController_None;
@@ -541,7 +540,6 @@ namespace ams::controller {
 
                 return ams::ResultSuccess();
             );
-
         }
 
     }
@@ -677,7 +675,9 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result WiiController::WriteMemory(uint32_t write_addr, const void *data, uint8_t size) {        
+    Result WiiController::WriteMemory(uint32_t write_addr, const void *data, uint8_t size) {
+        os::SleepThread(ams::TimeSpan::FromMilliSeconds(30));
+
         Result result;
         auto output = std::make_unique<bluetooth::HidReport>();
 
@@ -699,6 +699,8 @@ namespace ams::controller {
     }
 
     Result WiiController::ReadMemory(uint32_t read_addr, uint16_t size, void *out_data) {
+        os::SleepThread(ams::TimeSpan::FromMilliSeconds(30));
+
         Result result;
         auto output = std::make_unique<bluetooth::HidReport>();
 
@@ -802,23 +804,17 @@ namespace ams::controller {
     }
 
     Result WiiController::UpdateMotionPlusExtensionStatus(bool extension_connected) {
-        if (!m_debounce_counter) {
+        if (!m_mp_state_changing) {
             if (extension_connected != m_mp_extension_flag) {
-                m_debounce_counter ++;
-            }
-        } else {
-            if (extension_connected != m_mp_extension_flag) {
-                m_debounce_counter++;
-            } else {
-                m_debounce_counter = 1;
-            }
-
-            if (m_debounce_counter > 50) {
-                m_debounce_counter = 0;
-
                 m_mp_extension_flag = extension_connected;
+                m_mp_state_changing = true;
 
-                R_TRY(this->QueryStatus());
+                MC_RUN_ASYNC (
+                    os::SleepThread(ams::TimeSpan::FromMilliSeconds(250));
+                    R_TRY(this->QueryStatus());
+
+                    return ams::ResultSuccess();
+                );
             }
         }
 

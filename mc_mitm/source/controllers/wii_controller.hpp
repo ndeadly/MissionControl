@@ -469,7 +469,7 @@ namespace ams::controller {
             , m_extension(WiiExtensionController_None)
             , m_rumble_state(0)
             , m_mp_extension_flag(false)
-            , m_debounce_counter(0) { }
+            , m_mp_state_changing(false) { }
 
             Result Initialize(void);
             Result SetVibration(const SwitchRumbleData *rumble_data);
@@ -526,7 +526,7 @@ namespace ams::controller {
             bool m_rumble_state;
 
             bool m_mp_extension_flag;
-            u64 m_debounce_counter;
+            bool m_mp_state_changing;
 
             WiiAccelerometerCalibrationData m_accel_calibration;
             MotionPlusCalibrationData m_gyro_calibration;
