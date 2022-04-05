@@ -23,6 +23,9 @@ namespace ams::controller {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
+        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
+        constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
+
         const uint8_t player_led_flags[] = {
             // Mimic the Switch's player LEDs
             0x01,
@@ -55,6 +58,9 @@ namespace ams::controller {
     Result DualsenseController::Initialize(void) {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
+
+        // Request motion calibration data from DualSense
+        R_TRY(this->GetCalibrationData(&m_motion_calibration));
 
         return ams::ResultSuccess();
     }
@@ -139,26 +145,34 @@ namespace ams::controller {
         this->MapButtons(&src->input0x31.buttons);
 
         if (m_enable_motion) {
-            m_motion_data[0].gyro_1 = src->input0x31.vel_z;
-            m_motion_data[0].gyro_2 = src->input0x31.vel_y;
-            m_motion_data[0].gyro_3 = src->input0x31.vel_x;
-            m_motion_data[0].accel_x = src->input0x31.acc_z;
-            m_motion_data[0].accel_y = src->input0x31.acc_y;
-            m_motion_data[0].accel_z = src->input0x31.acc_x;
+            int16_t acc_x = -static_cast<int16_t>(accel_scale_factor * src->input0x31.acc_z / float(m_motion_calibration.acc.z_max));
+            int16_t acc_y = -static_cast<int16_t>(accel_scale_factor * src->input0x31.acc_x / float(m_motion_calibration.acc.x_max));
+            int16_t acc_z =  static_cast<int16_t>(accel_scale_factor * src->input0x31.acc_y / float(m_motion_calibration.acc.y_max));
 
-            m_motion_data[1].gyro_1 = src->input0x31.vel_z;
-            m_motion_data[1].gyro_2 = src->input0x31.vel_y;
-            m_motion_data[1].gyro_3 = src->input0x31.vel_x;
-            m_motion_data[1].accel_x = src->input0x31.acc_z;
-            m_motion_data[1].accel_y = src->input0x31.acc_y;
-            m_motion_data[1].accel_z = src->input0x31.acc_x;
+            int16_t vel_x = -static_cast<int16_t>(0.85 * gyro_scale_factor * (src->input0x31.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
+            int16_t vel_y = -static_cast<int16_t>(0.85 * gyro_scale_factor * (src->input0x31.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
+            int16_t vel_z =  static_cast<int16_t>(0.85 * gyro_scale_factor * (src->input0x31.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
 
-            m_motion_data[2].gyro_1 = src->input0x31.vel_z;
-            m_motion_data[2].gyro_2 = src->input0x31.vel_y;
-            m_motion_data[2].gyro_3 = src->input0x31.vel_x;
-            m_motion_data[2].accel_x = src->input0x31.acc_z;
-            m_motion_data[2].accel_y = src->input0x31.acc_y;
-            m_motion_data[2].accel_z = src->input0x31.acc_x;
+            m_motion_data[0].gyro_1  = vel_x;
+            m_motion_data[0].gyro_2  = vel_y;
+            m_motion_data[0].gyro_3  = vel_z;
+            m_motion_data[0].accel_x = acc_x;
+            m_motion_data[0].accel_y = acc_y;
+            m_motion_data[0].accel_z = acc_z;
+
+            m_motion_data[1].gyro_1  = vel_x;
+            m_motion_data[1].gyro_2  = vel_y;
+            m_motion_data[1].gyro_3  = vel_z;
+            m_motion_data[1].accel_x = acc_x;
+            m_motion_data[1].accel_y = acc_y;
+            m_motion_data[1].accel_z = acc_z;
+
+            m_motion_data[2].gyro_1  = vel_x;
+            m_motion_data[2].gyro_2  = vel_y;
+            m_motion_data[2].gyro_3  = vel_z;
+            m_motion_data[2].accel_x = acc_x;
+            m_motion_data[2].accel_y = acc_y;
+            m_motion_data[2].accel_z = acc_z;
         }
         else {
             std::memset(&m_motion_data, 0, sizeof(m_motion_data));
@@ -197,6 +211,16 @@ namespace ams::controller {
 
         m_buttons.capture = buttons->tpad;
         m_buttons.home    = buttons->ps;
+    }
+
+    Result DualsenseController::GetCalibrationData(DualsenseImuCalibrationData *calibration) {
+        bluetooth::HidReport output;
+        R_TRY(this->GetFeatureReport(0x05, &output));
+
+        auto response = reinterpret_cast<DualsenseReportData *>(&output.data);
+        std::memcpy(calibration, &response->feature0x05.calibration, sizeof(DualsenseImuCalibrationData));
+
+        return ams::ResultSuccess();
     }
 
     Result DualsenseController::PushRumbleLedState(void) {

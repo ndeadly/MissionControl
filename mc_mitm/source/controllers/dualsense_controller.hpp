@@ -61,6 +61,36 @@ namespace ams::controller {
         uint8_t amp_motor_right;
     } __attribute__((packed));
 
+    struct DualsenseImuCalibrationData {
+        struct {
+            int16_t pitch_bias;
+            int16_t yaw_bias;
+            int16_t roll_bias;
+            int16_t pitch_max;
+            int16_t pitch_min;
+            int16_t yaw_max;
+            int16_t yaw_min;
+            int16_t roll_max;
+            int16_t roll_min;
+            int16_t speed_max;
+            int16_t speed_min;
+        } gyro;
+        
+        struct {
+            int16_t x_max;
+            int16_t x_min;
+            int16_t y_max;
+            int16_t y_min;
+            int16_t z_max;
+            int16_t z_min;
+        } acc;
+    } __attribute__((packed));
+
+    struct DualsenseFeatureReport0x05 {
+        DualsenseImuCalibrationData calibration;
+        uint32_t crc;
+    } __attribute__((packed));
+
     struct DualsenseOutputReport0x31 {
         struct {
             uint8_t data[75];
@@ -85,12 +115,12 @@ namespace ams::controller {
         uint8_t                 counter;
         DualsenseButtonData     buttons;
         uint8_t                 _unk1[5];
-        uint16_t                vel_x;
-        uint16_t                vel_y;
-        uint16_t                vel_z;
-        uint16_t                acc_x;
-        uint16_t                acc_y;
-        uint16_t                acc_z;
+        int16_t                 vel_x;
+        int16_t                 vel_y;
+        int16_t                 vel_z;
+        int16_t                 acc_x;
+        int16_t                 acc_y;
+        int16_t                 acc_z;
         uint8_t                 _unk2[25];
 
         uint8_t battery_level    : 4;
@@ -102,6 +132,7 @@ namespace ams::controller {
     struct DualsenseReportData {
         uint8_t id;
         union {
+            DualsenseFeatureReport0x05 feature0x05;
             DualsenseInputReport0x01 input0x01;
             DualsenseInputReport0x31 input0x31;
         };
@@ -134,11 +165,14 @@ namespace ams::controller {
 
             void MapButtons(const DualsenseButtonData *buttons);
 
+            Result GetCalibrationData(DualsenseImuCalibrationData *calibration);
             Result PushRumbleLedState(void);
 
             uint8_t m_led_flags;
             RGBColour m_led_colour;
-            DualsenseRumbleData m_rumble_state; 
+            DualsenseRumbleData m_rumble_state;
+
+            DualsenseImuCalibrationData m_motion_calibration;
     };
 
 }
