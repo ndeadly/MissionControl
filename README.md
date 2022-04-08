@@ -21,19 +21,17 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * Supports all Switch firmware versions.
 * Connect up to 8 non-switch Bluetooth controllers simultaneously without any additional hardware.
 * Make use of native HOS menus for controller pairing, button remapping (firmware 10.0.0+) etc.
-* Rumble support*
+* Support for rumble and motion controls (compatible controllers only)
 * Low input lag.
 * File-based virtual controller memory allowing for data such as analog stick calibration to be stored and retrieved.
 * Spoofing of host Bluetooth adapter name and address.
 * `mc.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system.
 
-**Rumble not currently implemented for all compatible controllers*
-
 ### Supported Controllers
 
  Currently, the following controllers are supported. If you have a third-party variant of one of the below, or a Bluetooth controller that isn't listed, consider submitting an issue with the controller details, including vid/pid, to request support.
 
-* __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro, SNES Mini, TaTaCon (Taiko drum))__
+* __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro, SNES Mini, TaTaCon (Taiko drum), MotionPlus)__
 * __Nintendo WiiU Pro Controller__
 * __Sony DualShock4 Controller__
 * __Sony Dualsense Controller__
@@ -44,7 +42,8 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Gamestick Controller__
 * __Gembox Controller__
 * __iCade Controller__
-* __Ipega Controllers (9017s, 9023, 9055, 9062S, 9076, 9078, 9087 9096 confirmed working. Others may also work)__
+* __Ipega Controllers (9017s, 9023, 9055, 9062S, 9076, 9078, 9087, 9096 confirmed working. Others may also work)__
+* __g910 Wireless Bluetooth Controller__
 * __Xiaomi Mi Controller__
 * __Steelseries Free__
 * __Steelseries Nimbus__
@@ -144,7 +143,7 @@ If you wish to completely remove all traces of the software ever having been ins
 Below is a list of features I am currently working on or would like to look into in the future, roughly in descending order of priority. Requests are welcome if you have an idea you think would make a useful feature.
 
 * ~~Rumble support~~
-* Motion controls support
+* ~~Motion controls support~~
 * Bluetooth LE support
 * Per-controller configurations
     * Rumble on/off
@@ -172,7 +171,6 @@ Below is a list of features I am currently working on or would like to look into
 
 ### Known Issues and Limitations
 
-* Motion controls currently unsupported.
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Controllers using the Bluetooth LE (BLE) standard are currently not supported and will not connect to the system.
 * Xbox One, Wii/WiiU and (especially) some Dualshock v1 controllers can take some time to be detected and subsequently pair with the Console. Be patient and re-enter the sync mode of the controller several times if neccessary. Once synced, controllers should work as usual.
@@ -266,6 +264,7 @@ The resulting package can be installed as described above.
 * __SciresM__ for his dedicated work on the [Atmosphère](https://github.com/Atmosphere-NX) project, libstratosphere and general helpfulness with all things Switch related.
 * __misson20000__ for his handy debug monitor [Twili](https://github.com/misson20000/twili) and IPC logger [Ilia](https://github.com/misson20000/ilia)
 * __dekuNukem__, __CTCaer__, __shinyquagsire23__ and others for their work in reversing and documenting the switch controller communication protocol.
+* __Banz99__ for ongoing code contributions, discussing ideas, testing and generally keeping me on my toes.
 * __friedkeenan__ for helping to test Wii extension controller support.
 * __DatenThielt__ for helping debug the bluetooth service remotely with his Xbox Elite Series 2 controller in order for me to develop patches to enable it to be successfully paired with the console.
 * Everyone else over at the __ReSwitched__ discord server who helped answering technical questions.
