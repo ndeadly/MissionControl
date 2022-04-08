@@ -147,7 +147,7 @@ namespace ams::controller {
             EightBitDoController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
-            bool SupportsSetTsiCommand(void) { return !((m_id.vid == 0x05a0) && (m_id.pid == 0x3232)); }
+            bool SupportsSetTsiCommand() { return !((m_id.vid == 0x05a0) && (m_id.pid == 0x3232)); }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

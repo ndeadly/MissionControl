@@ -18,7 +18,7 @@
 
 namespace ams::mitm::bluetooth {
 
-    Result Launch(void);
-    void WaitFinished(void);
+    Result Launch();
+    void WaitFinished();
 
 }

@@ -64,14 +64,14 @@ namespace ams::controller {
         return path;
     }
 
-    Result SwitchController::Initialize(void) {
+    Result SwitchController::Initialize() {
         if (this->HasSetTsiDisableFlag())
             m_settsi_supported = false;
 
         return ams::ResultSuccess(); 
     }
 
-    bool SwitchController::HasSetTsiDisableFlag(void) {
+    bool SwitchController::HasSetTsiDisableFlag() {
         std::string flag_file = GetControllerDirectory(&m_address) + "/settsi_disable.flag";
 
         bool file_exists;

@@ -67,42 +67,42 @@ namespace ams::bluetooth::hid::report {
         return g_init_event.TryWait();
     }
 
-    void WaitInitialized(void) {
+    void WaitInitialized() {
         g_init_event.Wait();
     }
 
-    void SignalInitialized(void) {
+    void SignalInitialized() {
         g_init_event.Signal();
     }
 
-    void SignalReportRead(void) {
+    void SignalReportRead() {
         g_report_read_event.Signal();
     }
 
-    os::SharedMemory *GetRealSharedMemory(void) {
+    os::SharedMemory *GetRealSharedMemory() {
         if (hos::GetVersion() < hos::Version_7_0_0)
             return nullptr;
 
         return &g_real_bt_shmem;
     }
 
-    os::SharedMemory *GetFakeSharedMemory(void) {
+    os::SharedMemory *GetFakeSharedMemory() {
         return &g_fake_bt_shmem;
     }
 
-    os::SystemEvent *GetSystemEvent(void) {
+    os::SystemEvent *GetSystemEvent() {
         return &g_system_event;
     }
 
-    os::SystemEvent *GetForwardEvent(void) {
+    os::SystemEvent *GetForwardEvent() {
         return &g_system_event_fwd;
     }
 
-    os::SystemEvent *GetUserForwardEvent(void) {
+    os::SystemEvent *GetUserForwardEvent() {
         return &g_system_event_user_fwd;
     }
 
-    Result Initialize(void) {
+    Result Initialize() {
         R_TRY(os::CreateThread(&g_thread,
             EventThreadFunc,
             nullptr,
@@ -117,7 +117,7 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    void Finalize(void) {
+    void Finalize() {
         os::DestroyThread(&g_thread);
     }
 
@@ -129,7 +129,7 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    Result InitializeReportBuffer(void) {
+    Result InitializeReportBuffer() {
         g_fake_bt_shmem.Map(os::MemoryPermission_ReadWrite);
         g_fake_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(g_fake_bt_shmem.GetMappedAddress());
         g_fake_buffer->Initialize("HID Report");
@@ -226,7 +226,7 @@ namespace ams::bluetooth::hid::report {
         return ams::ResultSuccess();
     }
 
-    inline void HandleHidReportEventV1(void) {
+    inline void HandleHidReportEventV1() {
         R_ABORT_UNLESS(btdrvGetHidReportEventInfo(&g_event_info, sizeof(bluetooth::HidReportEventInfo), &g_current_event_type));
 
         switch (g_current_event_type) {
@@ -259,7 +259,7 @@ namespace ams::bluetooth::hid::report {
         }
     }
 
-    inline void HandleHidReportEventV7(void) {
+    inline void HandleHidReportEventV7() {
         while (true) {
             auto real_packet = g_real_buffer->Read();
             if (!real_packet)
@@ -300,7 +300,7 @@ namespace ams::bluetooth::hid::report {
         }
     }
 
-    inline void HandleHidReportEventV12(void) {
+    inline void HandleHidReportEventV12() {
         while (true) {
             auto real_packet = g_real_buffer->Read();
             if (!real_packet)
@@ -341,7 +341,7 @@ namespace ams::bluetooth::hid::report {
         }
     }
 
-    void HandleEvent(void) {
+    void HandleEvent() {
         if (g_redirect_hid_report_events) {
             g_system_event_user_fwd.Signal();
             g_report_read_event.Wait();

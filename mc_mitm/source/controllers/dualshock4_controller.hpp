@@ -201,9 +201,9 @@ namespace ams::controller {
             , m_led_colour({0, 0, 0})
             , m_rumble_state({0, 0}) { }
 
-            Result Initialize(void);
+            Result Initialize();
             Result SetVibration(const SwitchRumbleData *rumble_data);
-            Result CancelVibration(void);
+            Result CancelVibration();
             Result SetPlayerLed(uint8_t led_mask);
             Result SetLightbarColour(RGBColour colour);
 
@@ -217,7 +217,7 @@ namespace ams::controller {
             
             Result GetVersionInfo(Dualshock4VersionInfo *version_info);
             Result GetCalibrationData(Dualshock4ImuCalibrationData *calibration);
-            Result PushRumbleLedState(void);
+            Result PushRumbleLedState();
 
             Dualshock4ReportRate m_report_rate;
             RGBColour m_led_colour; 

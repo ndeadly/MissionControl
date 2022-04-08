@@ -70,7 +70,7 @@ namespace ams::mitm::btm {
 
     }
 
-    Result Launch(void) {
+    Result Launch() {
         R_TRY(os::CreateThread(&g_thread,
             BtmMitmThreadFunction,
             nullptr,
@@ -85,7 +85,7 @@ namespace ams::mitm::btm {
         return ams::ResultSuccess();
     }
 
-    void WaitFinished(void) {
+    void WaitFinished() {
         os::WaitThread(&g_thread);
     }
 

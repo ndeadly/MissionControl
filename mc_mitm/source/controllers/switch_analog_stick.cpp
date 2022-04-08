@@ -33,20 +33,20 @@ namespace ams::controller {
         m_xy[2] = (y >> 4) & 0xff;
     }
 
-    uint16_t SwitchAnalogStick::GetX(void) {
+    uint16_t SwitchAnalogStick::GetX() {
         return m_xy[0] | ((m_xy[1] & 0xf) << 8);
     }
 
-    uint16_t SwitchAnalogStick::GetY(void) {
+    uint16_t SwitchAnalogStick::GetY() {
         return (m_xy[1] >> 4) | (m_xy[2] << 4);
     }
 
-    void SwitchAnalogStick::InvertX(void) {
+    void SwitchAnalogStick::InvertX() {
         m_xy[0] ^= 0xff;
         m_xy[1] ^= 0x0f;
     }
 
-    void SwitchAnalogStick::InvertY(void) {
+    void SwitchAnalogStick::InvertY() {
         m_xy[1] ^= 0xf0;
         m_xy[2] ^= 0xff;
     }

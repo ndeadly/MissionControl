@@ -28,16 +28,16 @@ namespace ams::controller {
             EmulatedSwitchController(const bluetooth::Address *address, HardwareID id);
             virtual ~EmulatedSwitchController();
 
-            virtual Result Initialize(void);
-            bool IsOfficialController(void) { return false; }
+            virtual Result Initialize();
+            bool IsOfficialController() { return false; }
 
             //Result HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) override;
             Result HandleOutputDataReport(const bluetooth::HidReport *report) override;
 
         protected:
-            void ClearControllerState(void);
+            void ClearControllerState();
             virtual Result SetVibration(const SwitchRumbleData *rumble_data) { AMS_UNUSED(rumble_data); return ams::ResultSuccess(); }
-            virtual Result CancelVibration(void) { return ams::ResultSuccess(); }
+            virtual Result CancelVibration() { return ams::ResultSuccess(); }
             virtual Result SetPlayerLed(uint8_t led_mask) { AMS_UNUSED(led_mask); return ams::ResultSuccess(); }
 
             void UpdateControllerState(const bluetooth::HidReport *report) override;

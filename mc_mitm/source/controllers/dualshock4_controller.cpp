@@ -46,7 +46,7 @@ namespace ams::controller {
 
     }
 
-    Result Dualshock4Controller::Initialize(void) {
+    Result Dualshock4Controller::Initialize() {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
 
@@ -62,7 +62,7 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
-    Result Dualshock4Controller::CancelVibration(void) {
+    Result Dualshock4Controller::CancelVibration() {
         m_rumble_state.amp_motor_left = 0;
         m_rumble_state.amp_motor_right = 0;
         return this->PushRumbleLedState();
@@ -223,7 +223,7 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result Dualshock4Controller::PushRumbleLedState(void) {
+    Result Dualshock4Controller::PushRumbleLedState() {
         Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff)), 0x20, 0xf3, 0x04, 0x00,
             m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left,
             m_led_colour.r, m_led_colour.g, m_led_colour.b

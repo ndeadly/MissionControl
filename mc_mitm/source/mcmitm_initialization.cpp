@@ -92,7 +92,7 @@ namespace ams::mitm {
 
     }
 
-    void StartInitialize(void) {
+    void StartInitialize() {
         R_ABORT_UNLESS(os::CreateThread(&g_thread,
             InitializeThreadFunc,
             nullptr,
@@ -105,17 +105,17 @@ namespace ams::mitm {
         os::StartThread(&g_thread);
     }
 
-    void WaitInitialized(void) {
+    void WaitInitialized() {
         g_init_event.Wait();
     }
 
-    void LaunchModules(void) {
+    void LaunchModules() {
         R_ABORT_UNLESS(ams::mitm::bluetooth::Launch());
         R_ABORT_UNLESS(ams::mitm::btm::Launch());
         R_ABORT_UNLESS(ams::mitm::mc::Launch());
     }
 
-    void WaitModules(void) {
+    void WaitModules() {
         ams::mitm::mc::WaitFinished();
         ams::mitm::btm::WaitFinished();
         ams::mitm::bluetooth::WaitFinished();

@@ -166,7 +166,7 @@ namespace ams::controller {
         fs::CloseFile(m_spi_flash_file);
     }
 
-    Result EmulatedSwitchController::Initialize(void) {
+    Result EmulatedSwitchController::Initialize() {
         SwitchController::Initialize();
 
         // Ensure config directory for this controller exists
@@ -213,7 +213,7 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    void EmulatedSwitchController::ClearControllerState(void) {
+    void EmulatedSwitchController::ClearControllerState() {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
         m_left_stick.SetData(STICK_ZERO, STICK_ZERO);
         m_right_stick.SetData(STICK_ZERO, STICK_ZERO);

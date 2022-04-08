@@ -665,7 +665,7 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result WiiController::QueryStatus(void) {
+    Result WiiController::QueryStatus() {
         m_output_report.size = sizeof(WiiOutputReport0x15) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x15;
@@ -835,7 +835,7 @@ namespace ams::controller {
         return this->WriteDataReport(&m_output_report);
     }
 
-    Result WiiController::CancelVibration(void) {
+    Result WiiController::CancelVibration() {
         m_rumble_state = 0;
 
         m_output_report.size = sizeof(WiiOutputReport0x10) + 1;

@@ -50,11 +50,11 @@ namespace ams {
                 return m_user_data;
             }
 
-            void Wait(void) {
+            void Wait() {
                 os::WaitEvent(&m_ready_event);
             }
 
-            bool TryWait(void) {
+            bool TryWait() {
                 return os::TryWaitEvent(&m_ready_event);
             }
 

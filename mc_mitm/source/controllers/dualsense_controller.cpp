@@ -55,7 +55,7 @@ namespace ams::controller {
 
     }
 
-    Result DualsenseController::Initialize(void) {
+    Result DualsenseController::Initialize() {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
 
@@ -71,7 +71,7 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
-    Result DualsenseController::CancelVibration(void) {
+    Result DualsenseController::CancelVibration() {
         m_rumble_state.amp_motor_left = 0;
         m_rumble_state.amp_motor_right = 0;
         return this->PushRumbleLedState();
@@ -223,7 +223,7 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result DualsenseController::PushRumbleLedState(void) {
+    Result DualsenseController::PushRumbleLedState() {
         DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x03, 0x14, m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left};
         report.data[41] = 0x02;
         report.data[44] = 0x02;

@@ -50,7 +50,7 @@ namespace ams::mitm::bluetooth {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::EnableBluetooth(void) {
+    Result BtdrvMitmService::EnableBluetooth() {
         R_TRY(btdrvEnableBluetoothFwd(m_forward_service.get()));
         ams::bluetooth::core::SignalEnabled();
 
@@ -276,7 +276,7 @@ namespace ams::mitm::bluetooth {
         g_redirect_ble_events = redirect;
     }
 
-    void BtdrvMitmService::SignalHidReportRead(void) {
+    void BtdrvMitmService::SignalHidReportRead() {
         ams::bluetooth::hid::report::SignalReportRead();
     }
 

@@ -20,15 +20,15 @@
 
 namespace ams::bluetooth::ble {
 
-    bool IsInitialized(void);
-    void SignalInitialized(void);
-    void WaitInitialized(void);
+    bool IsInitialized();
+    void SignalInitialized();
+    void WaitInitialized();
 
-    os::SystemEvent *GetSystemEvent(void);
-    os::SystemEvent *GetForwardEvent(void);
-    os::SystemEvent *GetUserForwardEvent(void);
+    os::SystemEvent *GetSystemEvent();
+    os::SystemEvent *GetForwardEvent();
+    os::SystemEvent *GetUserForwardEvent();
 
     Result GetEventInfo(bluetooth::BleEventType *type, void *buffer, size_t size);
-    void HandleEvent(void);
+    void HandleEvent();
     
 }

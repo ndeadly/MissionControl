@@ -471,9 +471,9 @@ namespace ams::controller {
             , m_mp_extension_flag(false)
             , m_mp_state_changing(false) { }
 
-            Result Initialize(void);
+            Result Initialize();
             Result SetVibration(const SwitchRumbleData *rumble_data);
-            Result CancelVibration(void);
+            Result CancelVibration();
             Result SetPlayerLed(uint8_t led_mask);
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

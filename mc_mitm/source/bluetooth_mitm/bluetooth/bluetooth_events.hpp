@@ -24,7 +24,7 @@ namespace ams::bluetooth::events {
         BtdrvEventType_BluetoothBle,
     };
 
-    Result Initialize(void);
-    void Finalize(void);
+    Result Initialize();
+    void Finalize();
 
 }

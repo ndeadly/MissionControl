@@ -355,19 +355,19 @@ namespace ams::controller {
 
             virtual ~SwitchController() { };
 
-            const bluetooth::Address& Address(void) const { return m_address; }
+            const bluetooth::Address& Address() const { return m_address; }
 
-            virtual bool IsOfficialController(void) { return true; }
-            virtual bool SupportsSetTsiCommand(void) { return m_settsi_supported; }
+            virtual bool IsOfficialController() { return true; }
+            virtual bool SupportsSetTsiCommand() { return m_settsi_supported; }
 
-            virtual Result Initialize(void);
+            virtual Result Initialize();
 
             virtual Result HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual Result HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual Result HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual Result HandleOutputDataReport(const bluetooth::HidReport *report);
         private:
-            bool HasSetTsiDisableFlag(void);
+            bool HasSetTsiDisableFlag();
 
         protected:
             Result WriteDataReport(const bluetooth::HidReport *report);

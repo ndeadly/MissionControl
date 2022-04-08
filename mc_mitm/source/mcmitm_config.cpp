@@ -90,7 +90,7 @@ namespace ams::mitm {
 
     }
 
-    void ParseIniConfig(void) {
+    void ParseIniConfig() {
         /* Open the file. */
         fs::FileHandle file;
         {
@@ -114,7 +114,7 @@ namespace ams::mitm {
         R_ABORT_UNLESS(setMakeLanguage(language_code, &g_system_language));
     }
 
-    MissionControlConfig *GetGlobalConfig(void) {
+    MissionControlConfig *GetGlobalConfig() {
         return &g_global_config;
     }
 

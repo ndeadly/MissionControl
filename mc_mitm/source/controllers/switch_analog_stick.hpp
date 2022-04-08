@@ -25,10 +25,10 @@ namespace ams::controller {
         void SetData(uint16_t x, uint16_t y);
         void SetX(uint16_t x);
         void SetY(uint16_t y);
-        uint16_t GetX(void);
-        uint16_t GetY(void);
-        void InvertX(void);
-        void InvertY(void);
+        uint16_t GetX();
+        uint16_t GetY();
+        void InvertX();
+        void InvertY();
 
         uint8_t m_xy[3];
     };

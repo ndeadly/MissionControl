@@ -27,7 +27,7 @@ namespace ams::controller {
 
     }
 
-    Result XiaomiController::Initialize(void) {
+    Result XiaomiController::Initialize() {
         R_TRY(EmulatedSwitchController::Initialize());
         m_output_report.size = sizeof(init_packet);
         std::memcpy(m_output_report.data, init_packet, sizeof(init_packet));

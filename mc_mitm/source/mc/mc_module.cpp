@@ -61,7 +61,7 @@ namespace ams::mitm::mc {
 
     }
 
-    Result Launch(void) {
+    Result Launch() {
         R_TRY(os::CreateThread(&g_thread,
             MissionControlThreadFunction,
             nullptr,
@@ -76,7 +76,7 @@ namespace ams::mitm::mc {
         return ams::ResultSuccess();
     }
 
-    void WaitFinished(void) {
+    void WaitFinished() {
         os::WaitThread(&g_thread);
     }
 
