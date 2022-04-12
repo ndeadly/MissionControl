@@ -354,9 +354,9 @@ namespace ams::controller {
                 }
             }
         };
-		
+
         R_TRY(m_virtual_memory.Read(read_addr, response.data.spi_flash_read.data, read_size));
-		
+
         if (read_addr == 0x6050) {
             if (ams::mitm::GetSystemLanguage() == 10) {
                 uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
@@ -567,14 +567,14 @@ namespace ams::controller {
         m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
         auto report_data = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         report_data->id = 0x21;
-        report_data->input0x21.conn_info   = (0 << 1) | m_ext_power;
-        report_data->input0x21.battery     = m_battery | m_charging;
-        report_data->input0x21.buttons     = m_buttons;
-        report_data->input0x21.left_stick  = m_left_stick;
+        report_data->input0x21.conn_info = (0 << 1) | m_ext_power;
+        report_data->input0x21.battery = m_battery | m_charging;
+        report_data->input0x21.buttons = m_buttons;
+        report_data->input0x21.left_stick = m_left_stick;
         report_data->input0x21.right_stick = m_right_stick;
-        report_data->input0x21.vibrator    = 0;
+        report_data->input0x21.vibrator = 0;
         std::memcpy(&report_data->input0x21.response, response, sizeof(SwitchSubcommandResponse));
-        report_data->input0x21.timer = os::ConvertToTimeSpan(os::GetSystemTick()).GetMilliSeconds() & 0xff;
+        report_data->input0x21.timer = (report_data->input0x21.timer + 1) & 0xff;
 
         // Write a fake response into the report buffer
         return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
