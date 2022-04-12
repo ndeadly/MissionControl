@@ -21,13 +21,6 @@ namespace ams::controller {
 
     namespace {
 
-        // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
-        SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
-        SwitchAnalogStickFactoryCalibration rstick_factory_calib = {0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f};
-
-        // Stick parameters data that produce a 12.5% inner deadzone and a 5% outer deadzone (in relation to the full 12 bit range above)
-        SwitchAnalogStickParameters default_stick_params = {0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63};
-
         // Frequency in Hz rounded to nearest int
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#frequency-table
         const uint16_t rumble_freq_lut[] = {
@@ -95,50 +88,6 @@ namespace ams::controller {
             return ams::ResultSuccess();
         }
 
-        Result InitializeVirtualSpiFlash(const char *path, size_t size) {
-            fs::FileHandle file;
-
-            // Open the file for write
-            R_TRY(fs::OpenFile(std::addressof(file), path, fs::OpenMode_Write));
-            ON_SCOPE_EXIT { fs::CloseFile(file); };
-
-            // Fill the file with 0xff
-            uint8_t buff[64];
-            std::memset(buff, 0xff, sizeof(buff));
-
-            unsigned int offset = 0;
-            while (offset < size) {
-                size_t write_size = std::min(static_cast<size_t>(size - offset), sizeof(buff));
-                R_TRY(fs::WriteFile(file, offset, buff, write_size, fs::WriteOption::None));
-                offset += write_size;
-            }
-
-            // Write default values for data that the console attempts to read in practice
-            const struct {
-                SwitchAnalogStickFactoryCalibration lstick_factory_calib;
-                SwitchAnalogStickFactoryCalibration rstick_factory_calib;
-            } data1 = { lstick_factory_calib, rstick_factory_calib };
-            R_TRY(fs::WriteFile(file, 0x603d, &data1, sizeof(data1), fs::WriteOption::None));
-
-            const struct {
-                RGBColour body;
-                RGBColour buttons;
-                RGBColour left_grip;
-                RGBColour right_grip;
-            } data2 = { {0x32, 0x32, 0x32}, {0xe6, 0xe6, 0xe6}, {0x46, 0x46, 0x46}, {0x46, 0x46, 0x46} };
-            R_TRY(fs::WriteFile(file, 0x6050, &data2, sizeof(data2), fs::WriteOption::None));
-
-            const struct {
-                SwitchAnalogStickParameters lstick_default_parameters;
-                SwitchAnalogStickParameters rstick_default_parameters;
-            } data3 = { default_stick_params, default_stick_params };
-            R_TRY(fs::WriteFile(file, 0x6086, &data3, sizeof(data3), fs::WriteOption::None));
-
-            R_TRY(fs::FlushFile(file));
-
-            return ams::ResultSuccess();
-        }
-
     }
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id)
@@ -162,54 +111,15 @@ namespace ams::controller {
         m_enable_motion = config->general.enable_motion;
     };
 
-    EmulatedSwitchController::~EmulatedSwitchController() {
-        fs::CloseFile(m_spi_flash_file);
-    }
-
     Result EmulatedSwitchController::Initialize() {
-        SwitchController::Initialize();
+        R_TRY(SwitchController::Initialize());
 
         // Ensure config directory for this controller exists
-        std::string path = GetControllerDirectory(&m_address);
-        R_TRY(fs::EnsureDirectory(path.c_str()));
+        std::string controller_dir = GetControllerDirectory(&m_address);
+        R_TRY(fs::EnsureDirectory(controller_dir.c_str()));
 
-        // Check if the virtual spi flash file already exists and initialise it if not
-        path += "/spi_flash.bin";
-        bool file_exists;
-        R_TRY(fs::HasFile(&file_exists, path.c_str()));
-        if (!file_exists) {
-            auto spi_flash_size = 0x10000;
-            // Create file representing first 64KB of SPI flash
-            R_TRY(fs::CreateFile(path.c_str(), spi_flash_size));
+        R_TRY(m_virtual_memory.Initialize((controller_dir + "/spi_flash.bin").c_str()));
 
-            // Initialise the spi flash data
-            R_TRY(InitializeVirtualSpiFlash(path.c_str(), spi_flash_size));
-        }
-
-        // Open the virtual spi flash file for read and write
-        R_TRY(fs::OpenFile(std::addressof(m_spi_flash_file), path.c_str(), fs::OpenMode_ReadWrite));
-
-        bool mem_initialized;
-
-        // Write motion calibration parameters to virtual SPI flash
-        R_TRY(this->VirtualSpiFlashCheckInitialized(0x6020, sizeof(Switch6AxisCalibrationData), &mem_initialized));
-        if (!mem_initialized) {
-            Switch6AxisCalibrationData motion_calibration = {
-                .acc_bias = {0, 0, 0},
-                .acc_sensitivity = {16384, 16384, 16384},
-                .gyro_bias = {0, 0, 0},
-                .gyro_sensitivity = {13371, 13371, 13371}
-            };
-            R_TRY(this->VirtualSpiFlashWrite(0x6020, &motion_calibration, sizeof(motion_calibration)));
-        }
-
-        // Write 6-Axis Horizontal offsets
-        R_TRY(this->VirtualSpiFlashCheckInitialized(0x6080, sizeof(Switch6AxisHorizontalOffset), &mem_initialized));
-        if (!mem_initialized) {
-            Switch6AxisHorizontalOffset offset = {0, 0, 0};
-            R_TRY(this->VirtualSpiFlashWrite(0x6080, &offset, sizeof(offset)));
-        }
-        
         return ams::ResultSuccess();
     }
 
@@ -394,7 +304,7 @@ namespace ams::controller {
     Result EmulatedSwitchController::SubCmdResetPairingInfo(const bluetooth::HidReport *report) {
         AMS_UNUSED(report);
 
-        R_TRY(this->VirtualSpiFlashSectorErase(0x2000));
+        R_TRY(m_virtual_memory.SectorErase(0x2000));
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -445,7 +355,7 @@ namespace ams::controller {
             }
         };
 		
-        R_TRY(this->VirtualSpiFlashRead(read_addr, response.data.spi_flash_read.data, read_size));
+        R_TRY(m_virtual_memory.Read(read_addr, response.data.spi_flash_read.data, read_size));
 		
         if (read_addr == 0x6050) {
             if (ams::mitm::GetSystemLanguage() == 10) {
@@ -468,7 +378,7 @@ namespace ams::controller {
             .id = SubCmd_SpiFlashWrite,
             .data = {
                 .spi_flash_write = {
-                    .status = this->VirtualSpiFlashWrite(write_addr, write_data, write_size).IsFailure()
+                    .status = m_virtual_memory.Write(write_addr, write_data, write_size).IsFailure()
                 }
             }
         };
@@ -485,7 +395,7 @@ namespace ams::controller {
             .id = SubCmd_SpiSectorErase,
             .data = {
                 .spi_sector_erase = {
-                    .status = this->VirtualSpiFlashSectorErase(erase_addr).IsFailure()
+                    .status = m_virtual_memory.SectorErase(erase_addr).IsFailure()
                 }
             }
         };
@@ -668,45 +578,6 @@ namespace ams::controller {
 
         // Write a fake response into the report buffer
         return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
-    }
-
-    Result EmulatedSwitchController::VirtualSpiFlashRead(int offset, void *data, size_t size) {
-        return fs::ReadFile(m_spi_flash_file, offset, data, size);
-    }
-
-    Result EmulatedSwitchController::VirtualSpiFlashWrite(int offset, const void *data, size_t size) {
-        return fs::WriteFile(m_spi_flash_file, offset, data, size, fs::WriteOption::Flush);
-    }
-
-    Result EmulatedSwitchController::VirtualSpiFlashSectorErase(int offset) {
-        uint8_t buff[64];
-        std::memset(buff, 0xff, sizeof(buff));
-
-        // Fill sector at offset with 0xff
-        unsigned int sector_size = 0x1000;
-        for (unsigned int i = 0; i < (sector_size / sizeof(buff)); ++i) {
-            R_TRY(fs::WriteFile(m_spi_flash_file, offset, buff, sizeof(buff), fs::WriteOption::None));
-            offset += sizeof(buff);
-        }
-
-        R_TRY(fs::FlushFile(m_spi_flash_file));
-
-        return ams::ResultSuccess();
-    }
-
-    Result EmulatedSwitchController::VirtualSpiFlashCheckInitialized(int offset, size_t size, bool *is_initialized) {
-        auto data = std::unique_ptr<uint8_t[]>(new uint8_t[size]());
-
-        R_TRY(this->VirtualSpiFlashRead(offset, data.get(), size));
-        for (size_t i = 0; i < size; ++i) {
-            if (data[i] != 0xff) {
-                *is_initialized = true;
-                return ams::ResultSuccess();
-            }
-        }
-
-        *is_initialized = false;
-        return ams::ResultSuccess();
     }
 
 }

@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "switch_controller.hpp"
+#include "virtual_spi_flash.hpp"
 
 namespace ams::controller {
 
@@ -26,7 +27,7 @@ namespace ams::controller {
 
         public:
             EmulatedSwitchController(const bluetooth::Address *address, HardwareID id);
-            virtual ~EmulatedSwitchController();
+            virtual ~EmulatedSwitchController() {};
 
             virtual Result Initialize();
             bool IsOfficialController() { return false; }
@@ -67,11 +68,6 @@ namespace ams::controller {
 
             Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
 
-            Result VirtualSpiFlashRead(int offset, void *data, size_t size);
-            Result VirtualSpiFlashWrite(int offset, const void *data, size_t size);
-            Result VirtualSpiFlashSectorErase(int offset);
-            Result VirtualSpiFlashCheckInitialized(int offset, size_t size, bool *is_initialized);
-
             bool m_charging;
             bool m_ext_power;
             uint8_t m_battery;
@@ -89,7 +85,7 @@ namespace ams::controller {
             bool m_enable_rumble;
             bool m_enable_motion;
 
-            fs::FileHandle m_spi_flash_file;
+            VirtualSpiFlash m_virtual_memory;
     };
 
 }
