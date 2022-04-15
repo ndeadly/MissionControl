@@ -50,7 +50,7 @@ namespace ams::controller {
             R_TRY(this->QueryStatus());
         }
 
-        return ams::ResultSuccess(); 
+        return ams::ResultSuccess();
     }
 
     void WiiController::ProcessInputData(const bluetooth::HidReport *report) {
@@ -436,7 +436,7 @@ namespace ams::controller {
 
             MC_RUN_ASYNC (
                 auto mp_status = MotionPlusStatus_None;
-                if (m_id.pid == 0x0306) {
+                if ((m_id.pid == 0x0306) && m_enable_motion) {
                     mp_status = this->GetMotionPlusStatus();
 
                     if (!((mp_status == MotionPlusStatus_None) || (mp_status == MotionPlusStatus_Active))) {
@@ -462,7 +462,7 @@ namespace ams::controller {
                         case WiiExtensionController_ClassicPro:
                         case WiiExtensionController_TaTaCon:
                             m_orientation = WiiControllerOrientation_Vertical;
-                            R_TRY(this->SetReportMode(0x32));
+                            R_TRY(this->SetReportMode(0x35));
                             break;
                         case WiiExtensionController_WiiUPro:
                             m_orientation = WiiControllerOrientation_Horizontal;
@@ -501,7 +501,7 @@ namespace ams::controller {
                                 R_TRY(this->ActivateMotionPlusClassicPassthrough());
                             }
 
-                            // A status report (0x20) will automatically be sent indicating that a normal extension has been plugged in, 
+                            // A status report (0x20) will automatically be sent indicating that a normal extension has been plugged in,
                             // if and only if there was no extension plugged into the MotionPlus pass-through extension port.
                             R_TRY(this->QueryStatus());
                         }
@@ -520,13 +520,13 @@ namespace ams::controller {
 
                 return ams::ResultSuccess();
             );
-            
+
         } else {
 
             MC_RUN_ASYNC (
                 auto mp_status = this->GetMotionPlusStatus();
 
-                if (mp_status == MotionPlusStatus_None) {
+                if ((mp_status == MotionPlusStatus_None) || !m_enable_motion) {
                     m_extension = WiiExtensionController_None;
                     m_orientation = WiiControllerOrientation_Horizontal;
                     R_TRY(this->SetReportMode(0x31));
