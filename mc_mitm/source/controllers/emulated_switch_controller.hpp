@@ -32,7 +32,6 @@ namespace ams::controller {
             virtual Result Initialize();
             bool IsOfficialController() { return false; }
 
-            //Result HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) override;
             Result HandleOutputDataReport(const bluetooth::HidReport *report) override;
 
         protected:
@@ -81,7 +80,6 @@ namespace ams::controller {
             uint16_t m_gyro_sensitivity;
             uint16_t m_acc_sensitivity;
 
-            ProControllerColours m_colours;
             bool m_enable_rumble;
             bool m_enable_motion;
 

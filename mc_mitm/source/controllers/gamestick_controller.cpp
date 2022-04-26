@@ -15,7 +15,6 @@
  */
 #include "gamestick_controller.hpp"
 #include <stratosphere.hpp>
-#include <cstring>
 
 namespace ams::controller {
 

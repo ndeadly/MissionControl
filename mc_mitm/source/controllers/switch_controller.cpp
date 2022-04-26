@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "switch_controller.hpp"
-#include "../utils.hpp"
 #include "../mcmitm_config.hpp"
 #include <string>
 

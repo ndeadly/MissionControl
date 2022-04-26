@@ -18,9 +18,6 @@
 
 namespace ams::utils {
 
-    s32 ConvertToHorizonPriority(s32 user_priority);
-    s32 ConvertToUserPriority(s32 horizon_priority);
-
     Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size);
 
 }

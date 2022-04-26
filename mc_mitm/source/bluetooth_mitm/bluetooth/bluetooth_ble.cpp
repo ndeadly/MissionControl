@@ -15,8 +15,6 @@
  */
 #include "bluetooth_ble.hpp"
 #include "../btdrv_mitm_flags.hpp"
-#include <mutex>
-#include <cstring>
 
 namespace ams::bluetooth::ble {
 

@@ -17,10 +17,7 @@
 #include "bluetooth_circular_buffer.hpp"
 #include "../btdrv_shim.h"
 #include "../btdrv_mitm_flags.hpp"
-#include "../../utils.hpp"
 #include "../../controllers/controller_management.hpp"
-#include <mutex>
-#include <cstring>
 
 namespace ams::bluetooth::hid::report {
 

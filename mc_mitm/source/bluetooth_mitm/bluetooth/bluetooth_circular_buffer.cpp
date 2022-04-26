@@ -14,8 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "bluetooth_circular_buffer.hpp"
-#include <mutex>
-#include <cstring>
 
 namespace ams::bluetooth {
 

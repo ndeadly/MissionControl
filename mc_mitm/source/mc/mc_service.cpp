@@ -15,7 +15,6 @@
  */
 #include "mc_service.hpp"
 #include "../mcmitm_version.hpp"
-#include <cstring>
 
 namespace ams::mitm::mc {
 

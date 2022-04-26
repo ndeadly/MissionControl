@@ -17,8 +17,6 @@
 #include "controller_utils.hpp"
 #include "../async/async.hpp"
 #include <stratosphere.hpp>
-#include <algorithm>
-#include <cstring>
 
 namespace ams::controller {
 

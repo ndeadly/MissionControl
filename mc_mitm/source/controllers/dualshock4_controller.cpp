@@ -17,8 +17,6 @@
 #include "../mcmitm_config.hpp"
 #include <switch.h>
 #include <stratosphere.hpp>
-#include <cstring>
-#include <cmath>
 
 namespace ams::controller {
 

@@ -74,9 +74,7 @@ namespace ams::controller {
     class UnknownController : public EmulatedSwitchController {
         public:
             UnknownController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) {
-                m_colours.buttons = {0xff, 0x00, 0x00};
-            };
+            : EmulatedSwitchController(address, id) { }
     };
 
     ControllerType Identify(const bluetooth::DevicesSettings *device);

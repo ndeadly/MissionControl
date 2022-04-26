@@ -15,7 +15,6 @@
  */
 #include "mc_module.hpp"
 #include "mc_service.hpp"
-#include "../utils.hpp"
 
 namespace ams::mitm::mc {
 

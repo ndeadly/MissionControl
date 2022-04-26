@@ -30,5 +30,5 @@ namespace ams::bluetooth::ble {
 
     Result GetEventInfo(bluetooth::BleEventType *type, void *buffer, size_t size);
     void HandleEvent();
-    
+
 }

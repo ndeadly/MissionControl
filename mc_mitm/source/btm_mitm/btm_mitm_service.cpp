@@ -16,7 +16,6 @@
 #include "btm_mitm_service.hpp"
 #include "btm_shim.h"
 #include "../controllers/controller_management.hpp"
-#include <cstring>
 
 namespace ams::mitm::btm {
 

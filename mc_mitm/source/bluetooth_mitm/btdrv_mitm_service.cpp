@@ -22,7 +22,6 @@
 #include "../mcmitm_initialization.hpp"
 #include "../controllers/controller_management.hpp"
 #include <switch.h>
-#include <cstring>
 
 namespace ams::mitm::bluetooth {
 

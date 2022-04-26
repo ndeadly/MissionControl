@@ -15,9 +15,6 @@
  */
 #include "controller_management.hpp"
 #include <stratosphere.hpp>
-#include <mutex>
-#include <vector>
-#include <cstring>
 
 namespace ams::controller {
 

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "emulated_switch_controller.hpp"
-#include "../utils.hpp"
 #include "../mcmitm_config.hpp"
 
 namespace ams::controller {
@@ -100,13 +99,7 @@ namespace ams::controller {
     , m_acc_sensitivity(8000) {
         this->ClearControllerState();
 
-        m_colours.body       = {0x32, 0x32, 0x32};
-        m_colours.buttons    = {0xe6, 0xe6, 0xe6};
-        m_colours.left_grip  = {0x46, 0x46, 0x46};
-        m_colours.right_grip = {0x46, 0x46, 0x46};
-
         auto config = mitm::GetGlobalConfig();
-
         m_enable_rumble = config->general.enable_rumble;
         m_enable_motion = config->general.enable_motion;
     };
@@ -339,7 +332,6 @@ namespace ams::controller {
         // @ 0x00008010: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    <= User Analog sticks calibration
         // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Analog stick factory calibration + face/button colours
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
-
         auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
         auto read_addr = switch_report->output0x01.subcmd.spi_flash_read.address;
         auto read_size = switch_report->output0x01.subcmd.spi_flash_read.size;
