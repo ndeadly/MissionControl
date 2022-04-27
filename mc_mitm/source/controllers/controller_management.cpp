@@ -15,6 +15,7 @@
  */
 #include "controller_management.hpp"
 #include <stratosphere.hpp>
+#include "../utils.hpp"
 
 namespace ams::controller {
 
@@ -39,10 +40,6 @@ namespace ams::controller {
 
         os::Mutex g_controller_lock(false);
         std::vector<std::shared_ptr<SwitchController>> g_controllers;
-
-        inline bool bdcmp(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
-            return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
-        }
 
     }
 
@@ -289,7 +286,7 @@ namespace ams::controller {
         std::scoped_lock lk(g_controller_lock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
-            if (bdcmp(&(*it)->Address(), address)) {
+            if (utils::BluetoothAddressCompare(&(*it)->Address(), address)) {
                 g_controllers.erase(it);
                 return;
             }
@@ -300,7 +297,7 @@ namespace ams::controller {
         std::scoped_lock lk(g_controller_lock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
-                if (bdcmp(&(*it)->Address(), address)) {
+                if (utils::BluetoothAddressCompare(&(*it)->Address(), address)) {
                     return (*it);
                 }
         }

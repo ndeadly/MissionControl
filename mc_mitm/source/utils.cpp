@@ -17,6 +17,10 @@
 
 namespace ams::utils {
 
+    bool BluetoothAddressCompare(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
+        return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
+    }
+
     Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size) {
         if (out_size < 2*sizeof(bluetooth::Address) + 1)
             return -1;
