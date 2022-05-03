@@ -108,6 +108,8 @@ namespace ams::controller {
             offset += write_size;
         }
 
+        R_TRY(fs::FlushFile(m_virtual_memory_file));
+
         return ams::ResultSuccess();
     }
 
