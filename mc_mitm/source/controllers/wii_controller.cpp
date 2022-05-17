@@ -43,10 +43,10 @@ namespace ams::controller {
         if (m_id.pid == 0x0306) {
             // Read the accelerometer calibration from Wiimote memory
             R_TRY(this->GetAccelerometerCalibration(&m_accel_calibration));
-
-            // Request a status report to check extension controller status
-            R_TRY(this->QueryStatus());
         }
+
+        // Request a status report to check extension controller status
+        R_TRY(this->QueryStatus());
 
         return ams::ResultSuccess();
     }
