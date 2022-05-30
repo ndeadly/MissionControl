@@ -34,7 +34,9 @@ namespace ams::bluetooth::core {
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
 
         bluetooth::Address ReverseBluetoothAddress(bluetooth::Address address) {
-            uint64_t tmp = util::SwapEndian48(*reinterpret_cast<uint64_t *>(&address));
+            uint64_t tmp;
+            std::memcpy(&tmp, &address, sizeof(address));
+            tmp = util::SwapEndian(tmp) >> 16;
             return *reinterpret_cast<bluetooth::Address *>(&tmp);
         }
 
