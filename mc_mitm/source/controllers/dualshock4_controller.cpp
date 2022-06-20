@@ -119,7 +119,7 @@ namespace ams::controller {
         if (battery_level > 10)
             battery_level = 10;
 
-        m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
+        m_battery = static_cast<uint8_t>(8 * (battery_level + 2) / 10) & 0x0e;
 
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.left_stick.x) & 0xfff,
