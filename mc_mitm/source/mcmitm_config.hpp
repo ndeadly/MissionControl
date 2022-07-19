@@ -30,6 +30,7 @@ namespace ams::mitm {
 
         struct {
             bool disable_sony_leds;
+            bool disable_dualsense_player_leds;
         } misc;
     };
 

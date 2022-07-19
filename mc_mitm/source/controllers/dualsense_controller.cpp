@@ -78,9 +78,10 @@ namespace ams::controller {
     }
 
     Result DualsenseController::SetPlayerLed(uint8_t led_mask) {
+        auto config = mitm::GetGlobalConfig();
         uint8_t player_number;
         R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
-        m_led_flags = player_led_flags[player_number];
+        m_led_flags = config->misc.disable_dualsense_player_leds ? 0x00 : player_led_flags[player_number];
         RGBColour colour = player_led_colours[player_number];
         return this->SetLightbarColour(colour);
     }

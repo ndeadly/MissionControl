@@ -30,7 +30,8 @@ namespace ams::mitm {
                 .enable_motion = true
             },
             .misc = {
-                .disable_sony_leds = false
+                .disable_sony_leds = false,
+                .disable_dualsense_player_leds = false
             }
         };
 
@@ -79,6 +80,8 @@ namespace ams::mitm {
             else if (strcasecmp(section, "misc") == 0) {
                 if (strcasecmp(name, "disable_sony_leds") == 0)
                     ParseBoolean(value, &config->misc.disable_sony_leds);
+                else if (strcasecmp(name, "disable_dualsense_player_leds") == 0)
+                    ParseBoolean(value, &config->misc.disable_dualsense_player_leds);
             }
             else {
                 return 0;
