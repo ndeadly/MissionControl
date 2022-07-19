@@ -226,8 +226,9 @@ namespace ams::controller {
 
     Result DualsenseController::PushRumbleLedState() {
         DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x03, 0x14, m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left};
-        report.data[41] = 0x02;
+        report.data[41] = 0x02 | 0x01;
         report.data[44] = 0x02;
+        report.data[45] = 0x02;
         report.data[46] = m_led_flags;
         report.data[47] = m_led_colour.r;
         report.data[48] = m_led_colour.g;
