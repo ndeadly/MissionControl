@@ -86,9 +86,17 @@ namespace ams::controller {
         } acc;
     } __attribute__((packed));
 
+    struct DualsenseVersionInfo {
+        char data[64];
+    } __attribute__((packed));
+
     struct DualsenseFeatureReport0x05 {
         DualsenseImuCalibrationData calibration;
         uint32_t crc;
+    } __attribute__((packed));
+
+    struct DualsenseFeatureReport0x20 {
+        DualsenseVersionInfo version_info;
     } __attribute__((packed));
 
     struct DualsenseOutputReport0x31 {
@@ -133,6 +141,7 @@ namespace ams::controller {
         uint8_t id;
         union {
             DualsenseFeatureReport0x05 feature0x05;
+            DualsenseFeatureReport0x20 feature0x20;
             DualsenseOutputReport0x31 output0x31;
             DualsenseInputReport0x01 input0x01;
             DualsenseInputReport0x31 input0x31;
@@ -166,6 +175,7 @@ namespace ams::controller {
 
             void MapButtons(const DualsenseButtonData *buttons);
 
+            Result GetVersionInfo(DualsenseVersionInfo *version_info);
             Result GetCalibrationData(DualsenseImuCalibrationData *calibration);
             Result PushRumbleLedState();
 
@@ -173,6 +183,7 @@ namespace ams::controller {
             RGBColour m_led_colour;
             DualsenseRumbleData m_rumble_state;
 
+            DualsenseVersionInfo m_version_info;
             DualsenseImuCalibrationData m_motion_calibration;
     };
 

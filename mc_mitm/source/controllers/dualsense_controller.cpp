@@ -38,6 +38,17 @@ namespace ams::controller {
             0x0A
         };
 
+        const uint8_t new_player_led_flags[] = {
+            0x04,
+            0x02,
+            0x05,
+            0x03,
+            0x07,
+            0x07,
+            0x07,
+            0x07
+        };
+
         const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
 
         const RGBColour player_led_colours[] = {
@@ -61,6 +72,9 @@ namespace ams::controller {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
 
+        // Request controller firmware version info
+        R_TRY(this->GetVersionInfo(&m_version_info));
+
         // Request motion calibration data from DualSense
         R_TRY(this->GetCalibrationData(&m_motion_calibration));
 
@@ -81,9 +95,23 @@ namespace ams::controller {
 
     Result DualsenseController::SetPlayerLed(uint8_t led_mask) {
         auto config = mitm::GetGlobalConfig();
+
         uint8_t player_number;
         R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
-        m_led_flags = config->misc.disable_dualsense_player_leds ? 0x00 : player_led_flags[player_number] | 0x20;
+
+        uint16_t fw_version = *reinterpret_cast<uint16_t *>(&m_version_info.data[43]);
+
+        if (config->misc.disable_dualsense_player_leds) {
+            m_led_flags = 0x00;
+        } else if (fw_version < 0x0282) {
+            m_led_flags = player_led_flags[player_number];
+        } else {
+            m_led_flags = new_player_led_flags[player_number];
+        }
+
+        // Disable LED fade-in
+        m_led_flags |= 0x20;
+
         RGBColour colour = player_led_colours[player_number];
         return this->SetLightbarColour(colour);
     }
@@ -214,6 +242,16 @@ namespace ams::controller {
 
         m_buttons.capture = buttons->tpad;
         m_buttons.home    = buttons->ps;
+    }
+
+    Result DualsenseController::GetVersionInfo(DualsenseVersionInfo *version_info) {
+        bluetooth::HidReport output;
+        R_TRY(this->GetFeatureReport(0x20, &output));
+
+        auto response = reinterpret_cast<DualsenseReportData *>(&output.data);
+        std::memcpy(version_info, &response->feature0x20.version_info, sizeof(DualsenseVersionInfo));
+
+        return ams::ResultSuccess();
     }
 
     Result DualsenseController::GetCalibrationData(DualsenseImuCalibrationData *calibration) {
