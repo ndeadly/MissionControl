@@ -93,7 +93,7 @@ namespace ams::controller {
 
     struct DualsenseOutputReport0x31 {
         struct {
-            uint8_t data[75];
+            uint8_t data[73];
         };
         uint32_t crc;
     } __attribute__((packed));
@@ -133,6 +133,7 @@ namespace ams::controller {
         uint8_t id;
         union {
             DualsenseFeatureReport0x05 feature0x05;
+            DualsenseOutputReport0x31 output0x31;
             DualsenseInputReport0x01 input0x01;
             DualsenseInputReport0x31 input0x31;
         };

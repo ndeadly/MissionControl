@@ -53,6 +53,8 @@ namespace ams::controller {
             {0x10, 0x00, 0x30}  // purple
         };
 
+        constexpr uint32_t crc_seed = 0x8C36CCAE; // CRC32 of {0xa2, 0x31} bytes at beginning of output report
+
     }
 
     Result DualsenseController::Initialize() {
@@ -225,19 +227,25 @@ namespace ams::controller {
     }
 
     Result DualsenseController::PushRumbleLedState() {
-        DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x03, 0x54, m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left};
-        report.data[39] = 0x03;
-        report.data[41] = 0x02 | 0x01;
-        report.data[44] = 0x02;
-        report.data[45] = 0x02;
-        report.data[46] = m_led_flags;
-        report.data[47] = m_led_colour.r;
-        report.data[48] = m_led_colour.g;
-        report.data[49] = m_led_colour.b;
-        report.crc = crc32Calculate(report.data, sizeof(report.data));
+        DualsenseReportData report = {};
+        report.id = 0x31;
+        report.output0x31.data[0] = 0x02;
+        report.output0x31.data[1] = 0x03;
+        report.output0x31.data[2] = 0x54;
+        report.output0x31.data[3] = m_rumble_state.amp_motor_right;
+        report.output0x31.data[4] = m_rumble_state.amp_motor_left;
+        report.output0x31.data[37] = 0x03;
+        report.output0x31.data[39] = 0x02 | 0x01;
+        report.output0x31.data[42] = 0x02;
+        report.output0x31.data[43] = 0x02;
+        report.output0x31.data[44] = m_led_flags;
+        report.output0x31.data[45] = m_led_colour.r;
+        report.output0x31.data[46] = m_led_colour.g;
+        report.output0x31.data[47] = m_led_colour.b;
+        report.output0x31.crc = crc32CalculateWithSeed(crc_seed, report.output0x31.data, sizeof(report.output0x31.data));
 
-        m_output_report.size = sizeof(report) - 1;
-        std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
+        m_output_report.size = sizeof(report.output0x31) + sizeof(report.id);
+        std::memcpy(m_output_report.data, &report, m_output_report.size);
 
         return this->WriteDataReport(&m_output_report);
     }

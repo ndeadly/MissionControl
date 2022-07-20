@@ -42,6 +42,8 @@ namespace ams::controller {
             {0x10, 0x00, 0x30}  // purple
         };
 
+        constexpr uint32_t crc_seed = 0xB758EC66;  // CRC32 of {0xa2, 0x11} bytes at beginning of output report
+
     }
 
     Result Dualshock4Controller::Initialize() {
@@ -222,14 +224,21 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::PushRumbleLedState() {
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff)), 0x20, 0xf3, 0x04, 0x00,
-            m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left,
-            m_led_colour.r, m_led_colour.g, m_led_colour.b
-        };
-        report.crc = crc32Calculate(report.data, sizeof(report.data));
+        Dualshock4ReportData report = {};
+        report.id = 0x11;
+        report.output0x11.data[0] = static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff));
+        report.output0x11.data[1] = 0x20;
+        report.output0x11.data[2] = 0xf3;
+        report.output0x11.data[3] = 0x04;
+        report.output0x11.data[5] = m_rumble_state.amp_motor_right;
+        report.output0x11.data[6] = m_rumble_state.amp_motor_left;
+        report.output0x11.data[7] = m_led_colour.r;
+        report.output0x11.data[8] = m_led_colour.g;
+        report.output0x11.data[9] = m_led_colour.b;
+        report.output0x11.crc = crc32CalculateWithSeed(crc_seed, report.output0x11.data, sizeof(report.output0x11.data));
 
-        m_output_report.size = sizeof(report) - 1;
-        std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
+        m_output_report.size = sizeof(report.output0x11) + sizeof(report.id);
+        std::memcpy(m_output_report.data, &report, m_output_report.size);
 
         return this->WriteDataReport(&m_output_report);
     }

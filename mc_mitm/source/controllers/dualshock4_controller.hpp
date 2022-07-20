@@ -132,7 +132,7 @@ namespace ams::controller {
 
     struct Dualshock4OutputReport0x11 {
         struct {
-            uint8_t data[75];
+            uint8_t data[73];
         };
         uint32_t crc;
     } __attribute__((packed));
