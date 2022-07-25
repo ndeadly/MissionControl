@@ -30,7 +30,8 @@ namespace ams::mitm {
                 .enable_motion = true
             },
             .misc = {
-                .disable_sony_leds = false,
+                .disable_dualshock4_lightbar = false,
+                .disable_dualsense_lightbar = false,
                 .disable_dualsense_player_leds = false
             }
         };
@@ -78,8 +79,10 @@ namespace ams::mitm {
                     ParseBluetoothAddress(value, &config->bluetooth.host_address);
             }
             else if (strcasecmp(section, "misc") == 0) {
-                if (strcasecmp(name, "disable_sony_leds") == 0)
-                    ParseBoolean(value, &config->misc.disable_sony_leds);
+                if (strcasecmp(name, "disable_dualshock4_lightbar") == 0)
+                    ParseBoolean(value, &config->misc.disable_dualshock4_lightbar);
+                else if (strcasecmp(name, "disable_dualsense_lightbar") == 0)
+                    ParseBoolean(value, &config->misc.disable_dualsense_lightbar);
                 else if (strcasecmp(name, "disable_dualsense_player_leds") == 0)
                     ParseBoolean(value, &config->misc.disable_dualsense_player_leds);
             }

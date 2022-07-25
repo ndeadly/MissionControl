@@ -118,7 +118,7 @@ namespace ams::controller {
 
     Result DualsenseController::SetLightbarColour(RGBColour colour) {
         auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        m_led_colour = config->misc.disable_dualsense_lightbar ? led_disable : colour;
         return this->PushRumbleLedState();
     }
 

@@ -29,7 +29,8 @@ namespace ams::mitm {
         } bluetooth;
 
         struct {
-            bool disable_sony_leds;
+            bool disable_dualshock4_lightbar;
+            bool disable_dualsense_lightbar;
             bool disable_dualsense_player_leds;
         } misc;
     };
