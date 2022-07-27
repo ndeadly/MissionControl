@@ -48,6 +48,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Steelseries Free__
 * __Steelseries Nimbus__
 * __Steelseries Stratus Duo__
+* __Steelseries Stratus XL__
 * __GameSir G3s__
 * __GameSir G4s__
 * __GameSir T1s__
