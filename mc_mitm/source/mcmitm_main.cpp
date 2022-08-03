@@ -17,6 +17,7 @@
 #include <stratosphere.hpp>
 #include "mcmitm_initialization.hpp"
 #include "mcmitm_config.hpp"
+#include "mcmitm_process_monitor.hpp"
 
 namespace ams {
 
@@ -95,28 +96,60 @@ namespace ams {
         psc::PmModule pm_module;
         psc::PmState pm_state;
         psc::PmFlagSet pm_flags;
+        R_ABORT_UNLESS(pm_module.Initialize(pm_module_id, pm_dependencies, util::size(pm_dependencies), os::EventClearMode_ManualClear));
 
-        R_ABORT_UNLESS(pm_module.Initialize(pm_module_id, pm_dependencies, sizeof(pm_dependencies) / sizeof(u32), os::EventClearMode_AutoClear));
+        // Create timer event for periodically checking whether the current running application has changed
+        os::TimerEvent timer_event(os::EventClearMode_ManualClear);
+        timer_event.StartPeriodic(ams::TimeSpan::FromSeconds(1), ams::TimeSpan::FromSeconds(1));
 
-        // Loop power management events until shutdown signal is received
+        os::MultiWaitType wait_manager;
+        os::MultiWaitHolderType holder_pm_module;
+        os::MultiWaitHolderType holder_proc_monitor;
+
+        os::InitializeMultiWait(&wait_manager);
+
+        os::InitializeMultiWaitHolder(&holder_pm_module, pm_module.GetEventPointer()->GetBase());
+        os::SetMultiWaitHolderUserData(&holder_pm_module, 0);
+        os::LinkMultiWaitHolder(&wait_manager, &holder_pm_module);
+
+        os::InitializeMultiWaitHolder(&holder_proc_monitor, timer_event.GetBase());
+        os::SetMultiWaitHolderUserData(&holder_proc_monitor, 1);
+        os::LinkMultiWaitHolder(&wait_manager, &holder_proc_monitor);
+
+        // Loop events until shutdown signal is received
         bool shutdown = false;
         while (!shutdown) {
-            pm_module.GetEventPointer()->Wait();
-            if (R_SUCCEEDED(pm_module.GetRequest(&pm_state, &pm_flags))) {
-                switch (pm_state) {
-                    case psc::PmState_ShutdownReady:
-                        shutdown = true;
-                        [[fallthrough]];
-                    case psc::PmState_SleepReady:
-                        /* Run sleep/shutdown code */
-                        break;
-                    default:
-                        break;
-                }
-            }
+            auto signalled_holder = os::WaitAny(&wait_manager);
+            switch (os::GetMultiWaitHolderUserData(signalled_holder)) {
+                case 0:
+                    pm_module.GetEventPointer()->Clear();
+                    if (R_SUCCEEDED(pm_module.GetRequest(&pm_state, &pm_flags))) {
+                        switch (pm_state) {
+                            case psc::PmState_ShutdownReady:
+                                shutdown = true;
+                                [[fallthrough]];
+                            case psc::PmState_SleepReady:
+                                /* Run sleep/shutdown code */
+                                break;
+                            default:
+                                break;
+                        }
+                    }
 
-            R_ABORT_UNLESS(pm_module.Acknowledge(pm_state, ResultSuccess()));
+                    R_ABORT_UNLESS(pm_module.Acknowledge(pm_state, ResultSuccess()));
+                    break;
+
+                case 1:
+                    timer_event.Clear();
+                    mc::CheckForProcessSwitch();
+                    break;
+
+                AMS_UNREACHABLE_DEFAULT_CASE();
+            }
         }
+
+        // Stop the timer
+        timer_event.Stop();
 
         // Wait for modules to terminate
         mitm::WaitModules();
