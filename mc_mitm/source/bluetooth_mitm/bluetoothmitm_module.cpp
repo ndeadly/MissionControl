@@ -36,7 +36,7 @@ namespace ams::mitm::bluetooth {
             static constexpr bool CanManageMitmServers  = true;
         };
 
-        constexpr size_t MaxSessions = 6;
+        constexpr size_t MaxSessions = 30;
 
         class ServerManager final : public sf::hipc::ServerManager<PortIndex_Count, ServerOptions, MaxSessions> {
             private:
