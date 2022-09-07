@@ -265,6 +265,8 @@ namespace ams::controller {
     }
 
     Result DualsenseController::PushRumbleLedState() {
+        std::scoped_lock lk(m_output_mutex);
+
         DualsenseReportData report = {};
         report.id = 0x31;
         report.output0x31.data[0] = 0x02;

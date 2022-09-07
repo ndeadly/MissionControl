@@ -737,6 +737,8 @@ namespace ams::controller {
     }
 
     Result WiiController::SetReportMode(uint8_t mode) {
+        std::scoped_lock lk(m_output_mutex);
+
         m_output_report.size = sizeof(WiiOutputReport0x12) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x12;
@@ -748,6 +750,8 @@ namespace ams::controller {
     }
 
     Result WiiController::QueryStatus() {
+        std::scoped_lock lk(m_output_mutex);
+
         m_output_report.size = sizeof(WiiOutputReport0x15) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x15;
@@ -757,11 +761,13 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result WiiController::WriteMemory(uint32_t write_addr, const void *data, uint8_t size) {
+    Result WiiController::WriteMemory(uint32_t write_addr, const void *data, uint8_t size) {       
         os::SleepThread(ams::TimeSpan::FromMilliSeconds(30));
 
         Result result;
         auto output = std::make_unique<bluetooth::HidReport>();
+
+        std::scoped_lock lk(m_output_mutex);
 
         int attempts = 0;
         do {
@@ -785,6 +791,8 @@ namespace ams::controller {
 
         Result result;
         auto output = std::make_unique<bluetooth::HidReport>();
+
+        std::scoped_lock lk(m_output_mutex);
 
         int attempts = 0;
         do {
@@ -909,6 +917,8 @@ namespace ams::controller {
                          rumble_data[1].low_band_amp > 0 ||
                          rumble_data[1].high_band_amp > 0;
 
+        std::scoped_lock lk(m_output_mutex);
+
         m_output_report.size = sizeof(WiiOutputReport0x10) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x10;
@@ -920,6 +930,8 @@ namespace ams::controller {
     Result WiiController::CancelVibration() {
         m_rumble_state = 0;
 
+        std::scoped_lock lk(m_output_mutex);
+
         m_output_report.size = sizeof(WiiOutputReport0x10) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x10;
@@ -929,6 +941,8 @@ namespace ams::controller {
     }
 
     Result WiiController::SetPlayerLed(uint8_t led_mask) {
+        std::scoped_lock lk(m_output_mutex);
+
         m_output_report.size = sizeof(WiiOutputReport0x11) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x11;

@@ -556,6 +556,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::FakeSubCmdResponse(const SwitchSubcommandResponse *response) {
+        std::scoped_lock lk(m_input_mutex);
+        
         m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
         auto report_data = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         report_data->id = 0x21;

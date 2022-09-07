@@ -224,6 +224,8 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::PushRumbleLedState() {
+        std::scoped_lock lk(m_output_mutex);
+
         Dualshock4ReportData report = {};
         report.id = 0x11;
         report.output0x11.data[0] = static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff));

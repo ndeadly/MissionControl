@@ -97,6 +97,8 @@ namespace ams::controller {
             }
         }
 
+        std::scoped_lock lk(m_input_mutex);
+
         this->UpdateControllerState(report);
 
         auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
