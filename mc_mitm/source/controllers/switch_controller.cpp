@@ -106,18 +106,19 @@ namespace ams::controller {
             case 0x21:
                 this->ApplyButtonCombos(&switch_report->input0x21.buttons); 
 
-	            if (switch_report->input0x21.response.id == SubCmd_SpiFlashRead) {
-	                if (switch_report->input0x21.response.data.spi_flash_read.address == 0x6050) {
-	                    if (ams::mitm::GetSystemLanguage() == 10) {
-	                        uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
-	                        std::memcpy(switch_report->input0x21.response.data.spi_flash_read.data, data, sizeof(data));
-	                    }
-	                }
-	            }
-				break;
+                if (switch_report->input0x21.response.id == SubCmd_SpiFlashRead) {
+                    if (switch_report->input0x21.response.data.spi_flash_read.address == 0x6050) {
+                        if (ams::mitm::GetSystemLanguage() == 10) {
+                            uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                            std::memcpy(switch_report->input0x21.response.data.spi_flash_read.data, data, sizeof(data));
+                        }
+                    }
+                }
+                break;
             case 0x30:
                 this->ApplyButtonCombos(&switch_report->input0x30.buttons); break;
             case 0x31:
+                this->ApplyButtonCombos(&switch_report->input0x31.buttons); break;
             case 0x32:
             case 0x33:
             case 0x3f:

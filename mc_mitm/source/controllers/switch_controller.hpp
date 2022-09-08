@@ -123,6 +123,11 @@ namespace ams::controller {
         int16_t z;
     } __attribute__((packed));
 
+    struct SwitchRumbleDataEncoded {
+        uint8_t left_motor[4];
+        uint8_t right_motor[4];
+    } __attribute__ ((__packed__));
+
     struct SwitchRumbleData {
         float high_band_freq;
         float high_band_amp;
@@ -168,6 +173,10 @@ namespace ams::controller {
         uint8_t id;
         union {
             uint8_t data[0x26];
+
+            struct {
+                uint8_t mode;
+            } input_report_mode;
 
             struct {
                 uint32_t address;
@@ -263,24 +272,23 @@ namespace ams::controller {
 
     struct SwitchOutputReport0x01 {
         uint8_t counter;
-        struct {
-            uint8_t left_motor[4];
-            uint8_t right_motor[4];
-        } rumble;
+        SwitchRumbleDataEncoded rumble;
         SwitchSubcommand subcmd;
     } __attribute__ ((__packed__));
 
     struct SwitchOutputReport0x03;
 
     struct SwitchOutputReport0x10 {
-        uint8_t timer;
-        struct {
-            uint8_t left_motor[4];
-            uint8_t right_motor[4];
-        } rumble;
-    }__attribute__ ((__packed__));
+        uint8_t counter;
+        SwitchRumbleDataEncoded rumble;
+    } __attribute__ ((__packed__));
 
-    struct SwitchOutputReport0x11;
+    struct SwitchOutputReport0x11 {
+        uint8_t counter;
+        SwitchRumbleDataEncoded rumble;
+        uint8_t nfc_ir_data[0x16];
+    } __attribute__ ((__packed__));
+
     struct SwitchOutputReport0x12;
 
     struct SwitchInputReport0x21 {
@@ -306,10 +314,25 @@ namespace ams::controller {
         uint8_t           vibrator;
 
         // IMU samples at 0, 5 and 10ms
-        Switch6AxisData     motion[3];
+        Switch6AxisData motion[3];
     } __attribute__ ((__packed__));
 
-    struct SwitchInputReport0x31;
+    struct SwitchInputReport0x31 {
+        uint8_t           timer;
+        uint8_t           conn_info      : 4;
+        uint8_t           battery        : 4;
+        SwitchButtonData  buttons;
+        SwitchAnalogStick left_stick;
+        SwitchAnalogStick right_stick;
+        uint8_t           vibrator;
+
+        // IMU samples at 0, 5 and 10ms
+        Switch6AxisData motion[3];
+
+        uint8_t nfc_ir_data[0x138];
+        uint8_t crc;
+    } __attribute__ ((__packed__));
+
     struct SwitchInputReport0x32;
     struct SwitchInputReport0x33;
     struct SwitchInputReport0x3f;
@@ -320,11 +343,11 @@ namespace ams::controller {
             SwitchOutputReport0x01 output0x01;
             //SwitchOutputReport0x03 output0x03;
             SwitchOutputReport0x10 output0x10;
-            //SwitchOutputReport0x11 output0x11;
+            SwitchOutputReport0x11 output0x11;
             //SwitchOutputReport0x12 output0x12;
             SwitchInputReport0x21  input0x21;
             SwitchInputReport0x30  input0x30;
-            //SwitchInputReport0x31  input0x31;
+            SwitchInputReport0x31  input0x31;
             //SwitchInputReport0x32  input0x32;
             //SwitchInputReport0x33  input0x33;
             //SwitchInputReport0x3f  input0x3f;

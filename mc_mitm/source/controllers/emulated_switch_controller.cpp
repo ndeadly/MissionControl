@@ -96,7 +96,8 @@ namespace ams::controller {
     , m_battery(BATTERY_MAX)
     , m_led_pattern(0)
     , m_gyro_sensitivity(2000)
-    , m_acc_sensitivity(8000) {
+    , m_acc_sensitivity(8000)
+    , m_input_report_mode(0x30) {
         this->ClearControllerState();
 
         auto config = mitm::GetGlobalConfig();
@@ -126,7 +127,6 @@ namespace ams::controller {
     void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
         this->ProcessInputData(report);
 
-        m_input_report.size = sizeof(SwitchInputReport0x30) + 1;
         auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         switch_report->id = 0x30;
         switch_report->input0x30.conn_info = (0 << 1) | m_ext_power;
@@ -136,6 +136,7 @@ namespace ams::controller {
         switch_report->input0x30.right_stick = m_right_stick;
         std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
         switch_report->input0x30.timer = (switch_report->input0x30.timer + 1) & 0xff;
+        m_input_report.size = sizeof(SwitchInputReport0x30) + 1;
     }
 
     Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
@@ -143,9 +144,15 @@ namespace ams::controller {
 
         switch (report_data->id) {
             case 0x01:
-                R_TRY(this->HandleSubCmdReport(report)); break;
+                R_TRY(this->HandleRumbleData(&report_data->output0x01.rumble));
+                R_TRY(this->HandleSubcommand(&report_data->output0x01.subcmd));
+                break;
             case 0x10:
-                R_TRY(this->HandleRumbleReport(report)); break;
+                R_TRY(this->HandleRumbleData(&report_data->output0x10.rumble));
+                break;
+            case 0x11:
+                R_TRY(this->HandleRumbleData(&report_data->output0x11.rumble));
+                break;
             default:
                 break;
         }
@@ -153,68 +160,77 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result EmulatedSwitchController::HandleSubCmdReport(const bluetooth::HidReport *report) {
-        auto report_data = reinterpret_cast<const SwitchReportData *>(&report->data);
+    Result EmulatedSwitchController::HandleRumbleData(const SwitchRumbleDataEncoded *encoded) {
+        if (m_enable_rumble) {
+            SwitchRumbleData rumble_data[2];
+            DecodeRumbleValues(encoded->left_motor,  &rumble_data[0]);
+            DecodeRumbleValues(encoded->right_motor, &rumble_data[1]);
+            R_TRY(this->SetVibration(rumble_data));
+        }
 
-        switch (report_data->output0x01.subcmd.id) {
+        return ams::ResultSuccess();
+    }
+
+    Result EmulatedSwitchController::HandleSubcommand(const SwitchSubcommand *subcmd) {
+        switch (subcmd->id) {
             case SubCmd_RequestDeviceInfo:
-                R_TRY(this->SubCmdRequestDeviceInfo(report));
+                R_TRY(this->SubCmdRequestDeviceInfo(subcmd));
                 break;
             case SubCmd_SetInputReportMode:
-                R_TRY(this->SubCmdSetInputReportMode(report));
+                R_TRY(this->SubCmdSetInputReportMode(subcmd));
                 break;
             case SubCmd_TriggersElapsedTime:
-                R_TRY(this->SubCmdTriggersElapsedTime(report));
+                R_TRY(this->SubCmdTriggersElapsedTime(subcmd));
                 break;
             case SubCmd_ResetPairingInfo:
-                R_TRY(this->SubCmdResetPairingInfo(report));
+                R_TRY(this->SubCmdResetPairingInfo(subcmd));
                 break;
             case SubCmd_SetShipPowerState:
-                R_TRY(this->SubCmdSetShipPowerState(report));
+                R_TRY(this->SubCmdSetShipPowerState(subcmd));
                 break;
             case SubCmd_SpiFlashRead:
-                R_TRY(this->SubCmdSpiFlashRead(report));
+                R_TRY(this->SubCmdSpiFlashRead(subcmd));
                 break;
             case SubCmd_SpiFlashWrite:
-                R_TRY(this->SubCmdSpiFlashWrite(report));
+                R_TRY(this->SubCmdSpiFlashWrite(subcmd));
                 break;
             case SubCmd_SpiSectorErase:
-                R_TRY(this->SubCmdSpiSectorErase(report));
+                R_TRY(this->SubCmdSpiSectorErase(subcmd));
                 break;
             case SubCmd_SetMcuConfig:
-                R_TRY(this->SubCmdSetMcuConfig(report));
+                R_TRY(this->SubCmdSetMcuConfig(subcmd));
                 break;
             case SubCmd_SetMcuState:
-                R_TRY(this->SubCmdSetMcuState(report));
+                R_TRY(this->SubCmdSetMcuState(subcmd));
                 break;
             case SubCmd_0x24:
-                R_TRY(this->SubCmd0x24(report));
+                R_TRY(this->SubCmd0x24(subcmd));
                 break;
             case SubCmd_0x25:
-                R_TRY(this->SubCmd0x25(report));
+                R_TRY(this->SubCmd0x25(subcmd));
                 break;
             case SubCmd_SetPlayerLeds:
-                R_TRY(this->SubCmdSetPlayerLeds(report));
+                R_TRY(this->SubCmdSetPlayerLeds(subcmd));
                 break;
             case SubCmd_GetPlayerLeds:
-                R_TRY(this->SubCmdGetPlayerLeds(report));
+                R_TRY(this->SubCmdGetPlayerLeds(subcmd));
                 break;
             case SubCmd_SetHomeLed:
-                R_TRY(this->SubCmdSetHomeLed(report));
+                R_TRY(this->SubCmdSetHomeLed(subcmd));
                 break;
             case SubCmd_EnableImu:
-                R_TRY(this->SubCmdEnableImu(report));
+                R_TRY(this->SubCmdEnableImu(subcmd));
                 break;
             case SubCmd_SetImuSensitivity:
-                R_TRY(this->SubCmdSetImuSensitivity(report));
+                R_TRY(this->SubCmdSetImuSensitivity(subcmd));
                 break;
             case SubCmd_EnableVibration:
-                R_TRY(this->SubCmdEnableVibration(report));
+                R_TRY(this->SubCmdEnableVibration(subcmd));
                 break;
             default:
                 const SwitchSubcommandResponse response = {
                     .ack = 0x80,
-                    .id = report_data->output0x01.subcmd.id,
+                    .id = subcmd->id,
                     .data = {
                         .raw = { 0x03 }
                     }
@@ -224,32 +240,11 @@ namespace ams::controller {
                 break;
         }
 
-        // This report can also contain rumble data
-        if (m_enable_rumble) {
-            SwitchRumbleData rumble_data[2];
-            DecodeRumbleValues(report_data->output0x01.rumble.left_motor,  &rumble_data[0]);
-            DecodeRumbleValues(report_data->output0x01.rumble.right_motor, &rumble_data[1]);
-            R_TRY(this->SetVibration(rumble_data));
-        }
-
         return ams::ResultSuccess();
     }
 
-    Result EmulatedSwitchController::HandleRumbleReport(const bluetooth::HidReport *report) {
-        if (m_enable_rumble) {
-            auto report_data = reinterpret_cast<const SwitchReportData *>(report->data);
-
-            SwitchRumbleData rumble_data[2];
-            DecodeRumbleValues(report_data->output0x10.rumble.left_motor,  &rumble_data[0]);
-            DecodeRumbleValues(report_data->output0x10.rumble.right_motor, &rumble_data[1]);
-            R_TRY(this->SetVibration(rumble_data));
-        }
-
-        return ams::ResultSuccess();
-    }
-
-    Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x82,
@@ -272,8 +267,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetInputReportMode(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdSetInputReportMode(const SwitchSubcommand *subcmd) {
+        m_input_report_mode = subcmd->input_report_mode.mode;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -283,8 +278,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x83,
@@ -294,8 +289,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdResetPairingInfo(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdResetPairingInfo(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         R_TRY(m_virtual_memory.SectorErase(0x2000));
 
@@ -307,8 +302,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetShipPowerState(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdSetShipPowerState(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -323,7 +318,7 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSpiFlashRead(const bluetooth::HidReport *report) {
+    Result EmulatedSwitchController::SubCmdSpiFlashRead(const SwitchSubcommand *subcmd) {
         // These are read from official Pro Controller
         // @ 0x00006000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff                            <= Serial
         // @ 0x00006050: 32 32 32 ff ff ff ff ff ff ff ff ff                                        <= RGB colours (body, buttons, left grip, right grip)
@@ -332,9 +327,8 @@ namespace ams::controller {
         // @ 0x00008010: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    <= User Analog sticks calibration
         // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Analog stick factory calibration + face/button colours
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-        auto read_addr = switch_report->output0x01.subcmd.spi_flash_read.address;
-        auto read_size = switch_report->output0x01.subcmd.spi_flash_read.size;
+        auto read_addr = subcmd->spi_flash_read.address;
+        auto read_size = subcmd->spi_flash_read.size;
 
         SwitchSubcommandResponse response = {
             .ack = 0x90,
@@ -359,11 +353,10 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSpiFlashWrite(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-        auto write_addr = switch_report->output0x01.subcmd.spi_flash_write.address;
-        auto write_size = switch_report->output0x01.subcmd.spi_flash_write.size;
-        auto write_data = switch_report->output0x01.subcmd.spi_flash_write.data;
+    Result EmulatedSwitchController::SubCmdSpiFlashWrite(const SwitchSubcommand *subcmd) {
+        auto write_addr = subcmd->spi_flash_write.address;
+        auto write_size = subcmd->spi_flash_write.size;
+        auto write_data = subcmd->spi_flash_write.data;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -378,9 +371,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSpiSectorErase(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-        auto erase_addr = switch_report->output0x01.subcmd.spi_flash_sector_erase.address;
+    Result EmulatedSwitchController::SubCmdSpiSectorErase(const SwitchSubcommand *subcmd) {
+        auto erase_addr = subcmd->spi_flash_sector_erase.address;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -395,8 +387,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmd0x24(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmd0x24(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -409,8 +401,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmd0x25(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmd0x25(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -423,8 +415,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetMcuConfig(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdSetMcuConfig(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0xa0,
@@ -443,8 +435,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetMcuState(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdSetMcuState(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -454,10 +446,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetPlayerLeds(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-
-        m_led_pattern = switch_report->output0x01.subcmd.set_player_leds.leds;
+    Result EmulatedSwitchController::SubCmdSetPlayerLeds(const SwitchSubcommand *subcmd) {
+        m_led_pattern = subcmd->set_player_leds.leds;
         R_TRY(this->SetPlayerLed(m_led_pattern));
 
         const SwitchSubcommandResponse response = {
@@ -468,8 +458,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdGetPlayerLeds(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdGetPlayerLeds(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -484,8 +474,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetHomeLed(const bluetooth::HidReport *report) {
-        AMS_UNUSED(report);
+    Result EmulatedSwitchController::SubCmdSetHomeLed(const SwitchSubcommand *subcmd) {
+        AMS_UNUSED(subcmd);
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -495,17 +485,15 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdEnableImu(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-
-        if (switch_report->output0x01.subcmd.enable_imu.enabled) {
+    Result EmulatedSwitchController::SubCmdEnableImu(const SwitchSubcommand *subcmd) {
+        if (subcmd->enable_imu.enabled) {
             if (!m_enable_motion) {
                 m_gyro_sensitivity = 2000;
                 m_acc_sensitivity = 8000;
             }
         }
 
-        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion & switch_report->output0x01.subcmd.enable_imu.enabled;
+        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion & subcmd->enable_imu.enabled;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -515,10 +503,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetImuSensitivity(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-
-        switch (switch_report->output0x01.subcmd.set_imu_sensitivity.gyro_sensitivity) {
+    Result EmulatedSwitchController::SubCmdSetImuSensitivity(const SwitchSubcommand *subcmd) {
+        switch (subcmd->set_imu_sensitivity.gyro_sensitivity) {
             case 0: m_gyro_sensitivity = 250; break;
             case 1: m_gyro_sensitivity = 500; break;
             case 2: m_gyro_sensitivity = 1000; break;
@@ -526,7 +512,7 @@ namespace ams::controller {
             AMS_UNREACHABLE_DEFAULT_CASE();
         }
 
-        switch (switch_report->output0x01.subcmd.set_imu_sensitivity.acc_sensitivity) {
+        switch (subcmd->set_imu_sensitivity.acc_sensitivity) {
             case 0: m_acc_sensitivity = 8000; break;
             case 1: m_acc_sensitivity = 4000; break;
             case 2: m_acc_sensitivity = 2000; break;
@@ -542,10 +528,8 @@ namespace ams::controller {
         return this->FakeSubCmdResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdEnableVibration(const bluetooth::HidReport *report) {
-        auto switch_report = reinterpret_cast<const SwitchReportData *>(&report->data);
-
-        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & switch_report->output0x01.subcmd.enable_vibration.enabled;
+    Result EmulatedSwitchController::SubCmdEnableVibration(const SwitchSubcommand *subcmd) {
+        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & subcmd->enable_vibration.enabled;
 
         const SwitchSubcommandResponse response = {
             .ack = 0x80,
@@ -557,8 +541,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::FakeSubCmdResponse(const SwitchSubcommandResponse *response) {
         std::scoped_lock lk(m_input_mutex);
-        
-        m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
+
         auto report_data = reinterpret_cast<SwitchReportData *>(m_input_report.data);
         report_data->id = 0x21;
         report_data->input0x21.conn_info = (0 << 1) | m_ext_power;
@@ -569,6 +552,7 @@ namespace ams::controller {
         report_data->input0x21.vibrator = 0;
         std::memcpy(&report_data->input0x21.response, response, sizeof(SwitchSubcommandResponse));
         report_data->input0x21.timer = (report_data->input0x21.timer + 1) & 0xff;
+        m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
 
         // Write a fake response into the report buffer
         return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);

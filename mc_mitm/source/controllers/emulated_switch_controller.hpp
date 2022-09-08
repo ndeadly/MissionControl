@@ -43,27 +43,27 @@ namespace ams::controller {
             void UpdateControllerState(const bluetooth::HidReport *report) override;
             virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
-            Result HandleSubCmdReport(const bluetooth::HidReport *report);
-            Result HandleRumbleReport(const bluetooth::HidReport *report);
+            Result HandleRumbleData(const SwitchRumbleDataEncoded *encoded);
+            Result HandleSubcommand(const SwitchSubcommand *subcmd);
 
-            Result SubCmdRequestDeviceInfo(const bluetooth::HidReport *report);
-            Result SubCmdSetInputReportMode(const bluetooth::HidReport *report);
-            Result SubCmdTriggersElapsedTime(const bluetooth::HidReport *report);
-            Result SubCmdResetPairingInfo(const bluetooth::HidReport *report);
-            Result SubCmdSetShipPowerState(const bluetooth::HidReport *report);
-            Result SubCmdSpiFlashRead(const bluetooth::HidReport *report);
-            Result SubCmdSpiFlashWrite(const bluetooth::HidReport *report);
-            Result SubCmdSpiSectorErase(const bluetooth::HidReport *report);
-            Result SubCmd0x24(const bluetooth::HidReport *report);
-            Result SubCmd0x25(const bluetooth::HidReport *report);
-            Result SubCmdSetMcuConfig(const bluetooth::HidReport *report);
-            Result SubCmdSetMcuState(const bluetooth::HidReport *report);
-            Result SubCmdSetPlayerLeds(const bluetooth::HidReport *report);
-            Result SubCmdGetPlayerLeds(const bluetooth::HidReport *report);
-            Result SubCmdSetHomeLed(const bluetooth::HidReport *report);
-            Result SubCmdEnableImu(const bluetooth::HidReport *report);
-            Result SubCmdSetImuSensitivity(const bluetooth::HidReport *report);
-            Result SubCmdEnableVibration(const bluetooth::HidReport *report);
+            Result SubCmdRequestDeviceInfo(const SwitchSubcommand *subcmd);
+            Result SubCmdSetInputReportMode(const SwitchSubcommand *subcmd);
+            Result SubCmdTriggersElapsedTime(const SwitchSubcommand *subcmd);
+            Result SubCmdResetPairingInfo(const SwitchSubcommand *subcmd);
+            Result SubCmdSetShipPowerState(const SwitchSubcommand *subcmd);
+            Result SubCmdSpiFlashRead(const SwitchSubcommand *subcmd);
+            Result SubCmdSpiFlashWrite(const SwitchSubcommand *subcmd);
+            Result SubCmdSpiSectorErase(const SwitchSubcommand *subcmd);
+            Result SubCmd0x24(const SwitchSubcommand *subcmd);
+            Result SubCmd0x25(const SwitchSubcommand *subcmd);
+            Result SubCmdSetMcuConfig(const SwitchSubcommand *subcmd);
+            Result SubCmdSetMcuState(const SwitchSubcommand *subcmd);
+            Result SubCmdSetPlayerLeds(const SwitchSubcommand *subcmd);
+            Result SubCmdGetPlayerLeds(const SwitchSubcommand *subcmd);
+            Result SubCmdSetHomeLed(const SwitchSubcommand *subcmd);
+            Result SubCmdEnableImu(const SwitchSubcommand *subcmd);
+            Result SubCmdSetImuSensitivity(const SwitchSubcommand *subcmd);
+            Result SubCmdEnableVibration(const SwitchSubcommand *subcmd);
 
             Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
 
@@ -79,6 +79,8 @@ namespace ams::controller {
 
             uint16_t m_gyro_sensitivity;
             uint16_t m_acc_sensitivity;
+
+            uint8_t m_input_report_mode;
 
             bool m_enable_rumble;
             bool m_enable_motion;
