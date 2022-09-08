@@ -178,9 +178,15 @@ namespace ams::controller {
             m_buttons.A = buttons->A;
             m_buttons.B = buttons->B;
 
-            // Not the best mapping but at least most buttons are mapped to something when nunchuck is connected.
-            m_buttons.R  = buttons->one;
-            m_buttons.ZR = buttons->two;
+            if (m_extension == WiiExtensionController_ClassicPro) {
+                // Allow buttons one and two to be used for L3/R3 when Classic or Classic Pro controller connected
+                m_buttons.lstick_press = buttons->one;
+                m_buttons.rstick_press = buttons->two;
+            } else {
+                // Not the best mapping but at least most buttons are mapped to something when nunchuck is connected.
+                m_buttons.R  = buttons->one;
+                m_buttons.ZR = buttons->two;
+            }
 
             m_buttons.minus = buttons->minus;
             m_buttons.plus  = buttons->plus;
