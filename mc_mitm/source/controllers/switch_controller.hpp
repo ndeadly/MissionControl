@@ -135,63 +135,62 @@ namespace ams::controller {
         float low_band_amp;
     } __attribute__ ((__packed__));
 
-    enum SubCmdType : uint8_t {
-        SubCmd_GetControllerState   = 0x00,
-        SubCmd_ManualPair           = 0x01,
-        SubCmd_RequestDeviceInfo    = 0x02,
-        SubCmd_SetInputReportMode   = 0x03,
-        SubCmd_TriggersElapsedTime  = 0x04,
-        SubCmd_GetPageListState     = 0x05,
-        SubCmd_SetHciState          = 0x06,
-        SubCmd_ResetPairingInfo     = 0x07,
-        SubCmd_SetShipPowerState    = 0x08,
-        SubCmd_SpiFlashRead         = 0x10,
-        SubCmd_SpiFlashWrite        = 0x11,
-        SubCmd_SpiSectorErase       = 0x12,
-        SubCmd_ResetMcu             = 0x20,
-        SubCmd_SetMcuConfig         = 0x21,
-        SubCmd_SetMcuState          = 0x22,
-        SubCmd_0x24                 = 0x24,
-        SubCmd_0x25                 = 0x25,
-        SubCmd_0x28                 = 0x28,
-        SubCmd_SetNfcIrMcuData      = 0x29,
-        SubCmd_GetNfcIrMcuData      = 0x2b,
-        SubCmd_SetPlayerLeds        = 0x30,
-        SubCmd_GetPlayerLeds        = 0x31,
-        SubCmd_SetHomeLed           = 0x38,
-        SubCmd_EnableImu            = 0x40,
-        SubCmd_SetImuSensitivity    = 0x41,
-        SubCmd_WriteImuRegisters    = 0x42,
-        SubCmd_ReadImuRegisters     = 0x43,
-        SubCmd_EnableVibration      = 0x48,
-        SubCmd_GetRegulatedVoltage  = 0x50,
-        SubCmd_SetGpioPinValue      = 0x51,
-        SubCmd_GetGpioPinValue      = 0x52,
+    enum HidCommandType : uint8_t {
+        HidCommand_PairingOut             = 0x01,
+        HidCommand_GetDeviceInfo          = 0x02,
+        HidCommand_SetDataFormat          = 0x03,
+        HidCommand_LRButtonDetection      = 0x04,
+        HidCommand_Page                   = 0x05,
+        HidCommand_Reset                  = 0x06,
+        HidCommand_ClearPairingInfo       = 0x07,
+        HidCommand_Shipment               = 0x08,
+        HidCommand_SerialFlashRead        = 0x10,
+        HidCommand_SerialFlashWrite       = 0x11,
+        HidCommand_SerialFlashSectorErase = 0x12,
+        HidCommand_McuReset               = 0x20,
+        HidCommand_McuWrite               = 0x21,
+        HidCommand_McuResume              = 0x22,
+        HidCommand_McuPollingEnable       = 0x24,
+        HidCommand_McuPollingDisable      = 0x25,
+        HidCommand_AttachmentWrite        = 0x28,
+        HidCommand_AttachmentRead         = 0x29,
+        HidCommand_AttachmentEnable       = 0x2a,
+        HidCommand_SetIndicatorLed        = 0x30,
+        HidCommand_GetIndicatorLed        = 0x31,
+        HidCommand_SetNotificationLed     = 0x38,
+        HidCommand_SensorSleep            = 0x40,
+        HidCommand_SensorConfig           = 0x41,
+        HidCommand_SensorWrite            = 0x42,
+        HidCommand_SensorRead             = 0x43,
+        HidCommand_MotorEnable            = 0x48,
+        HidCommand_GetBatteryVoltage      = 0x50,
+        HidCommand_WriteChargeSetting     = 0x51,
+        HidCommand_ReadChargeSetting      = 0x52,
     };
 
-    struct SwitchSubcommand {
+    struct SwitchHidCommand {
         uint8_t id;
         union {
             uint8_t data[0x26];
 
             struct {
-                uint8_t mode;
-            } input_report_mode;
+                uint8_t id;
+            } set_data_format;
 
             struct {
                 uint32_t address;
                 uint8_t size;
-            } spi_flash_read;
+            } serial_flash_read;
 
             struct {
                 uint32_t address;
                 uint8_t size;
                 uint8_t data[];
-            } spi_flash_write;
+            } serial_flash_write;
 
             struct {
                 uint32_t address;
-            } spi_flash_sector_erase;
+            } serial_flash_sector_erase;
 
             struct {
                 union {
@@ -202,26 +201,26 @@ namespace ams::controller {
                         uint8_t leds_on    : 4;
                     };
                 };
-            } set_player_leds;
+            } set_indicator_led;
 
             struct {
-                bool enabled;
-            } enable_imu;
+                bool disabled;
+            } sensor_sleep;
 
             struct {
                 uint8_t gyro_sensitivity;
                 uint8_t acc_sensitivity;
                 uint8_t gyro_perf_rate;
                 uint8_t acc_aa_bandwidth;
-            } set_imu_sensitivity;
+            } sensor_config;
 
             struct {
                 bool enabled;
-            } enable_vibration;
+            } motor_enable;
         };
     } __attribute__ ((__packed__));
 
-    struct SwitchSubcommandResponse {
+    struct SwitchHidCommandResponse {
         uint8_t ack;
         uint8_t id;
         union {
@@ -237,25 +236,25 @@ namespace ams::controller {
                 bluetooth::Address address;
                 uint8_t _unk1;  // Always 0x01
                 uint8_t _unk2;  // If 01, colors in SPI are used. Otherwise default ones
-            } __attribute__ ((__packed__)) device_info;
+            } __attribute__ ((__packed__)) get_device_info;
 
             struct {
                 bool enabled;
-            } set_ship_power_state;
+            } shipment;
 
             struct {
                 uint32_t address;
                 uint8_t size;
                 uint8_t data[];
-            } spi_flash_read;
+            } serial_flash_read;
 
             struct {
                 uint8_t status;
-            } spi_flash_write;
+            } serial_flash_write;
 
             struct {
                 uint8_t status;
-            } spi_sector_erase;
+            } serial_flash_sector_erase;
 
             struct {
                 union {
@@ -266,14 +265,14 @@ namespace ams::controller {
                         uint8_t leds_on    : 4;
                     };
                 };
-            } get_player_leds;
+            } get_indicator_led;
         } data;
     } __attribute__ ((__packed__));
 
     struct SwitchOutputReport0x01 {
         uint8_t counter;
         SwitchRumbleDataEncoded rumble;
-        SwitchSubcommand subcmd;
+        SwitchHidCommand command;
     } __attribute__ ((__packed__));
 
     struct SwitchOutputReport0x03;
@@ -299,7 +298,7 @@ namespace ams::controller {
         SwitchAnalogStick left_stick;
         SwitchAnalogStick right_stick;
         uint8_t           vibrator;
-        SwitchSubcommandResponse response;
+        SwitchHidCommandResponse response;
     } __attribute__ ((__packed__));
 
     struct SwitchInputReport0x23;

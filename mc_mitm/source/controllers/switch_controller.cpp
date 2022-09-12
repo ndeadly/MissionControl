@@ -106,11 +106,11 @@ namespace ams::controller {
             case 0x21:
                 this->ApplyButtonCombos(&switch_report->input0x21.buttons); 
 
-                if (switch_report->input0x21.response.id == SubCmd_SpiFlashRead) {
-                    if (switch_report->input0x21.response.data.spi_flash_read.address == 0x6050) {
+                if (switch_report->input0x21.response.id == HidCommand_SerialFlashRead) {
+                    if (switch_report->input0x21.response.data.serial_flash_read.address == 0x6050) {
                         if (ams::mitm::GetSystemLanguage() == 10) {
                             uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
-                            std::memcpy(switch_report->input0x21.response.data.spi_flash_read.data, data, sizeof(data));
+                            std::memcpy(switch_report->input0x21.response.data.serial_flash_read.data, data, sizeof(data));
                         }
                     }
                 }

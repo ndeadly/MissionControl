@@ -44,28 +44,28 @@ namespace ams::controller {
             virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
             Result HandleRumbleData(const SwitchRumbleDataEncoded *encoded);
-            Result HandleSubcommand(const SwitchSubcommand *subcmd);
+            Result HandleHidCommand(const SwitchHidCommand *command);
 
-            Result SubCmdRequestDeviceInfo(const SwitchSubcommand *subcmd);
-            Result SubCmdSetInputReportMode(const SwitchSubcommand *subcmd);
-            Result SubCmdTriggersElapsedTime(const SwitchSubcommand *subcmd);
-            Result SubCmdResetPairingInfo(const SwitchSubcommand *subcmd);
-            Result SubCmdSetShipPowerState(const SwitchSubcommand *subcmd);
-            Result SubCmdSpiFlashRead(const SwitchSubcommand *subcmd);
-            Result SubCmdSpiFlashWrite(const SwitchSubcommand *subcmd);
-            Result SubCmdSpiSectorErase(const SwitchSubcommand *subcmd);
-            Result SubCmd0x24(const SwitchSubcommand *subcmd);
-            Result SubCmd0x25(const SwitchSubcommand *subcmd);
-            Result SubCmdSetMcuConfig(const SwitchSubcommand *subcmd);
-            Result SubCmdSetMcuState(const SwitchSubcommand *subcmd);
-            Result SubCmdSetPlayerLeds(const SwitchSubcommand *subcmd);
-            Result SubCmdGetPlayerLeds(const SwitchSubcommand *subcmd);
-            Result SubCmdSetHomeLed(const SwitchSubcommand *subcmd);
-            Result SubCmdEnableImu(const SwitchSubcommand *subcmd);
-            Result SubCmdSetImuSensitivity(const SwitchSubcommand *subcmd);
-            Result SubCmdEnableVibration(const SwitchSubcommand *subcmd);
+            Result HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command);
+            Result HandleHidCommandSetDataFormat(const SwitchHidCommand *command);
+            Result HandleHidCommandLRButtonDetection(const SwitchHidCommand *command);
+            Result HandleHidCommandClearPairingInfo(const SwitchHidCommand *command);
+            Result HandleHidCommandShipment(const SwitchHidCommand *command);
+            Result HandleHidCommandSerialFlashRead(const SwitchHidCommand *command);
+            Result HandleHidCommandSerialFlashWrite(const SwitchHidCommand *command);
+            Result HandleHidCommandSerialFlashSectorErase(const SwitchHidCommand *command);
+            Result HandleHidCommandMcuWrite(const SwitchHidCommand *command);
+            Result HandleHidCommandMcuResume(const SwitchHidCommand *command);
+            Result HandleHidCommandMcuPollingEnable(const SwitchHidCommand *command);
+            Result HandleHidCommandMcuPollingDisable(const SwitchHidCommand *command);
+            Result HandleHidCommandSetIndicatorLed(const SwitchHidCommand *command);
+            Result HandleHidCommandGetIndicatorLed(const SwitchHidCommand *command);
+            Result HandleHidCommandSetNotificationLed(const SwitchHidCommand *command);
+            Result HandleHidCommandSensorSleep(const SwitchHidCommand *command);
+            Result HandleHidCommandSensorConfig(const SwitchHidCommand *command);
+            Result HandleHidCommandMotorEnable(const SwitchHidCommand *command);
 
-            Result FakeSubCmdResponse(const SwitchSubcommandResponse *response);
+            Result FakeHidCommandResponse(const SwitchHidCommandResponse *response);
 
             bool m_charging;
             bool m_ext_power;

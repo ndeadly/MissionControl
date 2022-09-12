@@ -145,7 +145,7 @@ namespace ams::controller {
         switch (report_data->id) {
             case 0x01:
                 R_TRY(this->HandleRumbleData(&report_data->output0x01.rumble));
-                R_TRY(this->HandleSubcommand(&report_data->output0x01.subcmd));
+                R_TRY(this->HandleHidCommand(&report_data->output0x01.command));
                 break;
             case 0x10:
                 R_TRY(this->HandleRumbleData(&report_data->output0x10.rumble));
@@ -171,86 +171,86 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result EmulatedSwitchController::HandleSubcommand(const SwitchSubcommand *subcmd) {
-        switch (subcmd->id) {
-            case SubCmd_RequestDeviceInfo:
-                R_TRY(this->SubCmdRequestDeviceInfo(subcmd));
+    Result EmulatedSwitchController::HandleHidCommand(const SwitchHidCommand *command) {
+        switch (command->id) {
+            case HidCommand_GetDeviceInfo:
+                R_TRY(this->HandleHidCommandGetDeviceInfo(command));
                 break;
-            case SubCmd_SetInputReportMode:
-                R_TRY(this->SubCmdSetInputReportMode(subcmd));
+            case HidCommand_SetDataFormat:
+                R_TRY(this->HandleHidCommandSetDataFormat(command));
                 break;
-            case SubCmd_TriggersElapsedTime:
-                R_TRY(this->SubCmdTriggersElapsedTime(subcmd));
+            case HidCommand_LRButtonDetection:
+                R_TRY(this->HandleHidCommandLRButtonDetection(command));
                 break;
-            case SubCmd_ResetPairingInfo:
-                R_TRY(this->SubCmdResetPairingInfo(subcmd));
+            case HidCommand_ClearPairingInfo:
+                R_TRY(this->HandleHidCommandClearPairingInfo(command));
                 break;
-            case SubCmd_SetShipPowerState:
-                R_TRY(this->SubCmdSetShipPowerState(subcmd));
+            case HidCommand_Shipment:
+                R_TRY(this->HandleHidCommandShipment(command));
                 break;
-            case SubCmd_SpiFlashRead:
-                R_TRY(this->SubCmdSpiFlashRead(subcmd));
+            case HidCommand_SerialFlashRead:
+                R_TRY(this->HandleHidCommandSerialFlashRead(command));
                 break;
-            case SubCmd_SpiFlashWrite:
-                R_TRY(this->SubCmdSpiFlashWrite(subcmd));
+            case HidCommand_SerialFlashWrite:
+                R_TRY(this->HandleHidCommandSerialFlashWrite(command));
                 break;
-            case SubCmd_SpiSectorErase:
-                R_TRY(this->SubCmdSpiSectorErase(subcmd));
+            case HidCommand_SerialFlashSectorErase:
+                R_TRY(this->HandleHidCommandSerialFlashSectorErase(command));
                 break;
-            case SubCmd_SetMcuConfig:
-                R_TRY(this->SubCmdSetMcuConfig(subcmd));
+            case HidCommand_McuWrite:
+                R_TRY(this->HandleHidCommandMcuWrite(command));
                 break;
-            case SubCmd_SetMcuState:
-                R_TRY(this->SubCmdSetMcuState(subcmd));
+            case HidCommand_McuResume:
+                R_TRY(this->HandleHidCommandMcuResume(command));
                 break;
-            case SubCmd_0x24:
-                R_TRY(this->SubCmd0x24(subcmd));
+            case HidCommand_McuPollingEnable:
+                R_TRY(this->HandleHidCommandMcuPollingEnable(command));
                 break;
-            case SubCmd_0x25:
-                R_TRY(this->SubCmd0x25(subcmd));
+            case HidCommand_McuPollingDisable:
+                R_TRY(this->HandleHidCommandMcuPollingDisable(command));
                 break;
-            case SubCmd_SetPlayerLeds:
-                R_TRY(this->SubCmdSetPlayerLeds(subcmd));
+            case HidCommand_SetIndicatorLed:
+                R_TRY(this->HandleHidCommandSetIndicatorLed(command));
                 break;
-            case SubCmd_GetPlayerLeds:
-                R_TRY(this->SubCmdGetPlayerLeds(subcmd));
+            case HidCommand_GetIndicatorLed:
+                R_TRY(this->HandleHidCommandGetIndicatorLed(command));
                 break;
-            case SubCmd_SetHomeLed:
-                R_TRY(this->SubCmdSetHomeLed(subcmd));
+            case HidCommand_SetNotificationLed:
+                R_TRY(this->HandleHidCommandSetNotificationLed(command));
                 break;
-            case SubCmd_EnableImu:
-                R_TRY(this->SubCmdEnableImu(subcmd));
+            case HidCommand_SensorSleep:
+                R_TRY(this->HandleHidCommandSensorSleep(command));
                 break;
-            case SubCmd_SetImuSensitivity:
-                R_TRY(this->SubCmdSetImuSensitivity(subcmd));
+            case HidCommand_SensorConfig:
+                R_TRY(this->HandleHidCommandSensorConfig(command));
                 break;
-            case SubCmd_EnableVibration:
-                R_TRY(this->SubCmdEnableVibration(subcmd));
+            case HidCommand_MotorEnable:
+                R_TRY(this->HandleHidCommandMotorEnable(command));
                 break;
             default:
-                const SwitchSubcommandResponse response = {
+                const SwitchHidCommandResponse response = {
                     .ack = 0x80,
-                    .id = subcmd->id,
+                    .id = command->id,
                     .data = {
                         .raw = { 0x03 }
                     }
                 };
 
-                R_TRY(this->FakeSubCmdResponse(&response));
+                R_TRY(this->FakeHidCommandResponse(&response));
                 break;
         }
 
         return ams::ResultSuccess();
     }
 
-    Result EmulatedSwitchController::SubCmdRequestDeviceInfo(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x82,
-            .id = SubCmd_RequestDeviceInfo,
+            .id = HidCommand_GetDeviceInfo,
             .data = {
-                .device_info = {
+                .get_device_info = {
                     .fw_ver = {
                         .major = 0x03,
                         .minor = 0x48
@@ -264,61 +264,61 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetInputReportMode(const SwitchSubcommand *subcmd) {
-        m_input_report_mode = subcmd->input_report_mode.mode;
+    Result EmulatedSwitchController::HandleHidCommandSetDataFormat(const SwitchHidCommand *command) {
+        m_input_report_mode = command->set_data_format.id;
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetInputReportMode
+            .id = HidCommand_SetDataFormat
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdTriggersElapsedTime(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandLRButtonDetection(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x83,
-            .id = SubCmd_TriggersElapsedTime
+            .id = HidCommand_LRButtonDetection
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdResetPairingInfo(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandClearPairingInfo(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
         R_TRY(m_virtual_memory.SectorErase(0x2000));
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_ResetPairingInfo
+            .id = HidCommand_ClearPairingInfo
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetShipPowerState(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandShipment(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetShipPowerState,
+            .id = HidCommand_Shipment,
             .data = {
-                .set_ship_power_state = {
+                .shipment = {
                     .enabled = false
                 }
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSpiFlashRead(const SwitchSubcommand *subcmd) {
+    Result EmulatedSwitchController::HandleHidCommandSerialFlashRead(const SwitchHidCommand *command) {
         // These are read from official Pro Controller
         // @ 0x00006000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff                            <= Serial
         // @ 0x00006050: 32 32 32 ff ff ff ff ff ff ff ff ff                                        <= RGB colours (body, buttons, left grip, right grip)
@@ -327,100 +327,100 @@ namespace ams::controller {
         // @ 0x00008010: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    <= User Analog sticks calibration
         // @ 0x0000603d: e6 a5 67 1a 58 78 50 56 60 1a f8 7f 20 c6 63 d5 15 5e ff 32 32 32 ff ff ff <= Analog stick factory calibration + face/button colours
         // @ 0x00006020: 64 ff 33 00 b8 01 00 40 00 40 00 40 17 00 d7 ff bd ff 3b 34 3b 34 3b 34    <= 6-Axis motion sensor Factory calibration
-        auto read_addr = subcmd->spi_flash_read.address;
-        auto read_size = subcmd->spi_flash_read.size;
+        auto read_addr = command->serial_flash_read.address;
+        auto read_size = command->serial_flash_read.size;
 
-        SwitchSubcommandResponse response = {
+        SwitchHidCommandResponse response = {
             .ack = 0x90,
-            .id = SubCmd_SpiFlashRead,
+            .id = HidCommand_SerialFlashRead,
             .data = {
-                .spi_flash_read = {
+                .serial_flash_read = {
                     .address = read_addr,
                     .size = read_size
                 }
             }
         };
 
-        R_TRY(m_virtual_memory.Read(read_addr, response.data.spi_flash_read.data, read_size));
+        R_TRY(m_virtual_memory.Read(read_addr, response.data.serial_flash_read.data, read_size));
 
         if (read_addr == 0x6050) {
             if (ams::mitm::GetSystemLanguage() == 10) {
                 uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
-                std::memcpy(response.data.spi_flash_read.data, data, sizeof(data));
+                std::memcpy(response.data.serial_flash_read.data, data, sizeof(data));
             }
         }
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSpiFlashWrite(const SwitchSubcommand *subcmd) {
-        auto write_addr = subcmd->spi_flash_write.address;
-        auto write_size = subcmd->spi_flash_write.size;
-        auto write_data = subcmd->spi_flash_write.data;
+    Result EmulatedSwitchController::HandleHidCommandSerialFlashWrite(const SwitchHidCommand *command) {
+        auto write_addr = command->serial_flash_write.address;
+        auto write_size = command->serial_flash_write.size;
+        auto write_data = command->serial_flash_write.data;
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SpiFlashWrite,
+            .id = HidCommand_SerialFlashWrite,
             .data = {
-                .spi_flash_write = {
+                .serial_flash_write = {
                     .status = m_virtual_memory.Write(write_addr, write_data, write_size).IsFailure()
                 }
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSpiSectorErase(const SwitchSubcommand *subcmd) {
-        auto erase_addr = subcmd->spi_flash_sector_erase.address;
+    Result EmulatedSwitchController::HandleHidCommandSerialFlashSectorErase(const SwitchHidCommand *command) {
+        auto erase_addr = command->serial_flash_sector_erase.address;
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SpiSectorErase,
+            .id = HidCommand_SerialFlashSectorErase,
             .data = {
-                .spi_sector_erase = {
+                .serial_flash_sector_erase = {
                     .status = m_virtual_memory.SectorErase(erase_addr).IsFailure()
                 }
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmd0x24(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandMcuPollingEnable(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_0x24,
+            .id = HidCommand_McuPollingEnable,
             .data = {
                 .raw = { 0x00 }
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmd0x25(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandMcuPollingDisable(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_0x25,
+            .id = HidCommand_McuPollingDisable,
             .data = {
                 .raw = { 0x00 }
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetMcuConfig(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandMcuWrite(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0xa0,
-            .id = SubCmd_SetMcuConfig,
+            .id = HidCommand_McuWrite,
             .data = {
                 .raw = {
                     0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
@@ -432,79 +432,79 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetMcuState(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandMcuResume(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetMcuState
+            .id = HidCommand_McuResume
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetPlayerLeds(const SwitchSubcommand *subcmd) {
-        m_led_pattern = subcmd->set_player_leds.leds;
+    Result EmulatedSwitchController::HandleHidCommandSetIndicatorLed(const SwitchHidCommand *command) {
+        m_led_pattern = command->set_indicator_led.leds;
         R_TRY(this->SetPlayerLed(m_led_pattern));
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetPlayerLeds
+            .id = HidCommand_SetIndicatorLed
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdGetPlayerLeds(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandGetIndicatorLed(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_GetPlayerLeds,
+            .id = HidCommand_GetIndicatorLed,
             .data = {
-                .get_player_leds = {
+                .get_indicator_led = {
                     .leds = m_led_pattern
                 }
             }
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetHomeLed(const SwitchSubcommand *subcmd) {
-        AMS_UNUSED(subcmd);
+    Result EmulatedSwitchController::HandleHidCommandSetNotificationLed(const SwitchHidCommand *command) {
+        AMS_UNUSED(command);
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetHomeLed
+            .id = HidCommand_SetNotificationLed
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdEnableImu(const SwitchSubcommand *subcmd) {
-        if (subcmd->enable_imu.enabled) {
+    Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand *command) {
+        if (command->sensor_sleep.disabled) {
             if (!m_enable_motion) {
                 m_gyro_sensitivity = 2000;
                 m_acc_sensitivity = 8000;
             }
         }
 
-        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion & subcmd->enable_imu.enabled;
+        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion & command->sensor_sleep.disabled;
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_EnableImu
+            .id = HidCommand_SensorSleep
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdSetImuSensitivity(const SwitchSubcommand *subcmd) {
-        switch (subcmd->set_imu_sensitivity.gyro_sensitivity) {
+    Result EmulatedSwitchController::HandleHidCommandSensorConfig(const SwitchHidCommand *command) {
+        switch (command->sensor_config.gyro_sensitivity) {
             case 0: m_gyro_sensitivity = 250; break;
             case 1: m_gyro_sensitivity = 500; break;
             case 2: m_gyro_sensitivity = 1000; break;
@@ -512,7 +512,7 @@ namespace ams::controller {
             AMS_UNREACHABLE_DEFAULT_CASE();
         }
 
-        switch (subcmd->set_imu_sensitivity.acc_sensitivity) {
+        switch (command->sensor_config.acc_sensitivity) {
             case 0: m_acc_sensitivity = 8000; break;
             case 1: m_acc_sensitivity = 4000; break;
             case 2: m_acc_sensitivity = 2000; break;
@@ -520,26 +520,26 @@ namespace ams::controller {
             AMS_UNREACHABLE_DEFAULT_CASE();
         }
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_SetImuSensitivity
+            .id = HidCommand_SensorConfig
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::SubCmdEnableVibration(const SwitchSubcommand *subcmd) {
-        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & subcmd->enable_vibration.enabled;
+    Result EmulatedSwitchController::HandleHidCommandMotorEnable(const SwitchHidCommand *command) {
+        m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & command->motor_enable.enabled;
 
-        const SwitchSubcommandResponse response = {
+        const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = SubCmd_EnableVibration
+            .id = HidCommand_MotorEnable
         };
 
-        return this->FakeSubCmdResponse(&response);
+        return this->FakeHidCommandResponse(&response);
     }
 
-    Result EmulatedSwitchController::FakeSubCmdResponse(const SwitchSubcommandResponse *response) {
+    Result EmulatedSwitchController::FakeHidCommandResponse(const SwitchHidCommandResponse *response) {
         std::scoped_lock lk(m_input_mutex);
 
         auto report_data = reinterpret_cast<SwitchReportData *>(m_input_report.data);
@@ -550,7 +550,7 @@ namespace ams::controller {
         report_data->input0x21.left_stick = m_left_stick;
         report_data->input0x21.right_stick = m_right_stick;
         report_data->input0x21.vibrator = 0;
-        std::memcpy(&report_data->input0x21.response, response, sizeof(SwitchSubcommandResponse));
+        std::memcpy(&report_data->input0x21.response, response, sizeof(SwitchHidCommandResponse));
         report_data->input0x21.timer = (report_data->input0x21.timer + 1) & 0xff;
         m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
 
