@@ -55,7 +55,7 @@ namespace ams::controller {
         RGBColour left_grip;
         RGBColour right_grip;
     } __attribute__ ((__packed__));
-        
+
     struct SwitchButtonData {
         uint8_t Y              : 1;
         uint8_t X              : 1;
@@ -269,87 +269,50 @@ namespace ams::controller {
         } data;
     } __attribute__ ((__packed__));
 
-    struct SwitchOutputReport0x01 {
-        uint8_t counter;
-        SwitchRumbleDataEncoded rumble;
-        SwitchHidCommand command;
-    } __attribute__ ((__packed__));
-
-    struct SwitchOutputReport0x03;
-
-    struct SwitchOutputReport0x10 {
-        uint8_t counter;
-        SwitchRumbleDataEncoded rumble;
-    } __attribute__ ((__packed__));
-
-    struct SwitchOutputReport0x11 {
-        uint8_t counter;
-        SwitchRumbleDataEncoded rumble;
-        uint8_t nfc_ir_data[0x16];
-    } __attribute__ ((__packed__));
-
-    struct SwitchOutputReport0x12;
-
-    struct SwitchInputReport0x21 {
-        uint8_t           timer;
-        uint8_t           conn_info      : 4;
-        uint8_t           battery        : 4;
-        SwitchButtonData  buttons;
-        SwitchAnalogStick left_stick;
-        SwitchAnalogStick right_stick;
-        uint8_t           vibrator;
-        SwitchHidCommandResponse response;
-    } __attribute__ ((__packed__));
-
-    struct SwitchInputReport0x23;
-
-    struct SwitchInputReport0x30 {
-        uint8_t           timer;
-        uint8_t           conn_info      : 4;
-        uint8_t           battery        : 4;
-        SwitchButtonData  buttons;
-        SwitchAnalogStick left_stick;
-        SwitchAnalogStick right_stick;
-        uint8_t           vibrator;
-
-        // IMU samples at 0, 5 and 10ms
-        Switch6AxisData motion[3];
-    } __attribute__ ((__packed__));
-
-    struct SwitchInputReport0x31 {
-        uint8_t           timer;
-        uint8_t           conn_info      : 4;
-        uint8_t           battery        : 4;
-        SwitchButtonData  buttons;
-        SwitchAnalogStick left_stick;
-        SwitchAnalogStick right_stick;
-        uint8_t           vibrator;
-
-        // IMU samples at 0, 5 and 10ms
-        Switch6AxisData motion[3];
-
-        uint8_t nfc_ir_data[0x138];
-        uint8_t crc;
-    } __attribute__ ((__packed__));
-
-    struct SwitchInputReport0x32;
-    struct SwitchInputReport0x33;
-    struct SwitchInputReport0x3f;
-
-    struct SwitchReportData {
+    struct SwitchInputReport {
         uint8_t id;
+        uint8_t timer;
+        uint8_t conn_info : 4;
+        uint8_t battery   : 4;
+        SwitchButtonData buttons;
+        SwitchAnalogStick left_stick;
+        SwitchAnalogStick right_stick;
+        uint8_t vibrator;
+
         union {
-            SwitchOutputReport0x01 output0x01;
-            //SwitchOutputReport0x03 output0x03;
-            SwitchOutputReport0x10 output0x10;
-            SwitchOutputReport0x11 output0x11;
-            //SwitchOutputReport0x12 output0x12;
-            SwitchInputReport0x21  input0x21;
-            SwitchInputReport0x30  input0x30;
-            SwitchInputReport0x31  input0x31;
-            //SwitchInputReport0x32  input0x32;
-            //SwitchInputReport0x33  input0x33;
-            //SwitchInputReport0x3f  input0x3f;
+            struct {
+                SwitchHidCommandResponse hid_command_response;
+            } type0x21;
+
+            struct {
+                uint8_t mcu_fw_data[37];
+            } type0x23;
+
+            struct {
+                Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
+            } type0x30;
+
+            struct {
+                Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
+                uint8_t nfc_ir_data[0x138];
+                uint8_t crc;
+            } type0x31;
+        };
+    } __attribute__ ((__packed__));
+
+    struct SwitchOutputReport {
+        uint8_t id;
+        uint8_t counter;
+        SwitchRumbleDataEncoded rumble_data;
+
+        union {
+            struct{
+                SwitchHidCommand hid_command;
+            } type0x01;
+
+            struct {
+                uint8_t nfc_ir_data[0x16];
+            } type0x11;
         };
     } __attribute__ ((__packed__));
 
@@ -359,8 +322,8 @@ namespace ams::controller {
 
     class SwitchController {
 
-        public: 
-            static constexpr const HardwareID hardware_ids[] = { 
+        public:
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x057e, 0x2006},   // Official Joycon(L) Controller
                 {0x057e, 0x2007},   // Official Joycon(R) Controller/NES Online Controller
                 {0x057e, 0x2009},   // Official Switch Pro Controller

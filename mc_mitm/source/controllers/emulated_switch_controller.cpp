@@ -127,31 +127,32 @@ namespace ams::controller {
     void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
         this->ProcessInputData(report);
 
-        auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
-        switch_report->id = 0x30;
-        switch_report->input0x30.conn_info = (0 << 1) | m_ext_power;
-        switch_report->input0x30.battery = m_battery | m_charging;
-        switch_report->input0x30.buttons = m_buttons;
-        switch_report->input0x30.left_stick = m_left_stick;
-        switch_report->input0x30.right_stick = m_right_stick;
-        std::memcpy(&switch_report->input0x30.motion, &m_motion_data, sizeof(m_motion_data));
-        switch_report->input0x30.timer = (switch_report->input0x30.timer + 1) & 0xff;
-        m_input_report.size = sizeof(SwitchInputReport0x30) + 1;
+        auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
+        input_report->id = 0x30;
+        input_report->timer = (input_report->timer + 1) & 0xff;
+        input_report->conn_info = (0 << 1) | m_ext_power;
+        input_report->battery = m_battery | m_charging;
+        input_report->buttons = m_buttons;
+        input_report->left_stick = m_left_stick;
+        input_report->right_stick = m_right_stick;
+
+        std::memcpy(&input_report->type0x30.motion_data, &m_motion_data, sizeof(m_motion_data));
+        m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
     }
 
     Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
-        auto report_data = reinterpret_cast<const SwitchReportData *>(&report->data);
+        auto output_report = reinterpret_cast<const SwitchOutputReport *>(&report->data);
 
-        switch (report_data->id) {
+        switch (output_report->id) {
             case 0x01:
-                R_TRY(this->HandleRumbleData(&report_data->output0x01.rumble));
-                R_TRY(this->HandleHidCommand(&report_data->output0x01.command));
+                R_TRY(this->HandleRumbleData(&output_report->rumble_data));
+                R_TRY(this->HandleHidCommand(&output_report->type0x01.hid_command));
                 break;
             case 0x10:
-                R_TRY(this->HandleRumbleData(&report_data->output0x10.rumble));
+                R_TRY(this->HandleRumbleData(&output_report->rumble_data));
                 break;
             case 0x11:
-                R_TRY(this->HandleRumbleData(&report_data->output0x11.rumble));
+                R_TRY(this->HandleRumbleData(&output_report->rumble_data));
                 break;
             default:
                 break;
@@ -542,17 +543,18 @@ namespace ams::controller {
     Result EmulatedSwitchController::FakeHidCommandResponse(const SwitchHidCommandResponse *response) {
         std::scoped_lock lk(m_input_mutex);
 
-        auto report_data = reinterpret_cast<SwitchReportData *>(m_input_report.data);
-        report_data->id = 0x21;
-        report_data->input0x21.conn_info = (0 << 1) | m_ext_power;
-        report_data->input0x21.battery = m_battery | m_charging;
-        report_data->input0x21.buttons = m_buttons;
-        report_data->input0x21.left_stick = m_left_stick;
-        report_data->input0x21.right_stick = m_right_stick;
-        report_data->input0x21.vibrator = 0;
-        std::memcpy(&report_data->input0x21.response, response, sizeof(SwitchHidCommandResponse));
-        report_data->input0x21.timer = (report_data->input0x21.timer + 1) & 0xff;
-        m_input_report.size = sizeof(SwitchInputReport0x21) + 1;
+        auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
+        input_report->id = 0x21;
+        input_report->timer = (input_report->timer + 1) & 0xff;
+        input_report->conn_info = (0 << 1) | m_ext_power;
+        input_report->battery = m_battery | m_charging;
+        input_report->buttons = m_buttons;
+        input_report->left_stick = m_left_stick;
+        input_report->right_stick = m_right_stick;
+        input_report->vibrator = 0;
+
+        std::memcpy(&input_report->type0x21.hid_command_response, response, sizeof(SwitchHidCommandResponse));
+        m_input_report.size = offsetof(SwitchInputReport, type0x21) + sizeof(input_report->type0x21);
 
         // Write a fake response into the report buffer
         return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
