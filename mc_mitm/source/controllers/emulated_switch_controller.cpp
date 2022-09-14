@@ -276,11 +276,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x82,
-            .id = HidCommand_GetDeviceInfo,
+            .id = command->id,
             .data = {
                 .get_device_info = {
                     .fw_ver = {
@@ -304,42 +302,36 @@ namespace ams::controller {
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_SetDataFormat
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
     }
 
     Result EmulatedSwitchController::HandleHidCommandLRButtonDetection(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x83,
-            .id = HidCommand_LRButtonDetection
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
     }
 
     Result EmulatedSwitchController::HandleHidCommandClearPairingInfo(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         R_TRY(m_virtual_memory.SectorErase(0x2000));
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_ClearPairingInfo
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
     }
 
     Result EmulatedSwitchController::HandleHidCommandShipment(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_Shipment,
+            .id = command->id,
             .data = {
                 .shipment = {
                     .enabled = false
@@ -364,7 +356,7 @@ namespace ams::controller {
 
         SwitchHidCommandResponse response = {
             .ack = 0x90,
-            .id = HidCommand_SerialFlashRead,
+            .id = command->id,
             .data = {
                 .serial_flash_read = {
                     .address = read_addr,
@@ -392,7 +384,7 @@ namespace ams::controller {
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_SerialFlashWrite,
+            .id = command->id,
             .data = {
                 .serial_flash_write = {
                     .status = m_virtual_memory.Write(write_addr, write_data, write_size).IsFailure()
@@ -408,7 +400,7 @@ namespace ams::controller {
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_SerialFlashSectorErase,
+            .id = command->id,
             .data = {
                 .serial_flash_sector_erase = {
                     .status = m_virtual_memory.SectorErase(erase_addr).IsFailure()
@@ -420,11 +412,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuPollingEnable(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_McuPollingEnable,
+            .id = command->id,
             .data = {
                 .raw = { 0x00 }
             }
@@ -434,11 +424,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuPollingDisable(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_McuPollingDisable,
+            .id = command->id,
             .data = {
                 .raw = { 0x00 }
             }
@@ -448,11 +436,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuWrite(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0xa0,
-            .id = HidCommand_McuWrite,
+            .id = command->id,
             .data = {
                 .raw = {
                     0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
@@ -468,11 +454,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuResume(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_McuResume
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
@@ -484,18 +468,16 @@ namespace ams::controller {
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_SetIndicatorLed
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
     }
 
     Result EmulatedSwitchController::HandleHidCommandGetIndicatorLed(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_GetIndicatorLed,
+            .id = command->id,
             .data = {
                 .get_indicator_led = {
                     .leds = m_led_pattern
@@ -507,11 +489,9 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandSetNotificationLed(const SwitchHidCommand *command) {
-        AMS_UNUSED(command);
-
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_SetNotificationLed
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
@@ -529,7 +509,7 @@ namespace ams::controller {
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_SensorSleep
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
@@ -554,7 +534,7 @@ namespace ams::controller {
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_SensorConfig
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
@@ -565,7 +545,7 @@ namespace ams::controller {
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
-            .id = HidCommand_MotorEnable
+            .id = command->id
         };
 
         return this->FakeHidCommandResponse(&response);
