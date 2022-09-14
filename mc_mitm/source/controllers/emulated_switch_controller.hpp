@@ -45,6 +45,7 @@ namespace ams::controller {
 
             Result HandleRumbleData(const SwitchRumbleDataEncoded *encoded);
             Result HandleHidCommand(const SwitchHidCommand *command);
+            Result HandleNfcIrData(const uint8_t *nfc_ir);
 
             Result HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command);
             Result HandleHidCommandSetDataFormat(const SwitchHidCommand *command);
@@ -66,6 +67,7 @@ namespace ams::controller {
             Result HandleHidCommandMotorEnable(const SwitchHidCommand *command);
 
             Result FakeHidCommandResponse(const SwitchHidCommandResponse *response);
+            Result FakeNfcIrResponse(const SwitchNfcIrResponse *response);
 
             bool m_charging;
             bool m_ext_power;

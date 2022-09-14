@@ -269,6 +269,10 @@ namespace ams::controller {
         } data;
     } __attribute__ ((__packed__));
 
+    struct SwitchNfcIrResponse {
+        uint8_t data[0x138];
+    } __attribute__ ((__packed__));
+
     struct SwitchInputReport {
         uint8_t id;
         uint8_t timer;
@@ -294,7 +298,7 @@ namespace ams::controller {
 
             struct {
                 Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
-                uint8_t nfc_ir_data[0x138];
+                SwitchNfcIrResponse nfc_ir_response;
                 uint8_t crc;
             } type0x31;
         };
