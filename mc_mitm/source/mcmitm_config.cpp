@@ -32,7 +32,8 @@ namespace ams::mitm {
             .misc = {
                 .disable_dualshock4_lightbar = false,
                 .disable_dualsense_lightbar = false,
-                .disable_dualsense_player_leds = false
+                .disable_dualsense_player_leds = false,
+                .dualsense_vibration_intensity = 4
             }
         };
 
@@ -41,6 +42,12 @@ namespace ams::mitm {
                 *out = true;
             else if (strcasecmp(value, "false") == 0)
                 *out = false; 
+        }
+
+        void ParseInt(const char *value, int *out, int min=INT_MIN, int max=INT_MAX) {
+            int tmp = atoi(value);
+            if ((tmp >= min) && (tmp <= max))
+                *out = tmp;
         }
 
         void ParseBluetoothAddress(const char *value, bluetooth::Address *out) {
@@ -85,6 +92,8 @@ namespace ams::mitm {
                     ParseBoolean(value, &config->misc.disable_dualsense_lightbar);
                 else if (strcasecmp(name, "disable_dualsense_player_leds") == 0)
                     ParseBoolean(value, &config->misc.disable_dualsense_player_leds);
+                else if (strcasecmp(name, "dualsense_vibration_intensity") == 0)
+                    ParseInt(value, &config->misc.dualsense_vibration_intensity, 0, 7);
             }
             else {
                 return 0;

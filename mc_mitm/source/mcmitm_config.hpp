@@ -32,6 +32,7 @@ namespace ams::mitm {
             bool disable_dualshock4_lightbar;
             bool disable_dualsense_lightbar;
             bool disable_dualsense_player_leds;
+            int dualsense_vibration_intensity;
         } misc;
     };
 
