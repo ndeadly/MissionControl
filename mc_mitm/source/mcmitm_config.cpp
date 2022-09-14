@@ -45,7 +45,7 @@ namespace ams::mitm {
         }
 
         void ParseInt(const char *value, int *out, int min=INT_MIN, int max=INT_MAX) {
-            int tmp = atoi(value);
+            int tmp = std::strtol(value, nullptr, 10);
             if ((tmp >= min) && (tmp <= max))
                 *out = tmp;
         }
