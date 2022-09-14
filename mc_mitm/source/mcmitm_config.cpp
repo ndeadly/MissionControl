@@ -93,7 +93,7 @@ namespace ams::mitm {
                 else if (strcasecmp(name, "disable_dualsense_player_leds") == 0)
                     ParseBoolean(value, &config->misc.disable_dualsense_player_leds);
                 else if (strcasecmp(name, "dualsense_vibration_intensity") == 0)
-                    ParseInt(value, &config->misc.dualsense_vibration_intensity, 0, 7);
+                    ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
             }
             else {
                 return 0;

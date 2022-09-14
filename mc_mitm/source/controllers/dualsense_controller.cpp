@@ -276,7 +276,7 @@ namespace ams::controller {
         report.output0x31.data[2] = 0x54;
         report.output0x31.data[3] = m_rumble_state.amp_motor_right;
         report.output0x31.data[4] = m_rumble_state.amp_motor_left;
-        report.output0x31.data[37] = config->misc.dualsense_vibration_intensity;
+        report.output0x31.data[37] = 0x08 - config->misc.dualsense_vibration_intensity;  // User setting is inverse of how the controller sets intensity
         report.output0x31.data[39] = 0x02 | 0x01;
         report.output0x31.data[42] = 0x02;
         report.output0x31.data[43] = 0x02;
