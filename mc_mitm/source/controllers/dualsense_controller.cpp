@@ -101,7 +101,7 @@ namespace ams::controller {
 
         uint16_t fw_version = *reinterpret_cast<uint16_t *>(&m_version_info.data[43]);
 
-        if (config->misc.disable_dualsense_player_leds) {
+        if (!config->misc.enable_dualsense_player_leds) {
             m_led_flags = 0x00;
         } else if (fw_version < 0x0282) {
             m_led_flags = player_led_flags[player_number];
@@ -118,7 +118,7 @@ namespace ams::controller {
 
     Result DualsenseController::SetLightbarColour(RGBColour colour) {
         auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_dualsense_lightbar ? led_disable : colour;
+        m_led_colour = config->misc.enable_dualsense_lightbar ? colour : led_disable;
         return this->PushRumbleLedState();
     }
 

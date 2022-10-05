@@ -30,9 +30,9 @@ namespace ams::mitm {
                 .enable_motion = true
             },
             .misc = {
-                .disable_dualshock4_lightbar = false,
-                .disable_dualsense_lightbar = false,
-                .disable_dualsense_player_leds = false,
+                .enable_dualshock4_lightbar = true,
+                .enable_dualsense_lightbar = true,
+                .enable_dualsense_player_leds = true,
                 .dualsense_vibration_intensity = 4
             }
         };
@@ -86,12 +86,12 @@ namespace ams::mitm {
                     ParseBluetoothAddress(value, &config->bluetooth.host_address);
             }
             else if (strcasecmp(section, "misc") == 0) {
-                if (strcasecmp(name, "disable_dualshock4_lightbar") == 0)
-                    ParseBoolean(value, &config->misc.disable_dualshock4_lightbar);
-                else if (strcasecmp(name, "disable_dualsense_lightbar") == 0)
-                    ParseBoolean(value, &config->misc.disable_dualsense_lightbar);
-                else if (strcasecmp(name, "disable_dualsense_player_leds") == 0)
-                    ParseBoolean(value, &config->misc.disable_dualsense_player_leds);
+                if (strcasecmp(name, "enable_dualshock4_lightbar") == 0)
+                    ParseBoolean(value, &config->misc.enable_dualshock4_lightbar);
+                else if (strcasecmp(name, "enable_dualsense_lightbar") == 0)
+                    ParseBoolean(value, &config->misc.enable_dualsense_lightbar);
+                else if (strcasecmp(name, "enable_dualsense_player_leds") == 0)
+                    ParseBoolean(value, &config->misc.enable_dualsense_player_leds);
                 else if (strcasecmp(name, "dualsense_vibration_intensity") == 0)
                     ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
             }

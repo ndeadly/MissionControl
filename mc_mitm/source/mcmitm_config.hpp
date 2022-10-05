@@ -29,9 +29,9 @@ namespace ams::mitm {
         } bluetooth;
 
         struct {
-            bool disable_dualshock4_lightbar;
-            bool disable_dualsense_lightbar;
-            bool disable_dualsense_player_leds;
+            bool enable_dualshock4_lightbar;
+            bool enable_dualsense_lightbar;
+            bool enable_dualsense_player_leds;
             int dualsense_vibration_intensity;
         } misc;
     };
