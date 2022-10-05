@@ -17,24 +17,8 @@
 
 namespace ams::utils {
 
-    namespace {
-
-        constexpr inline s32 TargetThreadPriorityRangeSize = svc::LowestThreadPriority - svc::HighestThreadPriority + 1;
-        constexpr inline s32 UserThreadPriorityOffset = 28;
-        constexpr inline s32 HighestTargetThreadPriority = 0;
-        constexpr inline s32 LowestTargetThreadPriority = TargetThreadPriorityRangeSize - 1;
-
-    }
-
-    s32 ConvertToHorizonPriority(s32 user_priority) {
-        const s32 horizon_priority = user_priority + UserThreadPriorityOffset;
-        AMS_ASSERT(HighestTargetThreadPriority <= horizon_priority && horizon_priority <= LowestTargetThreadPriority);
-        return horizon_priority;
-    }
-
-    s32 ConvertToUserPriority(s32 horizon_priority) {
-        AMS_ASSERT(HighestTargetThreadPriority <= horizon_priority && horizon_priority <= LowestTargetThreadPriority);
-        return horizon_priority - UserThreadPriorityOffset;
+    bool BluetoothAddressCompare(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
+        return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
     }
 
     Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size) {

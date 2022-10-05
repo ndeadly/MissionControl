@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022 ndeadly
+ * Copyright (c) 2020-2021 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -13,30 +13,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "bluetoothmitm_module.hpp"
-#include "btdrv_mitm_service.hpp"
-#include <stratosphere.hpp>
+#include "mc_module.hpp"
+#include "mc_service.hpp"
 
-namespace ams::mitm::bluetooth {
+namespace ams::mitm::mc {
 
     namespace {
 
         enum PortIndex {
-            PortIndex_BtdrvMitm,
+            PortIndex_MissionControl,
             PortIndex_Count,
         };
 
-        constexpr sm::ServiceName BtdrvMitmServiceName = sm::ServiceName::Encode("btdrv");
+        constexpr sm::ServiceName MissionControlServiceName = sm::ServiceName::Encode("mc");
 
-        struct ServerOptions {
-            static constexpr size_t PointerBufferSize   = 0x1000;
-            static constexpr size_t MaxDomains          = 0;
-            static constexpr size_t MaxDomainObjects    = 0;
-            static constexpr bool CanDeferInvokeRequest = false;
-            static constexpr bool CanManageMitmServers  = true;
-        };
+        using ServerOptions = sf::hipc::DefaultServerManagerOptions;
 
-        constexpr size_t MaxSessions = 30;
+        constexpr size_t MaxSessions = 4;
 
         class ServerManager final : public sf::hipc::ServerManager<PortIndex_Count, ServerOptions, MaxSessions> {
             private:
@@ -45,26 +38,23 @@ namespace ams::mitm::bluetooth {
 
         ServerManager g_server_manager;
 
-        Result ServerManager::OnNeedsToAccept(int port_index, Server *server) {
-            /* Acknowledge the mitm session. */
-            std::shared_ptr<::Service> fsrv;
-            sm::MitmProcessInfo client_info;
-            server->AcknowledgeMitmSession(std::addressof(fsrv), std::addressof(client_info));
+        sf::UnmanagedServiceObject<IMissionControlInterface, MissionControlService> g_mission_control_service;
 
+        ams::Result ServerManager::OnNeedsToAccept(int port_index, Server *server) {
             switch (port_index) {
-                case PortIndex_BtdrvMitm:
-                    return this->AcceptMitmImpl(server, sf::CreateSharedObjectEmplaced<IBtdrvMitmInterface, BtdrvMitmService>(decltype(fsrv)(fsrv), client_info), fsrv);
+                case PortIndex_MissionControl:
+                    return this->AcceptImpl(server, g_mission_control_service.GetShared());
                 AMS_UNREACHABLE_DEFAULT_CASE();
             }
         }
 
-        const s32 ThreadPriority = -11;
+        const s32 ThreadPriority = 20;
         const size_t ThreadStackSize = 0x1000;
         alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
         os::ThreadType g_thread;
-
-        void BtdrvMitmThreadFunction(void *) {
-            R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtdrvMitmService>(PortIndex_BtdrvMitm, BtdrvMitmServiceName)));
+        
+        void MissionControlThreadFunction(void *) {
+            R_ABORT_UNLESS(g_server_manager.RegisterServer(PortIndex_MissionControl, MissionControlServiceName, MaxSessions));
             g_server_manager.LoopProcess();
         }
 
@@ -72,14 +62,14 @@ namespace ams::mitm::bluetooth {
 
     Result Launch() {
         R_TRY(os::CreateThread(&g_thread,
-            BtdrvMitmThreadFunction,
+            MissionControlThreadFunction,
             nullptr,
             g_thread_stack,
             ThreadStackSize,
             ThreadPriority
         ));
-
-        os::SetThreadNamePointer(&g_thread, "mc::BtdrvMitmThread");
+        
+        os::SetThreadNamePointer(&g_thread, "mc::MissionControlThread");
         os::StartThread(&g_thread);
 
         return ams::ResultSuccess();

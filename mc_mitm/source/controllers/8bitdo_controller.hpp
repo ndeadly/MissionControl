@@ -18,6 +18,13 @@
 
 namespace ams::controller {
 
+    enum EightBitDoControllerType {
+        EightBitDoControllerType_Zero,
+        EightBitDoControllerType_Sn30ProXboxCloud,
+        EightBitDoControllerType_Sn30ProXboxCloudFwV2,
+        EightBitDoControllerType_Other
+    };
+
     enum EightBitDoReportFormat {
         EightBitDoReportFormat_ZeroV1,
         EightBitDoReportFormat_ZeroV2,
@@ -32,8 +39,8 @@ namespace ams::controller {
         EightBitDoDPadV1_SE       = 0x4f51,
         EightBitDoDPadV1_S        = 0x0051,
         EightBitDoDPadV1_SW       = 0x5150,
-        EightBitDoDPadV1_W        = 0x0050,   
-        EightBitDoDPadV1_NW       = 0x5250,     
+        EightBitDoDPadV1_W        = 0x0050,
+        EightBitDoDPadV1_NW       = 0x5250,
     };
 
     enum EightBitDoDPadDirectionV2 {
@@ -71,7 +78,7 @@ namespace ams::controller {
         uint8_t         : 2;
         uint8_t select  : 1;
         uint8_t start   : 1;
-		uint8_t			: 0;
+        uint8_t	        : 0;
     }__attribute__((packed));
 
     struct EightBitDoButtonDataV2 {
@@ -84,16 +91,31 @@ namespace ams::controller {
         uint8_t L1      : 1;
         uint8_t R1      : 1;
 
-        uint8_t select  : 1;
-        uint8_t         : 2;
-        uint8_t start   : 1;
-        uint8_t home    : 1;
-        uint8_t L3		: 1;
-		uint8_t R3		: 1;
-		uint8_t			: 1;
+        union {
+            struct {
+                uint8_t select  : 1;
+                uint8_t         : 2;
+                uint8_t start   : 1;
+                uint8_t home    : 1;
+                uint8_t L3      : 1;
+                uint8_t R3      : 1;
+                uint8_t         : 1;
+            } v1;
+
+            struct {
+                uint8_t L2      : 1;
+                uint8_t R2      : 1;
+                uint8_t select  : 1;
+                uint8_t start   : 1;
+                uint8_t home    : 1;
+                uint8_t L3      : 1;
+                uint8_t R3      : 1;
+                uint8_t         : 1;
+            } v2;
+        };
 
         uint8_t dpad;
-    }__attribute__((packed));
+    } __attribute__((packed));
 
     struct EightBitDoInputReport0x01V1 {
         uint8_t _unk0[2];
@@ -141,20 +163,31 @@ namespace ams::controller {
         public:
             static constexpr const HardwareID hardware_ids[] = {
                 {0x05a0, 0x3232}, // 8BitDo Zero
-                {0x2dc8, 0x2100}  // 8BitDo SN30 Pro for Xbox Cloud Gaming
-            };  
+                {0x2dc8, 0x2100}, // 8BitDo SN30 Pro for Xbox Cloud Gaming
+                {0x2dc8, 0x2101}  // 8BitDo SN30 Pro for Xbox Cloud Gaming (fw 2.00)
+            };
 
             EightBitDoController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            : EmulatedSwitchController(address, id) { 
+                if ((id.vid == hardware_ids[0].vid) && (id.pid == hardware_ids[0].pid))
+                    m_controller_type = EightBitDoControllerType_Zero;
+                else if ((id.vid == hardware_ids[1].vid) && (id.pid == hardware_ids[1].pid))
+                    m_controller_type = EightBitDoControllerType_Sn30ProXboxCloud;
+                else if ((id.vid == hardware_ids[2].vid) && (id.pid == hardware_ids[2].pid))
+                    m_controller_type = EightBitDoControllerType_Sn30ProXboxCloudFwV2;
+                else
+                    m_controller_type = EightBitDoControllerType_Other;
+            }
 
-            bool SupportsSetTsiCommand(void) { return !((m_id.vid == 0x05a0) && (m_id.pid == 0x3232)); }
+            bool SupportsSetTsiCommand() { return m_controller_type != EightBitDoControllerType_Zero; }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
-            void MapInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
+            void MapInputReport0x01(const EightBitDoReportData *src);
             void MapInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat fmt);
 
+            EightBitDoControllerType m_controller_type;
     };
 
 }

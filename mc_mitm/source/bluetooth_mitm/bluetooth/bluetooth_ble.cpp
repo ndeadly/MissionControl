@@ -15,8 +15,6 @@
  */
 #include "bluetooth_ble.hpp"
 #include "../btdrv_mitm_flags.hpp"
-#include <mutex>
-#include <cstring>
 
 namespace ams::bluetooth::ble {
 
@@ -38,23 +36,23 @@ namespace ams::bluetooth::ble {
         return g_init_event.TryWait();
     }
 
-    void SignalInitialized(void) {
+    void SignalInitialized() {
         g_init_event.Signal();
     }
 
-    void WaitInitialized(void) {
+    void WaitInitialized() {
         g_init_event.Wait();
     }
 
-    os::SystemEvent *GetSystemEvent(void) {
+    os::SystemEvent *GetSystemEvent() {
         return &g_system_event;
     }
 
-    os::SystemEvent *GetForwardEvent(void) {
+    os::SystemEvent *GetForwardEvent() {
         return &g_system_event_fwd;
     }
 
-    os::SystemEvent *GetUserForwardEvent(void) {
+    os::SystemEvent *GetUserForwardEvent() {
         return &g_system_event_user_fwd;
     }
 
@@ -69,7 +67,7 @@ namespace ams::bluetooth::ble {
         return ams::ResultSuccess();
     }
 
-    void HandleEvent(void) {
+    void HandleEvent() {
         {
             std::scoped_lock lk(g_event_data_lock); 
             R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_event_info, sizeof(bluetooth::BleEventInfo), &g_current_event_type));

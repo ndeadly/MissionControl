@@ -16,8 +16,6 @@
 #include "bluetooth_core.hpp"
 #include "../btdrv_mitm_flags.hpp"
 #include "../../controllers/controller_management.hpp"
-#include <mutex>
-#include <cstring>
 
 namespace ams::bluetooth::core {
 
@@ -36,7 +34,9 @@ namespace ams::bluetooth::core {
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
 
         bluetooth::Address ReverseBluetoothAddress(bluetooth::Address address) {
-            uint64_t tmp = util::SwapEndian48(*reinterpret_cast<uint64_t *>(&address));
+            uint64_t tmp;
+            std::memcpy(&tmp, &address, sizeof(address));
+            tmp = util::SwapEndian(tmp) >> 16;
             return *reinterpret_cast<bluetooth::Address *>(&tmp);
         }
 
@@ -46,31 +46,31 @@ namespace ams::bluetooth::core {
         return g_init_event.TryWait();
     }
 
-    void SignalInitialized(void) {
+    void SignalInitialized() {
         g_init_event.Signal();
     }
 
-    void WaitInitialized(void) {
+    void WaitInitialized() {
         g_init_event.Wait();
     }
 
-    void SignalEnabled(void) {
+    void SignalEnabled() {
         g_enable_event.Signal();
     }
 
-    void WaitEnabled(void) {
+    void WaitEnabled() {
         g_enable_event.Wait();
     }
 
-    os::SystemEvent *GetSystemEvent(void) {
+    os::SystemEvent *GetSystemEvent() {
         return &g_system_event;
     }
 
-    os::SystemEvent *GetForwardEvent(void) {
+    os::SystemEvent *GetForwardEvent() {
         return &g_system_event_fwd;
     }
 
-    os::SystemEvent *GetUserForwardEvent(void) {
+    os::SystemEvent *GetUserForwardEvent() {
         return &g_system_event_user_fwd;
     }
 
@@ -184,7 +184,7 @@ namespace ams::bluetooth::core {
         R_ABORT_UNLESS(btdrvRespondToPinRequest(event_info->pairing_pin_code_request.addr, &pin));
     }
 
-    void HandleEvent(void) {
+    void HandleEvent() {
         {
             std::scoped_lock lk(g_event_info_lock);
             R_ABORT_UNLESS(btdrvGetEventInfo(&g_event_info, sizeof(bluetooth::EventInfo), &g_current_event_type));

@@ -76,7 +76,7 @@ namespace ams::bluetooth::events {
 
     }
 
-    Result Initialize(void) {
+    Result Initialize() {
         R_TRY(os::CreateThread(&g_thread,
             EventHandlerThreadFunc,
             nullptr,
@@ -91,7 +91,7 @@ namespace ams::bluetooth::events {
         return ams::ResultSuccess();
     }
 
-    void Finalize(void) {
+    void Finalize() {
         os::DestroyThread(&g_thread);
     }
 

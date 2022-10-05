@@ -29,12 +29,15 @@ namespace ams::mitm {
         } bluetooth;
 
         struct {
-            bool disable_sony_leds;
+            bool enable_dualshock4_lightbar;
+            bool enable_dualsense_lightbar;
+            bool enable_dualsense_player_leds;
+            int dualsense_vibration_intensity;
         } misc;
     };
 
     void InitializeConfig();
-    MissionControlConfig *GetGlobalConfig(void);
+    MissionControlConfig *GetGlobalConfig();
     SetLanguage GetSystemLanguage();
 
 }

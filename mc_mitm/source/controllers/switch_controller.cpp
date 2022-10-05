@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "switch_controller.hpp"
-#include "../utils.hpp"
 #include "../mcmitm_config.hpp"
 #include <string>
 
@@ -64,14 +63,14 @@ namespace ams::controller {
         return path;
     }
 
-    Result SwitchController::Initialize(void) {
+    Result SwitchController::Initialize() {
         if (this->HasSetTsiDisableFlag())
             m_settsi_supported = false;
 
         return ams::ResultSuccess(); 
     }
 
-    bool SwitchController::HasSetTsiDisableFlag(void) {
+    bool SwitchController::HasSetTsiDisableFlag() {
         std::string flag_file = GetControllerDirectory(&m_address) + "/settsi_disable.flag";
 
         bool file_exists;
@@ -98,31 +97,23 @@ namespace ams::controller {
             }
         }
 
+        std::scoped_lock lk(m_input_mutex);
+
         this->UpdateControllerState(report);
 
-        auto switch_report = reinterpret_cast<SwitchReportData *>(m_input_report.data);
-        switch (switch_report->id) {
-            case 0x21:
-                this->ApplyButtonCombos(&switch_report->input0x21.buttons); 
-
-	            if (switch_report->input0x21.response.id == SubCmd_SpiFlashRead) {
-	                if (switch_report->input0x21.response.data.spi_flash_read.address == 0x6050) {
-	                    if (ams::mitm::GetSystemLanguage() == 10) {
-	                        uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
-	                        std::memcpy(switch_report->input0x21.response.data.spi_flash_read.data, data, sizeof(data));
-	                    }
-	                }
-	            }
-				break;
-            case 0x30:
-                this->ApplyButtonCombos(&switch_report->input0x30.buttons); break;
-            case 0x31:
-            case 0x32:
-            case 0x33:
-            case 0x3f:
-            default:
-                break;
+        auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
+        if (input_report->id == 0x21) {
+            if (input_report->type0x21.hid_command_response.id == HidCommand_SerialFlashRead) {
+                if (input_report->type0x21.hid_command_response.data.serial_flash_read.address == 0x6050) {
+                    if (ams::mitm::GetSystemLanguage() == 10) {
+                        uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                        std::memcpy(input_report->type0x21.hid_command_response.data.serial_flash_read.data, data, sizeof(data));
+                    }
+                }
+            }
         }
+
+        this->ApplyButtonCombos(&input_report->buttons); 
 
         return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
     }

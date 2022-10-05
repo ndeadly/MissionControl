@@ -12,7 +12,8 @@ body:
       label: Switch Firmware Version
       description: Which Nintendo Switch firmware (HOS) version are you running?
       options:
-        - 14.1.1 (Latest)
+        - 14.1.2 (Latest)
+        - 14.1.1
         - 14.1.0
         - 14.0.0
         - 13.2.1
@@ -24,8 +25,6 @@ body:
         - 12.0.2
         - 12.0.1
         - 12.0.0
-        - 11.0.1
-        - 11.0.0
         - Other (please specify in issue description)
     validations:
       required: true
@@ -45,9 +44,6 @@ body:
         - 1.2.2
         - 1.2.1
         - 1.2.0
-        - 1.1.1
-        - 1.1.0
-        - 1.0.0
         - Other (please specify in issue description)
     validations:
       required: true
@@ -57,7 +53,8 @@ body:
       label: Mission Control Version
       description: Which version of Mission Control are you using?
       options:
-        - 0.7.0 (Latest)
+        - 0.7.1 (Latest)
+        - 0.7.0
         - 0.6.4
         - 0.6.3
         - 0.6.2
@@ -98,4 +95,4 @@ body:
     attributes:
       label: Additional Context
       description: Sometimes issues do not occur universally and may be caused by a factor unique to your setup. Add any additional contextual information about your environment here, eg. which other custom sysmodules are you running, are you booting sysnand or emummc, did you install Atmosphère or Mission Control as part of some unofficial third-party release/distribution etc
-      placeholder: Please provide any additional context here.  
+      placeholder: Please provide any additional context here.

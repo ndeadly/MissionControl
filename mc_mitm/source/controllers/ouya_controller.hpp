@@ -74,7 +74,7 @@ namespace ams::controller {
             OuyaController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
-            bool SupportsSetTsiCommand(void) { return false; }
+            bool SupportsSetTsiCommand() { return false; }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

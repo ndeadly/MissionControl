@@ -21,8 +21,8 @@ namespace ams::async {
 
     using AsyncFunction = std::function<Result(void)>;
 
-    Result Initialize(void);
-    void Finalize(void);
+    Result Initialize();
+    void Finalize();
 
     void QueueWork(AsyncFunction *function);
 

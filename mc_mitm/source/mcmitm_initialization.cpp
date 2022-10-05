@@ -21,6 +21,7 @@
 #include "bluetooth_mitm/btdrv_mitm_service.hpp"
 #include "bluetooth_mitm/bluetoothmitm_module.hpp"
 #include "btm_mitm/btmmitm_module.hpp"
+#include "mc/mc_module.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_events.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_core.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_hid.hpp"
@@ -91,7 +92,7 @@ namespace ams::mitm {
 
     }
 
-    void StartInitialize(void) {
+    void StartInitialize() {
         R_ABORT_UNLESS(os::CreateThread(&g_thread,
             InitializeThreadFunc,
             nullptr,
@@ -104,16 +105,18 @@ namespace ams::mitm {
         os::StartThread(&g_thread);
     }
 
-    void WaitInitialized(void) {
+    void WaitInitialized() {
         g_init_event.Wait();
     }
 
-    void LaunchModules(void) {
+    void LaunchModules() {
         R_ABORT_UNLESS(ams::mitm::bluetooth::Launch());
         R_ABORT_UNLESS(ams::mitm::btm::Launch());
+        R_ABORT_UNLESS(ams::mitm::mc::Launch());
     }
 
-    void WaitModules(void) {
+    void WaitModules() {
+        ams::mitm::mc::WaitFinished();
         ams::mitm::btm::WaitFinished();
         ams::mitm::bluetooth::WaitFinished();
     }

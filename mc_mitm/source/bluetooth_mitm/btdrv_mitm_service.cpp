@@ -22,7 +22,6 @@
 #include "../mcmitm_initialization.hpp"
 #include "../controllers/controller_management.hpp"
 #include <switch.h>
-#include <cstring>
 
 namespace ams::mitm::bluetooth {
 
@@ -50,7 +49,7 @@ namespace ams::mitm::bluetooth {
         return ams::ResultSuccess();
     }
 
-    Result BtdrvMitmService::EnableBluetooth(void) {
+    Result BtdrvMitmService::EnableBluetooth() {
         R_TRY(btdrvEnableBluetoothFwd(m_forward_service.get()));
         ams::bluetooth::core::SignalEnabled();
 
@@ -61,13 +60,7 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::GetEventInfo(sf::Out<ams::bluetooth::EventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        R_TRY(ams::bluetooth::core::GetEventInfo(m_client_info.program_id,
-            out_type.GetPointer(),
-            static_cast<uint8_t *>(out_buffer.GetPointer()),
-            static_cast<size_t>(out_buffer.GetSize())
-        ));
-
-        return ams::ResultSuccess();
+        return ams::bluetooth::core::GetEventInfo(m_client_info.program_id, out_type.GetPointer(), out_buffer.GetPointer(), out_buffer.GetSize());
     }
 
     Result BtdrvMitmService::InitializeHid(sf::OutCopyHandle out_handle, u16 version) {
@@ -109,12 +102,7 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::GetHidEventInfo(sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        R_TRY(ams::bluetooth::hid::GetEventInfo(out_type.GetPointer(),
-            static_cast<uint8_t *>(out_buffer.GetPointer()),
-            static_cast<size_t>(out_buffer.GetSize())
-        ));
-
-        return ams::ResultSuccess();
+        return ams::bluetooth::hid::GetEventInfo(out_type.GetPointer(), out_buffer.GetPointer(), out_buffer.GetSize());
     }
 
     Result BtdrvMitmService::SetTsi(ams::bluetooth::Address address, u8 tsi) {
@@ -187,12 +175,7 @@ namespace ams::mitm::bluetooth {
     Result _GetHidReportEventInfoDeprecated(Service *srv, sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
         AMS_UNUSED(srv);
 
-        R_TRY(ams::bluetooth::hid::report::GetEventInfo(out_type.GetPointer(),
-            static_cast<uint8_t *>(out_buffer.GetPointer()),
-            static_cast<size_t>(out_buffer.GetSize())
-        ));
-
-        return ams::ResultSuccess();
+        return ams::bluetooth::hid::report::GetEventInfo(out_type.GetPointer(), out_buffer.GetPointer(), out_buffer.GetSize());
     }
 
     /* 1.0.0 - 3.0.2 */
@@ -242,12 +225,7 @@ namespace ams::mitm::bluetooth {
     }
 
     Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<ams::bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
-        R_TRY(ams::bluetooth::ble::GetEventInfo(out_type.GetPointer(),
-            static_cast<uint8_t *>(out_buffer.GetPointer()),
-            static_cast<size_t>(out_buffer.GetSize())
-        ));
-
-        return ams::ResultSuccess();
+        return ams::bluetooth::ble::GetEventInfo(out_type.GetPointer(), out_buffer.GetPointer(), out_buffer.GetSize());
     }
 
     Result BtdrvMitmService::GetRealSharedMemory(sf::OutCopyHandle out_handle) {
@@ -276,7 +254,7 @@ namespace ams::mitm::bluetooth {
         g_redirect_ble_events = redirect;
     }
 
-    void BtdrvMitmService::SignalHidReportRead(void) {
+    void BtdrvMitmService::SignalHidReportRead() {
         ams::bluetooth::hid::report::SignalReportRead();
     }
 

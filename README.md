@@ -32,6 +32,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
  Currently, the following controllers are supported. If you have a third-party variant of one of the below, or a Bluetooth controller that isn't listed, consider submitting an issue with the controller details, including vid/pid, to request support.
 
 * __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro, SNES Mini, TaTaCon (Taiko drum), MotionPlus)__
+* __Nintendo Wii Balance Board (experimental)__
 * __Nintendo WiiU Pro Controller__
 * __Sony DualShock4 Controller__
 * __Sony Dualsense Controller__
@@ -117,13 +118,20 @@ A template for the config .ini file will be installed to `/config/MissionControl
 
 - `[general]`
 These are general settings for mission control features. 
-	- `enable_rumble` Enables/disables rumble support for unofficial controllers.
-	- `enable_motion` Enables/disables motion controls support.
+	- `enable_rumble` Enable/disable rumble support for unofficial controllers.
+	- `enable_motion` Enable/disable motion controls support.
 
 - `[bluetooth]`
 These settings can be used to spoof your switch bluetooth to appear as another device. This may be useful (in conjunction with a link key) if you want to use your controller across multiple devices without having to re-pair every time you switch. Note that changing these settings will invalidate your console information stored in any previously paired controllers and will require re-pairing.
-	- `host_name` Override the bluetooth host adapter name
-	- `host_address` Override the bluetooth host adapter address
+	- `host_name` Override the bluetooth host adapter name.
+	- `host_address` Override the bluetooth host adapter address.
+
+- `[misc]`
+These are miscellaneous controller-specific settings etc.
+	- `enable_dualshock4_lightbar` Enable/disable the coloured LED lightbar on Sony Dualshock4 controllers.
+	- `enable_dualsense_lightbar` Enable/disable the coloured LED lightbar on Sony Dualsense controllers.
+	- `enable_dualsense_player_leds` Enable/disable the white player indicator LEDs below the Dualsense touchpad.
+	- `dualsense_vibration_intensity` Set Dualsense vibration intensity, 12.5% per increment. Valid range [1-8] where 1=12.5%, 8=100%.
 
 ### Removal
 
@@ -145,6 +153,8 @@ Below is a list of features I am currently working on or would like to look into
 * ~~Rumble support~~
 * ~~Motion controls support~~
 * Bluetooth LE support
+* USB wired controllers
+* UART MITM to allow button combos and other future features to apply to joycons in handheld mode
 * Per-controller configurations
     * Rumble on/off
     * Motion controls on/off
@@ -167,7 +177,7 @@ Below is a list of features I am currently working on or would like to look into
 * Tesla overlay
 * Keyboard and mouse support
 * Gamecube mode (analog trigger support)
-* USB wired controllers
+* Title-specific button bindings
 
 ### Known Issues and Limitations
 

@@ -17,7 +17,8 @@
 
 namespace ams::mitm {
 
-    extern const char *version_string;
-    extern const char *build_date;
+    extern const unsigned int mc_version;
+    extern const char *mc_build_name;
+    extern const char *mc_build_date;
 
 }

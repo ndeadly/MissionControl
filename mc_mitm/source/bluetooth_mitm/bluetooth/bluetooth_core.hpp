@@ -20,18 +20,18 @@
 
 namespace ams::bluetooth::core {
 
-    bool IsInitialized(void);
-    void SignalInitialized(void);
-    void WaitInitialized(void);
-    void SignalEnabled(void);
-    void WaitEnabled(void);
+    bool IsInitialized();
+    void SignalInitialized();
+    void WaitInitialized();
+    void SignalEnabled();
+    void WaitEnabled();
 
-    os::SystemEvent *GetSystemEvent(void);
-    os::SystemEvent *GetForwardEvent(void);
-    os::SystemEvent *GetUserForwardEvent(void);
+    os::SystemEvent *GetSystemEvent();
+    os::SystemEvent *GetForwardEvent();
+    os::SystemEvent *GetUserForwardEvent();
 
     void SignalFakeEvent(bluetooth::EventType type, const void *data, size_t size);
     Result GetEventInfo(ncm::ProgramId program_id, bluetooth::EventType *type, void *buffer, size_t size);
-    void HandleEvent(void);
-   
+    void HandleEvent();
+
 }

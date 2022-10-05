@@ -29,7 +29,7 @@ namespace ams::controller {
 
         switch(eightbitdo_report->id) {
             case 0x01:
-                this->MapInputReport0x01(eightbitdo_report, report->size == 9 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_Other); break;
+                this->MapInputReport0x01(eightbitdo_report); break;
             case 0x03:
                 this->MapInputReport0x03(eightbitdo_report, report->size == 11 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_ZeroV2); break;
             default:
@@ -37,8 +37,8 @@ namespace ams::controller {
         }
     }
 
-    void EightBitDoController::MapInputReport0x01(const EightBitDoReportData *src, EightBitDoReportFormat fmt) {
-        if (fmt == EightBitDoReportFormat_ZeroV1) {
+    void EightBitDoController::MapInputReport0x01(const EightBitDoReportData *src) {
+        if (m_controller_type == EightBitDoControllerType_Zero) {
             m_buttons.dpad_down   = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
                                     (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
                                     (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
@@ -80,18 +80,32 @@ namespace ams::controller {
             m_buttons.X = src->input0x01_v2.buttons.Y;
             m_buttons.Y = src->input0x01_v2.buttons.X;
 
-            m_buttons.R  = src->input0x01_v2.buttons.R1;
-            m_buttons.ZR = src->input0x01_v2.right_trigger > 0x7f;
             m_buttons.L  = src->input0x01_v2.buttons.L1;
-            m_buttons.ZL = src->input0x01_v2.left_trigger > 0x7f;
+            m_buttons.R  = src->input0x01_v2.buttons.R1;
 
-            m_buttons.minus = src->input0x01_v2.buttons.select;
-            m_buttons.plus  = src->input0x01_v2.buttons.start;
+            if (m_controller_type == EightBitDoControllerType_Sn30ProXboxCloud) {
+                m_buttons.ZL = src->input0x01_v2.left_trigger > 0x7f;
+                m_buttons.ZR = src->input0x01_v2.right_trigger > 0x7f;
 
-            m_buttons.lstick_press = src->input0x01_v2.buttons.L3;
-            m_buttons.rstick_press = src->input0x01_v2.buttons.R3;
+                m_buttons.minus = src->input0x01_v2.buttons.v1.select;
+                m_buttons.plus  = src->input0x01_v2.buttons.v1.start;
 
-            m_buttons.home = src->input0x01_v2.buttons.home;
+                m_buttons.lstick_press = src->input0x01_v2.buttons.v1.L3;
+                m_buttons.rstick_press = src->input0x01_v2.buttons.v1.R3;
+
+                m_buttons.home = src->input0x01_v2.buttons.v1.home;
+            } else {
+                m_buttons.ZL = src->input0x01_v2.buttons.v2.L2;
+                m_buttons.ZR = src->input0x01_v2.buttons.v2.R2;
+
+                m_buttons.minus = src->input0x01_v2.buttons.v2.select;
+                m_buttons.plus  = src->input0x01_v2.buttons.v2.start;
+
+                m_buttons.lstick_press = src->input0x01_v2.buttons.v2.L3;
+                m_buttons.rstick_press = src->input0x01_v2.buttons.v2.R3;
+
+                m_buttons.home = src->input0x01_v2.buttons.v2.home;
+            }
         }
     }
 

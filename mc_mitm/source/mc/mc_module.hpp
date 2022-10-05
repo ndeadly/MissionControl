@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022 ndeadly
+ * Copyright (c) 2020-2021 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,11 +16,9 @@
 #pragma once
 #include <stratosphere.hpp>
 
-namespace ams {
+namespace ams::mitm::mc {
 
-    extern std::atomic<bool> g_redirect_core_events;
-    extern std::atomic<bool> g_redirect_hid_events;
-    extern std::atomic<bool> g_redirect_hid_report_events;
-    extern std::atomic<bool> g_redirect_ble_events;
+    Result Launch();
+    void WaitFinished();
 
 }

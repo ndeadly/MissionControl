@@ -45,7 +45,7 @@ namespace ams::async {
 
     }
 
-    Result Initialize(void) {
+    Result Initialize() {
         os::InitializeMessageQueue(&g_work_queue, g_message_buffer, MessageBufferSize);
 
         for (unsigned int i = 0; i < ThreadCount; ++i) {
@@ -64,7 +64,7 @@ namespace ams::async {
         return ams::ResultSuccess();
     }
 
-    void Finalize(void) {
+    void Finalize() {
         os::FinalizeMessageQueue(&g_work_queue);
 
         for (unsigned int i = 0; i < ThreadCount; ++i) {

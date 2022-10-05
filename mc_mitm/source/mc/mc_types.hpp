@@ -14,13 +14,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include <stratosphere.hpp>
 
-namespace ams {
+namespace ams::mitm::mc {
 
-    extern std::atomic<bool> g_redirect_core_events;
-    extern std::atomic<bool> g_redirect_hid_events;
-    extern std::atomic<bool> g_redirect_hid_report_events;
-    extern std::atomic<bool> g_redirect_ble_events;
+    struct VersionString {
+        char version[32];
+    };
+
+    struct DateString {
+        char date[32];
+    };
 
 }

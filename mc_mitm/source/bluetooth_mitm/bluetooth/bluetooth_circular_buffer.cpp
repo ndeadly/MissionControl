@@ -14,12 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "bluetooth_circular_buffer.hpp"
-#include <mutex>
-#include <cstring>
 
 namespace ams::bluetooth {
 
-    CircularBuffer::CircularBuffer(void) {
+    CircularBuffer::CircularBuffer() {
         this->readOffset = 0;
         this->writeOffset = 0;
         this->isInitialized = false;
@@ -38,7 +36,7 @@ namespace ams::bluetooth {
         this->isInitialized = true;
     }
 
-    void CircularBuffer::Finalize(void) {
+    void CircularBuffer::Finalize() {
         if (!this->isInitialized)
             fatalThrow(-1);
 
@@ -46,11 +44,11 @@ namespace ams::bluetooth {
         this->event = nullptr;
     }
 
-    bool CircularBuffer::IsInitialized(void) {
+    bool CircularBuffer::IsInitialized() {
         return this->isInitialized;
     }
 
-    u64 CircularBuffer::GetWriteableSize(void) {
+    u64 CircularBuffer::GetWriteableSize() {
         u32 readOffset = this->readOffset;
         u32 writeOffset = this->writeOffset;
 
@@ -128,11 +126,11 @@ namespace ams::bluetooth {
         }
     }
 
-    CircularBufferPacket *CircularBuffer::Read(void) {
+    CircularBufferPacket *CircularBuffer::Read() {
         return this->_read();
     }
 
-    u64 CircularBuffer::Free(void) {
+    u64 CircularBuffer::Free() {
         if (!this->isInitialized)
             return -1;
 
@@ -167,11 +165,11 @@ namespace ams::bluetooth {
         this->writeOffset = offset;
     }
 
-    u32 CircularBuffer::_getWriteOffset(void) {
+    u32 CircularBuffer::_getWriteOffset() {
         return this->writeOffset;
     }
 
-    u32 CircularBuffer::_getReadOffset(void) {
+    u32 CircularBuffer::_getReadOffset() {
         return this->readOffset;
     }
 
@@ -200,14 +198,14 @@ namespace ams::bluetooth {
         return 0;
     }
 
-    void CircularBuffer::_updateUtilization(void) {
+    void CircularBuffer::_updateUtilization() {
         u32 newCapacity = this->isInitialized ? this->GetWriteableSize() : 0;
 
         if (this->size > newCapacity + 1000)
             this->size = newCapacity;
     }
 
-    CircularBufferPacket *CircularBuffer::_read(void) {
+    CircularBufferPacket *CircularBuffer::_read() {
         if (this->isInitialized) {
             CircularBufferPacket *packet;
             u32 newOffset;

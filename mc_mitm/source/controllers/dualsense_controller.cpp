@@ -38,6 +38,17 @@ namespace ams::controller {
             0x0A
         };
 
+        const uint8_t new_player_led_flags[] = {
+            0x04,
+            0x02,
+            0x05,
+            0x03,
+            0x07,
+            0x07,
+            0x07,
+            0x07
+        };
+
         const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
 
         const RGBColour player_led_colours[] = {
@@ -53,11 +64,16 @@ namespace ams::controller {
             {0x10, 0x00, 0x30}  // purple
         };
 
+        constexpr uint32_t crc_seed = 0x8C36CCAE; // CRC32 of {0xa2, 0x31} bytes at beginning of output report
+
     }
 
-    Result DualsenseController::Initialize(void) {
+    Result DualsenseController::Initialize() {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
+
+        // Request controller firmware version info
+        R_TRY(this->GetVersionInfo(&m_version_info));
 
         // Request motion calibration data from DualSense
         R_TRY(this->GetCalibrationData(&m_motion_calibration));
@@ -71,23 +87,38 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
-    Result DualsenseController::CancelVibration(void) {
+    Result DualsenseController::CancelVibration() {
         m_rumble_state.amp_motor_left = 0;
         m_rumble_state.amp_motor_right = 0;
         return this->PushRumbleLedState();
     }
 
     Result DualsenseController::SetPlayerLed(uint8_t led_mask) {
+        auto config = mitm::GetGlobalConfig();
+
         uint8_t player_number;
         R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
-        m_led_flags = player_led_flags[player_number];
+
+        uint16_t fw_version = *reinterpret_cast<uint16_t *>(&m_version_info.data[43]);
+
+        if (!config->misc.enable_dualsense_player_leds) {
+            m_led_flags = 0x00;
+        } else if (fw_version < 0x0282) {
+            m_led_flags = player_led_flags[player_number];
+        } else {
+            m_led_flags = new_player_led_flags[player_number];
+        }
+
+        // Disable LED fade-in
+        m_led_flags |= 0x20;
+
         RGBColour colour = player_led_colours[player_number];
         return this->SetLightbarColour(colour);
     }
 
     Result DualsenseController::SetLightbarColour(RGBColour colour) {
         auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        m_led_colour = config->misc.enable_dualsense_lightbar ? colour : led_disable;
         return this->PushRumbleLedState();
     }
 
@@ -131,7 +162,7 @@ namespace ams::controller {
         if (battery_level > 10)
             battery_level = 10;
 
-        m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
+        m_battery = static_cast<uint8_t>(8 * (battery_level + 2) / 10) & 0x0e;
     
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x31.left_stick.x) & 0xfff,
@@ -213,6 +244,16 @@ namespace ams::controller {
         m_buttons.home    = buttons->ps;
     }
 
+    Result DualsenseController::GetVersionInfo(DualsenseVersionInfo *version_info) {
+        bluetooth::HidReport output;
+        R_TRY(this->GetFeatureReport(0x20, &output));
+
+        auto response = reinterpret_cast<DualsenseReportData *>(&output.data);
+        std::memcpy(version_info, &response->feature0x20.version_info, sizeof(DualsenseVersionInfo));
+
+        return ams::ResultSuccess();
+    }
+
     Result DualsenseController::GetCalibrationData(DualsenseImuCalibrationData *calibration) {
         bluetooth::HidReport output;
         R_TRY(this->GetFeatureReport(0x05, &output));
@@ -223,18 +264,30 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result DualsenseController::PushRumbleLedState(void) {
-        DualsenseOutputReport0x31 report = {0xa2, 0x31, 0x02, 0x03, 0x14, m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left};
-        report.data[41] = 0x02;
-        report.data[44] = 0x02;
-        report.data[46] = m_led_flags;
-        report.data[47] = m_led_colour.r;
-        report.data[48] = m_led_colour.g;
-        report.data[49] = m_led_colour.b;
-        report.crc = crc32Calculate(report.data, sizeof(report.data));
+    Result DualsenseController::PushRumbleLedState() {
+        auto config = mitm::GetGlobalConfig();
 
-        m_output_report.size = sizeof(report) - 1;
-        std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
+        std::scoped_lock lk(m_output_mutex);
+
+        DualsenseReportData report = {};
+        report.id = 0x31;
+        report.output0x31.data[0] = 0x02;
+        report.output0x31.data[1] = 0x03;
+        report.output0x31.data[2] = 0x54;
+        report.output0x31.data[3] = m_rumble_state.amp_motor_right;
+        report.output0x31.data[4] = m_rumble_state.amp_motor_left;
+        report.output0x31.data[37] = 0x08 - config->misc.dualsense_vibration_intensity;  // User setting is inverse of how the controller sets intensity
+        report.output0x31.data[39] = 0x02 | 0x01;
+        report.output0x31.data[42] = 0x02;
+        report.output0x31.data[43] = 0x02;
+        report.output0x31.data[44] = m_led_flags;
+        report.output0x31.data[45] = m_led_colour.r;
+        report.output0x31.data[46] = m_led_colour.g;
+        report.output0x31.data[47] = m_led_colour.b;
+        report.output0x31.crc = crc32CalculateWithSeed(crc_seed, report.output0x31.data, sizeof(report.output0x31.data));
+
+        m_output_report.size = sizeof(report.output0x31) + sizeof(report.id);
+        std::memcpy(m_output_report.data, &report, m_output_report.size);
 
         return this->WriteDataReport(&m_output_report);
     }

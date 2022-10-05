@@ -17,8 +17,6 @@
 #include "../mcmitm_config.hpp"
 #include <switch.h>
 #include <stratosphere.hpp>
-#include <cstring>
-#include <cmath>
 
 namespace ams::controller {
 
@@ -44,9 +42,11 @@ namespace ams::controller {
             {0x10, 0x00, 0x30}  // purple
         };
 
+        constexpr uint32_t crc_seed = 0xB758EC66;  // CRC32 of {0xa2, 0x11} bytes at beginning of output report
+
     }
 
-    Result Dualshock4Controller::Initialize(void) {
+    Result Dualshock4Controller::Initialize() {
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
 
@@ -62,7 +62,7 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
-    Result Dualshock4Controller::CancelVibration(void) {
+    Result Dualshock4Controller::CancelVibration() {
         m_rumble_state.amp_motor_left = 0;
         m_rumble_state.amp_motor_right = 0;
         return this->PushRumbleLedState();
@@ -77,7 +77,7 @@ namespace ams::controller {
 
     Result Dualshock4Controller::SetLightbarColour(RGBColour colour) {
         auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.disable_sony_leds ? led_disable : colour;
+        m_led_colour = config->misc.enable_dualshock4_lightbar ? colour : led_disable;
         return this->PushRumbleLedState();
     }
 
@@ -121,7 +121,7 @@ namespace ams::controller {
         if (battery_level > 10)
             battery_level = 10;
 
-        m_battery = static_cast<uint8_t>(8 * (battery_level + 1) / 10) & 0x0e;
+        m_battery = static_cast<uint8_t>(8 * (battery_level + 2) / 10) & 0x0e;
 
         m_left_stick.SetData(
             static_cast<uint16_t>(stick_scale_factor * src->input0x11.left_stick.x) & 0xfff,
@@ -223,15 +223,24 @@ namespace ams::controller {
         return ams::ResultSuccess();
     }
 
-    Result Dualshock4Controller::PushRumbleLedState(void) {
-        Dualshock4OutputReport0x11 report = {0xa2, 0x11, static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff)), 0x20, 0xf3, 0x04, 0x00,
-            m_rumble_state.amp_motor_right, m_rumble_state.amp_motor_left,
-            m_led_colour.r, m_led_colour.g, m_led_colour.b
-        };
-        report.crc = crc32Calculate(report.data, sizeof(report.data));
+    Result Dualshock4Controller::PushRumbleLedState() {
+        std::scoped_lock lk(m_output_mutex);
 
-        m_output_report.size = sizeof(report) - 1;
-        std::memcpy(m_output_report.data, &report.data[1], m_output_report.size);
+        Dualshock4ReportData report = {};
+        report.id = 0x11;
+        report.output0x11.data[0] = static_cast<uint8_t>(0xc0 | (m_report_rate & 0xff));
+        report.output0x11.data[1] = 0x20;
+        report.output0x11.data[2] = 0xf3;
+        report.output0x11.data[3] = 0x04;
+        report.output0x11.data[5] = m_rumble_state.amp_motor_right;
+        report.output0x11.data[6] = m_rumble_state.amp_motor_left;
+        report.output0x11.data[7] = m_led_colour.r;
+        report.output0x11.data[8] = m_led_colour.g;
+        report.output0x11.data[9] = m_led_colour.b;
+        report.output0x11.crc = crc32CalculateWithSeed(crc_seed, report.output0x11.data, sizeof(report.output0x11.data));
+
+        m_output_report.size = sizeof(report.output0x11) + sizeof(report.id);
+        std::memcpy(m_output_report.data, &report, m_output_report.size);
 
         return this->WriteDataReport(&m_output_report);
     }
