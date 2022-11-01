@@ -51,7 +51,9 @@ namespace ams::controller {
         R_TRY(EmulatedSwitchController::Initialize());
 
         // Request motion calibration data from Dualshock4
-        R_TRY(this->GetCalibrationData(&m_motion_calibration));
+        if(R_FAILED(this->GetCalibrationData(&m_motion_calibration))) {
+            m_enable_motion = false;
+        }
 
         return ams::ResultSuccess();
     }
