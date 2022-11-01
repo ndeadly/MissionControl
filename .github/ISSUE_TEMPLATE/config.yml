@@ -3,3 +3,6 @@ contact_links:
   - name: GitHub Discussions
     url: https://github.com/ndeadly/MissionControl/discussions
     about: Issues are for reporting bugs or requesting features. Please direct general support questions to the discussions section.
+  - name: Discord
+    url: https://discord.com/invite/gegfNZ5Ucz
+    about: You can also join my Discord server to discuss your issues or ideas directly.
