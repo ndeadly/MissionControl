@@ -42,6 +42,12 @@ namespace ams::controller {
 
     }
 
+    bool IsNsoController(uint16_t vid, uint16_t pid) {
+        if (vid == 0x057e && (pid == 0x2017 || pid == 0x2019 || pid == 0x201a))
+            return true;
+        else return false;
+    }
+
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number) {
         *player_number = led_player_mappings[led_mask & 0xf];
         if (*player_number == SwitchPlayerNumber_Unknown)
@@ -67,7 +73,7 @@ namespace ams::controller {
         if (this->HasSetTsiDisableFlag())
             m_settsi_supported = false;
 
-        return ams::ResultSuccess(); 
+        return ams::ResultSuccess();
     }
 
     bool SwitchController::HasSetTsiDisableFlag() {
@@ -111,9 +117,12 @@ namespace ams::controller {
                     }
                 }
             }
+            else if (input_report->type0x21.hid_command_response.id == HidCommand_GetDeviceInfo && mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller && IsNsoController(m_id.vid, m_id.pid)) {
+                input_report->type0x21.hid_command_response.data.get_device_info.type = 0x03;
+            }
         }
 
-        this->ApplyButtonCombos(&input_report->buttons); 
+        this->ApplyButtonCombos(&input_report->buttons);
 
         return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
     }
@@ -149,7 +158,7 @@ namespace ams::controller {
         return btdrvWriteHidData(m_address, report);
     }
 
-    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, uint8_t response_id, bluetooth::HidReport *out_report) {       
+    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, uint8_t response_id, bluetooth::HidReport *out_report) {
         auto response = std::make_shared<HidResponse>(BtdrvHidEventType_Data);
         response->SetUserData(response_id);
         m_future_responses.push(response);
@@ -206,7 +215,7 @@ namespace ams::controller {
         }
 
         auto response_data = response->GetData();
-        
+
         Result result;
         const bluetooth::HidReport *get_report;
         if (hos::GetVersion() >= hos::Version_9_0_0) {

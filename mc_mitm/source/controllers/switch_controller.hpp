@@ -321,6 +321,7 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
+    bool IsNsoController(uint16_t vid, uint16_t pid);
 
     std::string GetControllerDirectory(const bluetooth::Address *address);
 

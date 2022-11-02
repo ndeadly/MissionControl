@@ -33,6 +33,7 @@ namespace ams::mitm {
             bool enable_dualsense_lightbar;
             bool enable_dualsense_player_leds;
             int dualsense_vibration_intensity;
+            bool spoof_nso_as_pro_controller;
         } misc;
     };
 

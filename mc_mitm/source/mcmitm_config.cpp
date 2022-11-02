@@ -33,7 +33,8 @@ namespace ams::mitm {
                 .enable_dualshock4_lightbar = true,
                 .enable_dualsense_lightbar = true,
                 .enable_dualsense_player_leds = true,
-                .dualsense_vibration_intensity = 4
+                .dualsense_vibration_intensity = 4,
+                .spoof_nso_as_pro_controller = false
             }
         };
 
@@ -41,7 +42,7 @@ namespace ams::mitm {
             if (strcasecmp(value, "true") == 0)
                 *out = true;
             else if (strcasecmp(value, "false") == 0)
-                *out = false; 
+                *out = false;
         }
 
         void ParseInt(const char *value, int *out, int min=INT_MIN, int max=INT_MAX) {
@@ -75,9 +76,9 @@ namespace ams::mitm {
 
             if (strcasecmp(section, "general") == 0) {
                 if (strcasecmp(name, "enable_rumble") == 0)
-                    ParseBoolean(value, &config->general.enable_rumble);  
+                    ParseBoolean(value, &config->general.enable_rumble);
                 else if (strcasecmp(name, "enable_motion") == 0)
-                    ParseBoolean(value, &config->general.enable_motion); 
+                    ParseBoolean(value, &config->general.enable_motion);
             }
             else if (strcasecmp(section, "bluetooth") == 0) {
                 if (strcasecmp(name, "host_name") == 0)
@@ -94,6 +95,8 @@ namespace ams::mitm {
                     ParseBoolean(value, &config->misc.enable_dualsense_player_leds);
                 else if (strcasecmp(name, "dualsense_vibration_intensity") == 0)
                     ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
+                else if (strcasecmp(name, "spoof_nso_as_pro_controller") == 0)
+                    ParseBoolean(value, &config->misc.spoof_nso_as_pro_controller);
             }
             else {
                 return 0;

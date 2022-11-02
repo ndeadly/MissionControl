@@ -16,6 +16,8 @@
 #include "btm_mitm_service.hpp"
 #include "btm_shim.h"
 #include "../controllers/controller_management.hpp"
+#include "../mcmitm_config.hpp"
+#include "../controllers/switch_controller.hpp"
 
 namespace ams::mitm::btm {
 
@@ -83,6 +85,9 @@ namespace ams::mitm::btm {
             if (!controller::IsOfficialSwitchControllerName(device->name.name)) {
                 std::strncpy(device->name.name, controller::pro_controller_name, sizeof(device->name) - 1);
             }
+            else if (mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller && ams::controller::IsNsoController(device->profile_info.hid_device_info.vid, device->profile_info.hid_device_info.pid)) {
+                device->profile_info.hid_device_info.pid = 0x2009;
+            }
         }
 
         return ams::ResultSuccess();
@@ -96,6 +101,9 @@ namespace ams::mitm::btm {
             auto device = &device_info[i];
             if (!controller::IsOfficialSwitchControllerName(device->name)) {
                 std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+            }
+            else if (mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller && ams::controller::IsNsoController(device->profile_info.hid_device_info.vid, device->profile_info.hid_device_info.pid)) {
+                device->profile_info.hid_device_info.pid = 0x2009;
             }
         }
 
