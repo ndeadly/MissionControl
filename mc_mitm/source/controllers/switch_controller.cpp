@@ -115,10 +115,15 @@ namespace ams::controller {
                         uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
                         std::memcpy(input_report->type0x21.hid_command_response.data.serial_flash_read.data, data, sizeof(data));
                     }
+                    else if (mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller && IsNsoController(m_id.vid, m_id.pid)) {
+                        uint8_t data[] = {0x32, 0x32, 0x32, 0xe6, 0xe6, 0xe6, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46};
+                        std::memcpy(input_report->type0x21.hid_command_response.data.serial_flash_read.data, data, sizeof(data));
+                    }
                 }
             }
             else if (input_report->type0x21.hid_command_response.id == HidCommand_GetDeviceInfo && mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller && IsNsoController(m_id.vid, m_id.pid)) {
                 input_report->type0x21.hid_command_response.data.get_device_info.type = 0x03;
+                input_report->type0x21.hid_command_response.data.get_device_info._unk2 = 0x02;
             }
         }
 
@@ -151,6 +156,28 @@ namespace ams::controller {
     }
 
     Result SwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
+        auto output_report = reinterpret_cast<const SwitchOutputReport *>(&report->data);
+        if (output_report->id == 0x01 && mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller && IsNsoController(m_id.vid, m_id.pid) && (output_report->type0x01.hid_command.id == HidCommand_SerialFlashWrite || output_report->type0x01.hid_command.id == HidCommand_SerialFlashSectorErase)) {
+            SwitchInputReport input_report = {
+                .id = 0x21,
+                .timer = 1,
+                .conn_info = 1,
+                .battery = BATTERY_MAX,
+                .vibrator = 0,
+            };
+
+            input_report.type0x21.hid_command_response = {
+                .ack = 0x80,
+                .id = output_report->type0x01.hid_command.id,
+                .data = {
+                    .serial_flash_write = {
+                        .status = 0x1 //Force write protected response just to be safe
+                    }
+                }
+            };
+
+            return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
+        }
         return this->WriteDataReport(report);
     }
 
