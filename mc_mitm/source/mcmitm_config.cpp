@@ -36,7 +36,8 @@ namespace ams::mitm {
                 .dualshock4_lightbar_brightness = 5,
                 .dualsense_lightbar_brightness = 5,
                 .dualsense_enable_player_leds = true,
-                .dualsense_vibration_intensity = 4
+                .dualsense_vibration_intensity = 4,
+                .force_pro_controller = false
             }
         };
 
@@ -44,7 +45,7 @@ namespace ams::mitm {
             if (strcasecmp(value, "true") == 0)
                 *out = true;
             else if (strcasecmp(value, "false") == 0)
-                *out = false; 
+                *out = false;
         }
 
         void ParseInt(const char *value, int *out, int min=INT_MIN, int max=INT_MAX) {
@@ -107,8 +108,10 @@ namespace ams::mitm {
                     ParseBoolean(value, &config->misc.dualsense_enable_player_leds);
                 } else if (strcasecmp(name, "dualsense_vibration_intensity") == 0) {
                     ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
-                }
-            } else {
+                } else if (strcasecmp(name, "force_pro_controller") == 0)
+                    ParseBoolean(value, &config->misc.force_pro_controller);
+            }
+            else {
                 return 0;
             }
 
