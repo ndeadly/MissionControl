@@ -359,6 +359,7 @@ namespace ams::controller {
             virtual Result HandleOutputDataReport(const bluetooth::HidReport *report);
         private:
             bool HasSetTsiDisableFlag();
+            SwitchAnalogStickParameters m_n64_left_stick_param;
 
         protected:
             Result WriteDataReport(const bluetooth::HidReport *report);

@@ -40,6 +40,21 @@ namespace ams::controller {
             SwitchPlayerNumber_Four,    //1111
         };
 
+
+        bool ApplyN64Remapping(SwitchButtonData *buttons) {
+            bool alternatescheme = buttons->Y; //C-Up
+            buttons->Y = buttons->ZR; //C-Down -> Y
+            buttons->ZR = buttons->rstick_press; //ZR -> ZR
+            buttons->rstick_press = 0;
+            if (alternatescheme) {
+                buttons->lstick_press = buttons->L; //L -> LEFT STICK PRESS
+                buttons->rstick_press = buttons->R; //R -> RIGHT STICK PRESS
+                buttons->L = 0;
+                buttons->R = 0;
+            }
+            return alternatescheme;
+        }
+
     }
 
     bool IsNsoController(uint16_t vid, uint16_t pid) {
@@ -125,6 +140,44 @@ namespace ams::controller {
                 input_report->type0x21.hid_command_response.data.get_device_info.type = 0x03;
                 input_report->type0x21.hid_command_response.data.get_device_info._unk2 = 0x02;
             }
+            else if (input_report->type0x21.hid_command_response.id == HidCommand_SerialFlashRead &&  mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller &&  m_id.vid == 0x057e && m_id.pid == 0x2019) {
+                if (input_report->type0x21.hid_command_response.data.serial_flash_read.address == 0x603d) { //Factory calibration
+                    input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x9] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x0];
+                    input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xA] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x1];
+                    input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xB] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x2];
+                    memcpy(&input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xC], &input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x3], 3);
+                    input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x10] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x6];
+                    input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x11] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x7];
+                    input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x12] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x8];
+                }
+                else if (input_report->type0x21.hid_command_response.data.serial_flash_read.address == 0x8010) { //User Calibration
+                    if (input_report->type0x21.hid_command_response.data.serial_flash_read.data[0] != 0xFF && input_report->type0x21.hid_command_response.data.serial_flash_read.data[1] != 0xFF) {
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xB] = input_report->type0x21.hid_command_response.data.serial_flash_read.data[0];
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xC] = input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x1];
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xD] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x2];
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xE] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x3];
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xF] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x4];
+                        memcpy(&input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x10], &input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x5], 3);
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x13] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x8];
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x14] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x9];
+                        input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x15] = 0xFF - input_report->type0x21.hid_command_response.data.serial_flash_read.data[0xA];
+                    }
+                }
+                else if (input_report->type0x21.hid_command_response.data.serial_flash_read.address == 0x6080) { //Copy left stick parameters
+                    memcpy(&m_n64_left_stick_param, &input_report->type0x21.hid_command_response.data.serial_flash_read.data[0x6],sizeof(SwitchAnalogStickParameters));
+                }
+                else if (input_report->type0x21.hid_command_response.data.serial_flash_read.address == 0x6098) { //Paste left stick parameters on top of the right one (all 0XFF because there isn't one)
+                    memcpy(&input_report->type0x21.hid_command_response.data.serial_flash_read.data, &m_n64_left_stick_param, sizeof(SwitchAnalogStickParameters));
+                }
+            }
+        }
+
+        if (mitm::GetGlobalConfig()->misc.spoof_nso_as_pro_controller && m_id.vid == 0x057e && m_id.pid == 0x2019) {
+            if (ApplyN64Remapping(&input_report->buttons)) {
+                input_report->right_stick.SetData(input_report->left_stick.GetX(), input_report->left_stick.GetY());
+                input_report->left_stick.SetData(STICK_ZERO, STICK_ZERO);
+            }
+            else input_report->right_stick.SetData(STICK_ZERO, STICK_ZERO);
         }
 
         this->ApplyButtonCombos(&input_report->buttons);
