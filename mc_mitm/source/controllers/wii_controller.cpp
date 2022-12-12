@@ -291,10 +291,10 @@ namespace ams::controller {
         m_buttons.X  = !extension_data->buttons.X;
         m_buttons.Y  = !extension_data->buttons.Y;
 
-        m_buttons.L   = !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > 0x0f);
-        m_buttons.ZL  = !extension_data->buttons.ZL;
-        m_buttons.R  |= !extension_data->buttons.R | (extension_data->right_trigger > 0x0f);
-        m_buttons.ZR |= !extension_data->buttons.ZR;
+        m_buttons.L  = !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > 0x0f);
+        m_buttons.ZL = !extension_data->buttons.ZL;
+        m_buttons.R  = !extension_data->buttons.R | (extension_data->right_trigger > 0x0f);
+        m_buttons.ZR = !extension_data->buttons.ZR;
 
         m_buttons.minus |= !extension_data->buttons.minus;
         m_buttons.plus  |= !extension_data->buttons.plus;
@@ -467,10 +467,10 @@ namespace ams::controller {
         m_buttons.X  = !extension_data->buttons.X;
         m_buttons.Y  = !extension_data->buttons.Y;
 
-        m_buttons.L   = !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > 0x0f);
-        m_buttons.ZL  = !extension_data->buttons.ZL;
-        m_buttons.R  |= !extension_data->buttons.R | (extension_data->right_trigger > 0x0f);
-        m_buttons.ZR |= !extension_data->buttons.ZR;
+        m_buttons.L  = !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > 0x0f);
+        m_buttons.ZL = !extension_data->buttons.ZL;
+        m_buttons.R  = !extension_data->buttons.R | (extension_data->right_trigger > 0x0f);
+        m_buttons.ZR = !extension_data->buttons.ZR;
 
         m_buttons.minus |= !extension_data->buttons.minus;
         m_buttons.plus  |= !extension_data->buttons.plus;
