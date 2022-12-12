@@ -178,7 +178,7 @@ namespace ams::controller {
             m_buttons.A = buttons->A;
             m_buttons.B = buttons->B;
 
-            if (m_extension == WiiExtensionController_ClassicPro) {
+            if ((m_extension == WiiExtensionController_ClassicPro) || (m_extension == WiiExtensionController_MotionPlusClassicControllerPassthrough)) {
                 // Allow buttons one and two to be used for L3/R3 when Classic or Classic Pro controller connected
                 m_buttons.lstick_press = buttons->one;
                 m_buttons.rstick_press = buttons->two;
