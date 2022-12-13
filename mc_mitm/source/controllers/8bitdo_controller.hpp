@@ -179,8 +179,6 @@ namespace ams::controller {
                     m_controller_type = EightBitDoControllerType_Other;
             }
 
-            bool SupportsSetTsiCommand() { return m_controller_type != EightBitDoControllerType_Zero; }
-
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:

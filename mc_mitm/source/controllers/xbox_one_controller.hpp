@@ -145,8 +145,6 @@ namespace ams::controller {
             XboxOneController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
-            bool SupportsSetTsiCommand() { return false; }
-
             Result SetVibration(const SwitchRumbleData *rumble_data);
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

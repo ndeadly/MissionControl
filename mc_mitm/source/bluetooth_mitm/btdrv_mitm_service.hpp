@@ -25,7 +25,6 @@
     AMS_SF_METHOD_INFO(C, H, 19,    Result, WriteHidData,                     (ams::bluetooth::Address address, const sf::InPointerBuffer &buffer),                     (address, buffer))                                              \
     AMS_SF_METHOD_INFO(C, H, 20,    Result, WriteHidData2,                    (ams::bluetooth::Address address, const sf::InPointerBuffer &buffer),                     (address, buffer))                                              \
     AMS_SF_METHOD_INFO(C, H, 27,    Result, GetHidEventInfo,                  (sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer), (out_type, out_buffer))                                         \
-    AMS_SF_METHOD_INFO(C, H, 28,    Result, SetTsi,                           (ams::bluetooth::Address address, u8 tsi),                                                (address, tsi))                                                 \
     AMS_SF_METHOD_INFO(C, H, 37,    Result, RegisterHidReportEvent,           (sf::OutCopyHandle out_handle),                                                           (out_handle),           hos::Version_4_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 38,    Result, GetHidReportEventInfo,            (sf::OutCopyHandle out_handle),                                                           (out_handle),           hos::Version_7_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 46,    Result, InitializeBle,                    (sf::OutCopyHandle out_handle),                                                           (out_handle),           hos::Version_5_0_0)                     \
@@ -65,7 +64,6 @@ namespace ams::mitm::bluetooth {
             Result WriteHidData(ams::bluetooth::Address address, const sf::InPointerBuffer &buffer);
             Result WriteHidData2(ams::bluetooth::Address address, const sf::InPointerBuffer &buffer);
             Result GetHidEventInfo(sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer);
-            Result SetTsi(ams::bluetooth::Address address, u8 tsi);
             Result RegisterHidReportEvent(sf::OutCopyHandle out_handle);
             Result GetHidReportEventInfo(sf::OutCopyHandle out_handle);
             /* 5.0.0+ */

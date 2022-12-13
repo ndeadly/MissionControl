@@ -116,43 +116,6 @@ namespace ams::mitm::bluetooth {
         R_RETURN(ams::bluetooth::hid::GetEventInfo(out_type.GetPointer(), out_buffer.GetPointer(), out_buffer.GetSize()));
     }
 
-    Result BtdrvMitmService::SetTsi(ams::bluetooth::Address address, u8 tsi) {
-        auto device = controller::LocateHandler(&address);
-        if (!device || device->SupportsSetTsiCommand()) {
-            return sm::mitm::ResultShouldForwardToSession();
-        }
-
-        if (hos::GetVersion() < hos::Version_9_0_0) {
-            const struct {
-                u32 type;
-                ams::bluetooth::Address address;
-                u8 pad[2];
-                u32 status;
-            } event_data = {tsi == 0xff ? 1u : 0u, address, {0, 0}, 0};
-
-            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventTypeOld_Ext, &event_data, sizeof(event_data));
-        } else if (hos::GetVersion() < hos::Version_12_0_0) {
-            const struct {
-                u32 type;
-                u32 status;
-                ams::bluetooth::Address address;
-                u8 pad[2];
-            } event_data = {tsi == 0xff ? 1u : 0u, 0, address, {0, 0}};
-
-            ams::bluetooth::hid::SignalFakeEvent(BtdrvHidEventTypeOld_Ext, &event_data, sizeof(event_data));
-        } else {
-            const struct {
-                ams::bluetooth::Address address;
-                u8 flag;
-                u8 tsi;
-            } event_data = { address, 1, tsi };
-
-            ams::bluetooth::core::SignalFakeEvent(BtdrvEventType_Tsi, &event_data, sizeof(event_data));
-        }
-
-        R_SUCCEED();
-    }
-
     Result BtdrvMitmService::RegisterHidReportEvent(sf::OutCopyHandle out_handle) {
         if (!ams::bluetooth::hid::report::IsInitialized()) {
             // Forward to the real function to obtain the system event handle

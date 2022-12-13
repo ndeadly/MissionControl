@@ -75,8 +75,6 @@ namespace ams::controller {
             HyperkinController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
-            bool SupportsSetTsiCommand() { return false; }
-
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:

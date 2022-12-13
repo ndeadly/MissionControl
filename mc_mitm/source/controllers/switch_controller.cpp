@@ -65,22 +65,7 @@ namespace ams::controller {
     }
 
     Result SwitchController::Initialize() {
-        if (this->HasSetTsiDisableFlag()) {
-            m_settsi_supported = false;
-        }
-
         R_SUCCEED();
-    }
-
-    bool SwitchController::HasSetTsiDisableFlag() {
-        std::string flag_file = GetControllerDirectory(&m_address) + "/settsi_disable.flag";
-
-        bool file_exists;
-        if (R_SUCCEEDED(fs::HasFile(&file_exists, flag_file.c_str()))) {
-            return file_exists;
-        }
-
-        return false;
     }
 
     Result SwitchController::HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) {

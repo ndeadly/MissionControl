@@ -162,8 +162,6 @@ namespace ams::controller {
             SteelseriesController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
-            bool SupportsSetTsiCommand() { return !(m_id.pid == 0x1412); }
-
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:

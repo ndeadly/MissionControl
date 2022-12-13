@@ -339,7 +339,6 @@ namespace ams::controller {
             SwitchController(const bluetooth::Address *address, HardwareID id)
             : m_address(*address)
             , m_id(id)
-            , m_settsi_supported(true)
             , m_input_mutex(false)
             , m_output_mutex(false) { }
 
@@ -348,7 +347,6 @@ namespace ams::controller {
             const bluetooth::Address& Address() const { return m_address; }
 
             virtual bool IsOfficialController() { return true; }
-            virtual bool SupportsSetTsiCommand() { return m_settsi_supported; }
 
             virtual Result Initialize();
 
@@ -356,8 +354,6 @@ namespace ams::controller {
             virtual Result HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual Result HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual Result HandleOutputDataReport(const bluetooth::HidReport *report);
-        private:
-            bool HasSetTsiDisableFlag();
 
         protected:
             Result WriteDataReport(const bluetooth::HidReport *report);
@@ -370,8 +366,6 @@ namespace ams::controller {
 
             bluetooth::Address m_address;
             HardwareID m_id;
-
-            bool m_settsi_supported;
 
             os::Mutex m_input_mutex;
             bluetooth::HidReport m_input_report;

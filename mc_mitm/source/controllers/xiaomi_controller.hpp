@@ -91,8 +91,6 @@ namespace ams::controller {
             XiaomiController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
-            bool SupportsSetTsiCommand() { return false; }
-
             Result Initialize();
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
