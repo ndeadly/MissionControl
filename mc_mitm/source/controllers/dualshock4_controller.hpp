@@ -192,6 +192,7 @@ namespace ams::controller {
                 {0x054c, 0x05c4},   // Official Dualshock4 v1
                 {0x054c, 0x09cc},   // Official Dualshock4 v2
                 {0x0f0d, 0x00f6},   // Hori ONYX
+                {0x1532, 0x1009},   // Razer Raiju Ultimate
                 {0x1532, 0x100a}    // Razer Raiju Tournament
             };
 
