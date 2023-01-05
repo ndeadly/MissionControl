@@ -38,7 +38,7 @@ namespace ams::controller {
     void AtGamesController::MapInputReport0x01(const AtGamesReportData *src) {
         if (!m_arcadepanel) {
             // Checking if any of the optional Arcade Control Panel buttons are pressed and and switching the mapping
-            if (src->input0x01.a_button || src->input0x01.b_button || src->input0x01.c_button || src->input0x01.x_button || src->input0x01.y_button || src->input0x01.z_button)
+            if (src->input0x01.a_button || src->input0x01.b_button || src->input0x01.c_button || src->input0x01.x_button || src->input0x01.y_button || src->input0x01.z_button) {
                 m_arcadepanel = true;
             }
             m_left_stick.SetData(
