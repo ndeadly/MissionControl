@@ -101,9 +101,9 @@ namespace ams::controller {
             m_buttons.X = src->input0x01.x_button;
             m_buttons.Y = src->input0x01.y_button;
 
-            m_buttons.R  = src->input0x01.z_button;
+            m_buttons.R  = src->input0x01.c_button;
             m_buttons.ZR = src->input0x01.flipper_right;
-            m_buttons.L  = src->input0x01.c_button;
+            m_buttons.L  = src->input0x01.z_button;
             m_buttons.ZL = src->input0x01.flipper_left; 
 
             m_buttons.minus = src->input0x01.rewind;
