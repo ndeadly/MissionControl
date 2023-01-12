@@ -152,7 +152,8 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
-                {0x054c, 0x0ce6}    // Sony Dualsense Controller
+                {0x054c, 0x0ce6},   // Sony Dualsense Controller
+                {0x054c, 0x0df2}    // Sony Dualsense Edge Controller
             };
 
             DualsenseController(const bluetooth::Address *address, HardwareID id)
