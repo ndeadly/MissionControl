@@ -76,13 +76,14 @@ namespace ams::controller {
             };
 
             AtGamesController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            : EmulatedSwitchController(address, id), m_arcadepanel(false) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
             void MapInputReport0x01(const AtGamesReportData *src);
-            bool m_arcadepanel = false;
+        
+            bool m_arcadepanel;
 
     };
 
