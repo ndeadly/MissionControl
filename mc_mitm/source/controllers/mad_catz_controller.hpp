@@ -73,11 +73,87 @@ namespace ams::controller {
         uint8_t             : 0;
     } __attribute__ ((__packed__)); 
 
+    struct MadCatzInputReport0x81 {
+        struct {
+            union {
+                struct {
+                    uint8_t A      : 1;
+                    uint8_t B      : 1;
+                    uint8_t X      : 1;
+                    uint8_t Y      : 1;
+                    uint8_t L1     : 1;
+                    uint8_t R1     : 1;
+                    uint8_t select : 1;
+                    uint8_t start  : 1;
+
+                    uint8_t L3     : 1;
+                    uint8_t R3     : 1;
+                    uint8_t        : 0;
+                };
+
+                struct {
+                    uint8_t A     : 1;
+                    uint8_t B     : 1;
+                    uint8_t       : 1;
+                    uint8_t X     : 1;
+                    uint8_t Y     : 1;
+                    uint8_t       : 1;
+                    uint8_t L1    : 1;
+                    uint8_t R1    : 1;
+
+                    uint8_t       : 3;
+                    uint8_t start : 1;
+                    uint8_t       : 1;
+                    uint8_t L3    : 1;
+                    uint8_t R3    : 1;
+                    uint8_t       : 0;
+                } xinput;
+            };
+
+            uint8_t dpad;
+        } buttons;
+        MadCatzStickData left_stick;
+        MadCatzStickData right_stick;
+        uint8_t left_trigger;
+        uint8_t right_trigger;
+        uint8_t reserved;
+    } __attribute__ ((__packed__));
+
+    struct MadCatzInputReport0x82 {
+        struct {
+            uint8_t        : 2;
+            uint8_t R1     : 1;
+            uint8_t L1     : 1;
+            uint8_t Y      : 1;
+            uint8_t B      : 1;
+            uint8_t X      : 1;
+            uint8_t select : 1;
+
+            uint8_t dpad;
+        } buttons;
+        uint8_t reserved;
+    } __attribute__ ((__packed__));
+
+    struct MadCatzInputReport0x83 {
+        struct {
+            uint8_t R2 : 1;
+            uint8_t L2 : 1;
+            uint8_t R3 : 1;
+            uint8_t L3 : 1;
+            uint8_t    : 0;
+        } buttons;
+        MadCatzStickData left_stick;
+        uint8_t reserved[2];
+    } __attribute__ ((__packed__));
+
     struct MadCatzReportData {
         uint8_t id;
         union {
             MadCatzInputReport0x01 input0x01;
             MadCatzInputReport0x02 input0x02;
+            MadCatzInputReport0x81 input0x81;
+            MadCatzInputReport0x82 input0x82;
+            MadCatzInputReport0x83 input0x83;
         };
     } __attribute__((packed));
 
@@ -86,7 +162,8 @@ namespace ams::controller {
         public:
             static constexpr const HardwareID hardware_ids[] = {
                 {0x0738, 0x5266},   // Mad Catz C.T.R.L.R
-                {0x0738, 0x5250}    // Mad Catz C.T.R.L.R for Samsung
+                {0x0738, 0x5250},   // Mad Catz C.T.R.L.R for Samsung
+                {0x0738, 0x5269}    // Mad Catz L.Y.N.X. 3
             };  
 
             MadCatzController(const bluetooth::Address *address, HardwareID id)
@@ -97,6 +174,9 @@ namespace ams::controller {
         private:
             void MapInputReport0x01(const MadCatzReportData *src);
             void MapInputReport0x02(const MadCatzReportData *src);
+            void MapInputReport0x81(const MadCatzReportData *src);
+            void MapInputReport0x82(const MadCatzReportData *src);
+            void MapInputReport0x83(const MadCatzReportData *src);
 
     };
 
