@@ -183,7 +183,7 @@ namespace ams::controller {
                 break;
             case 0x11:
                 R_TRY(this->HandleRumbleData(&output_report->rumble_data));
-                R_TRY(this->HandleNfcIrData(output_report->type0x11.nfc_ir_data));
+                //R_TRY(this->HandleNfcIrData(output_report->type0x11.nfc_ir_data));
                 break;
             default:
                 break;
