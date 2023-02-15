@@ -34,10 +34,17 @@ Result btdrvInitializeHidFwd(Service* srv, Handle *out_handle, u16 version) {
     );
 }
 
-Result btdrvWriteHidDataFwd(Service* srv, const BtdrvAddress *address, const BtdrvHidReport *data) {
+Result btdrvWriteHidDataFwd(Service* srv, const BtdrvAddress *address, const BtdrvHidReport *report) {
     return serviceMitmDispatchIn(srv, 19, *address,
         .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_In },
-        .buffers = { {data, sizeof(BtdrvHidReport)} }
+        .buffers = { {report, sizeof(BtdrvHidReport)} }
+    );
+}
+
+Result btdrvWriteHidData2Fwd(Service* srv, const BtdrvAddress *address, const void *data, size_t size) {
+    return serviceMitmDispatchIn(srv, 20, *address,
+        .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_In },
+        .buffers = { {data, size} }
     );
 }
 
