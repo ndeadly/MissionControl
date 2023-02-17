@@ -38,16 +38,19 @@ namespace ams::controller {
     struct AtGamesInputReport0x01 {
         uint8_t rewind          : 1;
         uint8_t nudge_front     : 1;
-        uint8_t                 : 2;
+        uint8_t b_button        : 1;
+        uint8_t y_button        : 1;
         uint8_t nudge_left      : 1;
         uint8_t flipper_right   : 1;
-        uint8_t                 : 1;
+        uint8_t x_button        : 1;
         uint8_t play            : 1;
 
-        uint8_t                 : 1;
+        uint8_t a_button        : 1;
         uint8_t home_twirl      : 1;
         uint8_t flipper_left    : 1;
         uint8_t nudge_right     : 1;
+        uint8_t z_button        : 1;
+        uint8_t c_button        : 1;
         uint8_t                 : 0;
 
         uint8_t unk1[2];
@@ -73,12 +76,14 @@ namespace ams::controller {
             };
 
             AtGamesController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            : EmulatedSwitchController(address, id), m_arcadepanel(false) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
             void MapInputReport0x01(const AtGamesReportData *src);
+        
+            bool m_arcadepanel;
 
     };
 
