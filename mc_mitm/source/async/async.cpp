@@ -23,7 +23,7 @@ namespace ams::async {
         const size_t ThreadStackSize = 0x2000;
         const s32 ThreadPriority = 10;
 
-        alignas(os::MemoryPageSize) uint8_t g_thread_stacks[ThreadCount][ThreadStackSize];
+        alignas(os::MemoryPageSize) u8 g_thread_stacks[ThreadCount][ThreadStackSize];
         os::ThreadType g_thread_pool[ThreadCount];
 
         const size_t MessageBufferSize = 32;
@@ -61,7 +61,7 @@ namespace ams::async {
             os::StartThread(&g_thread_pool[i]);
         }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void Finalize() {

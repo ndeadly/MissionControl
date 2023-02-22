@@ -19,57 +19,57 @@
 namespace ams::controller {
 
     struct OuyaStickData {
-        uint16_t x;
-        uint16_t y;
+        u16 x;
+        u16 y;
     } __attribute__ ((__packed__));
 
     struct OuyaButtonData {
-        uint8_t O             : 1;
-        uint8_t U             : 1;
-        uint8_t Y             : 1;
-        uint8_t A             : 1;
-        uint8_t LB            : 1;
-        uint8_t RB            : 1;
-        uint8_t LS            : 1;
-        uint8_t RS            : 1;
+        u8 O            : 1;
+        u8 U            : 1;
+        u8 Y            : 1;
+        u8 A            : 1;
+        u8 LB           : 1;
+        u8 RB           : 1;
+        u8 LS           : 1;
+        u8 RS           : 1;
 
-        uint8_t dpad_up       : 1;
-        uint8_t dpad_down     : 1;
-        uint8_t dpad_left     : 1;
-        uint8_t dpad_right    : 1;
-        uint8_t LT            : 1;
-        uint8_t RT            : 1;
-        uint8_t center_press  : 1;
-        uint8_t center_hold   : 1;
+        u8 dpad_up      : 1;
+        u8 dpad_down    : 1;
+        u8 dpad_left    : 1;
+        u8 dpad_right   : 1;
+        u8 LT           : 1;
+        u8 RT           : 1;
+        u8 center_press : 1;
+        u8 center_hold  : 1;
     } __attribute__ ((__packed__));
 
     struct OuyaInputReport0x03 {
-        uint8_t battery;
-        uint8_t _unk[6];
-    } __attribute__((packed));
+        u8 battery;
+        u8 _unk[6];
+    } PACKED;
 
     struct OuyaInputReport0x07 {
-        OuyaStickData   left_stick;
-        OuyaStickData   right_stick;
-        uint16_t        left_trigger;
-        uint16_t        right_trigger;
-        OuyaButtonData  buttons;
-    } __attribute__((packed));
+        OuyaStickData left_stick;
+        OuyaStickData right_stick;
+        u16 left_trigger;
+        u16 right_trigger;
+        OuyaButtonData buttons;
+    } PACKED;
 
     struct OuyaReportData {
-        uint8_t id;
+        u8 id;
         union {
-            OuyaInputReport0x03  input0x03;
-            OuyaInputReport0x07  input0x07;
+            OuyaInputReport0x03 input0x03;
+            OuyaInputReport0x07 input0x07;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class OuyaController : public EmulatedSwitchController {
+    class OuyaController final : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
                 {0x2836, 0x0001}
-            };  
+            };
 
             OuyaController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }

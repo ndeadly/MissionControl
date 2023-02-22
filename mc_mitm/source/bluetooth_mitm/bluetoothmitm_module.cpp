@@ -82,7 +82,7 @@ namespace ams::mitm::bluetooth {
         os::SetThreadNamePointer(&g_thread, "mc::BtdrvMitmThread");
         os::StartThread(&g_thread);
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void WaitFinished() {

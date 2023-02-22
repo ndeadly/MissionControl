@@ -43,26 +43,26 @@ namespace ams::controller {
 
     void SteelseriesController::MapInputReport0x01(const SteelseriesReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x01.left_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x01.left_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x01.left_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x01.left_stick.y + 1)) + 0x7ff) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input0x01.right_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX + static_cast<int8_t>(~src->input0x01.right_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x01.right_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x01.right_stick.y + 1)) + 0x7ff) & 0xfff
         );
 
-        m_buttons.dpad_down   = (src->input0x01.dpad == SteelseriesDPad_S)  ||
-                                (src->input0x01.dpad == SteelseriesDPad_SE) ||
-                                (src->input0x01.dpad == SteelseriesDPad_SW);
-        m_buttons.dpad_up     = (src->input0x01.dpad == SteelseriesDPad_N)  ||
-                                (src->input0x01.dpad == SteelseriesDPad_NE) ||
-                                (src->input0x01.dpad == SteelseriesDPad_NW);
-        m_buttons.dpad_right  = (src->input0x01.dpad == SteelseriesDPad_E)  ||
-                                (src->input0x01.dpad == SteelseriesDPad_NE) ||
-                                (src->input0x01.dpad == SteelseriesDPad_SE);
-        m_buttons.dpad_left   = (src->input0x01.dpad == SteelseriesDPad_W)  ||
-                                (src->input0x01.dpad == SteelseriesDPad_NW) ||
-                                (src->input0x01.dpad == SteelseriesDPad_SW);
+        m_buttons.dpad_down  = (src->input0x01.dpad == SteelseriesDPad_S)  ||
+                               (src->input0x01.dpad == SteelseriesDPad_SE) ||
+                               (src->input0x01.dpad == SteelseriesDPad_SW);
+        m_buttons.dpad_up    = (src->input0x01.dpad == SteelseriesDPad_N)  ||
+                               (src->input0x01.dpad == SteelseriesDPad_NE) ||
+                               (src->input0x01.dpad == SteelseriesDPad_NW);
+        m_buttons.dpad_right = (src->input0x01.dpad == SteelseriesDPad_E)  ||
+                               (src->input0x01.dpad == SteelseriesDPad_NE) ||
+                               (src->input0x01.dpad == SteelseriesDPad_SE);
+        m_buttons.dpad_left  = (src->input0x01.dpad == SteelseriesDPad_W)  ||
+                               (src->input0x01.dpad == SteelseriesDPad_NW) ||
+                               (src->input0x01.dpad == SteelseriesDPad_SW);
 
         m_buttons.A = src->input0x01.buttons.B;
         m_buttons.B = src->input0x01.buttons.A;
@@ -82,26 +82,26 @@ namespace ams::controller {
 
     void SteelseriesController::MapInputReport0xc4(const SteelseriesReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0xc4.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0xc4.left_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0xc4.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0xc4.right_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & 0xfff
         );
 
-        m_buttons.dpad_down   = (src->input0xc4.dpad == SteelseriesDPad2_S)  ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_SE) ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_SW);
-        m_buttons.dpad_up     = (src->input0xc4.dpad == SteelseriesDPad2_N)  ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_NE) ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_NW);
-        m_buttons.dpad_right  = (src->input0xc4.dpad == SteelseriesDPad2_E)  ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_NE) ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_SE);
-        m_buttons.dpad_left   = (src->input0xc4.dpad == SteelseriesDPad2_W)  ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_NW) ||
-                                (src->input0xc4.dpad == SteelseriesDPad2_SW);
+        m_buttons.dpad_down  = (src->input0xc4.dpad == SteelseriesDPad2_S)  ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_SE) ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_SW);
+        m_buttons.dpad_up    = (src->input0xc4.dpad == SteelseriesDPad2_N)  ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_NE) ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_NW);
+        m_buttons.dpad_right = (src->input0xc4.dpad == SteelseriesDPad2_E)  ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_NE) ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_SE);
+        m_buttons.dpad_left  = (src->input0xc4.dpad == SteelseriesDPad2_W)  ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_NW) ||
+                               (src->input0xc4.dpad == SteelseriesDPad2_SW);
 
         m_buttons.A = src->input0xc4.buttons.B;
         m_buttons.B = src->input0xc4.buttons.A;
@@ -122,12 +122,12 @@ namespace ams::controller {
 
     void SteelseriesController::MapMfiInputReport(const SteelseriesReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (-static_cast<int8_t>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (-static_cast<s8>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * -static_cast<int8_t>(~src->input_mfi.right_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (-static_cast<int8_t>(~src->input_mfi.right_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input_mfi.right_stick.x + 1) + 0x7ff) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (-static_cast<s8>(~src->input_mfi.right_stick.y + 1)) + 0x7ff) & 0xfff
         );
 
         m_buttons.dpad_up    = src->input_mfi.buttons.dpad_up > 0;

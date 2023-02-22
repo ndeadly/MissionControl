@@ -25,7 +25,7 @@ namespace ams::bluetooth::events {
 
         const s32 ThreadPriority = 9;
         const size_t ThreadStackSize = 0x2000;
-        alignas(os::ThreadStackAlignment) uint8_t g_thread_stack[ThreadStackSize];
+        alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
         os::ThreadType g_thread;
 
         os::MultiWaitType g_manager;
@@ -53,7 +53,7 @@ namespace ams::bluetooth::events {
                 os::LinkMultiWaitHolder(&g_manager, &g_holder_bt_ble);
             }
 
-            for (;;) {               
+            for (;;) {
                 auto signalled_holder = os::WaitAny(&g_manager);
                 switch (os::GetMultiWaitHolderUserData(signalled_holder)) {
                     case BtdrvEventType_BluetoothCore:
@@ -88,7 +88,7 @@ namespace ams::bluetooth::events {
         os::SetThreadNamePointer(&g_thread, "mc::EventThread");
         os::StartThread(&g_thread);
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void Finalize() {

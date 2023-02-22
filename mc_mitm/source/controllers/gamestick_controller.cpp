@@ -21,7 +21,7 @@ namespace ams::controller {
     namespace {
 
         const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
-        
+
     }
 
     void GamestickController::ProcessInputData(const bluetooth::HidReport *report) {
@@ -44,26 +44,26 @@ namespace ams::controller {
 
     void GamestickController::MapInputReport0x03(const GamestickReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x03.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & 0xfff
         );
         
-        m_buttons.dpad_down   = (src->input0x03.dpad == GamestickDPad_S)  ||
-                                (src->input0x03.dpad == GamestickDPad_SE) ||
-                                (src->input0x03.dpad == GamestickDPad_SW);
-        m_buttons.dpad_up     = (src->input0x03.dpad == GamestickDPad_N)  ||
-                                (src->input0x03.dpad == GamestickDPad_NE) ||
-                                (src->input0x03.dpad == GamestickDPad_NW);
-        m_buttons.dpad_right  = (src->input0x03.dpad == GamestickDPad_E)  ||
-                                (src->input0x03.dpad == GamestickDPad_NE) ||
-                                (src->input0x03.dpad == GamestickDPad_SE);
-        m_buttons.dpad_left   = (src->input0x03.dpad == GamestickDPad_W)  ||
-                                (src->input0x03.dpad == GamestickDPad_NW) ||
-                                (src->input0x03.dpad == GamestickDPad_SW);
+        m_buttons.dpad_down  = (src->input0x03.dpad == GamestickDPad_S)  ||
+                               (src->input0x03.dpad == GamestickDPad_SE) ||
+                               (src->input0x03.dpad == GamestickDPad_SW);
+        m_buttons.dpad_up    = (src->input0x03.dpad == GamestickDPad_N)  ||
+                               (src->input0x03.dpad == GamestickDPad_NE) ||
+                               (src->input0x03.dpad == GamestickDPad_NW);
+        m_buttons.dpad_right = (src->input0x03.dpad == GamestickDPad_E)  ||
+                               (src->input0x03.dpad == GamestickDPad_NE) ||
+                               (src->input0x03.dpad == GamestickDPad_SE);
+        m_buttons.dpad_left  = (src->input0x03.dpad == GamestickDPad_W)  ||
+                               (src->input0x03.dpad == GamestickDPad_NW) ||
+                               (src->input0x03.dpad == GamestickDPad_SW);
         
         m_buttons.A = src->input0x03.buttons.B;
         m_buttons.B = src->input0x03.buttons.A;
@@ -82,7 +82,7 @@ namespace ams::controller {
             m_buttons.R = !m_buttons.ZR;
         }
 
-        m_buttons.plus  = src->input0x03.buttons.start;
+        m_buttons.plus = src->input0x03.buttons.start;
 
         m_buttons.lstick_press = src->input0x03.buttons.lstick_press;
         m_buttons.rstick_press = src->input0x03.buttons.rstick_press;

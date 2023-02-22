@@ -72,7 +72,7 @@ namespace ams::mitm::mc {
         os::SetThreadNamePointer(&g_thread, "mc::MissionControlThread");
         os::StartThread(&g_thread);
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void WaitFinished() {

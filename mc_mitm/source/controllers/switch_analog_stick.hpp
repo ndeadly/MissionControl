@@ -18,27 +18,27 @@
 
 namespace ams::controller {
 
-    constexpr auto UINT12_MAX  = 0xfff;
-    constexpr auto STICK_ZERO  = 0x800;
+    constexpr auto UINT12_MAX = 0xfff;
+    constexpr auto STICK_ZERO = 0x800;
 
     struct SwitchAnalogStick {
-        void SetData(uint16_t x, uint16_t y);
-        void SetX(uint16_t x);
-        void SetY(uint16_t y);
-        uint16_t GetX();
-        uint16_t GetY();
+        void SetData(u16 x, u16 y);
+        void SetX(u16 x);
+        void SetY(u16 y);
+        u16 GetX();
+        u16 GetY();
         void InvertX();
         void InvertY();
 
-        uint8_t m_xy[3];
+        u8 m_xy[3];
     };
 
     struct SwitchAnalogStickFactoryCalibration {
-        uint8_t calib[9];
+        u8 calib[9];
     };
 
     struct SwitchAnalogStickParameters {
-        uint8_t stickvalues[18];
+        u8 stickvalues[18];
     };
 
 }

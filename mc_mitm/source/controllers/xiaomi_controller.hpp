@@ -31,64 +31,64 @@ namespace ams::controller {
     };
 
     struct XiaomiStickData {
-        uint8_t x;
-        uint8_t y;
-    } __attribute__((packed));
+        u8 x;
+        u8 y;
+    } PACKED;
 
     struct XiaomiButtonData {
-        uint8_t A            : 1;
-        uint8_t B            : 1;
-        uint8_t              : 1;
-        uint8_t X            : 1;
-        uint8_t Y            : 1;
-        uint8_t              : 1;
-        uint8_t L1           : 1;
-        uint8_t R1           : 1;
+        u8 A            : 1;
+        u8 B            : 1;
+        u8              : 1;
+        u8 X            : 1;
+        u8 Y            : 1;
+        u8              : 1;
+        u8 L1           : 1;
+        u8 R1           : 1;
 
-        uint8_t L2           : 1;
-        uint8_t R2           : 1;
-        uint8_t back         : 1;
-        uint8_t menu         : 1;
-        uint8_t              : 1;
-        uint8_t lstick_press : 1;
-        uint8_t rstick_press : 1;
-        uint8_t              : 0;
+        u8 L2           : 1;
+        u8 R2           : 1;
+        u8 back         : 1;
+        u8 menu         : 1;
+        u8              : 1;
+        u8 lstick_press : 1;
+        u8 rstick_press : 1;
+        u8              : 0;
 
-        uint8_t _unk;
-        
-        uint8_t dpad;
-    } __attribute__((packed));
+        u8 _unk;
+
+        u8 dpad;
+    } PACKED;
 
     struct XiaomiInputReport0x04 {
         XiaomiButtonData buttons;
-        XiaomiStickData  left_stick;
-        XiaomiStickData  right_stick;
-        uint8_t  _unk0[2];
-        uint8_t  left_trigger;
-        uint8_t  right_trigger;
-        uint16_t accel_x;
-        uint16_t accel_y;
-        uint16_t accel_z;
-        uint8_t  battery;
-        uint8_t  home   : 1;
-        uint8_t         : 0;
-    } __attribute__((packed));
+        XiaomiStickData left_stick;
+        XiaomiStickData right_stick;
+        u8 _unk0[2];
+        u8 left_trigger;
+        u8 right_trigger;
+        u16 accel_x;
+        u16 accel_y;
+        u16 accel_z;
+        u8 battery;
+        u8 home : 1;
+        u8      : 0;
+    } PACKED;
 
     struct XiaomiReportData {
-        uint8_t id;
+        u8 id;
         union {
             XiaomiInputReport0x04 input0x04;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class XiaomiController : public EmulatedSwitchController {
+    class XiaomiController final : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
                 {0x2717, 0x3144}    // Xiaomi Mi Controller
-            };  
+            };
 
-            XiaomiController(const bluetooth::Address *address, HardwareID id) 
+            XiaomiController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand() { return false; }

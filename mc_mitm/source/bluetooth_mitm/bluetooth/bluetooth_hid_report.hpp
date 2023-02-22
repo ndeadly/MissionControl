@@ -39,7 +39,7 @@ namespace ams::bluetooth::hid::report {
     Result InitializeReportBuffer();
 
     Result WriteHidDataReport(const bluetooth::Address address, const bluetooth::HidReport *report);
-    Result WriteHidSetReport(const bluetooth::Address address, uint32_t status);
+    Result WriteHidSetReport(const bluetooth::Address address, u32 status);
     Result WriteHidGetReport(const bluetooth::Address address, const bluetooth::HidReport *report);
 
     Result GetEventInfo(bluetooth::HidEventType *type, void *buffer, size_t size);

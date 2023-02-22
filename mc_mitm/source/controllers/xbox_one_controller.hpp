@@ -37,69 +37,68 @@ namespace ams::controller {
     };
 
     struct XboxOneStickData {
-        uint16_t x;
-        uint16_t y;
+        u16 x;
+        u16 y;
     } __attribute__ ((__packed__));
 
     // Used on older firmware
     struct XboxOneButtonDataOld {
-        uint8_t      dpad;
+        u8      dpad;
 
-        uint8_t A            : 1;
-        uint8_t B            : 1;
-        uint8_t X            : 1;
-        uint8_t Y            : 1;
-        uint8_t LB           : 1;
-        uint8_t RB           : 1;
-        uint8_t view         : 1;
-        uint8_t menu         : 1;
+        u8 A            : 1;
+        u8 B            : 1;
+        u8 X            : 1;
+        u8 Y            : 1;
+        u8 LB           : 1;
+        u8 RB           : 1;
+        u8 view         : 1;
+        u8 menu         : 1;
 
-        uint8_t lstick_press : 1;
-        uint8_t rstick_press : 1;
-        uint8_t              : 0;
+        u8 lstick_press : 1;
+        u8 rstick_press : 1;
+        u8              : 0;
     } __attribute__ ((__packed__));
 
     // Used on latest firmwares
     struct XboxOneButtonData {
-        uint8_t      dpad;
+        u8      dpad;
 
-        uint8_t A            : 1;
-        uint8_t B            : 1;
-        uint8_t              : 1;
-        uint8_t X            : 1;
-        uint8_t Y            : 1;
-        uint8_t              : 1;
-        uint8_t LB           : 1;
-        uint8_t RB           : 1;
+        u8 A            : 1;
+        u8 B            : 1;
+        u8              : 1;
+        u8 X            : 1;
+        u8 Y            : 1;
+        u8              : 1;
+        u8 LB           : 1;
+        u8 RB           : 1;
 
-        uint8_t              : 3;
-        uint8_t menu         : 1;
-        uint8_t guide        : 1;
-        uint8_t lstick_press : 1;
-        uint8_t rstick_press : 1;
-        uint8_t              : 0;
+        u8              : 3;
+        u8 menu         : 1;
+        u8 guide        : 1;
+        u8 lstick_press : 1;
+        u8 rstick_press : 1;
+        u8              : 0;
 
-        uint8_t view         : 1;
-        uint8_t              : 0;
-
+        u8 view         : 1;
+        u8              : 0;
     } __attribute__ ((__packed__));
 
     struct XboxOneOutputReport0x03 {
-        uint8_t enable;
-        uint8_t magnitude_left;
-        uint8_t magnitude_right;
-        uint8_t magnitude_strong;
-        uint8_t magnitude_weak;
-        uint8_t pulse_sustain_10ms;
-        uint8_t pulse_release_10ms;
-        uint8_t loop_count;
+        u8 enable;
+        u8 magnitude_left;
+        u8 magnitude_right;
+        u8 magnitude_strong;
+        u8 magnitude_weak;
+        u8 pulse_sustain_10ms;
+        u8 pulse_release_10ms;
+        u8 loop_count;
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x01 {
         XboxOneStickData left_stick;
         XboxOneStickData right_stick;
-        uint16_t         left_trigger;
-        uint16_t         right_trigger;
+        u16 left_trigger;
+        u16 right_trigger;
         union {
             XboxOneButtonData buttons;
 
@@ -110,40 +109,40 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x02{
-        uint8_t guide   : 1;
-        uint8_t         : 0; 
+        u8 guide : 1;
+        u8       : 0;
     } __attribute__ ((__packed__));
 
     struct XboxOneInputReport0x04 {
-        uint8_t capacity : 2;
-        uint8_t mode     : 2;
-        uint8_t charging : 1;
-        uint8_t          : 2;
-        uint8_t online   : 1;
+        u8 capacity : 2;
+        u8 mode     : 2;
+        u8 charging : 1;
+        u8          : 2;
+        u8 online   : 1;
     } __attribute__ ((__packed__));
  
     struct XboxOneReportData {
-        uint8_t id;
+        u8 id;
         union {
             XboxOneOutputReport0x03 output0x03;
-            XboxOneInputReport0x01  input0x01;
-            XboxOneInputReport0x02  input0x02;
-            XboxOneInputReport0x04  input0x04;
+            XboxOneInputReport0x01 input0x01;
+            XboxOneInputReport0x02 input0x02;
+            XboxOneInputReport0x04 input0x04;
         };
     } __attribute__ ((__packed__));
 
-    class XboxOneController : public EmulatedSwitchController {
+    class XboxOneController final : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x045e, 0x02e0},   // Official Xbox One S Controller
                 {0x045e, 0x02fd},   // Official Xbox One S Controller
                 {0x045e, 0x0b00},   // Official Xbox One Elite 2 Controller
                 {0x045e, 0x0b05},   // Official Xbox One Elite 2 Controller
                 {0x045e, 0x0b0a}    // Official Xbox Adaptive Controller
-            };  
+            };
 
-            XboxOneController(const bluetooth::Address *address, HardwareID id) 
+            XboxOneController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand() { return false; }

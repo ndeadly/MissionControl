@@ -73,7 +73,7 @@ namespace ams::bluetooth::hid {
 
         g_data_read_event.Signal();
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     inline void HandleConnectionStateEventV1(bluetooth::HidEventInfo *event_info) {

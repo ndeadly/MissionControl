@@ -33,10 +33,10 @@ namespace ams::controller {
             "MD/Gen Control Pad",
         };
 
-        constexpr auto cod_major_peripheral  = 0x05;
-        constexpr auto cod_minor_gamepad     = 0x08;
-        constexpr auto cod_minor_joystick    = 0x04;
-        constexpr auto cod_minor_keyboard    = 0x40;
+        constexpr auto cod_major_peripheral = 0x05;
+        constexpr auto cod_minor_gamepad    = 0x08;
+        constexpr auto cod_minor_joystick   = 0x04;
+        constexpr auto cod_minor_keyboard   = 0x40;
 
         os::Mutex g_controller_lock(false);
         std::vector<std::shared_ptr<SwitchController>> g_controllers;
@@ -117,8 +117,8 @@ namespace ams::controller {
         for (auto hwId : NvidiaShieldController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_NvidiaShield;
-			}
-		}
+          }
+        }
 
         for (auto hwId : EightBitDoController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
@@ -156,13 +156,13 @@ namespace ams::controller {
             }
         }
 
-		for (auto hwId : LanShenController::hardware_ids) {
+        for (auto hwId : LanShenController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_LanShen;
             }
         }
 
-		for (auto hwId : AtGamesController::hardware_ids) {
+        for (auto hwId : AtGamesController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_AtGames;
             }
@@ -297,9 +297,9 @@ namespace ams::controller {
         std::scoped_lock lk(g_controller_lock);
 
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
-                if (utils::BluetoothAddressCompare(&(*it)->Address(), address)) {
-                    return (*it);
-                }
+            if (utils::BluetoothAddressCompare(&(*it)->Address(), address)) {
+                return (*it);
+            }
         }
 
         return nullptr;

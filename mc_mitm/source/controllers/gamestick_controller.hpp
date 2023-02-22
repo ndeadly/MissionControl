@@ -31,58 +31,58 @@ namespace ams::controller {
     };
 
     struct GamestickStickData {
-        uint8_t x;
-        uint8_t y;
-    } __attribute__((packed));
+        u8 x;
+        u8 y;
+    } PACKED;
 
     struct GamestickInputReport0x01 {
-        uint8_t _unk0;
+        u8 _unk0;
 
         struct {
-            uint8_t         : 4;
-            uint8_t home    : 1;
-            uint8_t back    : 1;
-            uint8_t         : 0;
+            u8      : 4;
+            u8 home : 1;
+            u8 back : 1;
+            u8      : 0;
         } buttons;
 
-        uint8_t _unk1[6];
-    } __attribute__((packed));
+        u8 _unk1[6];
+    } PACKED;
 
     struct GamestickInputReport0x03 {
-        uint8_t dpad;
+        u8 dpad;
         GamestickStickData left_stick;
         GamestickStickData right_stick;
-        uint8_t _unk0[2];
+        u8 _unk0[2];
         
         struct {
-            uint8_t A   : 1;
-            uint8_t B   : 1;
-            uint8_t     : 1;
-            uint8_t X   : 1;
-            uint8_t Y   : 1;
-            uint8_t     : 1;
-            uint8_t L   : 1;
-            uint8_t R   : 1;
+            u8 A            : 1;
+            u8 B            : 1;
+            u8              : 1;
+            u8 X            : 1;
+            u8 Y            : 1;
+            u8              : 1;
+            u8 L            : 1;
+            u8 R            : 1;
 
-            uint8_t              : 3;
-            uint8_t start        : 1;
-            uint8_t              : 1;
-            uint8_t lstick_press : 1;
-            uint8_t rstick_press : 1; 
-            uint8_t              : 1;
+            u8              : 3;
+            u8 start        : 1;
+            u8              : 1;
+            u8 lstick_press : 1;
+            u8 rstick_press : 1; 
+            u8              : 1;
         } buttons;
 
-    } __attribute__((packed));
+    } PACKED;
 
     struct GamestickReportData {
-        uint8_t id;
+        u8 id;
         union {
             GamestickInputReport0x01 input0x01;
             GamestickInputReport0x03 input0x03;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class GamestickController : public EmulatedSwitchController {
+    class GamestickController final : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {

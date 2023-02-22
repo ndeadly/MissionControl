@@ -49,19 +49,19 @@ namespace ams::controller {
         // Make sure that all memory regions that we care about are initialised with defaults
         R_TRY(this->EnsureInitialized());
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result VirtualSpiFlash::Read(int offset, void *data, size_t size) {
-        return fs::ReadFile(m_virtual_memory_file, offset, data, size);
+        R_RETURN(fs::ReadFile(m_virtual_memory_file, offset, data, size));
     }
 
     Result VirtualSpiFlash::Write(int offset, const void *data, size_t size) {
-        return fs::WriteFile(m_virtual_memory_file, offset, data, size, fs::WriteOption::Flush);
+        R_RETURN(fs::WriteFile(m_virtual_memory_file, offset, data, size, fs::WriteOption::Flush));
     }
 
     Result VirtualSpiFlash::SectorErase(int offset) {
-        uint8_t buff[64];
+        u8 buff[64];
         std::memset(buff, 0xff, sizeof(buff));
 
         // Fill sector at offset with 0xff
@@ -73,22 +73,23 @@ namespace ams::controller {
 
         R_TRY(fs::FlushFile(m_virtual_memory_file));
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result VirtualSpiFlash::CheckMemoryRegion(int offset, size_t size, bool *is_initialized) {
-        auto data = std::unique_ptr<uint8_t[]>(new uint8_t[size]());
+        auto data = std::unique_ptr<u8[]>(new u8[size]());
 
         R_TRY(this->Read(offset, data.get(), size));
         for (size_t i = 0; i < size; ++i) {
             if (data[i] != 0xff) {
                 *is_initialized = true;
-                return ams::ResultSuccess();
+                R_SUCCEED();
             }
         }
 
         *is_initialized = false;
-        return ams::ResultSuccess();
+
+        R_SUCCEED();
     }
 
     Result VirtualSpiFlash::CreateFile(const char *path) {
@@ -99,7 +100,7 @@ namespace ams::controller {
         ON_SCOPE_EXIT { fs::CloseFile(m_virtual_memory_file); };
 
         // Fill the file with 0xff
-        uint8_t buff[64];
+        u8 buff[64];
         std::memset(buff, 0xff, sizeof(buff));
         unsigned int offset = 0;
         while (offset < spi_flash_size) {
@@ -110,7 +111,7 @@ namespace ams::controller {
 
         R_TRY(fs::FlushFile(m_virtual_memory_file));
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result VirtualSpiFlash::EnsureMemoryRegion(int offset, const void *data, size_t size) {
@@ -120,7 +121,7 @@ namespace ams::controller {
             R_TRY(fs::WriteFile(m_virtual_memory_file, offset, data, size, fs::WriteOption::None));
         }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result VirtualSpiFlash::EnsureInitialized() {
@@ -157,7 +158,7 @@ namespace ams::controller {
 
         R_TRY(fs::FlushFile(m_virtual_memory_file));
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
 }

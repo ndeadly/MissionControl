@@ -22,11 +22,11 @@
 
 namespace ams::controller {
 
-    using HidResponse = FutureResponse<bluetooth::HidEventType, bluetooth::HidReportEventInfo, uint8_t>;
+    using HidResponse = FutureResponse<bluetooth::HidEventType, bluetooth::HidReportEventInfo, u8>;
 
     constexpr auto BATTERY_MAX = 8;
 
-    enum SwitchPlayerNumber : uint8_t {
+    enum SwitchPlayerNumber : u8 {
         SwitchPlayerNumber_One,
         SwitchPlayerNumber_Two,
         SwitchPlayerNumber_Three,
@@ -39,14 +39,14 @@ namespace ams::controller {
     };
 
     struct HardwareID {
-        uint16_t vid;
-        uint16_t pid;
+        u16 vid;
+        u16 pid;
     };
 
     struct RGBColour {
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
+        u8 r;
+        u8 g;
+        u8 b;
     } __attribute__ ((__packed__));
 
     struct ProControllerColours {
@@ -57,75 +57,75 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct SwitchButtonData {
-        uint8_t Y              : 1;
-        uint8_t X              : 1;
-        uint8_t B              : 1;
-        uint8_t A              : 1;
-        uint8_t                : 2; // SR, SL (Right Joy)
-        uint8_t R              : 1;
-        uint8_t ZR             : 1;
+        u8 Y            : 1;
+        u8 X            : 1;
+        u8 B            : 1;
+        u8 A            : 1;
+        u8              : 2; // SR, SL (Right Joy)
+        u8 R            : 1;
+        u8 ZR           : 1;
 
-        uint8_t minus          : 1;
-        uint8_t plus           : 1;
-        uint8_t rstick_press   : 1;
-        uint8_t lstick_press   : 1;
-        uint8_t home           : 1;
-        uint8_t capture        : 1;
-        uint8_t                : 0;
+        u8 minus        : 1;
+        u8 plus         : 1;
+        u8 rstick_press : 1;
+        u8 lstick_press : 1;
+        u8 home         : 1;
+        u8 capture      : 1;
+        u8              : 0;
 
-        uint8_t dpad_down      : 1;
-        uint8_t dpad_up        : 1;
-        uint8_t dpad_right     : 1;
-        uint8_t dpad_left      : 1;
-        uint8_t                : 2; // SR, SL (Left Joy)
-        uint8_t L              : 1;
-        uint8_t ZL             : 1;
+        u8 dpad_down    : 1;
+        u8 dpad_up      : 1;
+        u8 dpad_right   : 1;
+        u8 dpad_left    : 1;
+        u8              : 2; // SR, SL (Left Joy)
+        u8 L            : 1;
+        u8 ZL           : 1;
     } __attribute__ ((__packed__));
 
     struct Switch6AxisData {
-        int16_t accel_x;
-        int16_t accel_y;
-        int16_t accel_z;
-        int16_t gyro_1;
-        int16_t gyro_2;
-        int16_t gyro_3;
+        s16 accel_x;
+        s16 accel_y;
+        s16 accel_z;
+        s16 gyro_1;
+        s16 gyro_2;
+        s16 gyro_3;
     } __attribute__ ((__packed__));
 
     struct Switch6AxisCalibrationData {
         struct {
-            int16_t x;
-            int16_t y;
-            int16_t z;
+            s16 x;
+            s16 y;
+            s16 z;
         } acc_bias;
 
         struct {
-            int16_t x;
-            int16_t y;
-            int16_t z;
+            s16 x;
+            s16 y;
+            s16 z;
         } acc_sensitivity;
 
         struct {
-            int16_t roll;
-            int16_t pitch;
-            int16_t yaw;
+            s16 roll;
+            s16 pitch;
+            s16 yaw;
         } gyro_bias;
 
         struct {
-            int16_t roll;
-            int16_t pitch;
-            int16_t yaw;
+            s16 roll;
+            s16 pitch;
+            s16 yaw;
         } gyro_sensitivity;
-    } __attribute__((packed));
+    } PACKED;
 
     struct Switch6AxisHorizontalOffset {
-        int16_t x;
-        int16_t y;
-        int16_t z;
-    } __attribute__((packed));
+        s16 x;
+        s16 y;
+        s16 z;
+    } PACKED;
 
     struct SwitchRumbleDataEncoded {
-        uint8_t left_motor[4];
-        uint8_t right_motor[4];
+        u8 left_motor[4];
+        u8 right_motor[4];
     } __attribute__ ((__packed__));
 
     struct SwitchRumbleData {
@@ -135,7 +135,7 @@ namespace ams::controller {
         float low_band_amp;
     } __attribute__ ((__packed__));
 
-    enum HidCommandType : uint8_t {
+    enum HidCommandType : u8 {
         HidCommand_PairingOut             = 0x01,
         HidCommand_GetDeviceInfo          = 0x02,
         HidCommand_SetDataFormat          = 0x03,
@@ -169,36 +169,36 @@ namespace ams::controller {
     };
 
     struct SwitchHidCommand {
-        uint8_t id;
+        u8 id;
         union {
-            uint8_t data[0x26];
+            u8 data[0x26];
 
             struct {
-                uint8_t id;
+                u8 id;
             } set_data_format;
 
             struct {
-                uint32_t address;
-                uint8_t size;
+                u32 address;
+                u8 size;
             } serial_flash_read;
 
             struct {
-                uint32_t address;
-                uint8_t size;
-                uint8_t data[];
+                u32 address;
+                u8 size;
+                u8 data[];
             } serial_flash_write;
 
             struct {
-                uint32_t address;
+                u32 address;
             } serial_flash_sector_erase;
 
             struct {
                 union {
-                    uint8_t leds;
+                    u8 leds;
 
                     struct {
-                        uint8_t leds_flash : 4;
-                        uint8_t leds_on    : 4;
+                        u8 leds_flash : 4;
+                        u8 leds_on    : 4;
                     };
                 };
             } set_indicator_led;
@@ -208,10 +208,10 @@ namespace ams::controller {
             } sensor_sleep;
 
             struct {
-                uint8_t gyro_sensitivity;
-                uint8_t acc_sensitivity;
-                uint8_t gyro_perf_rate;
-                uint8_t acc_aa_bandwidth;
+                u8 gyro_sensitivity;
+                u8 acc_sensitivity;
+                u8 gyro_perf_rate;
+                u8 acc_aa_bandwidth;
             } sensor_config;
 
             struct {
@@ -221,21 +221,21 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct SwitchHidCommandResponse {
-        uint8_t ack;
-        uint8_t id;
+        u8 ack;
+        u8 id;
         union {
-            uint8_t raw[0x23];
+            u8 raw[0x23];
 
             struct {
                 struct {
-                    uint8_t major;
-                    uint8_t minor;
+                    u8 major;
+                    u8 minor;
                 } fw_ver;
-                uint8_t type;
-                uint8_t _unk0;  // Always 0x02
+                u8 type;
+                u8 _unk0;  // Always 0x02
                 bluetooth::Address address;
-                uint8_t _unk1;  // Always 0x01
-                uint8_t _unk2;  // If 01, colors in SPI are used. Otherwise default ones
+                u8 _unk1;  // Always 0x01
+                u8 _unk2;  // If 01, colors in SPI are used. Otherwise default ones
             } __attribute__ ((__packed__)) get_device_info;
 
             struct {
@@ -243,26 +243,26 @@ namespace ams::controller {
             } shipment;
 
             struct {
-                uint32_t address;
-                uint8_t size;
-                uint8_t data[];
+                u32 address;
+                u8 size;
+                u8 data[];
             } serial_flash_read;
 
             struct {
-                uint8_t status;
+                u8 status;
             } serial_flash_write;
 
             struct {
-                uint8_t status;
+                u8 status;
             } serial_flash_sector_erase;
 
             struct {
                 union {
-                    uint8_t leds;
+                    u8 leds;
 
                     struct {
-                        uint8_t leds_flash : 4;
-                        uint8_t leds_on    : 4;
+                        u8 leds_flash : 4;
+                        u8 leds_on    : 4;
                     };
                 };
             } get_indicator_led;
@@ -270,18 +270,18 @@ namespace ams::controller {
     } __attribute__ ((__packed__));
 
     struct SwitchNfcIrResponse {
-        uint8_t data[0x138];
+        u8 data[0x138];
     } __attribute__ ((__packed__));
 
     struct SwitchInputReport {
-        uint8_t id;
-        uint8_t timer;
-        uint8_t conn_info : 4;
-        uint8_t battery   : 4;
+        u8 id;
+        u8 timer;
+        u8 conn_info : 4;
+        u8 battery   : 4;
         SwitchButtonData buttons;
         SwitchAnalogStick left_stick;
         SwitchAnalogStick right_stick;
-        uint8_t vibrator;
+        u8 vibrator;
 
         union {
             struct {
@@ -289,7 +289,7 @@ namespace ams::controller {
             } type0x21;
 
             struct {
-                uint8_t mcu_fw_data[37];
+                u8 mcu_fw_data[37];
             } type0x23;
 
             struct {
@@ -299,14 +299,14 @@ namespace ams::controller {
             struct {
                 Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
                 SwitchNfcIrResponse nfc_ir_response;
-                uint8_t crc;
+                u8 crc;
             } type0x31;
         };
     } __attribute__ ((__packed__));
 
     struct SwitchOutputReport {
-        uint8_t id;
-        uint8_t counter;
+        u8 id;
+        u8 counter;
         SwitchRumbleDataEncoded rumble_data;
 
         union {
@@ -315,12 +315,12 @@ namespace ams::controller {
             } type0x01;
 
             struct {
-                uint8_t nfc_ir_data[0x16];
+                u8 nfc_ir_data[0x16];
             } type0x11;
         };
     } __attribute__ ((__packed__));
 
-    Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number);
+    Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number);
 
     std::string GetControllerDirectory(const bluetooth::Address *address);
 
@@ -361,9 +361,9 @@ namespace ams::controller {
 
         protected:
             Result WriteDataReport(const bluetooth::HidReport *report);
-            Result WriteDataReport(const bluetooth::HidReport *report, uint8_t response_id, bluetooth::HidReport *out_report);
+            Result WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report);
             Result SetFeatureReport(const bluetooth::HidReport *report);
-            Result GetFeatureReport(uint8_t id, bluetooth::HidReport *out_report);
+            Result GetFeatureReport(u8 id, bluetooth::HidReport *out_report);
 
             virtual void UpdateControllerState(const bluetooth::HidReport *report);
             virtual void ApplyButtonCombos(SwitchButtonData *buttons);

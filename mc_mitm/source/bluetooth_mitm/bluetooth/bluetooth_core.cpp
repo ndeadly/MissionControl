@@ -34,7 +34,7 @@ namespace ams::bluetooth::core {
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
 
         bluetooth::Address ReverseBluetoothAddress(bluetooth::Address address) {
-            uint64_t tmp;
+            u64 tmp;
             std::memcpy(&tmp, &address, sizeof(address));
             tmp = util::SwapEndian(tmp) >> 16;
             return *reinterpret_cast<bluetooth::Address *>(&tmp);
@@ -134,21 +134,22 @@ namespace ams::bluetooth::core {
         if (program_id == ncm::SystemProgramId::Btm) {
             auto event_info = reinterpret_cast<bluetooth::EventInfo *>(buffer);
 
-            if (hos::GetVersion() < hos::Version_12_0_0)
+            if (hos::GetVersion() < hos::Version_12_0_0) {
                 ModifyEventInfov1(event_info, g_current_event_type);
-            else
+            } else {
                 ModifyEventInfov12(event_info, g_current_event_type);
+            }
         }
 
         g_data_read_event.Signal();
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     inline void HandlePinCodeRequestEventV1(bluetooth::EventInfo *event_info) {
         // Default pin used by bluetooth service
         bluetooth::PinCode pin = {"0000"};
-        uint8_t pin_length = std::strlen(pin.code);
+        u8 pin_length = std::strlen(pin.code);
 
         // Reverse host address as pin code for wii devices
         if (std::strncmp(event_info->pairing_pin_code_request.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
@@ -193,11 +194,9 @@ namespace ams::bluetooth::core {
         if (!g_redirect_core_events) {
             if ((hos::GetVersion() < hos::Version_12_0_0) && (g_current_event_type == BtdrvEventTypeOld_PairingPinCodeRequest)) {
                 HandlePinCodeRequestEventV1(&g_event_info);
-            }
-            else if ((hos::GetVersion() >= hos::Version_12_0_0) && (g_current_event_type == BtdrvEventType_PairingPinCodeRequest)) {
+            } else if ((hos::GetVersion() >= hos::Version_12_0_0) && (g_current_event_type == BtdrvEventType_PairingPinCodeRequest)) {
                 HandlePinCodeRequestEventV12(&g_event_info);
-            }
-            else {
+            } else {
                 g_system_event_fwd.Signal();
                 g_data_read_event.Wait();
             }

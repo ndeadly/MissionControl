@@ -39,26 +39,26 @@ namespace ams::controller {
 
     void NvidiaShieldController::MapInputReport0x01(const NvidiaShieldReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
 
-        m_buttons.dpad_down   = (src->input0x01.dpad == NvidiaShieldDPad_S)  ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_SE) ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_SW);
-        m_buttons.dpad_up     = (src->input0x01.dpad == NvidiaShieldDPad_N)  ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_NE) ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_NW);
-        m_buttons.dpad_right  = (src->input0x01.dpad == NvidiaShieldDPad_E)  ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_NE) ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_SE);
-        m_buttons.dpad_left   = (src->input0x01.dpad == NvidiaShieldDPad_W)  ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_NW) ||
-                                (src->input0x01.dpad == NvidiaShieldDPad_SW);
+        m_buttons.dpad_down  = (src->input0x01.dpad == NvidiaShieldDPad_S)  ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_SE) ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_SW);
+        m_buttons.dpad_up    = (src->input0x01.dpad == NvidiaShieldDPad_N)  ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_NE) ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_NW);
+        m_buttons.dpad_right = (src->input0x01.dpad == NvidiaShieldDPad_E)  ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_NE) ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_SE);
+        m_buttons.dpad_left  = (src->input0x01.dpad == NvidiaShieldDPad_W)  ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_NW) ||
+                               (src->input0x01.dpad == NvidiaShieldDPad_SW);
 
         m_buttons.A = src->input0x01.buttons.B;
         m_buttons.B = src->input0x01.buttons.A;

@@ -30,6 +30,7 @@ namespace ams::bluetooth::ble {
 
         os::Event g_init_event(os::EventClearMode_ManualClear);
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
+
     }
 
     bool IsInitialized() {
@@ -57,19 +58,19 @@ namespace ams::bluetooth::ble {
     }
 
     Result GetEventInfo(bluetooth::BleEventType *type, void *buffer, size_t size) {
-        std::scoped_lock lk(g_event_data_lock); 
+        std::scoped_lock lk(g_event_data_lock);
 
         *type = g_current_event_type;
         std::memcpy(buffer, &g_event_info, size);
 
         g_data_read_event.Signal();
         
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void HandleEvent() {
         {
-            std::scoped_lock lk(g_event_data_lock); 
+            std::scoped_lock lk(g_event_data_lock);
             R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_event_info, sizeof(bluetooth::BleEventInfo), &g_current_event_type));
         }
 

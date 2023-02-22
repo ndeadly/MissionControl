@@ -39,49 +39,48 @@ namespace ams::controller {
 
     void EightBitDoController::MapInputReport0x01(const EightBitDoReportData *src) {
         if (m_controller_type == EightBitDoControllerType_Zero) {
-            m_buttons.dpad_down   = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
-            m_buttons.dpad_up     = (src->input0x01_v1.dpad == EightBitDoDPadV1_N)  ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_NW);
-            m_buttons.dpad_right  = (src->input0x01_v1.dpad == EightBitDoDPadV1_E)  ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_SE);
-            m_buttons.dpad_left   = (src->input0x01_v1.dpad == EightBitDoDPadV1_W)  ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_NW) ||
-                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
-        }
-        else {
+            m_buttons.dpad_down  = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
+            m_buttons.dpad_up    = (src->input0x01_v1.dpad == EightBitDoDPadV1_N)  ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NW);
+            m_buttons.dpad_right = (src->input0x01_v1.dpad == EightBitDoDPadV1_E)  ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SE);
+            m_buttons.dpad_left  = (src->input0x01_v1.dpad == EightBitDoDPadV1_W)  ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NW) ||
+                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
+        } else {
             m_left_stick.SetData(
-                static_cast<uint16_t>(stick_scale_factor * src->input0x01_v2.left_stick.x) & 0xfff,
-                static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.left_stick.y)) & 0xfff
+                static_cast<u16>(stick_scale_factor * src->input0x01_v2.left_stick.x) & 0xfff,
+                static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.left_stick.y)) & 0xfff
             );
             m_right_stick.SetData(
-                static_cast<uint16_t>(stick_scale_factor * src->input0x01_v2.right_stick.x) & 0xfff,
-                static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.right_stick.y)) & 0xfff
+                static_cast<u16>(stick_scale_factor * src->input0x01_v2.right_stick.x) & 0xfff,
+                static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.right_stick.y)) & 0xfff
             );
 
-            m_buttons.dpad_down   = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_S)  ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SE) ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SW);
-            m_buttons.dpad_up     = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_N)  ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NE) ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NW);
-            m_buttons.dpad_right  = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_E)  ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NE) ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SE);
-            m_buttons.dpad_left   = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_W)  ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NW) ||
-                                    (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SW);
+            m_buttons.dpad_down  = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_S)  ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SE) ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SW);
+            m_buttons.dpad_up    = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_N)  ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NE) ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NW);
+            m_buttons.dpad_right = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_E)  ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NE) ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SE);
+            m_buttons.dpad_left  = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_W)  ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_NW) ||
+                                   (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_SW);
 
             m_buttons.A = src->input0x01_v2.buttons.B;
             m_buttons.B = src->input0x01_v2.buttons.A;
             m_buttons.X = src->input0x01_v2.buttons.Y;
             m_buttons.Y = src->input0x01_v2.buttons.X;
 
-            m_buttons.L  = src->input0x01_v2.buttons.L1;
-            m_buttons.R  = src->input0x01_v2.buttons.R1;
+            m_buttons.L = src->input0x01_v2.buttons.L1;
+            m_buttons.R = src->input0x01_v2.buttons.R1;
 
             if (m_controller_type == EightBitDoControllerType_Sn30ProXboxCloud) {
                 m_buttons.ZL = src->input0x01_v2.left_trigger > 0x7f;
@@ -121,8 +120,7 @@ namespace ams::controller {
 
             m_buttons.minus = src->input0x03_v1.buttons.select;
             m_buttons.plus  = src->input0x03_v1.buttons.start;
-        }
-        else if (fmt == EightBitDoReportFormat_ZeroV2) {
+        } else if (fmt == EightBitDoReportFormat_ZeroV2) {
             m_buttons.dpad_down  = src->input0x03_v2.left_stick.y == 0xff;
             m_buttons.dpad_up    = src->input0x03_v2.left_stick.y == 0x00;
             m_buttons.dpad_right = src->input0x03_v2.left_stick.x == 0xff;

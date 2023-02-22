@@ -19,10 +19,6 @@
 
 namespace ams::controller {
 
-    inline uint8_t ScaleRumbleAmplitude(float amp, uint8_t lower, uint8_t upper) {
-        return amp > 0.0 ? static_cast<uint8_t>(amp * (upper - lower) + lower) : 0;
-    }
-
     class EmulatedSwitchController : public SwitchController {
 
         public:
@@ -36,16 +32,16 @@ namespace ams::controller {
 
         protected:
             void ClearControllerState();
-            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { AMS_UNUSED(rumble_data); return ams::ResultSuccess(); }
-            virtual Result CancelVibration() { return ams::ResultSuccess(); }
-            virtual Result SetPlayerLed(uint8_t led_mask) { AMS_UNUSED(led_mask); return ams::ResultSuccess(); }
+            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { AMS_UNUSED(rumble_data); R_SUCCEED(); }
+            virtual Result CancelVibration() { R_SUCCEED(); }
+            virtual Result SetPlayerLed(u8 led_mask) { AMS_UNUSED(led_mask); R_SUCCEED(); }
 
             void UpdateControllerState(const bluetooth::HidReport *report) override;
             virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
             Result HandleRumbleData(const SwitchRumbleDataEncoded *encoded);
             Result HandleHidCommand(const SwitchHidCommand *command);
-            Result HandleNfcIrData(const uint8_t *nfc_ir);
+            Result HandleNfcIrData(const u8 *nfc_ir);
 
             Result HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command);
             Result HandleHidCommandSetDataFormat(const SwitchHidCommand *command);
@@ -71,18 +67,18 @@ namespace ams::controller {
 
             bool m_charging;
             bool m_ext_power;
-            uint8_t m_battery;
-            uint8_t m_led_pattern;
+            u8 m_battery;
+            u8 m_led_pattern;
 
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
             Switch6AxisData m_motion_data[3];
 
-            uint16_t m_gyro_sensitivity;
-            uint16_t m_acc_sensitivity;
+            u16 m_gyro_sensitivity;
+            u16 m_acc_sensitivity;
 
-            uint8_t m_input_report_mode;
+            u8 m_input_report_mode;
 
             bool m_enable_rumble;
             bool m_enable_motion;

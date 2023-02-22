@@ -21,7 +21,7 @@ namespace ams::controller {
 
     namespace {
 
-        const uint8_t led_player_mappings[] = {
+        const u8 led_player_mappings[] = {
             SwitchPlayerNumber_Unknown, //0000
             SwitchPlayerNumber_One,     //0001
             SwitchPlayerNumber_Unknown, //0010
@@ -42,12 +42,13 @@ namespace ams::controller {
 
     }
 
-    Result LedsMaskToPlayerNumber(uint8_t led_mask, uint8_t *player_number) {
+    Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number) {
         *player_number = led_player_mappings[led_mask & 0xf];
-        if (*player_number == SwitchPlayerNumber_Unknown)
+        if (*player_number == SwitchPlayerNumber_Unknown) {
             return -1;
+        }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     std::string GetControllerDirectory(const bluetooth::Address *address) {
@@ -64,10 +65,11 @@ namespace ams::controller {
     }
 
     Result SwitchController::Initialize() {
-        if (this->HasSetTsiDisableFlag())
+        if (this->HasSetTsiDisableFlag()) {
             m_settsi_supported = false;
+        }
 
-        return ams::ResultSuccess(); 
+        R_SUCCEED();
     }
 
     bool SwitchController::HasSetTsiDisableFlag() {
@@ -106,7 +108,7 @@ namespace ams::controller {
             if (input_report->type0x21.hid_command_response.id == HidCommand_SerialFlashRead) {
                 if (input_report->type0x21.hid_command_response.data.serial_flash_read.address == 0x6050) {
                     if (ams::mitm::GetSystemLanguage() == 10) {
-                        uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                        u8 data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
                         std::memcpy(input_report->type0x21.hid_command_response.data.serial_flash_read.data, data, sizeof(data));
                     }
                 }
@@ -115,7 +117,7 @@ namespace ams::controller {
 
         this->ApplyButtonCombos(&input_report->buttons); 
 
-        return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
+        R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
     }
 
     Result SwitchController::HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
@@ -123,10 +125,11 @@ namespace ams::controller {
             if (m_future_responses.back()->GetType() == BtdrvHidEventType_SetReport) {
                 m_future_responses.back()->SetData(*event_info);
             }
-            return ams::ResultSuccess();
+
+            R_SUCCEED();
         }
 
-        return bluetooth::hid::report::WriteHidSetReport(m_address, event_info->set_report.res);
+        R_RETURN(bluetooth::hid::report::WriteHidSetReport(m_address, event_info->set_report.res));
     }
 
     Result SwitchController::HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
@@ -134,22 +137,23 @@ namespace ams::controller {
             if (m_future_responses.back()->GetType() == BtdrvHidEventType_GetReport) {
                 m_future_responses.back()->SetData(*event_info);
             }
-            return ams::ResultSuccess();
+
+            R_SUCCEED();
         }
 
         auto report = hos::GetVersion() >= hos::Version_9_0_0 ? &event_info->get_report.v9.report : reinterpret_cast<const bluetooth::HidReport *>(&event_info->get_report.v1.report);
-        return bluetooth::hid::report::WriteHidGetReport(m_address, report);
+        R_RETURN(bluetooth::hid::report::WriteHidGetReport(m_address, report));
     }
 
     Result SwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
-        return this->WriteDataReport(report);
+        R_RETURN(this->WriteDataReport(report));
     }
 
     Result SwitchController::WriteDataReport(const bluetooth::HidReport *report) {
-        return btdrvWriteHidData(m_address, report);
+        R_RETURN(btdrvWriteHidData(m_address, report));
     }
 
-    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, uint8_t response_id, bluetooth::HidReport *out_report) {       
+    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report) {       
         auto response = std::make_shared<HidResponse>(BtdrvHidEventType_Data);
         response->SetUserData(response_id);
         m_future_responses.push(response);
@@ -175,7 +179,7 @@ namespace ams::controller {
         out_report->size = data_report->size;
         std::memcpy(&out_report->data, &data_report->data, data_report->size);
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result SwitchController::SetFeatureReport(const bluetooth::HidReport *report) {
@@ -194,7 +198,7 @@ namespace ams::controller {
         return response_data.set_report.res;
     }
 
-    Result SwitchController::GetFeatureReport(uint8_t id, bluetooth::HidReport *out_report) {
+    Result SwitchController::GetFeatureReport(u8 id, bluetooth::HidReport *out_report) {
         auto response = std::make_shared<HidResponse>(BtdrvHidEventType_GetReport);
         m_future_responses.push(response);
         ON_SCOPE_EXIT { m_future_responses.pop(); };

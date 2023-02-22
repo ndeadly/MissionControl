@@ -19,22 +19,22 @@
 namespace ams::controller {
 
     struct ICadeInputReport0x01 {
-        uint8_t keys[9];
-    } __attribute__((packed));
+        u8 keys[9];
+    } PACKED;
 
     struct ICadeReportData {
-        uint8_t id;
+        u8 id;
         union {
             ICadeInputReport0x01 input0x01;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class ICadeController : public EmulatedSwitchController {
+    class ICadeController final : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
                 {0x15e4, 0x0132}    // ION iCade Controller
-            };  
+            };
 
             ICadeController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }

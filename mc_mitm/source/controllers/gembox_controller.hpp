@@ -31,58 +31,58 @@ namespace ams::controller {
     };
 
     struct GemboxStickData {
-        uint8_t x;
-        uint8_t y;
+        u8 x;
+        u8 y;
     } __attribute__ ((__packed__));
 
     struct GemboxButtonData {
-        uint8_t A       : 1;
-        uint8_t B       : 1;
-        uint8_t         : 1;
-        uint8_t X       : 1;
-        uint8_t Y       : 1;
-        uint8_t         : 1;
-        uint8_t LB      : 1;
-        uint8_t RB      : 1;
+        u8 A     : 1;
+        u8 B     : 1;
+        u8       : 1;
+        u8 X     : 1;
+        u8 Y     : 1;
+        u8       : 1;
+        u8 LB    : 1;
+        u8 RB    : 1;
 
-        uint8_t         : 3;
-        uint8_t start   : 1;
-        uint8_t         : 1;
-        uint8_t L3      : 1;
-        uint8_t R3      : 1;
-        uint8_t         : 0;
+        u8       : 3;
+        u8 start : 1;
+        u8       : 1;
+        u8 L3    : 1;
+        u8 R3    : 1;
+        u8       : 0;
     } __attribute__ ((__packed__));
 
     struct GemboxInputReport0x02 {
         union {
             struct {
-                uint8_t         : 6;
-                uint8_t back    : 1;
-                uint8_t         : 0;
+                u8      : 6;
+                u8 back : 1;
+                u8      : 0;
             };
 
-            uint8_t buttons;
+            u8 buttons;
         };
-    } __attribute__((packed));
+    } PACKED;
 
     struct GemboxInputReport0x07 {
-        uint8_t             dpad;
-        GemboxStickData     left_stick;
-        GemboxStickData     right_stick;
-        uint8_t             left_trigger;
-        uint8_t             right_trigger;
-        GemboxButtonData    buttons;
-    } __attribute__((packed));
+        u8 dpad;
+        GemboxStickData left_stick;
+        GemboxStickData right_stick;
+        u8 left_trigger;
+        u8 right_trigger;
+        GemboxButtonData buttons;
+    } PACKED;
 
     struct GemboxReportData {
-        uint8_t id;
+        u8 id;
         union {
             GemboxInputReport0x02  input0x02;
             GemboxInputReport0x07  input0x07;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class GemboxController : public EmulatedSwitchController {
+    class GemboxController final : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {

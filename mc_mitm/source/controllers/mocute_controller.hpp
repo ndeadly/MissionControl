@@ -43,51 +43,51 @@ namespace ams::controller {
     };
 
     struct MocuteStickData {
-        uint8_t x;
-        uint8_t y;
+        u8 x;
+        u8 y;
     } __attribute__ ((__packed__));
 
     struct MocuteButtonData {
-        uint8_t dpad    : 4;
-        uint8_t A       : 1;
-        uint8_t B       : 1;
-        uint8_t X       : 1;
-        uint8_t Y       : 1;
+        u8 dpad   : 4;
+        u8 A      : 1;
+        u8 B      : 1;
+        u8 X      : 1;
+        u8 Y      : 1;
 
-        uint8_t L1      : 1;
-        uint8_t R1      : 1;
-        uint8_t select  : 1;
-        uint8_t start   : 1;
-        uint8_t L3      : 1;
-        uint8_t R3      : 1;
-        uint8_t L2      : 1;
-        uint8_t R2      : 1;
+        u8 L1     : 1;
+        u8 R1     : 1;
+        u8 select : 1;
+        u8 start  : 1;
+        u8 L3     : 1;
+        u8 R3     : 1;
+        u8 L2     : 1;
+        u8 R2     : 1;
     } __attribute__ ((__packed__));
 
     struct MocuteInputReport0x01 {
         MocuteStickData left_stick;
         MocuteStickData right_stick;
         MocuteButtonData buttons;
-        uint8_t left_trigger;
-        uint8_t right_trigger;
-    } __attribute__ ((__packed__)); 
+        u8 left_trigger;
+        u8 right_trigger;
+    } __attribute__ ((__packed__));
 
     struct MocuteReportData {
-        uint8_t id;
+        u8 id;
         union {
             MocuteInputReport0x01 input0x01;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class MocuteController : public EmulatedSwitchController {
+    class MocuteController final : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0xffff, 0x0000},   // Mocute 050 Controller
                 {0x04e8, 0x046e}    // Mocute 050 Controller
-            };  
+            };
 
-            MocuteController(const bluetooth::Address *address, HardwareID id) 
+            MocuteController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand() { return false; }

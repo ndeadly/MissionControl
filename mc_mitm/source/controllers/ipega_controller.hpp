@@ -31,54 +31,54 @@ namespace ams::controller {
     };
 
     struct IpegaStickData {
-        uint8_t x;
-        uint8_t y;
-    } __attribute__((packed));
+        u8 x;
+        u8 y;
+    } PACKED;
 
     struct IpegaButtonData {
-        uint8_t dpad;
+        u8 dpad;
 
-        uint8_t A            : 1;
-        uint8_t B            : 1;
-        uint8_t L3_g910      : 1;
-        uint8_t X            : 1;
-        uint8_t Y            : 1;
-        uint8_t R3_g910      : 1;
-        uint8_t LB           : 1;
-        uint8_t RB           : 1;
+        u8 A            : 1;
+        u8 B            : 1;
+        u8 L3_g910      : 1;
+        u8 X            : 1;
+        u8 Y            : 1;
+        u8 R3_g910      : 1;
+        u8 LB           : 1;
+        u8 RB           : 1;
 
-        uint8_t LT           : 1;
-        uint8_t RT           : 1;
-        uint8_t view         : 1;
-        uint8_t menu         : 1;
-        uint8_t              : 1;
-        uint8_t lstick_press : 1;
-        uint8_t rstick_press : 1;
-        uint8_t              : 0;
-    } __attribute__((packed));
+        u8 LT           : 1;
+        u8 RT           : 1;
+        u8 view         : 1;
+        u8 menu         : 1;
+        u8              : 1;
+        u8 lstick_press : 1;
+        u8 rstick_press : 1;
+        u8              : 0;
+    } PACKED;
 
     struct IpegaInputReport0x02 {
-        uint8_t         : 7;
-        uint8_t home    : 1;
-    } __attribute__((packed));
+        u8      : 7;
+        u8 home : 1;
+    } PACKED;
 
     struct IpegaInputReport0x07 {
-        IpegaStickData   left_stick;
-        IpegaStickData   right_stick;
-        IpegaButtonData  buttons;
-        uint8_t          right_trigger;
-        uint8_t          left_trigger;
-    } __attribute__((packed));
+        IpegaStickData left_stick;
+        IpegaStickData right_stick;
+        IpegaButtonData buttons;
+        u8 right_trigger;
+        u8 left_trigger;
+    } PACKED;
 
     struct IpegaReportData {
-        uint8_t id;
+        u8 id;
         union {
             IpegaInputReport0x02 input0x02;
             IpegaInputReport0x07 input0x07;
         };
     } __attribute__ ((__packed__));
 
-    class IpegaController : public EmulatedSwitchController {
+    class IpegaController final : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
@@ -87,7 +87,7 @@ namespace ams::controller {
                 {0x05ac, 0x022c}    // ipega 9017S (Another fucking Apple keyboard ID. Eventually these are going to clash)
             };
 
-            IpegaController(const bluetooth::Address *address, HardwareID id) 
+            IpegaController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;

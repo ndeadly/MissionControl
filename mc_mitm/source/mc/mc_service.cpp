@@ -20,17 +20,17 @@ namespace ams::mitm::mc {
 
     Result MissionControlService::GetVersion(sf::Out<u32> version) {
         version.SetValue(mc_version);
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result MissionControlService::GetBuildVersionString(sf::Out<mc::VersionString> version) {
         std::strncpy(version.GetPointer()->version, mc_build_name, sizeof(mc::VersionString));
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result MissionControlService::GetBuildDateString(sf::Out<ams::mitm::mc::DateString> date) {
         std::strncpy(date.GetPointer()->date, mc_build_date, sizeof(mc::DateString));
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
 }

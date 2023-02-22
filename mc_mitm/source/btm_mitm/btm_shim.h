@@ -20,13 +20,15 @@
 extern "C" {
 #endif
 
+Result btmGetDeviceConditionFwd(Service* s, BtmProfile profile, BtmConnectedDeviceV13 *condition, size_t count, s32 *total_out);
+Result btmGetDeviceInfoFwd(Service* s, BtmProfile profile, BtmDeviceInfoV13 *devices, size_t count, s32 *total_out);
+
+/* Deprecated */
 Result btmGetDeviceConditionDeprecated1Fwd(Service* s, BtmDeviceConditionV100 *condition);
 Result btmGetDeviceConditionDeprecated2Fwd(Service* s, BtmDeviceConditionV510 *condition);
 Result btmGetDeviceConditionDeprecated3Fwd(Service* s, BtmDeviceConditionV800 *condition);
 Result btmGetDeviceConditionDeprecated4Fwd(Service* s, BtmDeviceConditionV900 *condition);
-Result btmGetDeviceConditionFwd(Service* s, u32 id, BtmConnectedDeviceV13 *condition, size_t count, s32 *total_out);
 Result btmGetDeviceInfoDeprecatedFwd(Service* s, BtmDeviceInfoList *devices);
-Result btmGetDeviceInfoFwd(Service* s, u32 id, BtmDeviceInfoV13 *devices, size_t count, s32 *total_out);
 
 #ifdef __cplusplus
 }

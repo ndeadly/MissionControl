@@ -17,27 +17,27 @@
 
 namespace ams::controller {
 
-    void SwitchAnalogStick::SetData(uint16_t x, uint16_t y) {
+    void SwitchAnalogStick::SetData(u16 x, u16 y) {
         m_xy[0] = x & 0xff;
         m_xy[1] = (x >> 8) | ((y & 0xff) << 4);
         m_xy[2] = (y >> 4) & 0xff;
     }
 
-    void SwitchAnalogStick::SetX(uint16_t x) {
+    void SwitchAnalogStick::SetX(u16 x) {
         m_xy[0] = x & 0xff;
         m_xy[1] = (m_xy[1] & 0xf0) | (x >> 8);
     }
 
-    void SwitchAnalogStick::SetY(uint16_t y) {
+    void SwitchAnalogStick::SetY(u16 y) {
         m_xy[1] = (m_xy[1] & 0x0f) | ((y & 0xff) << 4);
         m_xy[2] = (y >> 4) & 0xff;
     }
 
-    uint16_t SwitchAnalogStick::GetX() {
+    u16 SwitchAnalogStick::GetX() {
         return m_xy[0] | ((m_xy[1] & 0xf) << 8);
     }
 
-    uint16_t SwitchAnalogStick::GetY() {
+    u16 SwitchAnalogStick::GetY() {
         return (m_xy[1] >> 4) | (m_xy[2] << 4);
     }
 

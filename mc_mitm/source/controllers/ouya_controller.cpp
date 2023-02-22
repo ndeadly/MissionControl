@@ -44,18 +44,18 @@ namespace ams::controller {
     
     void OuyaController::MapInputReport0x07(const OuyaReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x07.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x07.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x07.left_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x07.left_stick.y)) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x07.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT16_MAX - src->input0x07.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x07.right_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x07.right_stick.y)) & 0xfff
         );
         
-        m_buttons.dpad_down    = src->input0x07.buttons.dpad_down;
-        m_buttons.dpad_up      = src->input0x07.buttons.dpad_up;
-        m_buttons.dpad_right   = src->input0x07.buttons.dpad_right;
-        m_buttons.dpad_left    = src->input0x07.buttons.dpad_left;
+        m_buttons.dpad_down  = src->input0x07.buttons.dpad_down;
+        m_buttons.dpad_up    = src->input0x07.buttons.dpad_up;
+        m_buttons.dpad_right = src->input0x07.buttons.dpad_right;
+        m_buttons.dpad_left  = src->input0x07.buttons.dpad_left;
         
         m_buttons.A = src->input0x07.buttons.A;
         m_buttons.B = src->input0x07.buttons.O;
@@ -73,7 +73,7 @@ namespace ams::controller {
         m_buttons.lstick_press = src->input0x07.buttons.LS;
         m_buttons.rstick_press = src->input0x07.buttons.RS;
 
-        m_buttons.home    = src->input0x07.buttons.center_hold;
+        m_buttons.home = src->input0x07.buttons.center_hold;
     }
 
 }

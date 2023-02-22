@@ -82,7 +82,7 @@ namespace ams::mitm::btm {
         os::SetThreadNamePointer(&g_thread, "mc::BtmMitmThread");
         os::StartThread(&g_thread);
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void WaitFinished() {

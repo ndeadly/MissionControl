@@ -47,21 +47,21 @@ namespace ams::controller {
             );
             m_right_stick.SetData(
                 STICK_ZERO,
-                static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & 0xfff
+                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & 0xfff
             );
             
-            m_buttons.dpad_down   = (src->input0x01.dpad == AtGamesDPad_S)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_SE) ||
-                                    (src->input0x01.dpad == AtGamesDPad_SW);
-            m_buttons.dpad_up     = (src->input0x01.dpad == AtGamesDPad_N)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                    (src->input0x01.dpad == AtGamesDPad_NW);
-            m_buttons.dpad_right  = (src->input0x01.dpad == AtGamesDPad_E)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                    (src->input0x01.dpad == AtGamesDPad_SE);
-            m_buttons.dpad_left   = (src->input0x01.dpad == AtGamesDPad_W)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_NW) ||
-                                    (src->input0x01.dpad == AtGamesDPad_SW);
+            m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_SE) ||
+                                   (src->input0x01.dpad == AtGamesDPad_SW);
+            m_buttons.dpad_up    = (src->input0x01.dpad == AtGamesDPad_N)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
+                                   (src->input0x01.dpad == AtGamesDPad_NW);
+            m_buttons.dpad_right = (src->input0x01.dpad == AtGamesDPad_E)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
+                                   (src->input0x01.dpad == AtGamesDPad_SE);
+            m_buttons.dpad_left  = (src->input0x01.dpad == AtGamesDPad_W)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_NW) ||
+                                   (src->input0x01.dpad == AtGamesDPad_SW);
 
             m_buttons.A = src->input0x01.play;
             m_buttons.B = src->input0x01.rewind;
@@ -80,21 +80,21 @@ namespace ams::controller {
             );
             m_right_stick.SetData(
                 STICK_ZERO,
-                static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & 0xfff
+                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & 0xfff
             );
             
-            m_buttons.dpad_down   = (src->input0x01.dpad == AtGamesDPad_S)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_SE) ||
-                                    (src->input0x01.dpad == AtGamesDPad_SW);
-            m_buttons.dpad_up     = (src->input0x01.dpad == AtGamesDPad_N)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                    (src->input0x01.dpad == AtGamesDPad_NW);
-            m_buttons.dpad_right  = (src->input0x01.dpad == AtGamesDPad_E)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                    (src->input0x01.dpad == AtGamesDPad_SE);
-            m_buttons.dpad_left   = (src->input0x01.dpad == AtGamesDPad_W)  ||
-                                    (src->input0x01.dpad == AtGamesDPad_NW) ||
-                                    (src->input0x01.dpad == AtGamesDPad_SW);
+            m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_SE) ||
+                                   (src->input0x01.dpad == AtGamesDPad_SW);
+            m_buttons.dpad_up    = (src->input0x01.dpad == AtGamesDPad_N)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
+                                   (src->input0x01.dpad == AtGamesDPad_NW);
+            m_buttons.dpad_right = (src->input0x01.dpad == AtGamesDPad_E)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
+                                   (src->input0x01.dpad == AtGamesDPad_SE);
+            m_buttons.dpad_left  = (src->input0x01.dpad == AtGamesDPad_W)  ||
+                                   (src->input0x01.dpad == AtGamesDPad_NW) ||
+                                   (src->input0x01.dpad == AtGamesDPad_SW);
 
             m_buttons.A = src->input0x01.a_button;
             m_buttons.B = src->input0x01.b_button;

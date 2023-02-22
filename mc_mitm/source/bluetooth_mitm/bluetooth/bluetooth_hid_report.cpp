@@ -27,7 +27,7 @@ namespace ams::bluetooth::hid::report {
 
         const s32 ThreadPriority = -11;
         const size_t ThreadStackSize = 0x1000;
-        alignas(os::ThreadStackAlignment) uint8_t g_thread_stack[ThreadStackSize];
+        alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
         os::ThreadType g_thread;
 
         // This is only required  on fw < 7.0.0
@@ -77,8 +77,9 @@ namespace ams::bluetooth::hid::report {
     }
 
     os::SharedMemory *GetRealSharedMemory() {
-        if (hos::GetVersion() < hos::Version_7_0_0)
+        if (hos::GetVersion() < hos::Version_7_0_0) {
             return nullptr;
+        }
 
         return &g_real_bt_shmem;
     }
@@ -111,7 +112,7 @@ namespace ams::bluetooth::hid::report {
         os::SetThreadNamePointer(&g_thread, "mc::HidReportThread");
         os::StartThread(&g_thread);
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void Finalize() {
@@ -123,7 +124,7 @@ namespace ams::bluetooth::hid::report {
         g_real_bt_shmem.Map(os::MemoryPermission_ReadWrite);
         g_real_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(g_real_bt_shmem.GetMappedAddress());
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result InitializeReportBuffer() {
@@ -133,15 +134,14 @@ namespace ams::bluetooth::hid::report {
         g_fake_buffer->type = bluetooth::CircularBufferType_HidReport;
         g_fake_buffer->_unk3 = 1;
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result WriteHidDataReport(const bluetooth::Address address, const bluetooth::HidReport *report) {
         if (hos::GetVersion() >= hos::Version_9_0_0) {
             g_fake_report_event_info.data_report.v9.addr = address;
             std::memcpy(&g_fake_report_event_info.data_report.v9.report, report, report->size + sizeof(report->size));
-        }
-        else {
+        } else {
             // Todo: check this may still be necessary
             //g_fake_report_event_info.data_report.v7.size = g_fake_report_event_info.data_report.v7.report.size + 0x11;
             g_fake_report_event_info.data_report.v7.addr = address;
@@ -151,17 +151,17 @@ namespace ams::bluetooth::hid::report {
         g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_Data : BtdrvHidEventTypeOld_Data, &g_fake_report_event_info, report->size + 0x11);
         g_system_event_fwd.Signal();
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
-    Result WriteHidSetReport(const bluetooth::Address address, uint32_t status) {
+    Result WriteHidSetReport(const bluetooth::Address address, u32 status) {
         g_fake_report_event_info.set_report.addr = address;
         g_fake_report_event_info.set_report.res = status;
 
         g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_Data : BtdrvHidEventTypeOld_Data, &g_fake_report_event_info, sizeof(g_fake_report_event_info.set_report));
         g_system_event_fwd.Signal();
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result WriteHidGetReport(const bluetooth::Address address, const bluetooth::HidReport *report) {
@@ -169,8 +169,7 @@ namespace ams::bluetooth::hid::report {
             g_fake_report_event_info.get_report.v9.addr = address;
             g_fake_report_event_info.get_report.v9.res = 0;
             std::memcpy(&g_fake_report_event_info.get_report.v9.report, report, report->size + sizeof(report->size));
-        }
-        else {
+        } else {
             g_fake_report_event_info.get_report.v1.addr = address;
             g_fake_report_event_info.get_report.v1.res = 0;
             std::memcpy(&g_fake_report_event_info.get_report.v1.report, report, report->size + sizeof(report->size));
@@ -179,7 +178,7 @@ namespace ams::bluetooth::hid::report {
         g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_GetReport : BtdrvHidEventTypeOld_GetReport, &g_fake_report_event_info, report->size + 0x11);
         g_system_event_fwd.Signal();
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */
@@ -188,8 +187,9 @@ namespace ams::bluetooth::hid::report {
 
         while (true) {
             auto packet = g_fake_buffer->Read();
-            if (!packet)
+            if (!packet) {
                 return -1;
+            }
 
             g_fake_buffer->Free();
 
@@ -220,7 +220,7 @@ namespace ams::bluetooth::hid::report {
             }
         }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     inline void HandleHidReportEventV1() {
@@ -259,8 +259,9 @@ namespace ams::bluetooth::hid::report {
     inline void HandleHidReportEventV7() {
         while (true) {
             auto real_packet = g_real_buffer->Read();
-            if (!real_packet)
+            if (!real_packet) {
                 break;
+            }
 
             g_real_buffer->Free();
 
@@ -300,8 +301,9 @@ namespace ams::bluetooth::hid::report {
     inline void HandleHidReportEventV12() {
         while (true) {
             auto real_packet = g_real_buffer->Read();
-            if (!real_packet)
+            if (!real_packet) {
                 break;
+            }
 
             g_real_buffer->Free();
 
@@ -344,12 +346,13 @@ namespace ams::bluetooth::hid::report {
             g_report_read_event.Wait();
         }
 
-        if (hos::GetVersion() >= hos::Version_12_0_0)
+        if (hos::GetVersion() >= hos::Version_12_0_0) {
             HandleHidReportEventV12();
-        else if (hos::GetVersion() >= hos::Version_7_0_0)
+        } else if (hos::GetVersion() >= hos::Version_7_0_0) {
             HandleHidReportEventV7();
-        else
+        } else {
             HandleHidReportEventV1();
+        }
     }
 
 }

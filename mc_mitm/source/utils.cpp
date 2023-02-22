@@ -22,11 +22,12 @@ namespace ams::utils {
     }
 
     Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size) {
-        if (out_size < 2*sizeof(bluetooth::Address) + 1)
+        if (out_size < 2*sizeof(bluetooth::Address) + 1) {
             return -1;
+        }
 
         char ch;
-        for (uint32_t i = 0; i < sizeof(bluetooth::Address); ++i) {
+        for (u32 i = 0; i < sizeof(bluetooth::Address); ++i) {
             ch = address->address[i] >> 4;
             *out++ = ch + (ch <= 9 ? '0' : 'a' - 0xa);
             ch = address->address[i] & 0x0f;
@@ -34,7 +35,7 @@ namespace ams::utils {
         }
         *out = '\0';
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
 }

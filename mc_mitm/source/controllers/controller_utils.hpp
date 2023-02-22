@@ -18,7 +18,7 @@
 
 namespace ams::controller {
 
-    uint8_t convert_battery_100(uint8_t level);
-    uint8_t convert_battery_255(uint8_t level);
+    u8 convert_battery_100(u8 level);
+    u8 convert_battery_255(u8 level);
     
 }

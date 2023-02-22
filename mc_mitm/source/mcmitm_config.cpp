@@ -46,25 +46,29 @@ namespace ams::mitm {
 
         void ParseInt(const char *value, int *out, int min=INT_MIN, int max=INT_MAX) {
             int tmp = std::strtol(value, nullptr, 10);
-            if ((tmp >= min) && (tmp <= max))
+            if ((tmp >= min) && (tmp <= max)) {
                 *out = tmp;
+            }
         }
 
         void ParseBluetoothAddress(const char *value, bluetooth::Address *out) {
             // Check length of address string is correct
-            if (std::strlen(value) != 3*sizeof(bluetooth::Address) - 1) return;
+            if (std::strlen(value) != 3*sizeof(bluetooth::Address) - 1) {
+                return;
+            }
 
             // Parse bluetooth mac address
             char buf[2 + 1];
             bluetooth::Address address = {};
-            for (uint32_t i = 0; i < sizeof(bluetooth::Address); ++i) {
+            for (u32 i = 0; i < sizeof(bluetooth::Address); ++i) {
                 // Convert hex pair to number
                 std::memcpy(buf, &value[i*3], 2);
-                address.address[i] = static_cast<uint8_t>(std::strtoul(buf, nullptr, 16));
+                address.address[i] = static_cast<u8>(std::strtoul(buf, nullptr, 16));
 
                 // Check for colon separator
-                if ((i < sizeof(bluetooth::Address) - 1) && (value[i*3 + 2] != ':'))
+                if ((i < sizeof(bluetooth::Address) - 1) && (value[i*3 + 2] != ':')) {
                     return;
+                }
             }
 
             *out = address;
@@ -74,28 +78,28 @@ namespace ams::mitm {
             auto config = reinterpret_cast<MissionControlConfig *>(user);
 
             if (strcasecmp(section, "general") == 0) {
-                if (strcasecmp(name, "enable_rumble") == 0)
-                    ParseBoolean(value, &config->general.enable_rumble);  
-                else if (strcasecmp(name, "enable_motion") == 0)
-                    ParseBoolean(value, &config->general.enable_motion); 
-            }
-            else if (strcasecmp(section, "bluetooth") == 0) {
-                if (strcasecmp(name, "host_name") == 0)
+                if (strcasecmp(name, "enable_rumble") == 0) {
+                    ParseBoolean(value, &config->general.enable_rumble);
+                } else if (strcasecmp(name, "enable_motion") == 0) {
+                    ParseBoolean(value, &config->general.enable_motion);
+                }
+            } else if (strcasecmp(section, "bluetooth") == 0) {
+                if (strcasecmp(name, "host_name") == 0) {
                     std::strncpy(config->bluetooth.host_name, value, sizeof(config->bluetooth.host_name));
-                else if (strcasecmp(name, "host_address") == 0)
+                } else if (strcasecmp(name, "host_address") == 0) {
                     ParseBluetoothAddress(value, &config->bluetooth.host_address);
-            }
-            else if (strcasecmp(section, "misc") == 0) {
-                if (strcasecmp(name, "enable_dualshock4_lightbar") == 0)
+                }
+            } else if (strcasecmp(section, "misc") == 0) {
+                if (strcasecmp(name, "enable_dualshock4_lightbar") == 0) {
                     ParseBoolean(value, &config->misc.enable_dualshock4_lightbar);
-                else if (strcasecmp(name, "enable_dualsense_lightbar") == 0)
+                } else if (strcasecmp(name, "enable_dualsense_lightbar") == 0) {
                     ParseBoolean(value, &config->misc.enable_dualsense_lightbar);
-                else if (strcasecmp(name, "enable_dualsense_player_leds") == 0)
+                } else if (strcasecmp(name, "enable_dualsense_player_leds") == 0) {
                     ParseBoolean(value, &config->misc.enable_dualsense_player_leds);
-                else if (strcasecmp(name, "dualsense_vibration_intensity") == 0)
+                } else if (strcasecmp(name, "dualsense_vibration_intensity") == 0) {
                     ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
-            }
-            else {
+                }
+            } else {
                 return 0;
             }
 

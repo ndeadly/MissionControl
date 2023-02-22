@@ -19,6 +19,8 @@
 
 namespace ams::btm {
 
+    using Profile = ::BtmProfile;
+
     struct DeviceConditionV100 : public sf::LargeData {
         BtmDeviceConditionV100 condition;
     };

@@ -19,23 +19,23 @@
 
 namespace ams::bluetooth {
 
-    typedef BtdrvAddress Address;
-    typedef BtdrvClassOfDevice DeviceClass;
-    typedef BtdrvBluetoothPinCode PinCode;
-    typedef BtdrvAdapterProperty AdapterProperty;
-    typedef BtdrvHidReport HidReport;
-    typedef BtdrvBluetoothHhReportType HhReportType;
-    typedef SetSysBluetoothDevicesSettings DevicesSettings;
+    using Address = ::BtdrvAddress;
+    using DeviceClass = ::BtdrvClassOfDevice;
+    using PinCode = ::BtdrvBluetoothPinCode;
+    using AdapterProperty = ::BtdrvAdapterProperty;
+    using HidReport = ::BtdrvHidReport;
+    using HhReportType = ::BtdrvBluetoothHhReportType;
+    using DevicesSettings = ::SetSysBluetoothDevicesSettings;
 
-    typedef BtdrvEventType EventType;
-    typedef BtdrvEventInfo EventInfo;
+    using EventType = ::BtdrvEventType;
+    using EventInfo = ::BtdrvEventInfo;
 
-    typedef BtdrvHidEventType HidEventType;
-    typedef BtdrvHidEventInfo HidEventInfo;
+    using HidEventType = ::BtdrvHidEventType;
+    using HidEventInfo = ::BtdrvHidEventInfo;
 
-    typedef BtdrvBleEventType BleEventType;
-    typedef BtdrvBleEventInfo BleEventInfo;
+    using BleEventType = ::BtdrvBleEventType;
+    using BleEventInfo = ::BtdrvBleEventInfo;
 
-    typedef BtdrvHidReportEventInfo HidReportEventInfo;
+    using HidReportEventInfo = ::BtdrvHidReportEventInfo;
 
 }

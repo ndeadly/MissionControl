@@ -22,7 +22,7 @@ namespace ams::controller {
 
         // Frequency in Hz rounded to nearest int
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#frequency-table
-        const uint16_t rumble_freq_lut[] = {
+        const u16 rumble_freq_lut[] = {
             0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f, 0x0030, 0x0031,
             0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0039, 0x003a, 0x003b,
             0x003c, 0x003e, 0x003f, 0x0040, 0x0042, 0x0043, 0x0045, 0x0046, 0x0048,
@@ -42,7 +42,7 @@ namespace ams::controller {
             0x039d, 0x03b1, 0x03c6, 0x03db, 0x03f1, 0x0407, 0x041d, 0x0434, 0x044c,
             0x0464, 0x047d, 0x0496, 0x04af, 0x04ca, 0x04e5
         };
-        constexpr size_t rumble_freq_lut_size = sizeof(rumble_freq_lut) / sizeof(uint16_t);
+        constexpr size_t rumble_freq_lut_size = sizeof(rumble_freq_lut) / sizeof(u16);
 
         // Floats from dekunukem repo normalised and scaled by function used by yuzu
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#amplitude-table
@@ -66,29 +66,27 @@ namespace ams::controller {
         };
         constexpr size_t rumble_amp_lut_f_size = sizeof(rumble_amp_lut_f) / sizeof(float);
 
-        Result DecodeRumbleValues(const uint8_t enc[], SwitchRumbleData *dec) {
-            uint8_t hi_freq_ind = 0x20 + (enc[0] >> 2) + ((enc[1] & 0x01) * 0x40) - 1;
-            uint8_t hi_amp_ind  = (enc[1] & 0xfe) >> 1;
-            uint8_t lo_freq_ind = (enc[2] & 0x7f) - 1;
-            uint8_t lo_amp_ind  = ((enc[3] - 0x40) << 1) + ((enc[2] & 0x80) >> 7);
+        void DecodeRumbleValues(const u8 enc[], SwitchRumbleData *dec) {
+            u8 hi_freq_ind = 0x20 + (enc[0] >> 2) + ((enc[1] & 0x01) * 0x40) - 1;
+            u8 hi_amp_ind  = (enc[1] & 0xfe) >> 1;
+            u8 lo_freq_ind = (enc[2] & 0x7f) - 1;
+            u8 lo_amp_ind  = ((enc[3] - 0x40) << 1) + ((enc[2] & 0x80) >> 7);
 
             if (!((hi_freq_ind < rumble_freq_lut_size) &&
                   (hi_amp_ind < rumble_amp_lut_f_size) &&
                   (lo_freq_ind < rumble_freq_lut_size) &&
                   (lo_amp_ind < rumble_amp_lut_f_size))) {
                 std::memset(dec, 0, sizeof(SwitchRumbleData));
-                return -1;
             }
 
             dec->high_band_freq = float(rumble_freq_lut[hi_freq_ind]);
             dec->high_band_amp  = rumble_amp_lut_f[hi_amp_ind];
             dec->low_band_freq  = float(rumble_freq_lut[lo_freq_ind]);
             dec->low_band_amp   = rumble_amp_lut_f[lo_amp_ind];
-            return ams::ResultSuccess();
         }
 
         // CRC-8 with polynomial 0x7 for NFC/IR packets
-        uint8_t crc8_lut[] = {
+        u8 crc8_lut[] = {
             0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
             0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
             0xE0, 0xE7, 0xEE, 0xE9, 0xFC, 0xFB, 0xF2, 0xF5, 0xD8, 0xDF, 0xD6, 0xD1, 0xC4, 0xC3, 0xCA, 0xCD,
@@ -107,10 +105,10 @@ namespace ams::controller {
             0xDE, 0xD9, 0xD0, 0xD7, 0xC2, 0xC5, 0xCC, 0xCB, 0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
         };
 
-        uint8_t ComputeCrc8(const void *data, size_t size) {
-            auto *bytes = reinterpret_cast<const uint8_t *>(data);
+        u8 ComputeCrc8(const void *data, size_t size) {
+            auto *bytes = reinterpret_cast<const u8 *>(data);
 
-            uint8_t crc = 0x00;
+            u8 crc = 0x00;
             for (size_t i = 0; i < size; ++i) {
                 crc = crc8_lut[crc ^ bytes[i]];
             }
@@ -144,7 +142,7 @@ namespace ams::controller {
 
         R_TRY(m_virtual_memory.Initialize((controller_dir + "/spi_flash.bin").c_str()));
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     void EmulatedSwitchController::ClearControllerState() {
@@ -189,7 +187,7 @@ namespace ams::controller {
                 break;
         }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result EmulatedSwitchController::HandleRumbleData(const SwitchRumbleDataEncoded *encoded) {
@@ -200,7 +198,7 @@ namespace ams::controller {
             R_TRY(this->SetVibration(rumble_data));
         }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result EmulatedSwitchController::HandleHidCommand(const SwitchHidCommand *command) {
@@ -272,7 +270,7 @@ namespace ams::controller {
                 break;
         }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result EmulatedSwitchController::HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command) {
@@ -294,7 +292,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandSetDataFormat(const SwitchHidCommand *command) {
@@ -305,7 +303,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandLRButtonDetection(const SwitchHidCommand *command) {
@@ -314,7 +312,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandClearPairingInfo(const SwitchHidCommand *command) {
@@ -325,7 +323,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandShipment(const SwitchHidCommand *command) {
@@ -339,7 +337,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandSerialFlashRead(const SwitchHidCommand *command) {
@@ -369,7 +367,7 @@ namespace ams::controller {
 
         if (read_addr == 0x6050) {
             if (ams::mitm::GetSystemLanguage() == 10) {
-                uint8_t data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                u8 data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
                 std::memcpy(response.data.serial_flash_read.data, data, sizeof(data));
             }
         }
@@ -392,7 +390,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandSerialFlashSectorErase(const SwitchHidCommand *command) {
@@ -408,7 +406,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuPollingEnable(const SwitchHidCommand *command) {
@@ -420,7 +418,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuPollingDisable(const SwitchHidCommand *command) {
@@ -432,7 +430,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuWrite(const SwitchHidCommand *command) {
@@ -450,7 +448,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuResume(const SwitchHidCommand *command) {
@@ -459,7 +457,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandSetIndicatorLed(const SwitchHidCommand *command) {
@@ -471,7 +469,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandGetIndicatorLed(const SwitchHidCommand *command) {
@@ -485,7 +483,7 @@ namespace ams::controller {
             }
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandSetNotificationLed(const SwitchHidCommand *command) {
@@ -494,7 +492,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand *command) {
@@ -512,7 +510,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandSensorConfig(const SwitchHidCommand *command) {
@@ -537,7 +535,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandMotorEnable(const SwitchHidCommand *command) {
@@ -548,7 +546,7 @@ namespace ams::controller {
             .id = command->id
         };
 
-        return this->FakeHidCommandResponse(&response);
+        R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::FakeHidCommandResponse(const SwitchHidCommandResponse *response) {
@@ -568,10 +566,10 @@ namespace ams::controller {
         m_input_report.size = offsetof(SwitchInputReport, type0x21) + sizeof(input_report->type0x21);
 
         // Write a fake response into the report buffer
-        return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
+        R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
     }
 
-    Result EmulatedSwitchController::HandleNfcIrData(const uint8_t *nfc_ir) {
+    Result EmulatedSwitchController::HandleNfcIrData(const u8 *nfc_ir) {
         AMS_UNUSED(nfc_ir);
 
         SwitchNfcIrResponse response = {};
@@ -579,7 +577,7 @@ namespace ams::controller {
         // Send device not ready response for now
         response.data[0] = 0xff;
 
-        return this->FakeNfcIrResponse(&response);
+        R_RETURN(this->FakeNfcIrResponse(&response));
     }
 
     Result EmulatedSwitchController::FakeNfcIrResponse(const SwitchNfcIrResponse *response) {
@@ -601,7 +599,7 @@ namespace ams::controller {
         m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);
 
         // Write a fake response into the report buffer
-        return bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report);
+        R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
     }
 
 }

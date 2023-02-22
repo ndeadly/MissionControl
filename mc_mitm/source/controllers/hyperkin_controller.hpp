@@ -31,48 +31,48 @@ namespace ams::controller {
     };
 
     struct HyperkinStickData {
-        uint16_t x;
-        uint16_t y;
+        u16 x;
+        u16 y;
     } __attribute__ ((__packed__));
 
     struct HyperkinButtonData {
-        uint8_t B       : 1;
-        uint8_t A       : 1;
-        uint8_t Y       : 1;
-        uint8_t X       : 1;
-        uint8_t L       : 1;
-        uint8_t R       : 1;
-        uint8_t         : 0;
+        u8 B      : 1;
+        u8 A      : 1;
+        u8 Y      : 1;
+        u8 X      : 1;
+        u8 L      : 1;
+        u8 R      : 1;
+        u8        : 0;
         
-        uint8_t select  : 1;
-        uint8_t start   : 1;
-        uint8_t         : 0;
+        u8 select : 1;
+        u8 start  : 1;
+        u8        : 0;
 
-        uint8_t dpad;
-    } __attribute__((packed));
+        u8 dpad;
+    } PACKED;
 
     struct HyperkinInputReport0x3f{
         HyperkinButtonData buttons;
         HyperkinStickData left_stick;
         HyperkinStickData right_stick;
-        uint8_t unk;
+        u8 unk;
     } __attribute__ ((__packed__));
 
     struct HyperkinReportData{
-        uint8_t id;
+        u8 id;
         union {
             HyperkinInputReport0x3f input0x3f;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class HyperkinController : public EmulatedSwitchController {
+    class HyperkinController final : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x2e24, 0x200a}    // Hyperkin Scout
-            };  
+            };
 
-            HyperkinController(const bluetooth::Address *address, HardwareID id) 
+            HyperkinController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
             bool SupportsSetTsiCommand() { return false; }

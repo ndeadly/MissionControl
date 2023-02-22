@@ -31,54 +31,53 @@ namespace ams::controller {
     };
 
     struct RazerStickData {
-        uint8_t x;
-        uint8_t y;
-    } __attribute__((packed));
+        u8 x;
+        u8 y;
+    } PACKED;
 
     struct RazerButtonData {
-        uint8_t dpad    : 4;
-        uint8_t A       : 1;
-        uint8_t B       : 1;
-        uint8_t X       : 1;
-        uint8_t Y       : 1;
+        u8 dpad   : 4;
+        u8 A      : 1;
+        u8 B      : 1;
+        u8 X      : 1;
+        u8 Y      : 1;
 
-        uint8_t L1           : 1;
-        uint8_t R1           : 1;
-        uint8_t back         : 1;
-        uint8_t start        : 1;
-        uint8_t L3           : 1;
-        uint8_t R3           : 1;
-        uint8_t              : 1;
-        uint8_t home         : 1;
+        u8 L1     : 1;
+        u8 R1     : 1;
+        u8 back   : 1;
+        u8 start  : 1;
+        u8 L3     : 1;
+        u8 R3     : 1;
+        u8        : 1;
+        u8 home   : 1;
 
-        uint8_t select       : 1;
-        uint8_t              : 0;
-    } __attribute__((packed));
+        u8 select : 1;
+        u8        : 0;
+    } PACKED;
 
     struct RazerInputReport0x01 {
         RazerStickData left_stick;
         RazerStickData right_stick;
         RazerButtonData buttons;
-        uint8_t left_trigger;
-        uint8_t right_trigger;
-    } __attribute__((packed));
+        u8 left_trigger;
+        u8 right_trigger;
+    } PACKED;
 
     struct RazerReportData{
-        uint8_t id;
+        u8 id;
         union {
             RazerInputReport0x01 input0x01;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-
-    class RazerController : public EmulatedSwitchController {
+    class RazerController final : public EmulatedSwitchController {
 
         public:
-            static constexpr const HardwareID hardware_ids[] = { 
+            static constexpr const HardwareID hardware_ids[] = {
                 {0x1532, 0x0900}    // Razer Serval
-            };  
+            };
 
-            RazerController(const bluetooth::Address *address, HardwareID id) 
+            RazerController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;

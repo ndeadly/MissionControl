@@ -37,26 +37,26 @@ namespace ams::controller {
 
     void RazerController::MapInputReport0x01(const RazerReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
         );
         
-        m_buttons.dpad_down   = (src->input0x01.buttons.dpad == RazerDPad_S)  ||
-                                (src->input0x01.buttons.dpad == RazerDPad_SE) ||
-                                (src->input0x01.buttons.dpad == RazerDPad_SW);
-        m_buttons.dpad_up     = (src->input0x01.buttons.dpad == RazerDPad_N)  ||
-                                (src->input0x01.buttons.dpad == RazerDPad_NE) ||
-                                (src->input0x01.buttons.dpad == RazerDPad_NW);
-        m_buttons.dpad_right  = (src->input0x01.buttons.dpad == RazerDPad_E)  ||
-                                (src->input0x01.buttons.dpad == RazerDPad_NE) ||
-                                (src->input0x01.buttons.dpad == RazerDPad_SE);
-        m_buttons.dpad_left   = (src->input0x01.buttons.dpad == RazerDPad_W)  ||
-                                (src->input0x01.buttons.dpad == RazerDPad_NW) ||
-                                (src->input0x01.buttons.dpad == RazerDPad_SW);
+        m_buttons.dpad_down  = (src->input0x01.buttons.dpad == RazerDPad_S)  ||
+                               (src->input0x01.buttons.dpad == RazerDPad_SE) ||
+                               (src->input0x01.buttons.dpad == RazerDPad_SW);
+        m_buttons.dpad_up    = (src->input0x01.buttons.dpad == RazerDPad_N)  ||
+                               (src->input0x01.buttons.dpad == RazerDPad_NE) ||
+                               (src->input0x01.buttons.dpad == RazerDPad_NW);
+        m_buttons.dpad_right = (src->input0x01.buttons.dpad == RazerDPad_E)  ||
+                               (src->input0x01.buttons.dpad == RazerDPad_NE) ||
+                               (src->input0x01.buttons.dpad == RazerDPad_SE);
+        m_buttons.dpad_left  = (src->input0x01.buttons.dpad == RazerDPad_W)  ||
+                               (src->input0x01.buttons.dpad == RazerDPad_NW) ||
+                               (src->input0x01.buttons.dpad == RazerDPad_SW);
 
         m_buttons.A = src->input0x01.buttons.B;
         m_buttons.B = src->input0x01.buttons.A;
@@ -72,7 +72,7 @@ namespace ams::controller {
         m_buttons.plus  = src->input0x01.buttons.start;
 
         m_buttons.lstick_press = src->input0x01.buttons.L3;
-        m_buttons.rstick_press = src->input0x01.buttons.R3;    
+        m_buttons.rstick_press = src->input0x01.buttons.R3;
 
         m_buttons.capture = src->input0x01.buttons.back;
         m_buttons.home    = src->input0x01.buttons.home;

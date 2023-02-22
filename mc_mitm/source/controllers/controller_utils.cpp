@@ -17,11 +17,11 @@
 
 namespace ams::controller {
 
-    uint8_t convert_battery_100(uint8_t level) {
+    u8 convert_battery_100(u8 level) {
         return level ? (((level - 1) / 25) + 1) << 1 : 0;
     }
 
-    uint8_t convert_battery_255(uint8_t level) {
+    u8 convert_battery_255(u8 level) {
         return level ? ((level / 64) + 1) << 1 : 0;
     }
 

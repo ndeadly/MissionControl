@@ -31,55 +31,55 @@ namespace ams::controller {
     };
 
     struct NvidiaShieldStickData {
-        uint16_t x;
-        uint16_t y;
-    } __attribute__((packed));
+        u16 x;
+        u16 y;
+    } PACKED;
 
     struct NvidiaShieldButtonData {
-        uint8_t A       : 1;
-        uint8_t B       : 1;
-        uint8_t X       : 1;
-        uint8_t Y       : 1;
-        uint8_t LB      : 1;
-        uint8_t RB      : 1;
-        uint8_t L3      : 1;
-        uint8_t R3      : 1;
+        u8 A     : 1;
+        u8 B     : 1;
+        u8 X     : 1;
+        u8 Y     : 1;
+        u8 LB    : 1;
+        u8 RB    : 1;
+        u8 L3    : 1;
+        u8 R3    : 1;
 
-        uint8_t start   : 1;
-        uint8_t         : 0;
-    } __attribute__((packed));
+        u8 start : 1;
+        u8       : 0;
+    } PACKED;
 
     struct NvidiaShieldInputReport0x01 {
-        uint8_t _unk0;  // maybe a counter?
-        uint8_t dpad;
+        u8 _unk0;  // maybe a counter?
+        u8 dpad;
         NvidiaShieldButtonData buttons;
-        uint16_t left_trigger;
-        uint16_t right_trigger;
+        u16 left_trigger;
+        u16 right_trigger;
         NvidiaShieldStickData left_stick;
         NvidiaShieldStickData right_stick;
-        uint8_t home    : 1;
-        uint8_t back    : 1;
-        uint8_t         : 0;
-    } __attribute__((packed));
+        u8 home : 1;
+        u8 back : 1;
+        u8      : 0;
+    } PACKED;
 
     struct NvidiaShieldInputReport0x03 {
-        uint8_t _unk[15];
-    } __attribute__((packed));
+        u8 _unk[15];
+    } PACKED;
 
     struct NvidiaShieldReportData{
-        uint8_t id;
+        u8 id;
         union {
             NvidiaShieldInputReport0x01 input0x01;
             NvidiaShieldInputReport0x03 input0x03;
         };
-    } __attribute__((packed));
+    } PACKED;
 
-    class NvidiaShieldController : public EmulatedSwitchController {
+    class NvidiaShieldController final : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
                 {0x0955, 0x7214}    // Nvidia Shield Controller (2017) v1.04
-            };  
+            };
 
             NvidiaShieldController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
