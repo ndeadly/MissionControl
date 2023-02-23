@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022 ndeadly
+ * Copyright (c) 2020-2023 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -77,6 +77,7 @@ namespace ams::controller {
                   (lo_freq_ind < rumble_freq_lut_size) &&
                   (lo_amp_ind < rumble_amp_lut_f_size))) {
                 std::memset(dec, 0, sizeof(SwitchRumbleData));
+                return;
             }
 
             dec->high_band_freq = float(rumble_freq_lut[hi_freq_ind]);

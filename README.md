@@ -1,16 +1,12 @@
 <p align="left">
-<img alt="GitHub" src="https://img.shields.io/github/license/ndeadly/MissionControl">
-<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/ndeadly/MissionControl">
-<img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total">
-<img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total">
+<a href="https://github.com/ndeadly/MissionControl/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/ndeadly/MissionControl"></a>
+<a href="https://github.com/ndeadly/MissionControl/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/ndeadly/MissionControl"></a>
+<a href="https://github.com/ndeadly/MissionControl/releases"><img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total"></a>
+<a href="https://github.com/ndeadly/MissionControl/releases/latest"><img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total"></a>
 <a href="https://discord.gg/gegfNZ5Ucz"><img alt="Discord Server" src="https://discordapp.com/api/guilds/905069757361971303/widget.png?style=shield"/></a>
 <br>
-<img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin">
-<img alt="Donate Ethereum" src="https://img.shields.io/static/v1?label=donate&message=fd28c8680416d5c706ad8e404955e0a3a2aa7124&color=yellow&style=flat&logo=ethereum">
-</p>
-
-<p align="left">
-
+<a href="https://www.bitcoinqrcodemaker.com/api/?style=bitcoin&prefix=on&address=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0"><img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin"></a>
+<a href="https://www.bitcoinqrcodemaker.com/api/?style=ethereum&prefix=on&address=0xFD28C8680416D5c706Ad8E404955e0a3A2aA7124"><img alt="Donate Ethereum" src="https://img.shields.io/static/v1?label=donate&message=0xFD28C8680416D5c706Ad8E404955e0a3A2aA7124&color=yellow&style=flat&logo=ethereum"></a>
 </p>
 
 # Mission Control
@@ -35,8 +31,9 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro, SNES Mini, TaTaCon (Taiko drum), MotionPlus)__
 * __Nintendo Wii Balance Board (experimental)__
 * __Nintendo WiiU Pro Controller__
-* __Sony Playstation 4 (DualShock4) Controller__
-* __Sony Playstation 5 (Dualsense) Controller__
+* __Sony DualShock4 (Playstation 4) Controller__
+* __Sony Dualsense (Playstation 5) Controller__
+* __Sony Dualsense Edge Controller__
 * __Microsoft Xbox One S/X Controller (not to be confused with Series S/X controllers - these use Bluetooth LE, which isn't currently supported)__*
 * __Microsoft Xbox Elite Wireless Controller Series 2__
 * __NVidia Shield Controller (2017 Model)__
@@ -44,7 +41,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Gamestick Controller__
 * __Gembox Controller__
 * __iCade Controller__
-* __Ipega Controllers (9017s, 9023, 9055, 9062S, 9076, 9078, 9087, 9096 confirmed working. Others may also work)__
+* __Ipega Controllers (7197, 9017s, 9023, 9055, 9062S, 9076, 9078, 9087, 9096 confirmed working. Others may also work)__
 * __g910 Wireless Bluetooth Controller__
 * __Xiaomi Mi Controller__
 * __Steelseries Free__
@@ -61,11 +58,13 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __PowerA Moga Pro__
 * __PowerA Moga Pro 2__
 * __Mad-Catz C.T.R.L.R__
+* __Mad-Catz L.Y.N.X 3__
 * __Razer Raiju Tournament__
+* __Razer Raiju Ultimate__
 * __Razer Serval__
 * __Mocute 050__
 * __Gen Game S3__
-* __AtGames Legends Pinball Controller__
+* __AtGames Legends Pinball Controller + Arcade Control Panel__
 * __Hyperkin Scout__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
@@ -80,7 +79,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. Reboot your console to activate the module and you're done!
 
 ***IMPORTANT: 
-Atmosphère >= 1.4.0 is required to run the latest release of Mission Control on firmware 15.0.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
+Atmosphère >= 1.5.0 is required to run the latest release of Mission Control on firmware 16.0.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
 
 ### Usage
 
@@ -110,7 +109,7 @@ If you have difficulty getting the controller to pair to the console, press and 
 ***Microsoft Xbox One/Elite 2 Controllers***
 Press and hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
 
-*As of late 2021, Microsoft introduced a new controller firmware that aims to bring Xbox One/Elite 2 controllers in line with the newer Series X|S controllers. Updating to this firmware switches the controller over to using Bluetooth Low Energy (LE), a newer bluetooth standard focused on low power consumption, which is not currently supported by Mission Control. If your controller firmware is version 5.xx.xxxx.x or above, you have the new LE firmware and will need to downgrade to the legacy one (see https://support.xbox.com/en-US/help/hardware-network/accessories/controller-firmware-reversion)*
+*Note: controller firmware versions 5.xx.xxxx.x and upward use Bluetooth Low Energy and are not currently supported. Please refer to the [FAQ](#frequently-asked-questions) for instructions on downgrading to a compatible firmware*
 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it into sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
@@ -119,7 +118,7 @@ Controllers that successfully pair but haven't been officially supported yet wil
 
 ### Module configuration
 
-A template for the config .ini file will be installed to `/config/MissionControl/missioncontrol.ini.template`. To modify the default module settings, copy the template to `/config/MissionControl/missioncontrol.ini` and uncomment/modify any settings you want to change. The file is only parsed on startup, so any changes you make will require a reboot to take effect. Currently there is only a small set of configuration settings, but this will be expanded upon in future releases.
+A template for the config .ini file will be installed to `/config/MissionControl/missioncontrol.ini.template`. To modify the default module settings, copy the template to `/config/MissionControl/missioncontrol.ini` and uncomment (remove the leading `;`) and modify any settings you want to change. The file is only parsed on startup, so any changes you make will require a reboot to take effect. Settings entries that can't be parsed/validated correctly are ignored. Currently there is only a small set of configuration settings, but this will be expanded upon in future releases.
 
 - `[general]`
 These are general settings for mission control features. 
@@ -144,6 +143,7 @@ To functionally uninstall Mission Control and its components, all that needs to 
 
 * `/atmosphere/contents/010000000000bd00`
 * `/atmosphere/exefs_patches/bluetooth_patches`
+* `/atmosphere/exefs_patches/btm_patches`
 
 If you wish to completely remove all traces of the software ever having been installed (telemetry excepted), you may also want to follow these additional steps
 
@@ -188,7 +188,7 @@ Below is a list of features I am currently working on or would like to look into
 
 * Non-Switch controllers cannot be used to wake the system from sleep.
 * Controllers using the Bluetooth LE (BLE) standard are currently not supported and will not connect to the system.
-* Xbox One, Wii/WiiU and (especially) some Dualshock v1 controllers can take some time to be detected and subsequently pair with the Console. Be patient and re-enter the sync mode of the controller several times if neccessary. Once synced, controllers should work as usual.
+* Some controllers can take some time to be detected and subsequently pair with the console. Be patient and re-enter the sync mode of the controller several times if neccessary. Once synced, controllers should connect and work as usual.
 * Xbox One controllers cannot be switched off via software and will attempt to reconnect to the console after being disconnected. This is a limitation of the controller's bluetooth firmware. To switch the controller off, the guide button must be held in for several seconds.
 * Reported controller battery levels may not be correct. I'm relying entirely on reverse engineering notes found on the internet for these. In many cases I don't own the controller and there is simply no information available, so these controllers will always show full battery. Any help in improving this is most welcome.
 * Several users have reported knockoff WiiU and Dualshock4 controllers that cannot be detected by the console during Bluetooth discovery. Unfortunately I think they're using an incompatible Bluetooth chipset.
@@ -199,10 +199,10 @@ Below is a list of features I am currently working on or would like to look into
 ### Frequently Asked Questions
 
 ***Does this run on \<insert CFW here\>?***
-No. Mission Control will only run under Atmosphère. This is not some attempt to lock out users of other CFW, Atmosphere is simply the only one (currently) providing the extensions neccessary to MITM Bluetooth communications that make this sysmodule possible.
+No. Mission Control will only run under Atmosphère. This is not some attempt to lock out users of other CFW, Atmosphere is simply the only one providing the extensions neccessary to MITM Bluetooth communications that make this sysmodule possible.
 
 ***Will using this get me banned from online?***
-Currently there haven't been any confirmed cases of bans as a result of running Mission Control. That said, running any unofficial software under CFW will always carry a non-zero risk of ban, and Nintendo could change their ban criteria at any point. While this should be relatively safe, it would certainly be possible to detect that you had connected foreign controllers to the console if they were interested in doing so. Use at your own discretion.
+Currently there haven't been any confirmed cases of bans as a result of running Mission Control. That said, running any unofficial software under CFW will always carry a non-zero risk of ban, and Nintendo could change their ban criteria at any point. While Mission Control should be relatively safe, as it simply emulates a Pro Controller being connected, it would certainly be possible to detect that you had connected unofficial controllers to the console if Nintendo were interested in doing so. Use at your own discretion.
 
 ***Does this support USB controllers?***
 No, Mission Control is currently Bluetooth-only. For now you can use cathery's [sys-con](https://github.com/cathery/sys-con) for USB controllers.
@@ -221,8 +221,19 @@ Pairing controllers across multiple unique HOS installations requires multiple p
 ***Can I remap controller buttons using Mission Control?***
 Yes. Since Mission Control emulates official Pro Controllers, you can remap them using the official method introduced by Nintendo in firmware 10.0.0. You can find the remapping options in the system menu under `System Settings->Controllers and Sensors->Change Button Mapping`.
 
-***My Xbox One Controller buttons are mapped incorrectly. Can you fix it?***
-~~You didn't read the [Known Issues and Limitations](https://github.com/ndeadly/MissionControl#known-issues-and-limitations) section, did you? You need to update your controller firmware to the latest version. This can be done on Windows using the [Xbox Accessories](https://www.microsoft.com/en-us/p/xbox-accessories/9nblggh30xj3?activetab=pivot:overviewtab) app. You can also do this on the Xbox itself.~~ Both report formats are now supported. If you're still having issues with button mapping you're using an outdated version of Mission Control.
+***My console shows a "Paired" notification but my controller doesn't connect, what's wrong?***
+Your controller has successfully paired with the console but is being disconnected shortly after, before it can start sending inputs. This can happen for a variety of reasons, the most common being:
+- Your controller is not officially supported by Mission Control and hasn't been assigned an input handler. Double-check the [Supported Controllers](#supported-controllers) list for your controller. Please open a controller request [issue](https://github.com/ndeadly/MissionControl/issues/new/choose) so that I can add support if it's not present.
+- Your controller battery is low and needs to be replaced or recharged.
+- Your controller's virtual memory file or the directory tree containing it has been corrupted. Try deleting the controller's config entry (`/config/MissionControl/controllers/<xxxxxxxxxxxx>/`, where `<xxxxxxxxxxxx>` is the 12-character hex representation of your controllers Bluetooth MAC address) and letting Mission Control create a new one. It may be necessary to delete the entire `controllers` directory in some cases. Note: you will lose any stored controller specific data such as user analog stick or motion calibrations when deleting these files. As this is the most destructive measure, you should attempt it last, after exhausting the suggestions above.
+
+***My Xbox controller won't connect, I thought you said they were supported?***
+Although they may look similar, not all Xbox controllers are created equal. There are actually several hardware revisions/models available (7 at the time of writing) with varying wireless capabilites. On Xbox consoles (or PC with the wireless USB adapter) all controllers use a proprietary Microsoft wireless protocol known as GIP. Bluetooth connectivity, however, is _not_ the same thing and varies between controller models. Some support bluetooth, and some don't. Of those that do, some are using the newer (currently unsupported) Bluetooth Low Energy (LE) standard or will switch to it after a firmware update. **The only supported models are the 1708 (Xbox One S) and 1797 (Xbox Elite V2) revisions. If these have been updated to a Bluetooth LE firmware (5.xx.xxxx.x and above), you will need to downgrade the firmware to the legacy version (see below).**. Controller model numbers can be found on the inside of the battery compartment, or the back of the controller in controllers with an internal battery.
+
+For more details on the various controller revisions (with images), see [here](https://en.wikipedia.org/wiki/Xbox_Wireless_Controller#Summary).
+
+***My Xbox One/Elite V2 controller used to connect and now it doesn't, what gives?***
+As of late 2021, Microsoft introduced a new controller firmware that aims to bring Xbox One/Elite 2 controllers in line with the newer Series X|S controllers. Updating to this firmware switches the controller over to using Bluetooth Low Energy (LE), a newer bluetooth standard focused on low power consumption, which is not currently supported by Mission Control. If your controller firmware is version 5.xx.xxxx.x or above, you have the new LE firmware and will need to downgrade to the legacy one (see https://support.xbox.com/en-US/help/hardware-network/accessories/controller-firmware-reversion)
 
 ***Can you add support for PS3 (Dualshock3) controllers?***
 ~~It's on my list of things to look into. The pairing process is non-standard and may require modifications to the Bluetooth driver. If it can be done non-destructively I will add support eventually.~~ Having looked into this a bit, it appears it's going to be a lot of work given the constraints of HOS (if it can even be done without breaking support for other Bluetooth controllers). I won't rule out a solution in the future, but this is not high priority for me right now. Sorry DS3 owners.
@@ -244,7 +255,9 @@ To achieve this, the `btdrv.mitm` module obtains the handles to `bluetooth` syst
 
 Intercepting initialisation IPC commands also allows homebrew to properly make use of the `bluetooth` service. Normally, calling any of the IPC commands that would initialise or finalise system events would either crash the console, or invalidate the event handles held by system processes. With `btdrv.mitm` we are able to hand out alternative event handles when homebrew attempts to initialise an interface, and redirect the real system events to those instead of the events held by system processes.
 
-IPS patches to the `bluetooth` module are provided to enable the pairing of Wii/WiiU and other controllers that makes use of legacy pincode pairing, Xbox Elite 2 Wireless controllers, and to relax device class checks added on newer firmwares to also allow devices identifying as keyboard or joystick to be connected.
+exefs patches to the `bluetooth` module are provided to enable the pairing of Wii/WiiU and other controllers that makes use of legacy pincode pairing, Xbox Elite 2 Wireless controllers, and to relax device class checks added on newer firmwares to also allow devices identifying as keyboard or joystick to be connected.
+
+exefs patches to the `btm` module have been added to skip over calls to `nn::bluetooth::hal::CloseHidConnection` when a controller fails to respond correctly to the broadcom vendor command sent by `nn::bluetooth::hal::SetTsi`. This prevents all affected controllers from being disconnected immediately after connection, and eliminates the need to manually flag certain controllers with a `settsi_disable.flag` file.
 
 The `btm` service is now also MITM'd, allowing for faking controller names on the fly while retaining the original names in the pairing database.
 
@@ -294,6 +307,4 @@ The resulting package can be installed as described above.
 If you like this project, please consider supporting me to continue its development :)
 
 
-<a href="https://ko-fi.com/J3J01BZZ6">
-    <img border="0" alt="ko-fi" src="https://www.ko-fi.com/img/githubbutton_sm.svg" align="left">
-</a>
+<a href="https://ko-fi.com/J3J01BZZ6"><img border="0" alt="ko-fi" src="https://www.ko-fi.com/img/githubbutton_sm.svg" align="left"></a>
