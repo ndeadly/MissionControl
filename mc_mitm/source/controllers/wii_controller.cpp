@@ -154,10 +154,38 @@ namespace ams::controller {
 
     void WiiController::MapCoreButtons(const WiiButtonData *buttons) {
         if (m_orientation == WiiControllerOrientation_Horizontal) {
-            m_buttons.dpad_down  = buttons->dpad_left;
-            m_buttons.dpad_up    = buttons->dpad_right;
-            m_buttons.dpad_right = buttons->dpad_down;
-            m_buttons.dpad_left  = buttons->dpad_up;
+            // NOTE: When wiimote is in horizontal position:
+            // buttons->dpad_down = RIGHT
+            // buttons->dpad_up = LEFT
+            // buttons->dpad_left = DOWN
+            // buttons->dpad_right = UP
+
+            // X AXIS: LEFT <---> RIGHT: buttons->dpad_up <---> buttons->dpad_down
+            // Y AXIS: DOWN <---> UP:    buttons->dpad_left <---> buttons->dpad_right
+
+            int x = -1*(buttons->dpad_up) + 1*(buttons->dpad_down);
+            int y = -1*(buttons->dpad_left) + 1*(buttons->dpad_right);
+
+            int x_axis_value;
+            int y_axis_value;
+
+            switch(x){
+                case -1: x_axis_value = 0; break;
+                case 0: x_axis_value = 0x800; break;
+                case 1: x_axis_value = 0xfff; break;
+                default: x_axis_value = 0x800; break;
+            }
+            switch(y){
+                case -1: y_axis_value = 0; break;
+                case 0: y_axis_value = 0x800; break;
+                case 1: y_axis_value = 0xfff; break;
+                default: y_axis_value = 0x800; break;
+            }
+
+            m_left_stick.SetData(
+                static_cast<uint16_t>(x_axis_value),
+                static_cast<uint16_t>(y_axis_value)
+            );
 
             m_buttons.A = buttons->two;
             m_buttons.B = buttons->one;
