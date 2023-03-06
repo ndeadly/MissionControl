@@ -153,6 +153,11 @@ namespace ams::controller {
     }
 
     void WiiController::MapCoreButtons(const WiiButtonData *buttons) {
+        // Wii U Pro controller doesn't set core button data
+        if (m_extension == WiiExtensionController_WiiUPro) {
+            return;
+        }
+
         if (m_orientation == WiiControllerOrientation_Horizontal) {
             m_buttons.dpad_down  = buttons->dpad_left;
             m_buttons.dpad_up    = buttons->dpad_right;
