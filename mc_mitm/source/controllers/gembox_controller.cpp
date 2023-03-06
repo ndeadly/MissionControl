@@ -44,12 +44,12 @@ namespace ams::controller {
 
     void GemboxController::MapInputReport0x07(const GemboxReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x07.left_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x07.left_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x07.left_stick.x + 1) + 0x7ff) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x07.left_stick.y + 1)) + 0x7ff) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x07.right_stick.x + 1) + 0x7ff) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x07.right_stick.y + 1)) + 0x7ff) & 0xfff
+            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x07.right_stick.x + 1) + 0x7ff) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x07.right_stick.y + 1)) + 0x7ff) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0x07.dpad == GemboxDPad_S)  ||

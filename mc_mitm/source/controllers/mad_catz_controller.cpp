@@ -46,12 +46,12 @@ namespace ams::controller {
 
     void MadCatzController::MapInputReport0x01(const MadCatzReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
         );
         
         m_buttons.dpad_down  = (src->input0x01.buttons.dpad == MadCatzDPad_S)  ||
@@ -93,12 +93,12 @@ namespace ams::controller {
 
     void MadCatzController::MapInputReport0x81(const MadCatzReportData *src) {
         m_left_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x81.left_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x81.left_stick.y)) & 0xfff
+            static_cast<uint16_t>(stick_scale_factor * src->input0x81.left_stick.x) & UINT12_MAX,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x81.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<uint16_t>(stick_scale_factor * src->input0x81.right_stick.x) & 0xfff,
-            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x81.right_stick.y)) & 0xfff
+            static_cast<uint16_t>(stick_scale_factor * src->input0x81.right_stick.x) & UINT12_MAX,
+            static_cast<uint16_t>(stick_scale_factor * (UINT8_MAX - src->input0x81.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0x81.buttons.dpad == MadCatzDPad_S)  ||
@@ -149,8 +149,8 @@ namespace ams::controller {
 
     void MadCatzController::MapInputReport0x83(const MadCatzReportData *src) {
         m_left_stick.SetData(
-            std::clamp<uint16_t>(media_mode_stick_scale_factor * -src->input0x83.left_stick.x + 0x7ff, 0, 0xfff),
-            std::clamp<uint16_t>(media_mode_stick_scale_factor *  src->input0x83.left_stick.y + 0x7ff, 0, 0xfff)
+            std::clamp<uint16_t>(media_mode_stick_scale_factor * -src->input0x83.left_stick.x + 0x7ff, STICK_MIN, STICK_MAX),
+            std::clamp<uint16_t>(media_mode_stick_scale_factor *  src->input0x83.left_stick.y + 0x7ff, STICK_MIN, STICK_MAX)
         );
 
         m_buttons.ZR = src->input0x83.buttons.R2;

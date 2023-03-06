@@ -54,12 +54,12 @@ namespace ams::controller {
         m_battery = convert_battery_100(src->input0x04.battery);
 
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x04.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x04.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x04.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x04.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x04.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x04.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x04.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x04.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0x04.buttons.dpad == XiaomiDPad_S)  ||

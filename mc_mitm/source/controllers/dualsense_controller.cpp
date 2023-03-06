@@ -137,12 +137,12 @@ namespace ams::controller {
 
     void DualsenseController::MapInputReport0x01(const DualsenseReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
         );
 
         this->MapButtons(&src->input0x01.buttons);
@@ -168,12 +168,12 @@ namespace ams::controller {
         m_battery = static_cast<u8>(8 * (battery_level + 2) / 10) & 0x0e;
     
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x31.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x31.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x31.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x31.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x31.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x31.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x31.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x31.right_stick.y)) & UINT12_MAX
         );
 
         this->MapButtons(&src->input0x31.buttons);

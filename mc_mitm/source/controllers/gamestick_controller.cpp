@@ -44,12 +44,12 @@ namespace ams::controller {
 
     void GamestickController::MapInputReport0x03(const GamestickReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & UINT12_MAX
         );
         
         m_buttons.dpad_down  = (src->input0x03.dpad == GamestickDPad_S)  ||

@@ -39,12 +39,12 @@ namespace ams::controller {
 
     void NvidiaShieldController::MapInputReport0x01(const NvidiaShieldReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0x01.dpad == NvidiaShieldDPad_S)  ||

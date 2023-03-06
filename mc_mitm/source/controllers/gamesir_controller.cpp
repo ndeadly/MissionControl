@@ -41,12 +41,12 @@ namespace ams::controller {
 
     void GamesirController::MapInputReport0x03(const GamesirReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0x03.buttons.dpad == GamesirDpad2_S)  ||
@@ -87,12 +87,12 @@ namespace ams::controller {
 
     void GamesirController::MapInputReport0xc4(const GamesirReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0xc4.left_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0xc4.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0xc4.right_stick.x) & 0xfff,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & 0xfff
+            static_cast<u16>(stick_scale_factor * src->input0xc4.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.dpad_down   = (src->input0xc4.buttons.dpad == GamesirDpad_S)  ||

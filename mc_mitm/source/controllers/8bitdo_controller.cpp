@@ -53,12 +53,12 @@ namespace ams::controller {
                                    (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
         } else {
             m_left_stick.SetData(
-                static_cast<u16>(stick_scale_factor * src->input0x01_v2.left_stick.x) & 0xfff,
-                static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.left_stick.y)) & 0xfff
+                static_cast<u16>(stick_scale_factor * src->input0x01_v2.left_stick.x) & UINT12_MAX,
+                static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.left_stick.y)) & UINT12_MAX
             );
             m_right_stick.SetData(
-                static_cast<u16>(stick_scale_factor * src->input0x01_v2.right_stick.x) & 0xfff,
-                static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.right_stick.y)) & 0xfff
+                static_cast<u16>(stick_scale_factor * src->input0x01_v2.right_stick.x) & UINT12_MAX,
+                static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01_v2.right_stick.y)) & UINT12_MAX
             );
 
             m_buttons.dpad_down  = (src->input0x01_v2.buttons.dpad == EightBitDoDPadV2_S)  ||

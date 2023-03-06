@@ -260,8 +260,8 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiNunchuckExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_x - 0x80) + STICK_ZERO), 0, 0xfff),
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_y - 0x80) + STICK_ZERO), 0, 0xfff)
+            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_x - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX),
+            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_y - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX)
         );
 
         m_buttons.L  = !extension_data->C;
@@ -272,12 +272,12 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiClassicControllerExtensionData *>(ext);
 
         m_left_stick.SetData(
-            static_cast<u16>(left_stick_scale_factor * (extension_data->left_stick_x - 0x20) + STICK_ZERO) & 0xfff,
-            static_cast<u16>(left_stick_scale_factor * (extension_data->left_stick_y - 0x20) + STICK_ZERO) & 0xfff
+            static_cast<u16>(left_stick_scale_factor * (extension_data->left_stick_x - 0x20) + STICK_CENTER) & UINT12_MAX,
+            static_cast<u16>(left_stick_scale_factor * (extension_data->left_stick_y - 0x20) + STICK_CENTER) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(right_stick_scale_factor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + STICK_ZERO) & 0xfff,
-            static_cast<u16>(right_stick_scale_factor * (extension_data->right_stick_y - 0x10) + STICK_ZERO) & 0xfff
+            static_cast<u16>(right_stick_scale_factor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + STICK_CENTER) & UINT12_MAX,
+            static_cast<u16>(right_stick_scale_factor * (extension_data->right_stick_y - 0x10) + STICK_CENTER) & UINT12_MAX
         );
 
         m_buttons.dpad_down  |= !extension_data->buttons.dpad_down;
@@ -305,12 +305,12 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiUProExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->left_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff),
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->left_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
+            std::clamp<u16>(((wiiu_scale_factor * (extension_data->left_stick_x - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX),
+            std::clamp<u16>(((wiiu_scale_factor * (extension_data->left_stick_y - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX)
         );
         m_right_stick.SetData(
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->right_stick_x - STICK_ZERO))) + STICK_ZERO, 0, 0xfff),
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->right_stick_y - STICK_ZERO))) + STICK_ZERO, 0, 0xfff)
+            std::clamp<u16>(((wiiu_scale_factor * (extension_data->right_stick_x - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX),
+            std::clamp<u16>(((wiiu_scale_factor * (extension_data->right_stick_y - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX)
         );
 
         m_buttons.dpad_down  = !extension_data->buttons.dpad_down;
@@ -367,8 +367,8 @@ namespace ams::controller {
         }
 
         m_left_stick.SetData(
-            std::clamp<u16>(static_cast<u16>((x * (UINT12_MAX / 2)) + STICK_ZERO), 0, UINT12_MAX),
-            std::clamp<u16>(static_cast<u16>((y * (UINT12_MAX / 2)) + STICK_ZERO), 0, UINT12_MAX)
+            std::clamp<u16>(static_cast<u16>((x * (UINT12_MAX / 2)) + STICK_CENTER), STICK_MIN, STICK_MAX),
+            std::clamp<u16>(static_cast<u16>((y * (UINT12_MAX / 2)) + STICK_CENTER), STICK_MIN, STICK_MAX)
         );
     }
 
@@ -436,8 +436,8 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiNunchuckPassthroughExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_x - 0x80) + STICK_ZERO), 0, 0xfff),
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_y - 0x80) + STICK_ZERO), 0, 0xfff)
+            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_x - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX),
+            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_y - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX)
         );
 
         m_buttons.L  = !extension_data->C;
@@ -448,12 +448,12 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiClassicControllerPassthroughExtensionData *>(ext);
 
         m_left_stick.SetData(
-            static_cast<u16>(left_stick_scale_factor * ((extension_data->left_stick_x_51 << 1) - 0x20) + STICK_ZERO) & 0xfff,
-            static_cast<u16>(left_stick_scale_factor * ((extension_data->left_stick_y_51 << 1) - 0x20) + STICK_ZERO) & 0xfff
+            static_cast<u16>(left_stick_scale_factor * ((extension_data->left_stick_x_51 << 1) - 0x20) + STICK_CENTER) & UINT12_MAX,
+            static_cast<u16>(left_stick_scale_factor * ((extension_data->left_stick_y_51 << 1) - 0x20) + STICK_CENTER) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(right_stick_scale_factor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + STICK_ZERO) & 0xfff,
-            static_cast<u16>(right_stick_scale_factor * (extension_data->right_stick_y - 0x10) + STICK_ZERO) & 0xfff
+            static_cast<u16>(right_stick_scale_factor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + STICK_CENTER) & UINT12_MAX,
+            static_cast<u16>(right_stick_scale_factor * (extension_data->right_stick_y - 0x10) + STICK_CENTER) & UINT12_MAX
         );
 
         m_buttons.dpad_down  |= !extension_data->buttons.dpad_down;

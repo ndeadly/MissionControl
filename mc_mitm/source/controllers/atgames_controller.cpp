@@ -42,12 +42,12 @@ namespace ams::controller {
                 m_arcadepanel = true;
             }
             m_left_stick.SetData(
-                STICK_ZERO + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
-                STICK_ZERO
+                STICK_CENTER + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
+                STICK_CENTER
             );
             m_right_stick.SetData(
-                STICK_ZERO,
-                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & 0xfff
+                STICK_CENTER,
+                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
@@ -75,12 +75,12 @@ namespace ams::controller {
             m_buttons.plus  = src->input0x01.home_twirl;
         } else {
             m_left_stick.SetData(
-                STICK_ZERO + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
-                STICK_ZERO + 0x7ff * (src->input0x01.nudge_front)
+                STICK_CENTER + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
+                STICK_CENTER + 0x7ff * (src->input0x01.nudge_front)
             );
             m_right_stick.SetData(
-                STICK_ZERO,
-                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & 0xfff
+                STICK_CENTER,
+                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||

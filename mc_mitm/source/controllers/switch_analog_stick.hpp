@@ -18,8 +18,10 @@
 
 namespace ams::controller {
 
-    constexpr auto UINT12_MAX = 0xfff;
-    constexpr auto STICK_ZERO = 0x800;
+    constexpr u16 UINT12_MAX = 0xfff;
+    constexpr u16 STICK_MIN = 0;
+    constexpr u16 STICK_CENTER = 0x800;
+    constexpr u16 STICK_MAX = UINT12_MAX;
 
     struct SwitchAnalogStick {
         void SetData(u16 x, u16 y);
