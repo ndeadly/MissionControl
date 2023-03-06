@@ -33,6 +33,8 @@ namespace ams::controller {
         constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
         constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
 
+        const u16 dpad_stick_positions[] = { STICK_MIN, STICK_CENTER, STICK_MAX };
+
         float CalibrateWeightData(u16 x, u16 cal_0kg, u16 cal_17kg, u16 cal_34kg) {
             x = util::SwapEndian(x);
 
@@ -159,10 +161,11 @@ namespace ams::controller {
         }
 
         if (m_orientation == WiiControllerOrientation_Horizontal) {
-            m_buttons.dpad_down  = buttons->dpad_left;
-            m_buttons.dpad_up    = buttons->dpad_right;
-            m_buttons.dpad_right = buttons->dpad_down;
-            m_buttons.dpad_left  = buttons->dpad_up;
+            // Map dpad as left stick to increase compatibility with games not supporting movement via dpad
+            m_left_stick.SetData(
+                dpad_stick_positions[1 + buttons->dpad_down - buttons->dpad_up],
+                dpad_stick_positions[1 + buttons->dpad_right - buttons->dpad_left]
+            );
 
             m_buttons.A = buttons->two;
             m_buttons.B = buttons->one;
