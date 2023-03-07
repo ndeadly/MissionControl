@@ -104,7 +104,7 @@ namespace ams::controller {
         u16 fw_version = *reinterpret_cast<u16 *>(&m_version_info.data[43]);
 
         auto config = mitm::GetGlobalConfig();
-        if (!config->misc.enable_dualsense_player_leds) {
+        if (!config->misc.dualsense_enable_player_leds) {
             m_led_flags = 0x00;
         } else if (fw_version < 0x0282) {
             m_led_flags = player_led_flags[player_number];

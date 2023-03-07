@@ -31,7 +31,7 @@ namespace ams::mitm {
         struct {
             int dualshock4_lightbar_brightness;
             int dualsense_lightbar_brightness;
-            bool enable_dualsense_player_leds;
+            bool dualsense_enable_player_leds;
             int dualsense_vibration_intensity;
         } misc;
     };

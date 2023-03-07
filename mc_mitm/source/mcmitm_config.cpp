@@ -32,7 +32,7 @@ namespace ams::mitm {
             .misc = {
                 .dualshock4_lightbar_brightness = 5,
                 .dualsense_lightbar_brightness = 5,
-                .enable_dualsense_player_leds = true,
+                .dualsense_enable_player_leds = true,
                 .dualsense_vibration_intensity = 4
             }
         };
@@ -94,8 +94,8 @@ namespace ams::mitm {
                     ParseInt(value, &config->misc.dualshock4_lightbar_brightness, 0, 9);
                 } else if (strcasecmp(name, "dualsense_lightbar_brightness") == 0) {
                     ParseInt(value, &config->misc.dualsense_lightbar_brightness, 0, 9);
-                } else if (strcasecmp(name, "enable_dualsense_player_leds") == 0) {
-                    ParseBoolean(value, &config->misc.enable_dualsense_player_leds);
+                } else if (strcasecmp(name, "dualsense_enable_player_leds") == 0) {
+                    ParseBoolean(value, &config->misc.dualsense_enable_player_leds);
                 } else if (strcasecmp(name, "dualsense_vibration_intensity") == 0) {
                     ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
                 }
