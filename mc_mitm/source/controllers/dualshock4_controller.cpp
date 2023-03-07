@@ -48,6 +48,10 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::Initialize() {
+        auto config = mitm::GetGlobalConfig();
+        m_report_rate = static_cast<Dualshock4ReportRate>(config->misc.dualshock4_polling_rate);
+        m_lightbar_brightness = config->misc.dualshock4_lightbar_brightness;
+
         R_TRY(this->PushRumbleLedState());
         R_TRY(EmulatedSwitchController::Initialize());
 
@@ -55,9 +59,6 @@ namespace ams::controller {
         if(R_FAILED(this->GetCalibrationData(&m_motion_calibration))) {
             m_enable_motion = false;
         }
-
-        auto config = mitm::GetGlobalConfig();
-        m_lightbar_brightness = config->misc.dualshock4_lightbar_brightness;
 
         R_SUCCEED();
     }
