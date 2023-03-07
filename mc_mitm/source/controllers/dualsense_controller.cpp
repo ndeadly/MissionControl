@@ -21,7 +21,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
 
         constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
         constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
@@ -49,20 +49,21 @@ namespace ams::controller {
             0x07
         };
 
-        const constexpr RGBColour led_disable = {0x00, 0x00, 0x00};
-
-        const RGBColour player_led_colours[] = {
+        const RGBColour player_led_base_colours[] = {
             // Same colours used by PS4
-            {0x00, 0x00, 0x40}, // blue
-            {0x40, 0x00, 0x00}, // red
-            {0x00, 0x40, 0x00}, // green
-            {0x20, 0x00, 0x20}, // pink
+            {0x00, 0x00, 0x04}, // blue
+            {0x04, 0x00, 0x00}, // red
+            {0x00, 0x04, 0x00}, // green
+            {0x02, 0x00, 0x02}, // pink
             // New colours for controllers 5-8
-            {0x00, 0x20, 0x20}, // cyan
-            {0x30, 0x10, 0x00}, // orange
-            {0x20, 0x20, 0x00}, // yellow
-            {0x10, 0x00, 0x30}  // purple
+            {0x00, 0x02, 0x02}, // cyan
+            {0x03, 0x01, 0x00}, // orange
+            {0x02, 0x02, 0x00}, // yellow
+            {0x01, 0x00, 0x03}  // purple
         };
+
+        constexpr u8 step = 4;
+        const u8 led_brightness_multipliers[] = { 0, 1, 1 * step, 2 * step, 3 * step, 4 * step, 5 * step, 6 * step, 7 * step, 8 * step };
 
         constexpr u32 crc_seed = 0x8C36CCAE; // CRC32 of {0xa2, 0x31} bytes at beginning of output report
 
@@ -77,6 +78,9 @@ namespace ams::controller {
 
         // Request motion calibration data from DualSense
         R_TRY(this->GetCalibrationData(&m_motion_calibration));
+
+        auto config = mitm::GetGlobalConfig();
+        m_lightbar_brightness = config->misc.dualsense_lightbar_brightness;
 
         R_SUCCEED();
     }
@@ -94,13 +98,12 @@ namespace ams::controller {
     }
 
     Result DualsenseController::SetPlayerLed(u8 led_mask) {
-        auto config = mitm::GetGlobalConfig();
-
         u8 player_number;
         R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
 
         u16 fw_version = *reinterpret_cast<u16 *>(&m_version_info.data[43]);
 
+        auto config = mitm::GetGlobalConfig();
         if (!config->misc.enable_dualsense_player_leds) {
             m_led_flags = 0x00;
         } else if (fw_version < 0x0282) {
@@ -112,13 +115,16 @@ namespace ams::controller {
         // Disable LED fade-in
         m_led_flags |= 0x20;
 
-        RGBColour colour = player_led_colours[player_number];
+        RGBColour colour = player_led_base_colours[player_number];
+        u8 multiplier = led_brightness_multipliers[m_lightbar_brightness];
+        colour.r *= multiplier;
+        colour.g *= multiplier;
+        colour.b *= multiplier;
         R_RETURN(this->SetLightbarColour(colour));
     }
 
     Result DualsenseController::SetLightbarColour(RGBColour colour) {
-        auto config = mitm::GetGlobalConfig();
-        m_led_colour = config->misc.enable_dualsense_lightbar ? colour : led_disable;
+        m_lightbar_colour = colour;
         R_RETURN(this->PushRumbleLedState());
     }
 
@@ -283,9 +289,9 @@ namespace ams::controller {
         report.output0x31.data[42] = 0x02;
         report.output0x31.data[43] = 0x02;
         report.output0x31.data[44] = m_led_flags;
-        report.output0x31.data[45] = m_led_colour.r;
-        report.output0x31.data[46] = m_led_colour.g;
-        report.output0x31.data[47] = m_led_colour.b;
+        report.output0x31.data[45] = m_lightbar_colour.r;
+        report.output0x31.data[46] = m_lightbar_colour.g;
+        report.output0x31.data[47] = m_lightbar_colour.b;
         report.output0x31.crc = crc32CalculateWithSeed(crc_seed, report.output0x31.data, sizeof(report.output0x31.data));
 
         m_output_report.size = sizeof(report.output0x31) + sizeof(report.id);

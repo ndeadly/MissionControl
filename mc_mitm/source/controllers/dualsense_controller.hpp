@@ -159,7 +159,8 @@ namespace ams::controller {
             DualsenseController(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id)
             , m_led_flags(0)
-            , m_led_colour({0, 0, 0})
+            , m_lightbar_colour({0, 0, 0})
+            , m_lightbar_brightness(0)
             , m_rumble_state({0, 0}) { }
 
             Result Initialize();
@@ -181,7 +182,8 @@ namespace ams::controller {
             Result PushRumbleLedState();
 
             u8 m_led_flags;
-            RGBColour m_led_colour;
+            RGBColour m_lightbar_colour;
+            u8 m_lightbar_brightness;
             DualsenseRumbleData m_rumble_state;
 
             DualsenseVersionInfo m_version_info;

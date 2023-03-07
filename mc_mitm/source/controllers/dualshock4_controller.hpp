@@ -38,12 +38,6 @@ namespace ams::controller {
         Dualshock4ReportRate_62Hz   = 16
     };
 
-    enum Dualshock4ControllerVariant {
-        Dualshock4ControllerVariant_V1,
-        Dualshock4ControllerVariant_V2,
-        Dualshock4ControllerVariant_Unknown
-    };
-
     enum Dualshock4DPadDirection {
         Dualshock4DPad_N,
         Dualshock4DPad_NE,
@@ -199,7 +193,8 @@ namespace ams::controller {
             Dualshock4Controller(const bluetooth::Address *address, HardwareID id)
             : EmulatedSwitchController(address, id)
             , m_report_rate(Dualshock4ReportRate_125Hz)
-            , m_led_colour({0, 0, 0})
+            , m_lightbar_colour({0, 0, 0})
+            , m_lightbar_brightness(0)
             , m_rumble_state({0, 0}) { }
 
             Result Initialize();
@@ -221,7 +216,8 @@ namespace ams::controller {
             Result PushRumbleLedState();
 
             Dualshock4ReportRate m_report_rate;
-            RGBColour m_led_colour; 
+            RGBColour m_lightbar_colour;
+            u8 m_lightbar_brightness;
             Dualshock4RumbleData m_rumble_state;
 
             Dualshock4ImuCalibrationData m_motion_calibration;
