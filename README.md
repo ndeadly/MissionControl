@@ -132,9 +132,10 @@ These settings can be used to spoof your switch bluetooth to appear as another d
 
 - `[misc]`
 These are miscellaneous controller-specific settings etc.
-    - `enable_dualshock4_lightbar` Enable/disable the coloured LED lightbar on Sony Dualshock4 controllers.
-    - `enable_dualsense_lightbar` Enable/disable the coloured LED lightbar on Sony Dualsense controllers.
-    - `enable_dualsense_player_leds` Enable/disable the white player indicator LEDs below the Dualsense touchpad.
+    - `dualshock4_polling_rate` Set polling rate for Sony Dualshock 4 controllers. Valid range [0-16] where 0=max, 16=min. Refer [here](https://github.com/ndeadly/MissionControl/blob/4a0326308d1ff39353b045f5efb1a99c4a504c28/mc_mitm/source/controllers/dualshock4_controller.hpp#L21) for corresponding frequency values.
+    - `dualshock4_lightbar_brightness` Set LED lightbar brightness for Sony Dualshock 4 controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.
+    - `dualsense_lightbar_brightness` Set LED lightbar brightness for Sony Dualsense controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.
+    - `dualsense_enable_player_leds` Enable/disable the white player indicator LEDs below the Dualsense touchpad.
     - `dualsense_vibration_intensity` Set Dualsense vibration intensity, 12.5% per increment. Valid range [1-8] where 1=12.5%, 8=100%.
 
 ### Removal
