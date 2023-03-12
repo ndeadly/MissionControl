@@ -71,13 +71,13 @@ namespace ams::controller {
                 u8 home       : 1;
             };
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiAccelerometerData {
         u8 x;
         u8 y;
         u8 z;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiAccelerometerCalibrationData {
         u16 acc_x_0g;
@@ -87,7 +87,7 @@ namespace ams::controller {
         u16 acc_x_1g;
         u16 acc_y_1g;
         u16 acc_z_1g;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiClassicControllerExtensionData {
         struct {
@@ -124,7 +124,7 @@ namespace ams::controller {
             u8 B          : 1;
             u8 ZL         : 1;
         } buttons;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiClassicControllerPassthroughExtensionData {
         union {
@@ -179,7 +179,7 @@ namespace ams::controller {
                 u8 ZL         : 1;
             } buttons;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiNunchuckExtensionData {
         u8 stick_x;
@@ -193,7 +193,7 @@ namespace ams::controller {
         u8 accel_x_10 : 2;
         u8 accel_y_10 : 2;
         u8 accel_z_10 : 2;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiNunchuckPassthroughExtensionData {
         u8 stick_x;
@@ -211,7 +211,7 @@ namespace ams::controller {
         u8 accel_y_1           : 1;
         u8 accel_z_21          : 2; 
 
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiUProButtonData {
         u8            : 1;
@@ -238,7 +238,7 @@ namespace ams::controller {
         u8 usb_connected : 1;
         u8 battery       : 3;
         u8               : 1;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiUProExtensionData {
         u16 left_stick_x;
@@ -246,7 +246,7 @@ namespace ams::controller {
         u16 left_stick_y;
         u16 right_stick_y;
         WiiUProButtonData buttons;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MotionPlusExtensionData {
         u8 yaw_speed_lo;
@@ -264,7 +264,7 @@ namespace ams::controller {
         u8                   : 1;
         u8 motionplus_report : 1;
         u8 pitch_speed_hi    : 6;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MotionPlusCalibration {
         u16 yaw_zero;
@@ -274,12 +274,12 @@ namespace ams::controller {
         u16 roll_scale;
         u16 pitch_scale;
         u8 degrees_div_6;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MotionPlusCalibrationData {
         MotionPlusCalibration fast;
         MotionPlusCalibration slow;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct TaTaConExtensionData {
         u8 _unk0[5];
@@ -290,7 +290,7 @@ namespace ams::controller {
         u8 L_rim    : 1;
         u8 L_center : 1;
         u8          : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct BalanceBoardExtensionData {
         u16 top_right;
@@ -300,7 +300,7 @@ namespace ams::controller {
         u8 temperature;
         u8 _pad;
         u8 battery;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct BalanceBoardCalibrationData {
         u16 top_right_0kg;
@@ -317,57 +317,57 @@ namespace ams::controller {
         u16 bottom_right_34kg;
         u16 top_left_34kg;
         u16 bottom_left_34kg;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x10 {
         u8 rumble : 1;
         u8        : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x11 {
         u8 rumble : 1;
         u8        : 3;
         u8 leds   : 4;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x12 {
         u8 rumble : 1;
         u8        : 0;
         u8 report_mode;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x14 {
         u8                : 5;
         u8 speaker_enable : 1;
         u8                : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x15 {
         u8 rumble  : 1;
         u8         : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x16 {
         u32 address;
         u8 size;
         u8 data[16];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x17 {
         u32 address;
         u16 size;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x18 {
         u8 size;
         u8 speaker_data[20];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiOutputReport0x19 {
         u8              : 5;
         u8 speaker_mute : 1;
         u8              : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x20 {
         WiiButtonData buttons;
@@ -378,7 +378,7 @@ namespace ams::controller {
         u8 led_state           : 4;
         u8 _pad[2];
         u8 battery;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x21 {
         WiiButtonData buttons;
@@ -386,73 +386,73 @@ namespace ams::controller {
         u8 size  : 4;
         u16 address;
         u8 data[16];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x22 {
         WiiButtonData buttons;
         u8 report_id;
         u8 error;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x30 {
         WiiButtonData buttons;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x31 {
         WiiButtonData buttons;
         WiiAccelerometerData accel;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x32 {
         WiiButtonData buttons;
         u8 extension[8];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x33 {
         WiiButtonData buttons;
         WiiAccelerometerData accel;
         u8 ir[12];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x34 {
         WiiButtonData buttons;
         u8 extension[19];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x35 {
         WiiButtonData buttons;
         WiiAccelerometerData accel;
         u8 extension[16];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x36 {
         WiiButtonData buttons;
         u8 ir[10];
         u8 extension[9];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x37 {
         WiiButtonData buttons;
         WiiAccelerometerData accel;
         u8 ir[10];
         u8 extension[6];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x3d {
         u8 extension[21];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x3e {
         WiiButtonData buttons;
         u8 accel;
         u8 ir[18];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiInputReport0x3f {
         WiiButtonData buttons;
         u8 accel;
         u8 ir[18];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct WiiReportData {
         u8 id;
@@ -481,7 +481,7 @@ namespace ams::controller {
             WiiInputReport0x3e input0x3e;
             WiiInputReport0x3f input0x3f;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     class WiiController final : public EmulatedSwitchController {
 

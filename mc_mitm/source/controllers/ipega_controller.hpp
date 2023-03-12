@@ -76,7 +76,7 @@ namespace ams::controller {
             IpegaInputReport0x02 input0x02;
             IpegaInputReport0x07 input0x07;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     class IpegaController final : public EmulatedSwitchController {
 

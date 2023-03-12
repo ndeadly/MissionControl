@@ -39,7 +39,7 @@ namespace ams::controller {
     struct XboxOneStickData {
         u16 x;
         u16 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     // Used on older firmware
     struct XboxOneButtonDataOld {
@@ -57,7 +57,7 @@ namespace ams::controller {
         u8 lstick_press : 1;
         u8 rstick_press : 1;
         u8              : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     // Used on latest firmwares
     struct XboxOneButtonData {
@@ -81,7 +81,7 @@ namespace ams::controller {
 
         u8 view         : 1;
         u8              : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct XboxOneOutputReport0x03 {
         u8 enable;
@@ -92,7 +92,7 @@ namespace ams::controller {
         u8 pulse_sustain_10ms;
         u8 pulse_release_10ms;
         u8 loop_count;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct XboxOneInputReport0x01 {
         XboxOneStickData left_stick;
@@ -106,12 +106,12 @@ namespace ams::controller {
                 XboxOneButtonDataOld buttons;
             } old;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct XboxOneInputReport0x02{
         u8 guide : 1;
         u8       : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct XboxOneInputReport0x04 {
         u8 capacity : 2;
@@ -119,7 +119,7 @@ namespace ams::controller {
         u8 charging : 1;
         u8          : 2;
         u8 online   : 1;
-    } __attribute__ ((__packed__));
+    } PACKED;
  
     struct XboxOneReportData {
         u8 id;
@@ -129,7 +129,7 @@ namespace ams::controller {
             XboxOneInputReport0x02 input0x02;
             XboxOneInputReport0x04 input0x04;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     class XboxOneController final : public EmulatedSwitchController {
 

@@ -33,7 +33,7 @@ namespace ams::controller {
     struct HyperkinStickData {
         u16 x;
         u16 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct HyperkinButtonData {
         u8 B      : 1;
@@ -56,7 +56,7 @@ namespace ams::controller {
         HyperkinStickData left_stick;
         HyperkinStickData right_stick;
         u8 unk;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct HyperkinReportData{
         u8 id;

@@ -33,7 +33,7 @@ namespace ams::controller {
     struct LanShenStickData {
         u8 x;
         u8 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct LanShenButtonData {
         u8 dpad;
@@ -56,14 +56,14 @@ namespace ams::controller {
         u8 R3    : 1;
         u8       : 1;
 
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct LanShenInputReport0x01{
         LanShenStickData left_stick;
         LanShenStickData right_stick;
         LanShenButtonData buttons;
         u8 _unk[4];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct LanShenReportData {
         u8 id;

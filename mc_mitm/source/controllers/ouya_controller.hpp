@@ -21,7 +21,7 @@ namespace ams::controller {
     struct OuyaStickData {
         u16 x;
         u16 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct OuyaButtonData {
         u8 O            : 1;
@@ -41,7 +41,7 @@ namespace ams::controller {
         u8 RT           : 1;
         u8 center_press : 1;
         u8 center_hold  : 1;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct OuyaInputReport0x03 {
         u8 battery;

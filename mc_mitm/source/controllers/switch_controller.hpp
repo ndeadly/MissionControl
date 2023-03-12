@@ -47,14 +47,14 @@ namespace ams::controller {
         u8 r;
         u8 g;
         u8 b;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct ProControllerColours {
         RGBColour body;
         RGBColour buttons;
         RGBColour left_grip;
         RGBColour right_grip;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SwitchButtonData {
         u8 Y            : 1;
@@ -80,7 +80,7 @@ namespace ams::controller {
         u8              : 2; // SR, SL (Left Joy)
         u8 L            : 1;
         u8 ZL           : 1;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct Switch6AxisData {
         s16 accel_x;
@@ -89,7 +89,7 @@ namespace ams::controller {
         s16 gyro_1;
         s16 gyro_2;
         s16 gyro_3;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct Switch6AxisCalibrationData {
         struct {
@@ -126,14 +126,14 @@ namespace ams::controller {
     struct SwitchRumbleDataEncoded {
         u8 left_motor[4];
         u8 right_motor[4];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SwitchRumbleData {
         float high_band_freq;
         float high_band_amp;
         float low_band_freq;
         float low_band_amp;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     enum HidCommandType : u8 {
         HidCommand_PairingOut             = 0x01,
@@ -218,7 +218,7 @@ namespace ams::controller {
                 bool enabled;
             } motor_enable;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SwitchHidCommandResponse {
         u8 ack;
@@ -267,11 +267,11 @@ namespace ams::controller {
                 };
             } get_indicator_led;
         } data;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SwitchNfcIrResponse {
         u8 data[0x138];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SwitchInputReport {
         u8 id;
@@ -302,7 +302,7 @@ namespace ams::controller {
                 u8 crc;
             } type0x31;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SwitchOutputReport {
         u8 id;
@@ -318,7 +318,7 @@ namespace ams::controller {
                 u8 nfc_ir_data[0x16];
             } type0x11;
         };
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number);
 

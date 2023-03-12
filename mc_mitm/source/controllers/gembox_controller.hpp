@@ -33,7 +33,7 @@ namespace ams::controller {
     struct GemboxStickData {
         u8 x;
         u8 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct GemboxButtonData {
         u8 A     : 1;
@@ -51,7 +51,7 @@ namespace ams::controller {
         u8 L3    : 1;
         u8 R3    : 1;
         u8       : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct GemboxInputReport0x02 {
         union {

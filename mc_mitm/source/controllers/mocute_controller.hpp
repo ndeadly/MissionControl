@@ -45,7 +45,7 @@ namespace ams::controller {
     struct MocuteStickData {
         u8 x;
         u8 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MocuteButtonData {
         u8 dpad   : 4;
@@ -62,7 +62,7 @@ namespace ams::controller {
         u8 R3     : 1;
         u8 L2     : 1;
         u8 R2     : 1;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MocuteInputReport0x01 {
         MocuteStickData left_stick;
@@ -70,7 +70,7 @@ namespace ams::controller {
         MocuteButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MocuteReportData {
         u8 id;

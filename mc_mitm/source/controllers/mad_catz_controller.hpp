@@ -33,7 +33,7 @@ namespace ams::controller {
     struct MadCatzStickData {
         u8 x;
         u8 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MadCatzButtonData {
         u8 X      : 1;
@@ -53,7 +53,7 @@ namespace ams::controller {
         u8        : 0;
 
         u8 dpad;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MadCatzInputReport0x01 {
         MadCatzButtonData buttons;
@@ -61,7 +61,7 @@ namespace ams::controller {
         MadCatzStickData right_stick;
         u8 left_trigger;
         u8 right_trigger;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MadCatzInputReport0x02 {
         u8             : 2;
@@ -71,7 +71,7 @@ namespace ams::controller {
         u8 forward     : 1;
         u8 rewind      : 1;
         u8             : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MadCatzInputReport0x81 {
         struct {
@@ -117,7 +117,7 @@ namespace ams::controller {
         uint8_t left_trigger;
         uint8_t right_trigger;
         uint8_t reserved;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MadCatzInputReport0x82 {
         struct {
@@ -132,7 +132,7 @@ namespace ams::controller {
             uint8_t dpad;
         } buttons;
         uint8_t reserved;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MadCatzInputReport0x83 {
         struct {
@@ -144,7 +144,7 @@ namespace ams::controller {
         } buttons;
         MadCatzStickData left_stick;
         uint8_t reserved[2];
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct MadCatzReportData {
         u8 id;

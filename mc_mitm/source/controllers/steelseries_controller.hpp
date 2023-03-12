@@ -45,7 +45,7 @@ namespace ams::controller {
     struct SteelseriesStickData {
         u8 x;
         u8 y;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SteelseriesButtonData {
         u8 A      : 1;
@@ -61,7 +61,7 @@ namespace ams::controller {
         u8 start  : 1;
         u8 select : 1;
         u8        : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SteelseriesButtonData2 {
         u8 A      : 1;
@@ -81,7 +81,7 @@ namespace ams::controller {
         u8 L3     : 1;
         u8 R3     : 1;
         u8        : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SteelseriesMfiButtonData {
         u8 dpad_up;
@@ -99,7 +99,7 @@ namespace ams::controller {
 
         u8 menu : 1;
         u8      : 0;
-    } __attribute__ ((__packed__));
+    } PACKED;
 
     struct SteelseriesMfiInputReport {
         SteelseriesMfiButtonData buttons;
