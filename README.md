@@ -64,6 +64,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Razer Raiju Ultimate__
 * __Razer Serval__
 * __Mocute 050__
+* __Mocute 053__
 * __Gen Game S3__
 * __AtGames Legends Pinball Controller + Arcade Control Panel__
 * __Hyperkin Scout__
