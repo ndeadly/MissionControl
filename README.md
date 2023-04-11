@@ -31,6 +31,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Nintendo Wii Remote + extensions (Nunchuck, Classic Controller, Classic Controller Pro, SNES Mini, TaTaCon (Taiko drum), MotionPlus)__
 * __Nintendo Wii Balance Board (experimental)__
 * __Nintendo WiiU Pro Controller__
+* __Sony Dualshock3 (Playstation 3) Controller__
 * __Sony DualShock4 (Playstation 4) Controller__
 * __Sony Dualsense (Playstation 5) Controller__
 * __Sony Dualsense Edge Controller__
@@ -101,6 +102,11 @@ Press the red sync button on the back of the controller. The controller LEDs wil
 
 It is recommended that you perform an analog stick calibration for these controller types where applicable, as every controller has different analog stick range and center position but unlike Switch controllers, there is no stored factory calibration.
 
+***Sony Dualshock3 Controller***
+To pair this controller, you will need to connect it to the console via USB cable. Once the controller LEDs start flashing, disconnect the USB cable and hit the `PS` button.
+
+*Note: to avoid unwanted behaviour if using the controller in USB wired mode, this only works from the usual `Controllers->Change Grip/Order` screen.*
+
 ***Sony Dualshock4/Dualsense Controllers***
 Press and hold the `PS` + `share` buttons simultaneously until the lightbar starts blinking. When done correctly the blink pattern will resemble a heartbeat, otherwise it will blink on and off at a constant rate.
 
@@ -132,6 +138,7 @@ These settings can be used to spoof your switch bluetooth to appear as another d
 
 - `[misc]`
 These are miscellaneous controller-specific settings etc.
+    - `dualshock3_led_mode` Set Dualshock 3 player LED behaviour. Valid modes [0-1] where 0=Switch pattern, 1=PS3 pattern
     - `dualshock4_polling_rate` Set polling rate for Sony Dualshock 4 controllers. Valid range [0-16] where 0=max, 16=min. Refer [here](https://github.com/ndeadly/MissionControl/blob/4a0326308d1ff39353b045f5efb1a99c4a504c28/mc_mitm/source/controllers/dualshock4_controller.hpp#L21) for corresponding frequency values.
     - `dualshock4_lightbar_brightness` Set LED lightbar brightness for Sony Dualshock 4 controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.
     - `dualsense_lightbar_brightness` Set LED lightbar brightness for Sony Dualsense controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.
@@ -235,9 +242,6 @@ For more details on the various controller revisions (with images), see [here](h
 
 ***My Xbox One/Elite V2 controller used to connect and now it doesn't, what gives?***
 As of late 2021, Microsoft introduced a new controller firmware that aims to bring Xbox One/Elite 2 controllers in line with the newer Series X|S controllers. Updating to this firmware switches the controller over to using Bluetooth Low Energy (LE), a newer bluetooth standard focused on low power consumption, which is not currently supported by Mission Control. If your controller firmware is version 5.xx.xxxx.x or above, you have the new LE firmware and will need to downgrade to the legacy one (see https://support.xbox.com/en-US/help/hardware-network/accessories/controller-firmware-reversion)
-
-***Can you add support for PS3 (Dualshock3) controllers?***
-~~It's on my list of things to look into. The pairing process is non-standard and may require modifications to the Bluetooth driver. If it can be done non-destructively I will add support eventually.~~ Having looked into this a bit, it appears it's going to be a lot of work given the constraints of HOS (if it can even be done without breaking support for other Bluetooth controllers). I won't rule out a solution in the future, but this is not high priority for me right now. Sorry DS3 owners.
 
 ***Can you add support for Xbox 360 controllers?***
 No, not currently. These don't use Bluetooth. Try sys-con with a wireless USB adapter.

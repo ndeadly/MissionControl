@@ -27,6 +27,7 @@
 #include "bluetooth_mitm/bluetooth/bluetooth_hid.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_ble.hpp"
+#include "usb/mc_usb_handler.hpp"
 
 namespace ams::mitm {
 
@@ -88,6 +89,12 @@ namespace ams::mitm {
             }
 
             g_init_event.Signal();
+
+            // Loop until we can initialise btm:sys
+            while (R_FAILED(btmsysInitialize())) {
+                os::SleepThread(ams::TimeSpan::FromMilliSeconds(200));
+            }
+            
         }
 
     }
@@ -113,9 +120,11 @@ namespace ams::mitm {
         R_ABORT_UNLESS(ams::mitm::bluetooth::Launch());
         R_ABORT_UNLESS(ams::mitm::btm::Launch());
         R_ABORT_UNLESS(ams::mitm::mc::Launch());
+        R_ABORT_UNLESS(ams::usb::Launch());
     }
 
     void WaitModules() {
+        ams::usb::WaitFinished();
         ams::mitm::mc::WaitFinished();
         ams::mitm::btm::WaitFinished();
         ams::mitm::bluetooth::WaitFinished();

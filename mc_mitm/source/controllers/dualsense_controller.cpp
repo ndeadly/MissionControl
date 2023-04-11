@@ -254,7 +254,7 @@ namespace ams::controller {
 
     Result DualsenseController::GetVersionInfo(DualsenseVersionInfo *version_info) {
         bluetooth::HidReport output;
-        R_TRY(this->GetFeatureReport(0x20, &output));
+        R_TRY(this->GetReport(0x20, BtdrvBluetoothHhReportType_Feature, &output));
 
         auto response = reinterpret_cast<DualsenseReportData *>(&output.data);
         std::memcpy(version_info, &response->feature0x20.version_info, sizeof(DualsenseVersionInfo));
@@ -264,7 +264,7 @@ namespace ams::controller {
 
     Result DualsenseController::GetCalibrationData(DualsenseImuCalibrationData *calibration) {
         bluetooth::HidReport output;
-        R_TRY(this->GetFeatureReport(0x05, &output));
+        R_TRY(this->GetReport(0x05, BtdrvBluetoothHhReportType_Feature, &output));
 
         auto response = reinterpret_cast<DualsenseReportData *>(&output.data);
         std::memcpy(calibration, &response->feature0x05.calibration, sizeof(DualsenseImuCalibrationData));

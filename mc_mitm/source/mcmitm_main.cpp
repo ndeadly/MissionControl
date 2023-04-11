@@ -66,6 +66,7 @@ namespace ams {
 
             R_ABORT_UNLESS(pmdmntInitialize());
             R_ABORT_UNLESS(pminfoInitialize());
+            R_ABORT_UNLESS(usbHsInitialize());
 
             R_ABORT_UNLESS(fs::MountSdCard("sdmc"));
         }

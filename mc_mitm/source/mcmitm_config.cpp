@@ -30,6 +30,7 @@ namespace ams::mitm {
                 .enable_motion = true
             },
             .misc = {
+                .dualshock3_led_mode = 0,
                 .dualshock4_polling_rate = 8,
                 .dualshock4_lightbar_brightness = 5,
                 .dualsense_lightbar_brightness = 5,
@@ -91,7 +92,9 @@ namespace ams::mitm {
                     ParseBluetoothAddress(value, &config->bluetooth.host_address);
                 }
             } else if (strcasecmp(section, "misc") == 0) {
-                if (strcasecmp(name, "dualshock4_polling_rate") == 0) {
+                if (strcasecmp(name, "dualshock3_led_mode") == 0) {
+                    ParseInt(value, &config->misc.dualshock3_led_mode, 0, 1);
+                } else if (strcasecmp(name, "dualshock4_polling_rate") == 0) {
                     ParseInt(value, &config->misc.dualshock4_polling_rate, 0, 16);
                 } else if (strcasecmp(name, "dualshock4_lightbar_brightness") == 0) {
                     ParseInt(value, &config->misc.dualshock4_lightbar_brightness, 0, 9);

@@ -19,6 +19,7 @@
 
 #include "switch_controller.hpp"
 #include "wii_controller.hpp"
+#include "dualshock3_controller.hpp"
 #include "dualshock4_controller.hpp"
 #include "dualsense_controller.hpp"
 #include "xbox_one_controller.hpp"
@@ -48,6 +49,7 @@ namespace ams::controller {
     enum ControllerType {
         ControllerType_Switch,
         ControllerType_Wii,
+        ControllerType_Dualshock3,
         ControllerType_Dualshock4,
         ControllerType_Dualsense,
         ControllerType_XboxOne,

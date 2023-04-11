@@ -217,7 +217,7 @@ namespace ams::controller {
 
     Result Dualshock4Controller::GetVersionInfo(Dualshock4VersionInfo *version_info) {
         bluetooth::HidReport output;
-        R_TRY(this->GetFeatureReport(0x06, &output));
+        R_TRY(this->GetReport(0x06, BtdrvBluetoothHhReportType_Feature, &output));
 
         auto response = reinterpret_cast<Dualshock4ReportData *>(&output.data);
         std::memcpy(version_info, &response->feature0x06.version_info, sizeof(Dualshock4VersionInfo));
@@ -227,7 +227,7 @@ namespace ams::controller {
 
     Result Dualshock4Controller::GetCalibrationData(Dualshock4ImuCalibrationData *calibration) {
         bluetooth::HidReport output;
-        R_TRY(this->GetFeatureReport(0x05, &output));
+        R_TRY(this->GetReport(0x05, BtdrvBluetoothHhReportType_Feature, &output));
 
         auto response = reinterpret_cast<Dualshock4ReportData *>(&output.data);
         std::memcpy(calibration, &response->feature0x05.calibration, sizeof(Dualshock4ImuCalibrationData));

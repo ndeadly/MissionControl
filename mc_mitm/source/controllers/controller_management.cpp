@@ -54,6 +54,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : Dualshock3Controller::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Dualshock3;
+            }
+        }
+
         for (auto hwId : Dualshock4Controller::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Dualshock4;
@@ -205,6 +211,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Wii:
                 controller = std::make_shared<WiiController>(address, id);
+                break;
+            case ControllerType_Dualshock3:
+                controller = std::make_shared<Dualshock3Controller>(address, id);
                 break;
             case ControllerType_Dualshock4:
                 controller = std::make_shared<Dualshock4Controller>(address, id);

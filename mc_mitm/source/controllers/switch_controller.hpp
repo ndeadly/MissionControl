@@ -358,8 +358,8 @@ namespace ams::controller {
         protected:
             Result WriteDataReport(const bluetooth::HidReport *report);
             Result WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report);
-            Result SetFeatureReport(const bluetooth::HidReport *report);
-            Result GetFeatureReport(u8 id, bluetooth::HidReport *out_report);
+            Result SetReport(BtdrvBluetoothHhReportType type, const bluetooth::HidReport *report);
+            Result GetReport(u8 id, BtdrvBluetoothHhReportType type, bluetooth::HidReport *out_report);
 
             virtual void UpdateControllerState(const bluetooth::HidReport *report);
             virtual void ApplyButtonCombos(SwitchButtonData *buttons);

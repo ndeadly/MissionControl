@@ -167,12 +167,12 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result SwitchController::SetFeatureReport(const bluetooth::HidReport *report) {
+    Result SwitchController::SetReport(BtdrvBluetoothHhReportType type, const bluetooth::HidReport *report) {
         auto response = std::make_shared<HidResponse>(BtdrvHidEventType_SetReport);
         m_future_responses.push(response);
         ON_SCOPE_EXIT { m_future_responses.pop(); };
 
-        R_TRY(btdrvSetHidReport(m_address, BtdrvBluetoothHhReportType_Feature, report));
+        R_TRY(btdrvSetHidReport(m_address, type, report));
 
         if (!response->TimedWait(ams::TimeSpan::FromMilliSeconds(500))) {
             return -1; // This should return a proper failure code
@@ -183,12 +183,12 @@ namespace ams::controller {
         return response_data.set_report.res;
     }
 
-    Result SwitchController::GetFeatureReport(u8 id, bluetooth::HidReport *out_report) {
+    Result SwitchController::GetReport(u8 id, BtdrvBluetoothHhReportType type, bluetooth::HidReport *out_report) {
         auto response = std::make_shared<HidResponse>(BtdrvHidEventType_GetReport);
         m_future_responses.push(response);
         ON_SCOPE_EXIT { m_future_responses.pop(); };
 
-        R_TRY(btdrvGetHidReport(m_address, id, BtdrvBluetoothHhReportType_Feature));
+        R_TRY(btdrvGetHidReport(m_address, id, type));
 
         if (!response->TimedWait(ams::TimeSpan::FromMilliSeconds(500))) {
             return -1; // This should return a proper failure code
