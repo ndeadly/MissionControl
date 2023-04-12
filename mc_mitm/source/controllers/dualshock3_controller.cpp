@@ -38,6 +38,7 @@ namespace ams::controller {
         const u8 player_led_patterns[] = { 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
 
         constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000 / 113;
 
         alignas(os::MemoryPageSize) constinit u8 g_usb_buffer[0x1000];
 
@@ -219,6 +220,14 @@ namespace ams::controller {
     }
 
     void Dualshock3Controller::MapInputReport0x01(const Dualshock3ReportData *src) {
+        m_charging = src->input0x01.charge == 0x02;
+        m_battery = std::clamp<u8>(src->input0x01.battery, 0, 4) * 2;
+
+        // Workaround for controller reporting battery empty and being disconnected under certain conditions
+        if (m_battery == 0) {
+            m_battery = 1;
+        }
+
         m_left_stick.SetData(
             static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
             static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
@@ -251,12 +260,24 @@ namespace ams::controller {
 
         m_buttons.home = src->input0x01.buttons.ps;
 
-        m_charging = src->input0x01.charge == 0x02;
-        m_battery = std::clamp<u8>(src->input0x01.battery, 0, 4) * 2;
+        if (m_enable_motion) {
+            s16 acc_x = -static_cast<s16>(accel_scale_factor * (511 - util::SwapEndian(src->input0x01.accel_y)));
+            s16 acc_y = -static_cast<s16>(accel_scale_factor * (util::SwapEndian(src->input0x01.accel_x) - 511));
+            s16 acc_z =  static_cast<s16>(accel_scale_factor * (511 - util::SwapEndian(src->input0x01.accel_z)));
 
-        // Workaround for controller reporting battery empty and being disconnected under certain conditions
-        if (m_battery == 0) {
-            m_battery = 1;
+            m_motion_data[0].accel_x = acc_x;
+            m_motion_data[0].accel_y = acc_y;
+            m_motion_data[0].accel_z = acc_z;
+
+            m_motion_data[1].accel_x = acc_x;
+            m_motion_data[1].accel_y = acc_y;
+            m_motion_data[1].accel_z = acc_z;
+
+            m_motion_data[2].accel_x = acc_x;
+            m_motion_data[2].accel_y = acc_y;
+            m_motion_data[2].accel_z = acc_z;
+        } else {
+            std::memset(&m_motion_data, 0, sizeof(m_motion_data));
         }
     }
 
