@@ -51,7 +51,7 @@ namespace ams::controller {
             std::memcpy(&g_usb_buffer, &data, sizeof(data));
 
             u32 rx_size = 0;
-            Result rc = usbHsIfCtrlXfer(if_session,
+            R_TRY(usbHsIfCtrlXfer(if_session,
                 USB_ENDPOINT_OUT | (0x01 << 5) | 0x01,
                 USB_REQUEST_SET_CONFIGURATION,
                 0x3f5,
@@ -59,14 +59,14 @@ namespace ams::controller {
                 sizeof(data),
                 &g_usb_buffer,
                 &rx_size
-            );
+            ));
 
-            R_RETURN(rc);
+            R_SUCCEED();
         }
 
         Result GetSlaveAddress(UsbHsClientIfSession *if_session, BtdrvAddress *address) {
             u32 tx_size = 0;
-            Result rc = usbHsIfCtrlXfer(if_session,
+            R_TRY(usbHsIfCtrlXfer(if_session,
                 USB_ENDPOINT_IN | (0x01 << 5) | 0x01,
                 USB_REQUEST_CLEAR_FEATURE,
                 0x3f2,
@@ -74,12 +74,11 @@ namespace ams::controller {
                 18,
                 &g_usb_buffer,
                 &tx_size
-            );
+            ));
 
-            if (R_SUCCEEDED(rc))
-                *address = *reinterpret_cast<BtdrvAddress *>(&g_usb_buffer[4]);
+            *address = *reinterpret_cast<BtdrvAddress *>(&g_usb_buffer[4]);
 
-            R_RETURN(rc);
+            R_SUCCEED();
         }
 
         Result TrustDevice(const BtdrvAddress *address) {
