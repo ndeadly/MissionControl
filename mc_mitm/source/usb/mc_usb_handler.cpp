@@ -20,16 +20,10 @@ namespace ams::usb {
 
     namespace {
 
-        const UsbHsInterfaceFilter g_if_filter = {
-            .Flags = UsbHsInterfaceFilterFlags_bcdDevice_Min | UsbHsInterfaceFilterFlags_bInterfaceClass,
-            .bcdDevice_Min = 0,
-            .bInterfaceClass = USB_CLASS_HID,
-        };
-
         Result HandleUsbHsInterfaceAvailableEvent() {
             s32 total_entries = 0;
             UsbHsInterface interfaces[8] = {};
-            R_TRY(usbHsQueryAvailableInterfaces(&g_if_filter, interfaces, sizeof(interfaces), &total_entries));
+            R_TRY(usbHsQueryAvailableInterfaces(controller::Dualshock3Controller::GetUsbInterfaceFilter(), interfaces, sizeof(interfaces), &total_entries));
 
             for(int i = 0; i < total_entries; ++i) {
                 if (controller::Dualshock3Controller::UsbIdentify(&interfaces[i])) {
@@ -51,7 +45,7 @@ namespace ams::usb {
 
         void UsbThreadFunction(void *) {
             Event if_event;
-            R_ABORT_UNLESS(usbHsCreateInterfaceAvailableEvent(&if_event, true, 0, &g_if_filter));
+            R_ABORT_UNLESS(usbHsCreateInterfaceAvailableEvent(&if_event, true, 0, controller::Dualshock3Controller::GetUsbInterfaceFilter()));
 
             os::SystemEvent interface_available_event;
             interface_available_event.AttachReadableHandle(if_event.revent, false, os::EventClearMode_AutoClear);

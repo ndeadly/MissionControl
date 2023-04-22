@@ -42,6 +42,13 @@ namespace ams::controller {
 
         alignas(os::MemoryPageSize) constinit u8 g_usb_buffer[0x1000];
 
+        const UsbHsInterfaceFilter g_interface_filter = {
+            .Flags = UsbHsInterfaceFilterFlags_idVendor | UsbHsInterfaceFilterFlags_idProduct | UsbHsInterfaceFilterFlags_bInterfaceClass,
+            .idVendor = ds3_vendor_id,
+            .idProduct = ds3_product_id,
+            .bInterfaceClass = USB_CLASS_HID,
+        };
+
         Result SetMasterAddress(UsbHsClientIfSession *if_session, const BtdrvAddress *address) {
             const struct {
                 u8 unk1;
@@ -133,6 +140,10 @@ namespace ams::controller {
             }
         }
 
+    }
+
+    const UsbHsInterfaceFilter *Dualshock3Controller::GetUsbInterfaceFilter() {
+        return &g_interface_filter;
     }
 
     bool Dualshock3Controller::UsbIdentify(UsbHsInterface *iface) {

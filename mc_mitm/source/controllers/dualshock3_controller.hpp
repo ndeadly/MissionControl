@@ -102,6 +102,7 @@ namespace ams::controller {
                 {0x054c, 0x0268},   // Official Dualshock3
             };
 
+            static const UsbHsInterfaceFilter *GetUsbInterfaceFilter();
             static bool UsbIdentify(UsbHsInterface *iface);
             static Result UsbPair(UsbHsInterface *iface);
 
