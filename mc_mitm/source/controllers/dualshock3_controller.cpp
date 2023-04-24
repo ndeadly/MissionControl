@@ -304,6 +304,7 @@ namespace ams::controller {
         std::memcpy(m_output_report.data, EnablePayload, m_output_report.size);
 
         R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Feature, &m_output_report));
+        //R_RETURN(this->WriteDataReport(&m_output_report));
     }
 
     Result Dualshock3Controller::PushRumbleLedState() {
@@ -324,7 +325,8 @@ namespace ams::controller {
         m_output_report.size = sizeof(report.output0x01) + sizeof(report.id);
         std::memcpy(m_output_report.data, &report, m_output_report.size);
 
-        R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Output, &m_output_report));
+        //R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Output, &m_output_report));
+        R_RETURN(this->WriteDataReport(&m_output_report));
     }
 
 }
