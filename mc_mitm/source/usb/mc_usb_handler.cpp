@@ -20,6 +20,23 @@ namespace ams::usb {
 
     namespace {
 
+        Result GetOldestPairedDeviceAddress(bluetooth::Address *out_address) {
+            if (hos::GetVersion() >= hos::Version_13_0_0) {
+                s32 total_out;
+                BtmDeviceInfoV13 device_info[10];
+                R_TRY(btmGetDeviceInfo(BtmProfile_Hid, device_info, 10, &total_out));
+
+                *out_address = device_info[0].addr;
+            } else {
+                BtmDeviceInfoList device_info_list;
+                R_TRY(btmLegacyGetDeviceInfo(&device_info_list));
+
+                *out_address = device_info_list.devices[0].addr;
+            }
+
+            R_SUCCEED();
+        }
+
         Result HandleUsbHsInterfaceAvailableEvent() {
             s32 total_entries = 0;
             UsbHsInterface interfaces[8] = {};
@@ -30,6 +47,19 @@ namespace ams::usb {
                     bool pairing_started = false;
                     R_TRY(btmsysIsGamepadPairingStarted(&pairing_started));
                     if (pairing_started) {
+                        // Make room for a new device if pairing database is full
+                        u8 paired_count;
+                        R_TRY(btmsysGetPairedGamepadCount(&paired_count));
+                        if (paired_count >= 10) {
+                            // Get the address of the least recently connected device in the pairing database
+                            bluetooth::Address address;
+                            R_TRY(GetOldestPairedDeviceAddress(&address));
+
+                            // Remove the bonded address to make room for our new pairing
+                            R_TRY(btdrvRemoveBond(address));
+                        }
+
+                        // Pair the Dualshock 3 controller via USB
                         R_TRY(controller::Dualshock3Controller::UsbPair(&interfaces[i]));
                     }
                 }
@@ -39,7 +69,7 @@ namespace ams::usb {
         }
 
         const s32 ThreadPriority = 9;
-        const size_t ThreadStackSize = 0x2000;
+        const size_t ThreadStackSize = 0x4000;
         alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
         os::ThreadType g_thread;
 
