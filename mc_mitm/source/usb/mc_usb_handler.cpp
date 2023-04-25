@@ -56,6 +56,7 @@ namespace ams::usb {
                             R_TRY(GetOldestPairedDeviceAddress(&address));
 
                             // Remove the bonded address to make room for our new pairing
+                            R_TRY(btmRemoveDeviceInfo(address));
                             R_TRY(btdrvRemoveBond(address));
                         }
 
