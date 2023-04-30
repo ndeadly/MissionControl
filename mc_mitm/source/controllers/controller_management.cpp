@@ -180,6 +180,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : BetopController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Betop;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -274,6 +280,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Hyperkin:
                 controller = std::make_shared<HyperkinController>(address, id);
+                break;
+            case ControllerType_Betop:
+                controller = std::make_shared<BetopController>(address, id);
                 break;
             default:
                 controller = std::make_shared<UnknownController>(address, id);
