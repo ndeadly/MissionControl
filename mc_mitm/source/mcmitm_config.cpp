@@ -93,7 +93,7 @@ namespace ams::mitm {
                 }
             } else if (strcasecmp(section, "misc") == 0) {
                 if (strcasecmp(name, "dualshock3_led_mode") == 0) {
-                    ParseInt(value, &config->misc.dualshock3_led_mode, 0, 1);
+                    ParseInt(value, &config->misc.dualshock3_led_mode, 0, 2);
                 } else if (strcasecmp(name, "dualshock4_polling_rate") == 0) {
                     ParseInt(value, &config->misc.dualshock4_polling_rate, 0, 16);
                 } else if (strcasecmp(name, "dualshock4_lightbar_brightness") == 0) {

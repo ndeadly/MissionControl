@@ -140,7 +140,7 @@ These settings can be used to spoof your switch bluetooth to appear as another d
 
 - `[misc]`
 These are miscellaneous controller-specific settings etc.
-    - `dualshock3_led_mode` Set Dualshock 3 player LED behaviour. Valid modes [0-1] where 0=Switch pattern, 1=PS3 pattern
+    - `dualshock3_led_mode` Set Dualshock 3 player LED behaviour. Valid modes [0-1] where 0=Switch pattern, 1=PS3 pattern, 2=Hybrid (Switch pattern reversed to line up with numeric labels on the controller)
     - `dualshock4_polling_rate` Set polling rate for Sony Dualshock 4 controllers. Valid range [0-16] where 0=max, 16=min. Refer [here](https://github.com/ndeadly/MissionControl/blob/4a0326308d1ff39353b045f5efb1a99c4a504c28/mc_mitm/source/controllers/dualshock4_controller.hpp#L21) for corresponding frequency values.
     - `dualshock4_lightbar_brightness` Set LED lightbar brightness for Sony Dualshock 4 controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.
     - `dualsense_lightbar_brightness` Set LED lightbar brightness for Sony Dualsense controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.

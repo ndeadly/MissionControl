@@ -29,8 +29,9 @@ namespace ams::controller {
         constexpr u16 ds3_product_id = 0x0268;
 
         enum Dualshock3LedMode {
-            Dualshock3LedMode_Switch,
-            Dualshock3LedMode_Ps3
+            Dualshock3LedMode_Switch = 0,
+            Dualshock3LedMode_Ps3 = 1,
+            Dualshock3LedMode_Hybrid = 2,
         };
 
         const u8 enable_payload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
@@ -207,15 +208,20 @@ namespace ams::controller {
         R_TRY(LedsMaskToPlayerNumber(led_mask, &player_index));
 
         auto config = mitm::GetGlobalConfig();
-        if (config->misc.dualshock3_led_mode == Dualshock3LedMode_Ps3) {
-            if (player_index < 4) {
-                m_led_mask = 1 << player_index;
-            } else {
-                m_led_mask = ~(1 << player_index) & 0x0f;
-            }
-        } else {
-            m_led_mask = player_led_patterns[player_index];
-        }
+        switch(config->misc.dualshock3_led_mode) {
+            case Dualshock3LedMode_Switch:
+                m_led_mask = player_led_patterns[player_index];
+                break;
+            case Dualshock3LedMode_Ps3:
+                m_led_mask = player_index < 4 ? 1 << player_index : ~(1 << player_index) & 0x0f;
+                break;
+            case Dualshock3LedMode_Hybrid:
+                m_led_mask = led_mask;
+                break;
+            default:
+                break;
+        };
+
         R_RETURN(this->PushRumbleLedState());
     }
 
