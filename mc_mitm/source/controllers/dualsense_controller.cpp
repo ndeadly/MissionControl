@@ -248,7 +248,7 @@ namespace ams::controller {
         m_buttons.lstick_press = buttons->L3;
         m_buttons.rstick_press = buttons->R3;
 
-        m_buttons.capture = buttons->tpad;
+        m_buttons.capture = buttons->mute;
         m_buttons.home    = buttons->ps;
     }
 

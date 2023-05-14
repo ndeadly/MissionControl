@@ -53,7 +53,8 @@ namespace ams::controller {
         
         u8 ps       : 1;
         u8 tpad     : 1;
-        u8 counter  : 6;
+        u8 mute     : 1;
+        u8          : 0;
     } PACKED;
 
     struct DualsenseRumbleData {
