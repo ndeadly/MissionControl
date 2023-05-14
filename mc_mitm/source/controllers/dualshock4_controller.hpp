@@ -72,7 +72,7 @@ namespace ams::controller {
         u8 R3       : 1;
         
         u8 ps       : 1;
-        u8 tpad     : 1;
+        u8 touchpad : 1;
         u8 counter  : 6;
     } PACKED;
 
@@ -104,6 +104,19 @@ namespace ams::controller {
             s16 z_max;
             s16 z_min;
         } acc;
+    } PACKED;
+
+    struct Dualshock4TouchpadPoint {
+        u8 contact;
+        u8 x_lo;
+        u8 x_hi : 4;
+        u8 y_lo : 4;
+        u8 y_hi;
+    } PACKED;
+
+    struct Dualshock4TouchReport {
+        u8 timestamp;
+        Dualshock4TouchpadPoint points[2];
     } PACKED;
 
     struct Dualshock4VersionInfo {
@@ -146,8 +159,9 @@ namespace ams::controller {
         Dualshock4ButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
+
         u16 timestamp;
-        u8 battery;
+        u8 temperature;
         s16 vel_x;
         s16 vel_y;
         s16 vel_z;
@@ -161,10 +175,13 @@ namespace ams::controller {
         u8 mic           : 1;
         u8 phone         : 1;
         u8               : 0;
+        u8 _unk2[2];
 
-        u16 _unk2;
-        u8 tpad_packets;
-        u8 packet_counter;
+        u8 num_reports;
+        Dualshock4TouchReport touch_reports[4];
+        u8 _unk3[2];
+
+        u32 crc;
     } PACKED;
 
     struct Dualshock4ReportData {

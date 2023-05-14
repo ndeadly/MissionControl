@@ -26,6 +26,9 @@ namespace ams::controller {
         constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
         constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
 
+        constexpr u16 touchpad_width = 1920;
+        constexpr u16 touchpad_height = 1080;
+
         const u8 player_led_flags[] = {
             // Mimic the Switch's player LEDs
             0x01,
@@ -183,6 +186,25 @@ namespace ams::controller {
         );
 
         this->MapButtons(&src->input0x31.buttons);
+
+        if (src->input0x31.buttons.touchpad) {
+            for (int i = 0; i < 2; ++i) {
+                const DualsenseTouchpadPoint *point = &src->input0x31.touch_points[i];
+
+                bool active = point->contact & BIT(7) ? false : true;;
+                if (active) {
+                    u16 x = (point->x_hi << 8) | point->x_lo;
+
+                    if (x < (0.15 * touchpad_width)) {
+                        m_buttons.minus = 1;
+                    } else if (x > (0.85 * touchpad_width)) {
+                        m_buttons.plus = 1;
+                    } else {
+                        m_buttons.capture = 1;
+                    }
+                }
+            }
+        }
 
         if (m_enable_motion) {
             s16 acc_x = -static_cast<s16>(accel_scale_factor * src->input0x31.acc_z / float(m_motion_calibration.acc.z_max));

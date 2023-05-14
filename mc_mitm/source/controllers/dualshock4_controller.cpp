@@ -27,6 +27,9 @@ namespace ams::controller {
         constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
         constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
 
+        constexpr u16 touchpad_width = 1920;
+        constexpr u16 touchpad_height = 942;
+
         const RGBColour player_led_base_colours[] = {
             // Same colours used by PS4
             {0x00, 0x00, 0x04}, // blue
@@ -147,6 +150,28 @@ namespace ams::controller {
 
         this->MapButtons(&src->input0x11.buttons);
 
+        if (src->input0x11.buttons.touchpad) {
+            for (int i = 0; i < src->input0x11.num_reports; ++i) {
+                const Dualshock4TouchReport *touch_report = &src->input0x11.touch_reports[i];
+                for (int j = 0; j < 2; ++j) {
+                    const Dualshock4TouchpadPoint *point = &touch_report->points[j];
+
+                    bool active = point->contact & BIT(7) ? false : true;
+                    if (active) {
+                        u16 x = (point->x_hi << 8) | point->x_lo;
+
+                        if (x < (0.15 * touchpad_width)) {
+                            m_buttons.minus = 1;
+                        } else if (x > (0.85 * touchpad_width)) {
+                            m_buttons.plus = 1;
+                        } else {
+                            m_buttons.capture = 1;
+                        }
+                    }
+                }
+            }
+        }
+
         if (m_enable_motion) {
             s16 acc_x = -static_cast<s16>(accel_scale_factor * src->input0x11.acc_z / float(m_motion_calibration.acc.z_max));
             s16 acc_y = -static_cast<s16>(accel_scale_factor * src->input0x11.acc_x / float(m_motion_calibration.acc.x_max));
@@ -211,7 +236,6 @@ namespace ams::controller {
         m_buttons.lstick_press = buttons->L3;
         m_buttons.rstick_press = buttons->R3;
 
-        m_buttons.capture = buttons->tpad;
         m_buttons.home    = buttons->ps;
     }
 

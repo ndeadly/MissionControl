@@ -52,9 +52,11 @@ namespace ams::controller {
         u8 R3       : 1;
         
         u8 ps       : 1;
-        u8 tpad     : 1;
+        u8 touchpad : 1;
         u8 mute     : 1;
         u8          : 0;
+
+        u8 unk;
     } PACKED;
 
     struct DualsenseRumbleData {
@@ -85,6 +87,14 @@ namespace ams::controller {
             s16 z_max;
             s16 z_min;
         } acc;
+    } PACKED;
+
+    struct DualsenseTouchpadPoint {
+        u8 contact;
+        u8 x_lo;
+        u8 x_hi : 4;
+        u8 y_lo : 4;
+        u8 y_hi;
     } PACKED;
 
     struct DualsenseVersionInfo {
@@ -123,14 +133,17 @@ namespace ams::controller {
         u8 right_trigger;
         u8 counter;
         DualsenseButtonData buttons;
-        u8 _unk1[5];
+        u8 _unk1[4];
         s16 vel_x;
         s16 vel_y;
         s16 vel_z;
         s16 acc_x;
         s16 acc_y;
         s16 acc_z;
-        u8 _unk2[25];
+        s32 timestamp;
+        u8 _unk2;
+        DualsenseTouchpadPoint touch_points[2];
+        u8 _unk3[12];
 
         u8 battery_level : 4;
         u8 usb           : 1;
