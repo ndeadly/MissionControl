@@ -118,6 +118,9 @@ namespace ams::controller {
         );
 
         this->MapButtons(&src->input0x01.buttons);
+
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
     }
 
     void Dualshock4Controller::MapInputReport0x11(const Dualshock4ReportData *src) {
@@ -149,6 +152,9 @@ namespace ams::controller {
         );
 
         this->MapButtons(&src->input0x11.buttons);
+
+        m_buttons.ZR = src->input0x11.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x11.left_trigger  > (m_trigger_threshold * UINT8_MAX);
 
         if (src->input0x11.buttons.touchpad) {
             for (int i = 0; i < src->input0x11.num_reports; ++i) {

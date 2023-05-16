@@ -63,9 +63,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0x07.buttons.U;
 
         m_buttons.R  = src->input0x07.buttons.RB;
-        m_buttons.ZR = src->input0x07.buttons.RT;
+        m_buttons.ZR = src->input0x07.right_trigger > (m_trigger_threshold * UINT16_MAX);
         m_buttons.L  = src->input0x07.buttons.LB;
-        m_buttons.ZL = src->input0x07.buttons.LT;
+        m_buttons.ZL = src->input0x07.left_trigger  > (m_trigger_threshold * UINT16_MAX);
 
         m_buttons.minus = 0;
         m_buttons.plus  = 0;

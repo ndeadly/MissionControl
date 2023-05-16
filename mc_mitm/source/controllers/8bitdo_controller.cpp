@@ -82,10 +82,10 @@ namespace ams::controller {
             m_buttons.L = src->input0x01_v2.buttons.L1;
             m_buttons.R = src->input0x01_v2.buttons.R1;
 
-            if (m_controller_type == EightBitDoControllerType_Sn30ProXboxCloud) {
-                m_buttons.ZL = src->input0x01_v2.left_trigger > 0x7f;
-                m_buttons.ZR = src->input0x01_v2.right_trigger > 0x7f;
+            m_buttons.ZL = src->input0x01_v2.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+            m_buttons.ZR = src->input0x01_v2.right_trigger > (m_trigger_threshold * UINT8_MAX);
 
+            if (m_controller_type == EightBitDoControllerType_Sn30ProXboxCloud) {
                 m_buttons.minus = src->input0x01_v2.buttons.v1.select;
                 m_buttons.plus  = src->input0x01_v2.buttons.v1.start;
 
@@ -94,9 +94,6 @@ namespace ams::controller {
 
                 m_buttons.home = src->input0x01_v2.buttons.v1.home;
             } else {
-                m_buttons.ZL = src->input0x01_v2.buttons.v2.L2;
-                m_buttons.ZR = src->input0x01_v2.buttons.v2.R2;
-
                 m_buttons.minus = src->input0x01_v2.buttons.v2.select;
                 m_buttons.plus  = src->input0x01_v2.buttons.v2.start;
 

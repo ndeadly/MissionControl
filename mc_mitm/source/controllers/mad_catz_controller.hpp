@@ -77,73 +77,73 @@ namespace ams::controller {
         struct {
             union {
                 struct {
-                    uint8_t A      : 1;
-                    uint8_t B      : 1;
-                    uint8_t X      : 1;
-                    uint8_t Y      : 1;
-                    uint8_t L1     : 1;
-                    uint8_t R1     : 1;
-                    uint8_t select : 1;
-                    uint8_t start  : 1;
+                    u8 A      : 1;
+                    u8 B      : 1;
+                    u8 X      : 1;
+                    u8 Y      : 1;
+                    u8 L1     : 1;
+                    u8 R1     : 1;
+                    u8 select : 1;
+                    u8 start  : 1;
 
-                    uint8_t L3     : 1;
-                    uint8_t R3     : 1;
-                    uint8_t        : 0;
+                    u8 L3     : 1;
+                    u8 R3     : 1;
+                    u8        : 0;
                 };
 
                 struct {
-                    uint8_t A     : 1;
-                    uint8_t B     : 1;
-                    uint8_t       : 1;
-                    uint8_t X     : 1;
-                    uint8_t Y     : 1;
-                    uint8_t       : 1;
-                    uint8_t L1    : 1;
-                    uint8_t R1    : 1;
+                    u8 A     : 1;
+                    u8 B     : 1;
+                    u8       : 1;
+                    u8 X     : 1;
+                    u8 Y     : 1;
+                    u8       : 1;
+                    u8 L1    : 1;
+                    u8 R1    : 1;
 
-                    uint8_t       : 3;
-                    uint8_t start : 1;
-                    uint8_t       : 1;
-                    uint8_t L3    : 1;
-                    uint8_t R3    : 1;
-                    uint8_t       : 0;
+                    u8       : 3;
+                    u8 start : 1;
+                    u8       : 1;
+                    u8 L3    : 1;
+                    u8 R3    : 1;
+                    u8       : 0;
                 } xinput;
             };
 
-            uint8_t dpad;
+            u8 dpad;
         } buttons;
         MadCatzStickData left_stick;
         MadCatzStickData right_stick;
-        uint8_t left_trigger;
-        uint8_t right_trigger;
-        uint8_t reserved;
+        u8 left_trigger;
+        u8 right_trigger;
+        u8 reserved;
     } PACKED;
 
     struct MadCatzInputReport0x82 {
         struct {
-            uint8_t        : 2;
-            uint8_t R1     : 1;
-            uint8_t L1     : 1;
-            uint8_t Y      : 1;
-            uint8_t B      : 1;
-            uint8_t X      : 1;
-            uint8_t select : 1;
+            u8        : 2;
+            u8 R1     : 1;
+            u8 L1     : 1;
+            u8 Y      : 1;
+            u8 B      : 1;
+            u8 X      : 1;
+            u8 select : 1;
 
-            uint8_t dpad;
+            u8 dpad;
         } buttons;
-        uint8_t reserved;
+        u8 reserved;
     } PACKED;
 
     struct MadCatzInputReport0x83 {
         struct {
-            uint8_t R2 : 1;
-            uint8_t L2 : 1;
-            uint8_t R3 : 1;
-            uint8_t L3 : 1;
-            uint8_t    : 0;
+            u8 R2 : 1;
+            u8 L2 : 1;
+            u8 R3 : 1;
+            u8 L3 : 1;
+            u8    : 0;
         } buttons;
         MadCatzStickData left_stick;
-        uint8_t reserved[2];
+        u8 reserved[2];
     } PACKED;
 
     struct MadCatzReportData {

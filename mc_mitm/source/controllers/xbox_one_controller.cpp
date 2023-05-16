@@ -63,8 +63,8 @@ namespace ams::controller {
             static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
         );
 
-        m_buttons.ZR = src->input0x01.right_trigger > 0;
-        m_buttons.ZL = src->input0x01.left_trigger > 0;
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * 0x3ff);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * 0x3ff);
 
         if (new_format) {
             m_buttons.dpad_down  = (src->input0x01.buttons.dpad == XboxOneDPad_S)  ||

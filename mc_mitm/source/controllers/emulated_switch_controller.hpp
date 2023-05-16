@@ -83,6 +83,8 @@ namespace ams::controller {
             bool m_enable_rumble;
             bool m_enable_motion;
 
+            float m_trigger_threshold;
+
             VirtualSpiFlash m_virtual_memory;
     };
 

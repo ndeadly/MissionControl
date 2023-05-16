@@ -59,11 +59,17 @@ namespace ams::controller {
     void MocuteController::MapInputReport0x01(const MocuteReportData *src) {
         this->MapAnalogSticks(&src->input0x01.left_stick, &src->input0x01.right_stick);
         this->MapButtons(&src->input0x01.buttons, src->id == 0x01);
+
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
     }
 
     void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
         this->MapAnalogSticks(&src->input0x04.left_stick, &src->input0x04.right_stick);
         this->MapButtons(&src->input0x04.buttons, 1);
+
+        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * UINT8_MAX);
     }
 
     void MocuteController::MapAnalogSticks(const MocuteStickData *left_stick, const MocuteStickData *right_stick) {
@@ -103,9 +109,7 @@ namespace ams::controller {
         m_buttons.Y = buttons->X;
 
         m_buttons.R  = buttons->R1;
-        m_buttons.ZR = buttons->R2;
         m_buttons.L  = buttons->L1;
-        m_buttons.ZL = buttons->L2;
 
         m_buttons.minus = buttons->select;
         m_buttons.plus  = buttons->start;

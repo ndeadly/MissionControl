@@ -155,6 +155,9 @@ namespace ams::controller {
         );
 
         this->MapButtons(&src->input0x01.buttons);
+
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
     }
 
     void DualsenseController::MapInputReport0x31(const DualsenseReportData *src) {
@@ -186,6 +189,9 @@ namespace ams::controller {
         );
 
         this->MapButtons(&src->input0x31.buttons);
+
+        m_buttons.ZR = src->input0x31.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x31.left_trigger  > (m_trigger_threshold * UINT8_MAX);
 
         if (src->input0x31.buttons.touchpad) {
             for (int i = 0; i < 2; ++i) {
@@ -260,9 +266,7 @@ namespace ams::controller {
         m_buttons.Y = buttons->square;
 
         m_buttons.R  = buttons->R1;
-        m_buttons.ZR = buttons->R2;
         m_buttons.L  = buttons->L1;
-        m_buttons.ZL = buttons->L2;
 
         m_buttons.minus = buttons->share;
         m_buttons.plus  = buttons->options;

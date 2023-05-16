@@ -97,7 +97,6 @@ namespace ams::controller {
 
         private:
             void MapInputReport0x04(const XiaomiReportData *src);
-
     };
 
 }
