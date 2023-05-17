@@ -22,6 +22,7 @@ namespace ams::controller {
         EightBitDoControllerType_Zero,
         EightBitDoControllerType_Sn30ProXboxCloud,
         EightBitDoControllerType_Sn30ProXboxCloudFwV2,
+        EightBitDoControllerType_Ultimate24gWireless,
         EightBitDoControllerType_Other
     };
 
@@ -65,23 +66,7 @@ namespace ams::controller {
         u16 y;
     } PACKED;
 
-    struct EightBitDoButtonDataV1 {
-        u8 A      : 1;
-        u8 B      : 1;
-        u8        : 1;
-        u8 X      : 1;
-        u8 Y      : 1;
-        u8        : 1;
-        u8 L1     : 1;
-        u8 R1     : 1;
-
-        u8        : 2;
-        u8 select : 1;
-        u8 start  : 1;
-        u8	       : 0;
-    } PACKED;
-
-    struct EightBitDoButtonDataV2 {
+    struct EightBitDoButtonData {
         u8 A              : 1;
         u8 B              : 1;
         u8                : 1;
@@ -113,8 +98,6 @@ namespace ams::controller {
                 u8        : 1;
             } v2;
         };
-
-        u8 dpad;
     } PACKED;
 
     struct EightBitDoInputReport0x01V1 {
@@ -124,7 +107,8 @@ namespace ams::controller {
     } PACKED;
 
     struct EightBitDoInputReport0x01V2 {
-        EightBitDoButtonDataV2 buttons;
+        EightBitDoButtonData buttons;
+        u8 dpad;
         EightBitDoStickData16 left_stick;
         EightBitDoStickData16 right_stick;
         u8 left_trigger;
@@ -137,7 +121,7 @@ namespace ams::controller {
         EightBitDoStickData8 left_stick;
         EightBitDoStickData8 right_stick;
         u8 _unk[3];
-        EightBitDoButtonDataV1 buttons;
+        EightBitDoButtonData buttons;
     } PACKED;
 
     struct EightBitDoInputReport0x03V2 {
@@ -145,7 +129,18 @@ namespace ams::controller {
         EightBitDoStickData8 left_stick;
         EightBitDoStickData8 right_stick;
         u8 _unk[2];
-        EightBitDoButtonDataV1 buttons;
+        EightBitDoButtonData buttons;
+    } PACKED;
+
+    struct EightBitDoInputReport0x03V3 {
+        u8 dpad;
+        EightBitDoStickData8 left_stick;
+        EightBitDoStickData8 right_stick;
+        u8 right_trigger;
+        u8 left_trigger;
+        EightBitDoButtonData buttons;
+        u8 battery;
+        u8 _unk0;
     } PACKED;
 
     struct EightBitDoReportData {
@@ -155,6 +150,7 @@ namespace ams::controller {
             EightBitDoInputReport0x01V2 input0x01_v2;
             EightBitDoInputReport0x03V1 input0x03_v1;
             EightBitDoInputReport0x03V2 input0x03_v2;
+            EightBitDoInputReport0x03V3 input0x03_v3;
         };
     } PACKED;
 
@@ -164,7 +160,8 @@ namespace ams::controller {
             static constexpr const HardwareID hardware_ids[] = {
                 {0x05a0, 0x3232}, // 8BitDo Zero
                 {0x2dc8, 0x2100}, // 8BitDo SN30 Pro for Xbox Cloud Gaming
-                {0x2dc8, 0x2101}  // 8BitDo SN30 Pro for Xbox Cloud Gaming (fw 2.00)
+                {0x2dc8, 0x2101}, // 8BitDo SN30 Pro for Xbox Cloud Gaming (fw 2.00)
+                {0x2dc8, 0x3012}  // 8BitDo Ultimate 2.4g Wireless
             };
 
             EightBitDoController(const bluetooth::Address *address, HardwareID id)
@@ -175,6 +172,8 @@ namespace ams::controller {
                     m_controller_type = EightBitDoControllerType_Sn30ProXboxCloud;
                 else if ((id.vid == hardware_ids[2].vid) && (id.pid == hardware_ids[2].pid))
                     m_controller_type = EightBitDoControllerType_Sn30ProXboxCloudFwV2;
+                else if ((id.vid == hardware_ids[3].vid) && (id.pid == hardware_ids[3].pid))
+                    m_controller_type = EightBitDoControllerType_Ultimate24gWireless;
                 else
                     m_controller_type = EightBitDoControllerType_Other;
             }
