@@ -31,6 +31,7 @@ namespace ams::controller {
             "SNES Controller",
             "N64 Controller",
             "MD/Gen Control Pad",
+            "Lic2 Pro Controller",
         };
 
         constexpr auto cod_major_peripheral = 0x05;
