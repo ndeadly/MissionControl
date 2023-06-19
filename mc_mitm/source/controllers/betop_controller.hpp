@@ -52,6 +52,8 @@ namespace ams::controller {
         u8 select : 1;
         u8 start  : 1;
         u8 home   : 1;
+        u8 L3     : 1;
+        u8 R3     : 1;
         u8        : 0;
     } PACKED;
 

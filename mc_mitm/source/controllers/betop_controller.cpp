@@ -68,6 +68,9 @@ namespace ams::controller {
         m_buttons.L  = src->input0x03.buttons.L1;
         m_buttons.ZL = src->input0x03.buttons.L2;
 
+        m_buttons.lstick_press = src->input0x03.buttons.L3;
+        m_buttons.rstick_press = src->input0x03.buttons.R3;
+
         m_buttons.minus = src->input0x03.buttons.select;
         m_buttons.plus  = src->input0x03.buttons.start;
 
