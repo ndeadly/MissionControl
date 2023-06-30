@@ -33,11 +33,6 @@ namespace ams::mitm {
 
     namespace {
 
-        const s32 ThreadPriority = -7;
-        const size_t ThreadStackSize = 0x1000;
-        alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
-        os::ThreadType g_thread;
-
         os::Event g_init_event(os::EventClearMode_ManualClear);
 
         void InitializeThreadFunc(void *) {
@@ -104,28 +99,39 @@ namespace ams::mitm {
 
     }
 
-    void StartInitialize() {
-        R_ABORT_UNLESS(os::CreateThread(&g_thread,
+    void InitializeModules() {
+        const s32 ThreadPriority = -7;
+        const size_t ThreadStackSize = 0x1000;
+        os::ThreadType init_thread;
+
+        // Allocate temporary thread stack on heap
+        struct alignas(os::ThreadStackAlignment) ThreadStack { u8 stack[ThreadStackSize]; };
+        auto thread_stack = std::make_unique<ThreadStack>();
+
+        // Create and start initialisation thread
+        R_ABORT_UNLESS(os::CreateThread(&init_thread,
             InitializeThreadFunc,
             nullptr,
-            g_thread_stack,
+            thread_stack.get(),
             ThreadStackSize,
             ThreadPriority
         ));
+        os::SetThreadNamePointer(&init_thread, "mc::InitThread");
+        os::StartThread(&init_thread);
 
-        os::SetThreadNamePointer(&g_thread, "mc::InitThread");
-        os::StartThread(&g_thread);
-    }
-
-    void WaitInitialized() {
-        g_init_event.Wait();
-    }
-
-    void LaunchModules() {
+        // Launch mitm and other modules
         R_ABORT_UNLESS(ams::mitm::bluetooth::Launch());
         R_ABORT_UNLESS(ams::mitm::btm::Launch());
         R_ABORT_UNLESS(ams::mitm::mc::Launch());
         R_ABORT_UNLESS(ams::usb::Launch());
+
+        // Wait for initialisation thread to finish and destroy it
+        os::WaitThread(&init_thread);
+        os::DestroyThread(&init_thread);
+    }
+
+    void WaitInitialized() {
+        g_init_event.Wait();
     }
 
     void WaitModules() {

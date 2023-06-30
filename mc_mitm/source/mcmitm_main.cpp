@@ -46,6 +46,10 @@ namespace ams {
                 return lmem::AllocateFromExpHeap(GetHeapHandle(), size);
             }
 
+            void *AllocateWithAlign(size_t size, size_t align) {
+                return lmem::AllocateFromExpHeap(GetHeapHandle(), size, align);
+            }
+
             void Deallocate(void *p, size_t size) {
                 AMS_UNUSED(size);
                 return lmem::FreeToExpHeap(GetHeapHandle(), p);
@@ -81,11 +85,8 @@ namespace ams {
         // Initialise module configuration
         mitm::InitializeConfig();
 
-        // Start initialisation thread
-        mitm::StartInitialize();
-
-        // Launch mitm modules
-        mitm::LaunchModules();
+        // Launch modules and run initialisation thread
+        mitm::InitializeModules();
 
         // Wait for mitm modules to terminate
         mitm::WaitModules();
@@ -123,4 +124,13 @@ void operator delete[](void *p) {
 
 void operator delete[](void *p, size_t size) {
     return ams::mitm::Deallocate(p, size);
+}
+
+void *operator new(size_t size, std::align_val_t align) {
+    return ams::mitm::AllocateWithAlign(size, static_cast<size_t>(align));
+}
+
+void operator delete(void *p, std::align_val_t align) {
+    AMS_UNUSED(align);
+    return ams::mitm::Deallocate(p, 0);
 }
