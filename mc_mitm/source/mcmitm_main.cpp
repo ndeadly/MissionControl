@@ -70,6 +70,7 @@ namespace ams {
 
             R_ABORT_UNLESS(pmdmntInitialize());
             R_ABORT_UNLESS(pminfoInitialize());
+            R_ABORT_UNLESS(pscmInitialize());
             R_ABORT_UNLESS(usbHsInitialize());
 
             R_ABORT_UNLESS(fs::MountSdCard("sdmc"));
@@ -87,6 +88,36 @@ namespace ams {
 
         // Launch modules and run initialisation thread
         mitm::InitializeModules();
+
+        // Initialise pm module
+        psc::PmModule pm_module;
+        psc::PmModuleId pm_module_id = static_cast<psc::PmModuleId>(0xBD);
+        const psc::PmModuleId pm_dependencies[] = { psc::PmModuleId_Fs };
+        R_ABORT_UNLESS(pm_module.Initialize(pm_module_id, pm_dependencies, sizeof(pm_dependencies) / sizeof(u32), os::EventClearMode_AutoClear));
+
+        psc::PmState pm_state;
+        psc::PmFlagSet pm_flags;
+        os::SystemEvent *pm_event = pm_module.GetEventPointer();
+
+        // Loop power management events until shutdown signal is received
+        bool shutdown = false;
+        while (!shutdown) {
+            pm_event->Wait();
+            if (R_SUCCEEDED(pm_module.GetRequest(&pm_state, &pm_flags))) {
+                switch (pm_state) {
+                    case psc::PmState_ShutdownReady:
+                        shutdown = true;
+                        [[fallthrough]];
+                    case psc::PmState_SleepReady:
+                        /* Run sleep/shutdown code */
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            R_ABORT_UNLESS(pm_module.Acknowledge(pm_state, ResultSuccess()));
+        }
 
         // Wait for mitm modules to terminate
         mitm::WaitModules();
