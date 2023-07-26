@@ -16,7 +16,7 @@
 #include "mc_module.hpp"
 #include "mc_service.hpp"
 
-namespace ams::mitm::mc {
+namespace ams::mc {
 
     namespace {
 
@@ -60,8 +60,8 @@ namespace ams::mitm::mc {
 
     }
 
-    Result Launch() {
-        R_TRY(os::CreateThread(&g_thread,
+    void Launch() {
+        R_ABORT_UNLESS(os::CreateThread(&g_thread,
             MissionControlThreadFunction,
             nullptr,
             g_thread_stack,
@@ -71,8 +71,6 @@ namespace ams::mitm::mc {
         
         os::SetThreadNamePointer(&g_thread, "mc::MissionControlThread");
         os::StartThread(&g_thread);
-
-        R_SUCCEED();
     }
 
     void WaitFinished() {

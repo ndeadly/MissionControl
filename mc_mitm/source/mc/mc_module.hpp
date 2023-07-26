@@ -16,9 +16,9 @@
 #pragma once
 #include <stratosphere.hpp>
 
-namespace ams::mitm::mc {
+namespace ams::mc {
 
-    Result Launch();
+    void Launch();
     void WaitFinished();
 
 }

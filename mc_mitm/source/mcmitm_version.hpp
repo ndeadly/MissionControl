@@ -15,7 +15,7 @@
  */
 #pragma once
 
-namespace ams::mitm {
+namespace ams::mc {
 
     extern const unsigned int mc_version;
     extern const char *mc_build_name;

@@ -20,20 +20,20 @@
 
 #define AMS_MISSION_CONTROL_INTERFACE_INFO(C, H)                                                                           \
     AMS_SF_METHOD_INFO(C, H, 0, Result, GetVersion,            (sf::Out<u32> version),                          (version)) \
-    AMS_SF_METHOD_INFO(C, H, 1, Result, GetBuildVersionString, (sf::Out<ams::mitm::mc::VersionString> version), (version)) \
-    AMS_SF_METHOD_INFO(C, H, 2, Result, GetBuildDateString,    (sf::Out<ams::mitm::mc::DateString> version),    (version)) \
+    AMS_SF_METHOD_INFO(C, H, 1, Result, GetBuildVersionString, (sf::Out<ams::mc::VersionString> version), (version)) \
+    AMS_SF_METHOD_INFO(C, H, 2, Result, GetBuildDateString,    (sf::Out<ams::mc::DateString> version),    (version)) \
 
-AMS_SF_DEFINE_INTERFACE(ams::mitm::mc, IMissionControlInterface, AMS_MISSION_CONTROL_INTERFACE_INFO, 0x30eba3d4)
+AMS_SF_DEFINE_INTERFACE(ams::mc, IMissionControlInterface, AMS_MISSION_CONTROL_INTERFACE_INFO, 0x30eba3d4)
 
-namespace ams::mitm::mc {
+namespace ams::mc {
 
     class MissionControlService {
         private:
 
         public:
             Result GetVersion(sf::Out<u32> version);
-            Result GetBuildVersionString(sf::Out<ams::mitm::mc::VersionString> version);
-            Result GetBuildDateString(sf::Out<ams::mitm::mc::DateString> date);
+            Result GetBuildVersionString(sf::Out<ams::mc::VersionString> version);
+            Result GetBuildDateString(sf::Out<ams::mc::DateString> date);
     };
     static_assert(IsIMissionControlInterface<MissionControlService>);
 

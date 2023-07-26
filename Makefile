@@ -14,7 +14,7 @@ TARGETS := mcmitm_version.cpp mc_mitm
 all: $(TARGETS)
 
 mcmitm_version.cpp: .git/HEAD .git/index
-	echo "namespace ams::mitm { unsigned int mc_version = $(VERSION); const char *mc_build_name = \"$(BUILD_VERSION)\"; const char *mc_build_date = \"$(BUILD_DATE)\"; }" > mc_mitm/source/$@
+	echo "namespace ams::mc { unsigned int mc_version = $(VERSION); const char *mc_build_name = \"$(BUILD_VERSION)\"; const char *mc_build_date = \"$(BUILD_DATE)\"; }" > mc_mitm/source/$@
 
 mc_mitm:
 	$(MAKE) -C $@

@@ -16,7 +16,7 @@
 #include "mc_service.hpp"
 #include "../mcmitm_version.hpp"
 
-namespace ams::mitm::mc {
+namespace ams::mc {
 
     Result MissionControlService::GetVersion(sf::Out<u32> version) {
         version.SetValue(mc_version);
@@ -28,7 +28,7 @@ namespace ams::mitm::mc {
         R_SUCCEED();
     }
 
-    Result MissionControlService::GetBuildDateString(sf::Out<ams::mitm::mc::DateString> date) {
+    Result MissionControlService::GetBuildDateString(sf::Out<mc::DateString> date) {
         std::strncpy(date.GetPointer()->date, mc_build_date, sizeof(mc::DateString));
         R_SUCCEED();
     }

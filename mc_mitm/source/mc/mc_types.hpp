@@ -15,7 +15,7 @@
  */
 #pragma once
 
-namespace ams::mitm::mc {
+namespace ams::mc {
 
     struct VersionString {
         char version[32];
