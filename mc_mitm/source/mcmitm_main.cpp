@@ -78,31 +78,30 @@ namespace ams {
 
         void FinalizeSystemModule() { /* ... */ }
 
-        void Startup() { /* ... */ }
+        void Startup() {
+            // Load module configuration from ini file
+            mitm::LoadConfiguration();
+        }
 
     }
 
     void Main() {
-        // Initialise module configuration
-        mitm::InitializeConfig();
-
-        // Launch modules and run initialisation thread
-        mitm::InitializeModules();
+        // Launch mitm and other modules
+        mitm::LaunchModules();
 
         // Initialise pm module
-        psc::PmModule pm_module;
         psc::PmModuleId pm_module_id = static_cast<psc::PmModuleId>(0xBD);
         const psc::PmModuleId pm_dependencies[] = { psc::PmModuleId_Fs };
-        R_ABORT_UNLESS(pm_module.Initialize(pm_module_id, pm_dependencies, sizeof(pm_dependencies) / sizeof(u32), os::EventClearMode_AutoClear));
-
+        psc::PmModule pm_module;
         psc::PmState pm_state;
         psc::PmFlagSet pm_flags;
-        os::SystemEvent *pm_event = pm_module.GetEventPointer();
+
+        R_ABORT_UNLESS(pm_module.Initialize(pm_module_id, pm_dependencies, sizeof(pm_dependencies) / sizeof(u32), os::EventClearMode_AutoClear));
 
         // Loop power management events until shutdown signal is received
         bool shutdown = false;
         while (!shutdown) {
-            pm_event->Wait();
+            pm_module.GetEventPointer()->Wait();
             if (R_SUCCEEDED(pm_module.GetRequest(&pm_state, &pm_flags))) {
                 switch (pm_state) {
                     case psc::PmState_ShutdownReady:
@@ -119,7 +118,7 @@ namespace ams {
             R_ABORT_UNLESS(pm_module.Acknowledge(pm_state, ResultSuccess()));
         }
 
-        // Wait for mitm modules to terminate
+        // Wait for modules to terminate
         mitm::WaitModules();
     }
 

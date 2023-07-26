@@ -91,8 +91,8 @@ namespace ams::usb {
 
     }
 
-    Result Launch() {
-        R_TRY(os::CreateThread(&g_thread,
+    void Launch() {
+        R_ABORT_UNLESS(os::CreateThread(&g_thread,
             UsbThreadFunction,
             nullptr,
             g_thread_stack,
@@ -102,8 +102,6 @@ namespace ams::usb {
 
         os::SetThreadNamePointer(&g_thread, "mc::UsbThread");
         os::StartThread(&g_thread);
-
-        return ams::ResultSuccess();
     }
 
     void WaitFinished() {

@@ -18,7 +18,7 @@
 
 namespace ams::mitm::btm {
 
-    Result Launch();
+    void Launch();
     void WaitFinished();
 
 }

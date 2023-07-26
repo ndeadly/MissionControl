@@ -115,30 +115,31 @@ namespace ams::mitm {
             return 1;
         }
 
-    }
-
-    void ParseIniConfig() {
-        /* Open the file. */
-        fs::FileHandle file;
-        {
-            if (R_FAILED(fs::OpenFile(std::addressof(file), config_file_location, fs::OpenMode_Read))) {
-                return;
+        void ParseIniConfiguration() {
+            fs::FileHandle file;
+            {
+                if (R_FAILED(fs::OpenFile(std::addressof(file), config_file_location, fs::OpenMode_Read))) {
+                    return;
+                }
             }
-        }
-        ON_SCOPE_EXIT { fs::CloseFile(file); };
+            ON_SCOPE_EXIT { fs::CloseFile(file); };
 
-        /* Parse the config. */
-        util::ini::ParseFile(file, &g_global_config, ConfigIniHandler);
+            util::ini::ParseFile(file, &g_global_config, ConfigIniHandler);
+        }
+
+        void ReadSystemLanguage() {
+            R_ABORT_UNLESS(setInitialize());
+            ON_SCOPE_EXIT { setExit(); };
+            u64 language_code = 0;
+            R_ABORT_UNLESS(setGetSystemLanguage(&language_code));
+            R_ABORT_UNLESS(setMakeLanguage(language_code, &g_system_language));
+        }
+
     }
 
-    void InitializeConfig() {
-        ParseIniConfig();
-
-        R_ABORT_UNLESS(setInitialize());
-        ON_SCOPE_EXIT { setExit(); };
-        u64 language_code = 0;
-        R_ABORT_UNLESS(setGetSystemLanguage(&language_code));
-        R_ABORT_UNLESS(setMakeLanguage(language_code, &g_system_language));
+    void LoadConfiguration() {
+        ParseIniConfiguration();
+        ReadSystemLanguage();
     }
 
     MissionControlConfig *GetGlobalConfig() {

@@ -70,8 +70,8 @@ namespace ams::mitm::btm {
 
     }
 
-    Result Launch() {
-        R_TRY(os::CreateThread(&g_thread,
+    void Launch() {
+        R_ABORT_UNLESS(os::CreateThread(&g_thread,
             BtmMitmThreadFunction,
             nullptr,
             g_thread_stack,
@@ -81,8 +81,6 @@ namespace ams::mitm::btm {
 
         os::SetThreadNamePointer(&g_thread, "mc::BtmMitmThread");
         os::StartThread(&g_thread);
-
-        R_SUCCEED();
     }
 
     void WaitFinished() {

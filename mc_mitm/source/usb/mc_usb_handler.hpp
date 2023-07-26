@@ -17,7 +17,7 @@
 
 namespace ams::usb {
 
-    Result Launch();
+    void Launch();
     void WaitFinished();
 
 }
