@@ -43,7 +43,7 @@ namespace ams::controller {
     }
 
     Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number) {
-        *player_number = led_player_mappings[led_mask & 0xf];
+        *player_number = led_player_mappings[(led_mask & 0xf) | (led_mask >> 4)];
         if (*player_number == SwitchPlayerNumber_Unknown) {
             return -1;
         }
