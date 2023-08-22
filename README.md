@@ -54,7 +54,8 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __GameSir T1s__
 * __GameSir T2a__
 * __Hori Onyx__
-* __8bitDo SN30 Pro Xbox Cloud Gaming Edition__
+* __8BitDo SN30 Pro Xbox Cloud Gaming Edition__
+* __8BitDo Ultimate 2.4G Wireless Controller__
 * __8BitDo ZERO (Most other 8BitDo controllers have a Switch mode available. May require firmware update)__
 * __PowerA Moga Hero__
 * __PowerA Moga Pro__
@@ -69,6 +70,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Gen Game S3__
 * __AtGames Legends Pinball Controller + Arcade Control Panel__
 * __Hyperkin Scout__
+* __Betop 2585N2__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
@@ -82,7 +84,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. Reboot your console to activate the module and you're done!
 
 ***IMPORTANT: 
-Atmosphère >= 1.5.0 is required to run the latest release of Mission Control on firmware 16.0.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
+Atmosphère >= 1.5.5 is required to run the latest release of Mission Control on firmware 16.1.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
 
 ### Usage
 
@@ -226,8 +228,22 @@ If you're seeing crashes on boot with Mission Control's title ID (`010000000000b
 Crashes in `sm` (title ID `0100000000000004`) can indicate version incompatibilities between your current Atmosphere and one or more of your homebrew sysmodules. This may be caused by Mission Control, or it could be another custom sysmodule that uses libstratosphere, even if it looks as though Mission Control is to blame (`ldn_mitm` and `emuiibo` are common offenders). If you've just updated Atmosphere you should always check if there have also been updates released for the sysmodules you use.
 qlaunch errors (title ID `0100000000001000`) can be a sign that you have too many custom sysmodules running and are depleting the limited system resources available to them. Check your `/atmosphere/contents` folder and verify you actually need everything in there. If you don't know what you're doing, it may be easier to just delete this folder entirely, reinstall atmosphere, and then explicitly reinstall only the sysmodules you need.
 
+***I installed Mission Control but it doesn't do anything. Help!***
+Mission Control is primarily a background process. There are no visual changes to your system to indicate it's installed other than your controller successfully connecting through Nintendo's official menus. If you've followed the Usage and Pairing instructions above and you can't make it work, here's a basic troubleshooting checklist.
+- Firstly, make sure you've rebooted the console after installing. The module won't be loaded otherwise.
+- Make sure your console isn't in Flight Mode. If it is you will need to either disable it, or explicitly enable Bluetooth under Flight Mode settings.
+- Confirm that Mission Control is running. To do this, you can connect a left Joycon or Pro Controller wirelessly and press the `DPAD_UP` + `MINUS` buttons together. This will act as the capture button and take a screenshot if the module is running. If you don't see a screenshot notification, it's likely that Mission Control isn't being loaded. This is usually due to a bad install and can happen for several reasons:
+    - Archive bits have been set on one or more components in the Mission Control directory tree. This can happen if you use a Mac to transfer files or obtain Mission Control from unofficial sources. Try running Hekate's archive bit fix tool.
+    - Software you are using hasn't copied the files over correctly. I have seen FTP clients that don't copy empty files at all, and archive software that doesn't unzip directly to SD correctly. Try extracting the .zip archive to your PC first before transferring, and use a reputable transfer method such as Hekate UMS/Haze (Atmosphere's included USB transfer tool) or a decent FTP client (I use WinSCP on Windows).
+    - You haven't followed the install instructions correctly and have either excluded files or placed them in the wrong place.
+    - SD card corruption. You may need to format or replace your SD card.
+- Check that the controller you're trying to use is in the list of supported controllers. In particular, if you have an Xbox controller, make sure you're using a compatible model and that you're not updated to the newer Bluetooth LE firmware. Controllers using Bluetooth LE are not currently supported.
+- Make sure your controller isn't an unofficial clone. This is particularly common with Dualshock 3 and 4 controllers. Many clones will work, but there are some that just refuse. 
+- Make sure your controller battery is sufficiently charged. Sometimes controllers will have enough charge to start pairing, but will keep switching off halfway through (before they can report their battery level to the console).
+- If you've tried all of the above and nothing works, seek help on my [Discord server](https://discord.gg/gegfNZ5Ucz).
+
 ***How can I use this with multiple sysNAND/emuMMC launch configs?***
-Pairing controllers across multiple unique HOS installations requires multiple pairing databases and is essentially the same as pairing with two different consoles. The only exception being the case where you paired the controller(s) prior to making sysNAND copies. For now you will have to re-pair your controllers when switching back and forth. In the future I hope to include an option to load/store the database on the SD card to avoid this issue.
+~~Pairing controllers across multiple unique HOS installations requires multiple pairing databases and is essentially the same as pairing with two different consoles. The only exception being the case where you paired the controller(s) prior to making sysNAND copies. For now you will have to re-pair your controllers when switching back and forth. In the future I hope to include an option to load/store the database on the SD card to avoid this issue.~~Since version 1.5.1, Atmosphere now contains code I contributed to synchronise the bluetooth pairing database between sysNAND and emuMMC via a file on the sd card. This can be activated by adding `enable_external_bluetooth_db = u8!0x1` under the `[atmosphere]` section in `atmosphere/config/system_settings.ini`. Note: this feature requires atmosphere to be running in order to function. As such, it cannot be used to synchronise sysCFW/emuMMC with stock/OFW.
 
 ***Can I remap controller buttons using Mission Control?***
 Yes. Since Mission Control emulates official Pro Controllers, you can remap them using the official method introduced by Nintendo in firmware 10.0.0. You can find the remapping options in the system menu under `System Settings->Controllers and Sensors->Change Button Mapping`.
@@ -254,6 +270,9 @@ Probably not. As far as I know, wake from sleep involves a controller sending a 
 
 ***Can you add bluetooth audio support?***
 ~~No. The bluetooth module on the switch only implements a small set of services required to make hid controllers work. Of this small set of services, only a handful of high-level functions are exposed to the rest of the system. Adding audio support would require implementing the services neccessary for audio transport, for which any sane person would require an open-source re-implementation of the bluetooth module in order to have access the low-level functions required to pull it off.~~ ~~As of firmware 12.0.0 Nintendo have added functions supporting Bluetooth audio. While the feature hasn't been enabled in official software, plutooo has created an experimental sysmodule called [nx-btred](https://github.com/plutooo/nx-btred) that enables Bluetooth audio in games that support recording. There isn't much benefit to me adding its functionality to Mission Control.~~ Since firmware 13.0.0 Nintendo now officially supports Bluetooth audio.
+
+***My controller has an audio jack, can you add headset support?***
+Unlikely. As far as I know, controllers supporting headset audio do so via proprietary or non-standard means. This would be a lot of work, not only to understand how it works for a particular controller, but also to integrate it into HOS somehow when it has no concept of a gamepad supporting audio. In the best-case event a controller was using some form of standard Bluetooth audio, you would still be subject to the usual bandwidth constraints of the console (choppy audio, laggy controller inputs etc). Just use regular headphones.
 
 ### How it works
 
