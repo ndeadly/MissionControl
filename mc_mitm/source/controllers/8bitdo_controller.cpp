@@ -24,6 +24,8 @@ namespace ams::controller {
         constexpr float stick_scale_factor_16bit = float(UINT12_MAX) / UINT16_MAX;
         constexpr float stick_scale_factor_8bit  = float(UINT12_MAX) / UINT8_MAX;
 
+        const u16 dpad_stick_positions[] = { STICK_MIN, STICK_CENTER, STICK_MAX };
+
     }
 
     void EightBitDoController::ProcessInputData(const bluetooth::HidReport *report) {
@@ -41,18 +43,24 @@ namespace ams::controller {
 
     void EightBitDoController::MapInputReport0x01(const EightBitDoReportData *src) {
         if (m_controller_type == EightBitDoControllerType_Zero) {
-            m_buttons.dpad_down  = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
-            m_buttons.dpad_up    = (src->input0x01_v1.dpad == EightBitDoDPadV1_N)  ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NW);
-            m_buttons.dpad_right = (src->input0x01_v1.dpad == EightBitDoDPadV1_E)  ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SE);
-            m_buttons.dpad_left  = (src->input0x01_v1.dpad == EightBitDoDPadV1_W)  ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_NW) ||
-                                   (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
+            bool dpad_down  = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
+            bool dpad_up    = (src->input0x01_v1.dpad == EightBitDoDPadV1_N)  ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NW);
+            bool dpad_right = (src->input0x01_v1.dpad == EightBitDoDPadV1_E)  ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SE);
+            bool dpad_left  = (src->input0x01_v1.dpad == EightBitDoDPadV1_W)  ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NW) ||
+                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
+
+            // Map dpad as left stick
+            m_left_stick.SetData(
+                dpad_stick_positions[1 + dpad_right - dpad_left],
+                dpad_stick_positions[1 + dpad_up - dpad_down]
+            );
         } else {
             m_left_stick.SetData(
                 static_cast<u16>(stick_scale_factor_16bit * src->input0x01_v2.left_stick.x) & UINT12_MAX,
@@ -121,10 +129,16 @@ namespace ams::controller {
                 m_buttons.minus = src->input0x03_v1.buttons.v2.select;
                 m_buttons.plus  = src->input0x03_v1.buttons.v2.start;
             } else if (fmt == EightBitDoReportFormat_ZeroV2) {
-                m_buttons.dpad_down  = src->input0x03_v2.left_stick.y == 0xff;
-                m_buttons.dpad_up    = src->input0x03_v2.left_stick.y == 0x00;
-                m_buttons.dpad_right = src->input0x03_v2.left_stick.x == 0xff;
-                m_buttons.dpad_left  = src->input0x03_v2.left_stick.x == 0x00;
+                bool dpad_down  = src->input0x03_v2.left_stick.y == 0xff;
+                bool dpad_up    = src->input0x03_v2.left_stick.y == 0x00;
+                bool dpad_right = src->input0x03_v2.left_stick.x == 0xff;
+                bool dpad_left  = src->input0x03_v2.left_stick.x == 0x00;
+
+                // Map dpad as left stick
+                m_left_stick.SetData(
+                    dpad_stick_positions[1 + dpad_right - dpad_left],
+                    dpad_stick_positions[1 + dpad_up - dpad_down]
+                );
 
                 m_buttons.A = src->input0x03_v2.buttons.B;
                 m_buttons.B = src->input0x03_v2.buttons.A;
