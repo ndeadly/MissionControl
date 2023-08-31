@@ -185,21 +185,27 @@ namespace ams::controller {
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick;
         
-        // Open change grip menu!!!
-        // To toggle controller type between pro controller and joycon, press minus and plus simultaneously
-        // Upon toggling to horizontal joycon, press A+B (wii remote in mind) to activate joycon
         
-        // This setup is easy for wii remotes but can be modified easily
-        if (m_buttons.minus && m_buttons.plus) {
-            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_LeftJoyCon : SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
+        // swap to right joycon
+        if (m_buttons.home && m_buttons.plus) {
+            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
         }
+        
+        // swap to left joycon
+        if (m_buttons.home && m_buttons.minus) {
+            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_LeftJoyCon : SwitchControllerType_ProController);
+        }
+        
 
         // Fixup for identifying as horizontal joycon
+        // Upon toggling to horizontal joycon, press A+B (wii remote in mind) to activate joycon
         switch (m_emulated_type) {
+                
+            // Right joycon implementation
             case SwitchControllerType_RightJoyCon:
                 if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
                     input_report->right_stick.SetData(
-                        m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_up ? 0 : STICK_CENTER),
+                        m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_CENTER),
                         m_buttons.dpad_right ? UINT12_MAX : (m_buttons.dpad_left ? 0 : STICK_CENTER)
                     );
                 }
