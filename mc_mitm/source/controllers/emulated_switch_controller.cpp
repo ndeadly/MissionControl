@@ -185,7 +185,6 @@ namespace ams::controller {
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick;
         
-        
         // swap to right joycon
         if (m_buttons.home && m_buttons.plus) {
             this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
@@ -196,23 +195,22 @@ namespace ams::controller {
             this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_LeftJoyCon : SwitchControllerType_ProController);
         }
         
+        
+        /* Note:
+         In change grip menu, to activate a horizontal joycon press "sl and sr"
+         On a wii remote, this equates to A+B currently */
 
         // Fixup for identifying as horizontal joycon
-        // Upon toggling to horizontal joycon, press A+B (wii remote in mind) to activate joycon
         switch (m_emulated_type) {
                 
             // Right joycon implementation
             case SwitchControllerType_RightJoyCon:
-                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    input_report->right_stick.SetData(
-                        m_buttons.dpad_down ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_CENTER),
-                        m_buttons.dpad_right ? UINT12_MAX : (m_buttons.dpad_left ? 0 : STICK_CENTER)
-                    );
-                }
-                else {
-                    input_report->right_stick.SetData(-m_left_stick.GetY(), m_left_stick.GetX());
-                }
-
+                // invert Y axis as this is the right joyvon
+                m_left_stick.InvertY();
+                
+                // set stick data after inversion
+                input_report->right_stick.SetData(m_left_stick.GetY(), m_left_stick.GetX());
+                
                 input_report->buttons.SL_R = m_buttons.L | m_buttons.ZL;
                 input_report->buttons.SR_R = m_buttons.R | m_buttons.ZR;
                 input_report->buttons.A = m_buttons.B;
@@ -223,16 +221,12 @@ namespace ams::controller {
                 
             // Left joycon implementation
             case SwitchControllerType_LeftJoyCon:
-                if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
-                    input_report->left_stick.SetData(
-                        m_buttons.dpad_up ? UINT12_MAX : (m_buttons.dpad_down ? 0 : STICK_CENTER),
-                        m_buttons.dpad_left ? UINT12_MAX : (m_buttons.dpad_right ? 0 : STICK_CENTER)
-                    );
-                }
-                else {
-                    input_report->left_stick.SetData(m_left_stick.GetY(), -m_left_stick.GetX());
-                }
-
+                // invert X axis as this is the left joycon
+                m_left_stick.InvertX();
+                
+                // set stick data after inversion
+                input_report->left_stick.SetData(m_left_stick.GetY(), m_left_stick.GetX());
+                
                 input_report->buttons.SL_L = m_buttons.L | m_buttons.ZL;
                 input_report->buttons.SR_L = m_buttons.R | m_buttons.ZR;
                 input_report->buttons.dpad_down = m_buttons.A;
@@ -246,8 +240,6 @@ namespace ams::controller {
         }
 
         m_buttons_previous = m_buttons;
-        
-        
 
         std::memcpy(&input_report->type0x30.motion_data, &m_motion_data, sizeof(m_motion_data));
         m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
