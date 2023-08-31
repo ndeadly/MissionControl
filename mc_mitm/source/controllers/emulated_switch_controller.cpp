@@ -191,7 +191,9 @@ namespace ams::controller {
         
         // This setup is easy for wii remotes but can be modified easily
         if (m_buttons.minus && m_buttons.plus) {
-            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
+            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_LeftJoyCon :
+                SwitchControllerType_RightJoyCon :
+                SwitchControllerType_ProController);
         }
 
         // Fixup for identifying as horizontal joycon
@@ -214,6 +216,8 @@ namespace ams::controller {
                 input_report->buttons.X = m_buttons.A;
                 input_report->buttons.Y = m_buttons.X;
                 break;
+                
+            // Left joycon implementation
             case SwitchControllerType_LeftJoyCon:
                 if (m_buttons.dpad_down | m_buttons.dpad_up | m_buttons.dpad_right | m_buttons.dpad_left){
                     input_report->left_stick.SetData(
