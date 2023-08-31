@@ -25,7 +25,11 @@ namespace ams::mitm::btm {
             for (unsigned int i = 0; i < count; ++i) {
                 auto device = &devices[i];
                 if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                    std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                    // check for pro controller or joycon and name accordingly
+                    //if (device->GetControllerType() == controller::SwitchControllerType_ProController)
+                        std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                    //else
+                    //    std::strncpy(device->name, "Joy-Con (R)", sizeof(device->name) - 1);
                 }
             }
         }
@@ -39,7 +43,11 @@ namespace ams::mitm::btm {
         for (int i = 0; i < total_out.GetValue(); ++i) {
             auto device = &device_condition[i];
             if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                // check for pro controller or joycon and name accordingly
+                //if (device->GetControllerType() == controller::SwitchControllerType_ProController)
+                    std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                //else
+                //    std::strncpy(device->name, "Joy-Con (R)", sizeof(device->name) - 1);
             }
         }
 
@@ -53,7 +61,11 @@ namespace ams::mitm::btm {
         for (int i = 0; i < total_out.GetValue(); ++i) {
             auto device = &device_info[i];
             if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                // check for pro controller or joycon and name accordingly
+                //if (device->GetControllerType() == controller::SwitchControllerType_ProController)
+                    std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                //else
+                //    std::strncpy(device->name, "Joy-Con (R)", sizeof(device->name) - 1);
             }
         }
 

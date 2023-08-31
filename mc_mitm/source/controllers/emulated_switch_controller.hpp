@@ -26,6 +26,9 @@ namespace ams::controller {
             virtual ~EmulatedSwitchController() {};
 
             virtual Result Initialize();
+        
+            SwitchControllerType GetControllerType(void) { return m_emulated_type; };
+        
             bool IsOfficialController() { return false; }
 
             Result HandleOutputDataReport(const bluetooth::HidReport *report) override;
@@ -65,11 +68,17 @@ namespace ams::controller {
             Result FakeHidCommandResponse(const SwitchHidCommandResponse *response);
             Result FakeNfcIrResponse(const SwitchNfcIrResponse *response);
 
+            Result SetEmulatedControllerType(SwitchControllerType type);
+
+            SwitchControllerType m_emulated_type;
+            SwitchControllerColours m_colours;
+        
             bool m_charging;
             bool m_ext_power;
             u8 m_battery;
             u8 m_led_pattern;
 
+            SwitchButtonData m_buttons_previous;
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
