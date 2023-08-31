@@ -165,11 +165,6 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    //void EmulatedSwitchController::GetControllerType(void) {
-        // default to pro controller... can be switched with the toggle below.
-    //    return m_emulated_type
-    //}
-
     void EmulatedSwitchController::ClearControllerState() {
         std::memset(&m_buttons_previous, 0, sizeof(m_buttons_previous));
         std::memset(&m_buttons, 0, sizeof(m_buttons));
@@ -190,8 +185,12 @@ namespace ams::controller {
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick;
         
-        // Toggle controller type
-        if ((m_buttons.lstick_press && !m_buttons_previous.lstick_press) && m_buttons.rstick_press) {
+        // Open change grip menu!!!
+        // To toggle controller type between pro controller and joycon, press minus and plus simultaneously
+        // Upon toggling to horizontal joycon, press A+B (wii remote in mind) to activate joycon
+        
+        // This setup is easy for wii remotes but can be modified easily
+        if (m_buttons.minus && m_buttons.plus) {
             this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
         }
 
@@ -233,6 +232,7 @@ namespace ams::controller {
                 input_report->buttons.dpad_up = m_buttons.Y;
                 input_report->buttons.dpad_right = m_buttons.X;
                 break;
+                
             default:
                 break;
         }
