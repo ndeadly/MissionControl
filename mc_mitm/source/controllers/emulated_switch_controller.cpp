@@ -191,9 +191,7 @@ namespace ams::controller {
         
         // This setup is easy for wii remotes but can be modified easily
         if (m_buttons.minus && m_buttons.plus) {
-            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_LeftJoyCon :
-                SwitchControllerType_RightJoyCon :
-                SwitchControllerType_ProController);
+            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_LeftJoyCon : SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
         }
 
         // Fixup for identifying as horizontal joycon
