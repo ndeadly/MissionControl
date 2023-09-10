@@ -41,6 +41,7 @@
 #include "atgames_controller.hpp"
 #include "hyperkin_controller.hpp"
 #include "betop_controller.hpp"
+#include "atari_controller.hpp"
 
 namespace ams::controller {
 
@@ -72,6 +73,7 @@ namespace ams::controller {
         ControllerType_AtGames,
         ControllerType_Hyperkin,
         ControllerType_Betop,
+        ControllerType_Atari,
         ControllerType_Unknown,
     };
 

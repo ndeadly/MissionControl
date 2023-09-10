@@ -195,6 +195,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : AtariController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Atari;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -292,6 +298,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Betop:
                 controller = std::make_shared<BetopController>(address, id);
+                break;
+            case ControllerType_Atari:
+                controller = std::make_shared<AtariController>(address, id);
                 break;
             default:
                 controller = std::make_shared<UnknownController>(address, id);
