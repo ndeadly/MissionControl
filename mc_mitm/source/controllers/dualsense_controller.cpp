@@ -199,38 +199,13 @@ namespace ams::controller {
             }
         }
 
-        if (m_enable_motion) {
-            s16 acc_x = -static_cast<s16>(AccelScaleFactor * src->input0x31.acc_z / float(m_motion_calibration.acc.z_max));
-            s16 acc_y = -static_cast<s16>(AccelScaleFactor * src->input0x31.acc_x / float(m_motion_calibration.acc.x_max));
-            s16 acc_z =  static_cast<s16>(AccelScaleFactor * src->input0x31.acc_y / float(m_motion_calibration.acc.y_max));
+        m_accel.x = -static_cast<s16>(AccelScaleFactor * src->input0x31.acc_z / float(m_motion_calibration.acc.z_max));
+        m_accel.y = -static_cast<s16>(AccelScaleFactor * src->input0x31.acc_x / float(m_motion_calibration.acc.x_max));
+        m_accel.z =  static_cast<s16>(AccelScaleFactor * src->input0x31.acc_y / float(m_motion_calibration.acc.y_max));
 
-            s16 vel_x = -static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_y = -static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_z =  static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
-
-            m_motion_data[0].gyro_1  = vel_x;
-            m_motion_data[0].gyro_2  = vel_y;
-            m_motion_data[0].gyro_3  = vel_z;
-            m_motion_data[0].accel_x = acc_x;
-            m_motion_data[0].accel_y = acc_y;
-            m_motion_data[0].accel_z = acc_z;
-
-            m_motion_data[1].gyro_1  = vel_x;
-            m_motion_data[1].gyro_2  = vel_y;
-            m_motion_data[1].gyro_3  = vel_z;
-            m_motion_data[1].accel_x = acc_x;
-            m_motion_data[1].accel_y = acc_y;
-            m_motion_data[1].accel_z = acc_z;
-
-            m_motion_data[2].gyro_1  = vel_x;
-            m_motion_data[2].gyro_2  = vel_y;
-            m_motion_data[2].gyro_3  = vel_z;
-            m_motion_data[2].accel_x = acc_x;
-            m_motion_data[2].accel_y = acc_y;
-            m_motion_data[2].accel_z = acc_z;
-        }  else {
-            std::memset(&m_motion_data, 0, sizeof(m_motion_data));
-        }
+        m_gyro.x = -static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max  - m_motion_calibration.gyro.roll_bias)  / m_motion_calibration.gyro.speed_max));
+        m_gyro.y = -static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
+        m_gyro.z =  static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max   - m_motion_calibration.gyro.yaw_bias)   / m_motion_calibration.gyro.speed_max));
     }
 
     void DualsenseController::MapButtons(const DualsenseButtonData *buttons) {

@@ -271,25 +271,9 @@ namespace ams::controller {
 
         m_buttons.home = src->input0x01.buttons.ps;
 
-        if (m_enable_motion) {
-            s16 acc_x = -static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y)));
-            s16 acc_y = -static_cast<s16>(AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511));
-            s16 acc_z =  static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z)));
-
-            m_motion_data[0].accel_x = acc_x;
-            m_motion_data[0].accel_y = acc_y;
-            m_motion_data[0].accel_z = acc_z;
-
-            m_motion_data[1].accel_x = acc_x;
-            m_motion_data[1].accel_y = acc_y;
-            m_motion_data[1].accel_z = acc_z;
-
-            m_motion_data[2].accel_x = acc_x;
-            m_motion_data[2].accel_y = acc_y;
-            m_motion_data[2].accel_z = acc_z;
-        } else {
-            std::memset(&m_motion_data, 0, sizeof(m_motion_data));
-        }
+        m_accel.x = -static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y)));
+        m_accel.y = -static_cast<s16>(AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511));
+        m_accel.z =  static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z)));
     }
 
     Result Dualshock3Controller::SendEnablePayload() {

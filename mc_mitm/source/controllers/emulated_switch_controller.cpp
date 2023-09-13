@@ -25,7 +25,6 @@ namespace ams::controller {
         constexpr u8 ComputeCrc8(const void *data, size_t size) {
             return utils::Crc8<7>::Calculate(data, size);
         }
-
     }
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id)
@@ -62,7 +61,8 @@ namespace ams::controller {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
         m_left_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
         m_right_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
-        std::memset(&m_motion_data, 0, sizeof(m_motion_data));
+        std::memset(&m_accel, 0, sizeof(m_accel));
+        std::memset(&m_gyro, 0, sizeof(m_gyro));
     }
 
     void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
@@ -75,7 +75,9 @@ namespace ams::controller {
         input_report->battery = m_battery | m_charging;
         input_report->buttons = m_buttons;
         input_report->left_stick = m_left_stick;
-        input_report->right_stick = m_right_stick;
+        input_report->right_stick = m_right_stick; 
+
+        m_motion_packer->PackData(&input_report->type0x30.motion_data, m_accel, m_gyro);
 
         const SwitchMcuResponse empty_mcu_response = {
           .command = McuCommand_EmptyAwaitingCmd,
@@ -84,13 +86,13 @@ namespace ams::controller {
 
         switch (m_input_report_mode) {
             case 0x31:
-                std::memcpy(&input_report->type0x31.motion_data, &m_motion_data, sizeof(m_motion_data));
+                m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);
                 std::memcpy(&input_report->type0x31.mcu_response, &empty_mcu_response, sizeof(empty_mcu_response));
                 input_report->type0x31.crc = ComputeCrc8(&empty_mcu_response, sizeof(SwitchMcuResponse));
                 m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);
                 break;
             default:
-                std::memcpy(&input_report->type0x30.motion_data, &m_motion_data, sizeof(m_motion_data));
+                m_motion_packer->PackData(&input_report->type0x30.motion_data, m_accel, m_gyro);
                 m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
                 break;
         }
@@ -479,15 +481,30 @@ namespace ams::controller {
         R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
-    Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand *command) {
-        if (command->sensor_sleep.disabled) {
-            if (!m_enable_motion) {
-                m_gyro_sensitivity = 2000;
-                m_acc_sensitivity = 8000;
+    Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand* command) {
+        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion;
+
+        if (!m_enable_motion) {
+            m_motion_packer = std::make_unique<NullMotionPacker>();
+        }
+        else {
+            switch (command->sensor_sleep.mode) {
+                case SensorSleepValueType_Active:
+                    m_motion_packer = std::make_unique<StandardMotionPacker>();
+                    break;
+
+                case SensorSleepValueType_ActiveDscaleMode1:
+                case SensorSleepValueType_ActiveDscaleMode2:
+                case SensorSleepValueType_ActiveDscaleMode3:
+                case SensorSleepValueType_ActiveDscaleMode4:
+                    m_motion_packer = std::make_unique<QuaternionMotionPacker>();
+                    break;
+
+                default:
+                    m_motion_packer = std::make_unique<NullMotionPacker>();
+                    break;
             }
         }
-
-        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion & command->sensor_sleep.disabled;
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
@@ -637,7 +654,7 @@ namespace ams::controller {
         input_report->right_stick = m_right_stick;
         input_report->vibrator = 0;
 
-        std::memcpy(&input_report->type0x31.motion_data, &m_motion_data, sizeof(m_motion_data));
+        m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);
         std::memcpy(&input_report->type0x31.mcu_response, response, sizeof(SwitchMcuResponse));
         input_report->type0x31.crc = ComputeCrc8(response, sizeof(SwitchMcuResponse));
         m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);

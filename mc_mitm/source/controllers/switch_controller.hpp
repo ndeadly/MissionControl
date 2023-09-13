@@ -19,6 +19,7 @@
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "../async/future_response.hpp"
 #include "switch_rumble_handler.hpp"
+#include "motion_packers.hpp"
 #include <queue>
 
 namespace ams::controller {
@@ -81,15 +82,6 @@ namespace ams::controller {
         u8              : 2; // SR, SL (Left Joy)
         u8 L            : 1;
         u8 ZL           : 1;
-    } PACKED;
-
-    struct Switch6AxisData {
-        s16 accel_x;
-        s16 accel_y;
-        s16 accel_z;
-        s16 gyro_1;
-        s16 gyro_2;
-        s16 gyro_3;
     } PACKED;
 
     struct Switch6AxisCalibrationData {
@@ -187,6 +179,15 @@ namespace ams::controller {
         McuMode_Busy = 6,
     };
 
+    enum SensorSleepValueType : u8 {
+        SensorSleepValueType_Inactive = 0x0,
+        SensorSleepValueType_Active = 0x1,
+        SensorSleepValueType_ActiveDscaleMode1 = 0x2,
+        SensorSleepValueType_ActiveDscaleMode2 = 0x3,
+        SensorSleepValueType_ActiveDscaleMode3 = 0x4,
+        SensorSleepValueType_ActiveDscaleMode4 = 0x5,
+    };
+
     struct SwitchHidCommand {
         u8 id;
         union {
@@ -223,7 +224,7 @@ namespace ams::controller {
             } set_indicator_led;
 
             struct {
-                bool disabled;
+                SensorSleepValueType mode;
             } sensor_sleep;
 
             struct {
@@ -358,11 +359,11 @@ namespace ams::controller {
             } type0x23;
 
             struct {
-                Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
+                SwitchMotionData motion_data; // IMU samples at 0, 5 and 10ms
             } type0x30;
 
             struct {
-                Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
+                SwitchMotionData motion_data; // IMU samples at 0, 5 and 10ms
                 SwitchMcuResponse mcu_response;
                 u8 crc;
             } type0x31;
