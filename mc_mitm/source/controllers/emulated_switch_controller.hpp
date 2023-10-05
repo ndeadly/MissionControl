@@ -81,13 +81,10 @@ namespace ams::controller {
             Vec3d m_accel;
             Vec3d m_gyro;
 
-            u16 m_gyro_sensitivity;
-            u16 m_acc_sensitivity;
-
             u8 m_input_report_mode;
 
             SwitchRumbleHandler m_rumble_handler;
-            std::unique_ptr<MotionPacker> m_motion_packer = std::make_unique<NullMotionPacker>();
+            std::unique_ptr<SwitchMotionPacker> m_motion_packer = std::make_unique<NullMotionPacker>();
 
             bool m_enable_rumble;
             bool m_enable_motion;

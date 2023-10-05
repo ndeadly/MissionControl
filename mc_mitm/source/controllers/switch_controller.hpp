@@ -19,7 +19,7 @@
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "../async/future_response.hpp"
 #include "switch_rumble_handler.hpp"
-#include "motion_packers.hpp"
+#include "switch_motion_packing.hpp"
 #include <queue>
 
 namespace ams::controller {
@@ -179,13 +179,19 @@ namespace ams::controller {
         McuMode_Busy = 6,
     };
 
-    enum SensorSleepValueType : u8 {
-        SensorSleepValueType_Inactive = 0x0,
-        SensorSleepValueType_Active = 0x1,
-        SensorSleepValueType_ActiveDscaleMode1 = 0x2,
-        SensorSleepValueType_ActiveDscaleMode2 = 0x3,
-        SensorSleepValueType_ActiveDscaleMode3 = 0x4,
-        SensorSleepValueType_ActiveDscaleMode4 = 0x5,
+    enum SensorSleepType : u8 {
+        SensorSleepType_Inactive          = 0x0,
+        SensorSleepType_Active            = 0x1,
+        SensorSleepType_ActiveDscaleMode1 = 0x2,
+        SensorSleepType_ActiveDscaleMode2 = 0x3,
+        SensorSleepType_ActiveDscaleMode3 = 0x4,
+        SensorSleepType_ActiveDscaleMode4 = 0x5,
+    };
+
+    enum SensorType : u8 {
+        SensorType_LSM6DS3H   = 0x1,
+        SensorType_ICM20600   = 0x3,
+        SensorType_LSM6DS3TRC = 0x4
     };
 
     struct SwitchHidCommand {
@@ -224,7 +230,7 @@ namespace ams::controller {
             } set_indicator_led;
 
             struct {
-                SensorSleepValueType mode;
+                SensorSleepType mode;
             } sensor_sleep;
 
             struct {
@@ -269,8 +275,8 @@ namespace ams::controller {
                 u8 type;
                 u8 _unk0;  // Always 0x02
                 bluetooth::Address address;
-                u8 _unk1;  // Always 0x01
-                u8 _unk2;  // If 01, colors in SPI are used. Otherwise default ones
+                SensorType sensor_type;
+                u8 format_version;  // If 01, colors in SPI are used. Otherwise default ones
             } __attribute__ ((__packed__)) get_device_info;
 
             struct {

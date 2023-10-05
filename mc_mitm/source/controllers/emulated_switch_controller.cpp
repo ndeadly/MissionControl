@@ -33,8 +33,6 @@ namespace ams::controller {
     , m_ext_power(false)
     , m_battery(BATTERY_MAX)
     , m_led_pattern(0)
-    , m_gyro_sensitivity(2000)
-    , m_acc_sensitivity(8000)
     , m_input_report_mode(0x30)
     , m_mcu_mode(McuMode_Suspended) {
         this->ClearControllerState();
@@ -63,6 +61,8 @@ namespace ams::controller {
         m_right_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
         std::memset(&m_accel, 0, sizeof(m_accel));
         std::memset(&m_gyro, 0, sizeof(m_gyro));
+        m_motion_packer->SetGyroSensitivity(2000);
+        m_motion_packer->SetAccSensitivity(8);
     }
 
     void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
@@ -216,8 +216,8 @@ namespace ams::controller {
                     .type = 0x03,
                     ._unk0 = 0x02,
                     .address = m_address,
-                    ._unk1 = 0x01,
-                    ._unk2 = 0x02
+                    .sensor_type = SensorType_LSM6DS3H,
+                    .format_version = 0x02
                 }
             }
         };
@@ -484,19 +484,19 @@ namespace ams::controller {
     Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand* command) {
         m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion;
 
-        if (!m_enable_motion) {
-            m_motion_packer = std::make_unique<NullMotionPacker>();
-        }
-        else {
+        u16 gyro_sensitivity = m_motion_packer->GetGyroSensitivity();
+        u16 acc_sensitivity = m_motion_packer->GetAccSensitivity();
+
+        if (m_enable_motion) {
             switch (command->sensor_sleep.mode) {
-                case SensorSleepValueType_Active:
+                case SensorSleepType_Active:
                     m_motion_packer = std::make_unique<StandardMotionPacker>();
                     break;
 
-                case SensorSleepValueType_ActiveDscaleMode1:
-                case SensorSleepValueType_ActiveDscaleMode2:
-                case SensorSleepValueType_ActiveDscaleMode3:
-                case SensorSleepValueType_ActiveDscaleMode4:
+                case SensorSleepType_ActiveDscaleMode1:
+                case SensorSleepType_ActiveDscaleMode2:
+                case SensorSleepType_ActiveDscaleMode3:
+                case SensorSleepType_ActiveDscaleMode4:
                     m_motion_packer = std::make_unique<QuaternionMotionPacker>();
                     break;
 
@@ -504,7 +504,12 @@ namespace ams::controller {
                     m_motion_packer = std::make_unique<NullMotionPacker>();
                     break;
             }
+        } else {
+            m_motion_packer = std::make_unique<NullMotionPacker>();
         }
+
+        m_motion_packer->SetGyroSensitivity(gyro_sensitivity);
+        m_motion_packer->SetAccSensitivity(acc_sensitivity);
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
@@ -515,21 +520,28 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandSensorConfig(const SwitchHidCommand *command) {
+        u16 gyro_sensitivity;
+        u16 acc_sensitivity;
+        
         switch (command->sensor_config.gyro_sensitivity) {
-            case 0: m_gyro_sensitivity = 250; break;
-            case 1: m_gyro_sensitivity = 500; break;
-            case 2: m_gyro_sensitivity = 1000; break;
-            case 3: m_gyro_sensitivity = 2000; break;
+            case 0: gyro_sensitivity = 250; break;
+            case 1: gyro_sensitivity = 500; break;
+            case 2: gyro_sensitivity = 1000; break;
+            case 3: gyro_sensitivity = 2000; break;
             AMS_UNREACHABLE_DEFAULT_CASE();
         }
 
+        m_motion_packer->SetGyroSensitivity(gyro_sensitivity);
+
         switch (command->sensor_config.acc_sensitivity) {
-            case 0: m_acc_sensitivity = 8000; break;
-            case 1: m_acc_sensitivity = 4000; break;
-            case 2: m_acc_sensitivity = 2000; break;
-            case 3: m_acc_sensitivity = 16000; break;
+            case 0: acc_sensitivity = 8000; break;
+            case 1: acc_sensitivity = 4000; break;
+            case 2: acc_sensitivity = 2000; break;
+            case 3: acc_sensitivity = 16000; break;
             AMS_UNREACHABLE_DEFAULT_CASE();
         }
+
+        m_motion_packer->SetAccSensitivity(acc_sensitivity);
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
