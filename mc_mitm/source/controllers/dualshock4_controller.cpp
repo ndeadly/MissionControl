@@ -183,9 +183,9 @@ namespace ams::controller {
             s16 acc_y = -static_cast<s16>(accel_scale_factor * src->input0x11.acc_x / float(m_motion_calibration.acc.x_max));
             s16 acc_z =  static_cast<s16>(accel_scale_factor * src->input0x11.acc_y / float(m_motion_calibration.acc.y_max));
 
-            s16 vel_x = -static_cast<s16>(0.85 * gyro_scale_factor * (src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_y = -static_cast<s16>(0.85 * gyro_scale_factor * (src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_z =  static_cast<s16>(0.85 * gyro_scale_factor * (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_x = -static_cast<s16>(gyro_scale_factor * (src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_y = -static_cast<s16>(gyro_scale_factor * (src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_z =  static_cast<s16>(gyro_scale_factor * (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
 
             m_motion_data[0].gyro_1  = vel_x;
             m_motion_data[0].gyro_2  = vel_y;
