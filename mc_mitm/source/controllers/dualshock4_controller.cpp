@@ -176,6 +176,8 @@ namespace ams::controller {
                     }
                 }
             }
+        } else {
+            m_buttons.capture = 0;
         }
 
         if (m_enable_motion) {
