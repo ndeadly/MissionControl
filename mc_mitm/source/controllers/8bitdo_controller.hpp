@@ -111,8 +111,8 @@ namespace ams::controller {
         u8 dpad;
         EightBitDoStickData16 left_stick;
         EightBitDoStickData16 right_stick;
-        u8 left_trigger;
         u8 right_trigger;
+        u8 left_trigger;
         u8 _unk0;
     } PACKED;
 
