@@ -18,7 +18,7 @@
 namespace ams::mc {
 
     struct VersionString {
-        char version[32];
+        char version[64];
     };
 
     struct DateString {
