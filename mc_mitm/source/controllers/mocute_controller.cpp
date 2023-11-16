@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -74,12 +74,12 @@ namespace ams::controller {
 
     void MocuteController::MapAnalogSticks(const MocuteStickData *left_stick, const MocuteStickData *right_stick) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * left_stick->x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - left_stick->y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * left_stick->x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - left_stick->y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * right_stick->x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - right_stick->y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * right_stick->x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - right_stick->y)) & UINT12_MAX
         );
     }
 

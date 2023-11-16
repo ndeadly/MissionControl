@@ -21,7 +21,7 @@ namespace ams::controller {
 
     namespace {
 
-        const u8 led_player_mappings[] = {
+        constinit const u8 LedPlayerMappings[] = {
             SwitchPlayerNumber_Unknown, //0000
             SwitchPlayerNumber_One,     //0001
             SwitchPlayerNumber_Unknown, //0010
@@ -43,7 +43,7 @@ namespace ams::controller {
     }
 
     Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number) {
-        *player_number = led_player_mappings[(led_mask & 0xf) | (led_mask >> 4)];
+        *player_number = LedPlayerMappings[(led_mask & 0xf) | (led_mask >> 4)];
         if (*player_number == SwitchPlayerNumber_Unknown) {
             return -1;
         }

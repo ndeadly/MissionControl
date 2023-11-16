@@ -23,16 +23,16 @@ namespace ams::bluetooth::hid::report {
 
     namespace {
 
-        constexpr size_t bluetooth_sharedmem_size = 0x3000;
+        constexpr size_t BluetoothSharedMemorySize = 0x3000;
 
-        const s32 ThreadPriority = -11;
-        const size_t ThreadStackSize = 0x1000;
-        alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
-        os::ThreadType g_thread;
+        constexpr s32 ThreadPriority = -11;
+        constexpr size_t ThreadStackSize = 0x1000;
+        alignas(os::ThreadStackAlignment) constinit u8 g_thread_stack[ThreadStackSize];
+        constinit os::ThreadType g_thread;
 
         // This is only required  on fw < 7.0.0
-        bluetooth::HidReportEventInfo g_event_info;
-        bluetooth::HidEventType g_current_event_type;
+        constinit bluetooth::HidReportEventInfo g_event_info;
+        constinit bluetooth::HidEventType g_current_event_type;
 
         os::SystemEvent g_system_event;
         os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);
@@ -42,12 +42,12 @@ namespace ams::bluetooth::hid::report {
         os::Event g_report_read_event(os::EventClearMode_AutoClear);
 
         os::SharedMemory g_real_bt_shmem;
-        os::SharedMemory g_fake_bt_shmem(bluetooth_sharedmem_size, os::MemoryPermission_ReadWrite, os::MemoryPermission_ReadWrite);
+        os::SharedMemory g_fake_bt_shmem(BluetoothSharedMemorySize, os::MemoryPermission_ReadWrite, os::MemoryPermission_ReadWrite);
 
         bluetooth::CircularBuffer *g_real_buffer;
         bluetooth::CircularBuffer *g_fake_buffer;
 
-        bluetooth::HidReportEventInfo g_fake_report_event_info;
+        constinit bluetooth::HidReportEventInfo g_fake_report_event_info;
 
         void EventThreadFunc(void *) {
 
@@ -120,7 +120,7 @@ namespace ams::bluetooth::hid::report {
     }
 
     Result MapRemoteSharedMemory(os::NativeHandle handle) {
-        g_real_bt_shmem.Attach(bluetooth_sharedmem_size, handle, true);
+        g_real_bt_shmem.Attach(BluetoothSharedMemorySize, handle, true);
         g_real_bt_shmem.Map(os::MemoryPermission_ReadWrite);
         g_real_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(g_real_bt_shmem.GetMappedAddress());
 

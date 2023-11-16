@@ -338,9 +338,7 @@ namespace ams::controller {
 
             SwitchController(const bluetooth::Address *address, HardwareID id)
             : m_address(*address)
-            , m_id(id)
-            , m_input_mutex(false)
-            , m_output_mutex(false) { }
+            , m_id(id) { }
 
             virtual ~SwitchController() { };
 
@@ -367,10 +365,10 @@ namespace ams::controller {
             bluetooth::Address m_address;
             HardwareID m_id;
 
-            os::Mutex m_input_mutex;
+            os::SdkMutex m_input_mutex;
             bluetooth::HidReport m_input_report;
 
-            os::Mutex m_output_mutex;
+            os::SdkMutex m_output_mutex;
             bluetooth::HidReport m_output_report;
 
             std::queue<std::shared_ptr<HidResponse>> m_future_responses;

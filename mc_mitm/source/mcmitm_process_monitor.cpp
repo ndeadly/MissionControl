@@ -19,7 +19,7 @@ namespace ams::mc {
 
     namespace {
 
-        ncm::ProgramId g_current_program = ncm::InvalidProgramId;
+        constinit ncm::ProgramId g_current_program = ncm::InvalidProgramId;
         os::Event g_process_switch_event(os::EventClearMode_AutoClear);
 
         Result _GetCurrentApplicationProgramId(ncm::ProgramId *program_id) {

@@ -58,10 +58,10 @@ namespace ams::mitm::bluetooth {
             }
         }
 
-        const s32 ThreadPriority = -11;
-        const size_t ThreadStackSize = 0x1000;
-        alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
-        os::ThreadType g_thread;
+        constexpr s32 ThreadPriority = -11;
+        constexpr size_t ThreadStackSize = 0x1000;
+        alignas(os::ThreadStackAlignment) constinit u8 g_thread_stack[ThreadStackSize];
+        constinit os::ThreadType g_thread;
 
         void BtdrvMitmThreadFunction(void *) {
             R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtdrvMitmService>(PortIndex_BtdrvMitm, BtdrvMitmServiceName)));

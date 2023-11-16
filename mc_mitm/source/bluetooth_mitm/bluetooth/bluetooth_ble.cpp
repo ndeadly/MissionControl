@@ -20,9 +20,9 @@ namespace ams::bluetooth::ble {
 
     namespace {
 
-        os::Mutex g_event_data_lock(false);
-        bluetooth::BleEventInfo g_event_info;
-        bluetooth::BleEventType g_current_event_type;
+        constinit os::SdkMutex g_event_data_lock;
+        constinit bluetooth::BleEventInfo g_event_info;
+        constinit bluetooth::BleEventType g_current_event_type;
 
         os::SystemEvent g_system_event;
         os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);

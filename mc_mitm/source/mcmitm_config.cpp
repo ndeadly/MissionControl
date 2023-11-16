@@ -20,11 +20,11 @@ namespace ams::mitm {
 
     namespace {
 
-        constexpr const char *config_file_location = "sdmc:/config/MissionControl/missioncontrol.ini";
+        constexpr const char config_file_location[] = "sdmc:/config/MissionControl/missioncontrol.ini";
 
-        SetLanguage g_system_language;
+        constinit SetLanguage g_system_language;
 
-        MissionControlConfig g_global_config = {
+        constinit MissionControlConfig g_global_config = {
             .general = {
                 .enable_rumble = true,
                 .enable_motion = true

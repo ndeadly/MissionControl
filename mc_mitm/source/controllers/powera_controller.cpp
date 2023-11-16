@@ -21,7 +21,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -40,12 +40,12 @@ namespace ams::controller {
         m_battery = convert_battery_255(src->input0x03.battery);
 
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x03.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x03.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x03.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x03.right_stick.y)) & UINT12_MAX
         );
         
         m_buttons.dpad_down  = (src->input0x03.buttons.dpad == PowerADPad_S)  ||

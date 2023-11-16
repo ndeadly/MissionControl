@@ -19,16 +19,16 @@ namespace ams::async {
 
     namespace {
 
-        const size_t ThreadCount = 1;
-        const size_t ThreadStackSize = 0x2000;
-        const s32 ThreadPriority = 10;
+        constexpr size_t ThreadCount = 1;
+        constexpr size_t ThreadStackSize = 0x2000;
+        constexpr s32 ThreadPriority = 10;
 
-        alignas(os::MemoryPageSize) u8 g_thread_stacks[ThreadCount][ThreadStackSize];
-        os::ThreadType g_thread_pool[ThreadCount];
+        alignas(os::MemoryPageSize) constinit u8 g_thread_stacks[ThreadCount][ThreadStackSize];
+        constinit os::ThreadType g_thread_pool[ThreadCount];
 
-        const size_t MessageBufferSize = 32;
-        uintptr_t g_message_buffer[MessageBufferSize];
-        os::MessageQueueType g_work_queue;
+        constexpr size_t MessageBufferSize = 32;
+        constinit uintptr_t g_message_buffer[MessageBufferSize];
+        constinit os::MessageQueueType g_work_queue;
 
         void WorkerThreadFunc(void *) {
             uintptr_t ptr;

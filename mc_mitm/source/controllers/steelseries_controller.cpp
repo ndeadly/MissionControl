@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -50,12 +50,12 @@ namespace ams::controller {
 
     void SteelseriesController::MapInputReport0x01(const SteelseriesReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x01.left_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x01.left_stick.y + 1)) + 0x7ff) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input0x01.left_stick.x + 1) + 0x7ff) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX + static_cast<s8>(~src->input0x01.left_stick.y + 1)) + 0x7ff) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input0x01.right_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX + static_cast<s8>(~src->input0x01.right_stick.y + 1)) + 0x7ff) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input0x01.right_stick.x + 1) + 0x7ff) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX + static_cast<s8>(~src->input0x01.right_stick.y + 1)) + 0x7ff) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0x01.dpad == SteelseriesDPad_S)  ||
@@ -133,12 +133,12 @@ namespace ams::controller {
 
     void SteelseriesController::MapInputReport0xc4(const SteelseriesReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0xc4.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0xc4.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0xc4.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0xc4.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0xc4.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0xc4.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0xc4.dpad == SteelseriesDPad2_S)  ||
@@ -173,12 +173,12 @@ namespace ams::controller {
 
     void SteelseriesController::MapMfiInputReport(const SteelseriesReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (-static_cast<s8>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (-static_cast<s8>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * -static_cast<s8>(~src->input_mfi.right_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (-static_cast<s8>(~src->input_mfi.right_stick.y + 1)) + 0x7ff) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input_mfi.right_stick.x + 1) + 0x7ff) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (-static_cast<s8>(~src->input_mfi.right_stick.y + 1)) + 0x7ff) & UINT12_MAX
         );
 
         m_buttons.dpad_up    = src->input_mfi.buttons.dpad_up > 0;

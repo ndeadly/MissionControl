@@ -111,8 +111,8 @@ namespace ams::mitm {
     }
 
     void LaunchModules() {
-        const s32 ThreadPriority = -7;
-        const size_t ThreadStackSize = 0x1000;
+        constexpr s32 ThreadPriority = -7;
+        constexpr size_t ThreadStackSize = 0x1000;
         os::ThreadType init_thread;
 
         // Allocate temporary thread stack on heap

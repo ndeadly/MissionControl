@@ -58,10 +58,10 @@ namespace ams::mitm::btm {
             }
         }
 
-        const s32 ThreadPriority = 9;
-        const size_t ThreadStackSize = 0x1000;
-        alignas(os::ThreadStackAlignment) u8 g_thread_stack[ThreadStackSize];
-        os::ThreadType g_thread;
+        constexpr s32 ThreadPriority = 9;
+        constexpr size_t ThreadStackSize = 0x1000;
+        alignas(os::ThreadStackAlignment) constinit u8 g_thread_stack[ThreadStackSize];
+        constinit os::ThreadType g_thread;
         
         void BtmMitmThreadFunction(void *) {
             R_ABORT_UNLESS((g_server_manager.RegisterMitmServer<BtmMitmService>(PortIndex_BtmMitm, BtmMitmServiceName)));

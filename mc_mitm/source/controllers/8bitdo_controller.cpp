@@ -21,10 +21,10 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr float stick_scale_factor_16bit = float(UINT12_MAX) / UINT16_MAX;
-        constexpr float stick_scale_factor_8bit  = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor16Bit = float(UINT12_MAX) / UINT16_MAX;
+        constexpr float StickScaleFactor8Bit  = float(UINT12_MAX) / UINT8_MAX;
 
-        const u16 dpad_stick_positions[] = { STICK_MIN, STICK_CENTER, STICK_MAX };
+        constinit const u16 DpadStickPositions[] = { STICK_MIN, STICK_CENTER, STICK_MAX };
 
     }
 
@@ -58,17 +58,17 @@ namespace ams::controller {
 
             // Map dpad as left stick
             m_left_stick.SetData(
-                dpad_stick_positions[1 + dpad_right - dpad_left],
-                dpad_stick_positions[1 + dpad_up - dpad_down]
+                DpadStickPositions[1 + dpad_right - dpad_left],
+                DpadStickPositions[1 + dpad_up - dpad_down]
             );
         } else {
             m_left_stick.SetData(
-                static_cast<u16>(stick_scale_factor_16bit * src->input0x01_v2.left_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_16bit * (UINT16_MAX - src->input0x01_v2.left_stick.y)) & UINT12_MAX
+                static_cast<u16>(StickScaleFactor16Bit * src->input0x01_v2.left_stick.x) & UINT12_MAX,
+                static_cast<u16>(StickScaleFactor16Bit * (UINT16_MAX - src->input0x01_v2.left_stick.y)) & UINT12_MAX
             );
             m_right_stick.SetData(
-                static_cast<u16>(stick_scale_factor_16bit * src->input0x01_v2.right_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_16bit * (UINT16_MAX - src->input0x01_v2.right_stick.y)) & UINT12_MAX
+                static_cast<u16>(StickScaleFactor16Bit * src->input0x01_v2.right_stick.x) & UINT12_MAX,
+                static_cast<u16>(StickScaleFactor16Bit * (UINT16_MAX - src->input0x01_v2.right_stick.y)) & UINT12_MAX
             );
 
             m_buttons.dpad_down  = (src->input0x01_v2.dpad == EightBitDoDPadV2_S)  ||
@@ -136,8 +136,8 @@ namespace ams::controller {
 
                 // Map dpad as left stick
                 m_left_stick.SetData(
-                    dpad_stick_positions[1 + dpad_right - dpad_left],
-                    dpad_stick_positions[1 + dpad_up - dpad_down]
+                    DpadStickPositions[1 + dpad_right - dpad_left],
+                    DpadStickPositions[1 + dpad_up - dpad_down]
                 );
 
                 m_buttons.A = src->input0x03_v2.buttons.B;
@@ -153,12 +153,12 @@ namespace ams::controller {
             }
         } else {
             m_left_stick.SetData(
-                static_cast<u16>(stick_scale_factor_8bit * src->input0x03_v3.left_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_8bit * (UINT8_MAX - src->input0x03_v3.left_stick.y)) & UINT12_MAX
+                static_cast<u16>(StickScaleFactor8Bit * src->input0x03_v3.left_stick.x) & UINT12_MAX,
+                static_cast<u16>(StickScaleFactor8Bit * (UINT8_MAX - src->input0x03_v3.left_stick.y)) & UINT12_MAX
             );
             m_right_stick.SetData(
-                static_cast<u16>(stick_scale_factor_8bit * src->input0x03_v3.right_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_8bit * (UINT8_MAX - src->input0x03_v3.right_stick.y)) & UINT12_MAX
+                static_cast<u16>(StickScaleFactor8Bit * src->input0x03_v3.right_stick.x) & UINT12_MAX,
+                static_cast<u16>(StickScaleFactor8Bit * (UINT8_MAX - src->input0x03_v3.right_stick.y)) & UINT12_MAX
             );
 
             m_buttons.dpad_down  = (src->input0x03_v3.dpad == EightBitDoDPadV2_S)  ||

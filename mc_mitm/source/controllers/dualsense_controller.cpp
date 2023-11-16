@@ -21,15 +21,15 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
-        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
-        constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
+        constexpr float AccelScaleFactor = 65535 / 16000.0f * 1000;
+        constexpr float GyroScaleFactor = 65535 / (13371 * 360.0f) * 1000;
 
-        constexpr u16 touchpad_width = 1920;
-        constexpr u16 touchpad_height = 1080;
+        constexpr u16 TouchpadWidth = 1920;
+        constexpr u16 TouchpadHeight = 1080;
 
-        const u8 player_led_flags[] = {
+        constinit const u8 PlayerLedFlags[] = {
             // Mimic the Switch's player LEDs
             0x01,
             0x03,
@@ -41,7 +41,7 @@ namespace ams::controller {
             0x0A
         };
 
-        const u8 new_player_led_flags[] = {
+        constinit const u8 NewPlayerLedFlags[] = {
             0x04,
             0x02,
             0x05,
@@ -52,7 +52,7 @@ namespace ams::controller {
             0x07
         };
 
-        const RGBColour player_led_base_colours[] = {
+        constinit const RGBColour PlayerLedBaseColours[] = {
             // Same colours used by PS4
             {0x00, 0x00, 0x04}, // blue
             {0x04, 0x00, 0x00}, // red
@@ -65,10 +65,10 @@ namespace ams::controller {
             {0x01, 0x00, 0x03}  // purple
         };
 
-        constexpr u8 step = 4;
-        const u8 led_brightness_multipliers[] = { 0, 1, 1 * step, 2 * step, 3 * step, 4 * step, 5 * step, 6 * step, 7 * step, 8 * step };
+        constexpr u8 Step = 4;
+        constinit const u8 LedBrightnessMultipliers[] = { 0, 1, 1 * Step, 2 * Step, 3 * Step, 4 * Step, 5 * Step, 6 * Step, 7 * Step, 8 * Step };
 
-        constexpr u32 crc_seed = 0x8C36CCAE; // CRC32 of {0xa2, 0x31} bytes at beginning of output report
+        constexpr u32 CrcSeed = 0x8C36CCAE; // CRC32 of {0xa2, 0x31} bytes at beginning of output report
 
     }
 
@@ -110,16 +110,16 @@ namespace ams::controller {
         if (!config->misc.dualsense_enable_player_leds) {
             m_led_flags = 0x00;
         } else if (fw_version < 0x0282) {
-            m_led_flags = player_led_flags[player_number];
+            m_led_flags = PlayerLedFlags[player_number];
         } else {
-            m_led_flags = new_player_led_flags[player_number];
+            m_led_flags = NewPlayerLedFlags[player_number];
         }
 
         // Disable LED fade-in
         m_led_flags |= 0x20;
 
-        RGBColour colour = player_led_base_colours[player_number];
-        u8 multiplier = led_brightness_multipliers[m_lightbar_brightness];
+        RGBColour colour = PlayerLedBaseColours[player_number];
+        u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
         colour.r *= multiplier;
         colour.g *= multiplier;
         colour.b *= multiplier;
@@ -146,12 +146,12 @@ namespace ams::controller {
 
     void DualsenseController::MapInputReport0x01(const DualsenseReportData *src) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x01.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x01.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
         );
 
         this->MapButtons(&src->input0x01.buttons);
@@ -180,12 +180,12 @@ namespace ams::controller {
         m_battery = static_cast<u8>(8 * (battery_level + 2) / 10) & 0x0e;
     
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x31.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x31.left_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x31.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x31.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x31.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x31.right_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x31.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x31.right_stick.y)) & UINT12_MAX
         );
 
         this->MapButtons(&src->input0x31.buttons);
@@ -201,9 +201,9 @@ namespace ams::controller {
                 if (active) {
                     u16 x = (point->x_hi << 8) | point->x_lo;
 
-                    if (x < (0.15 * touchpad_width)) {
+                    if (x < (0.15 * TouchpadWidth)) {
                         m_buttons.minus = 1;
-                    } else if (x > (0.85 * touchpad_width)) {
+                    } else if (x > (0.85 * TouchpadWidth)) {
                         m_buttons.plus = 1;
                     } else {
                         m_buttons.capture = 1;
@@ -213,13 +213,13 @@ namespace ams::controller {
         }
 
         if (m_enable_motion) {
-            s16 acc_x = -static_cast<s16>(accel_scale_factor * src->input0x31.acc_z / float(m_motion_calibration.acc.z_max));
-            s16 acc_y = -static_cast<s16>(accel_scale_factor * src->input0x31.acc_x / float(m_motion_calibration.acc.x_max));
-            s16 acc_z =  static_cast<s16>(accel_scale_factor * src->input0x31.acc_y / float(m_motion_calibration.acc.y_max));
+            s16 acc_x = -static_cast<s16>(AccelScaleFactor * src->input0x31.acc_z / float(m_motion_calibration.acc.z_max));
+            s16 acc_y = -static_cast<s16>(AccelScaleFactor * src->input0x31.acc_x / float(m_motion_calibration.acc.x_max));
+            s16 acc_z =  static_cast<s16>(AccelScaleFactor * src->input0x31.acc_y / float(m_motion_calibration.acc.y_max));
 
-            s16 vel_x = -static_cast<s16>(gyro_scale_factor * (src->input0x31.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_y = -static_cast<s16>(gyro_scale_factor * (src->input0x31.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_z =  static_cast<s16>(gyro_scale_factor * (src->input0x31.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_x = -static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_y = -static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_z =  static_cast<s16>(GyroScaleFactor * (src->input0x31.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
 
             m_motion_data[0].gyro_1  = vel_x;
             m_motion_data[0].gyro_2  = vel_y;
@@ -318,7 +318,7 @@ namespace ams::controller {
         report.output0x31.data[45] = m_lightbar_colour.r;
         report.output0x31.data[46] = m_lightbar_colour.g;
         report.output0x31.data[47] = m_lightbar_colour.b;
-        report.output0x31.crc = crc32CalculateWithSeed(crc_seed, report.output0x31.data, sizeof(report.output0x31.data));
+        report.output0x31.crc = crc32CalculateWithSeed(CrcSeed, report.output0x31.data, sizeof(report.output0x31.data));
 
         m_output_report.size = sizeof(report.output0x31) + sizeof(report.id);
         std::memcpy(m_output_report.data, &report, m_output_report.size);

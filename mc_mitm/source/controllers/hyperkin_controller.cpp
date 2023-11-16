@@ -18,10 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-    }
-
     void HyperkinController::ProcessInputData(const bluetooth::HidReport *report) {
         auto hyperkin_report = reinterpret_cast<const HyperkinReportData *>(&report->data);
 

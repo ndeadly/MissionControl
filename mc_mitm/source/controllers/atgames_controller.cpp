@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -47,7 +47,7 @@ namespace ams::controller {
             );
             m_right_stick.SetData(
                 STICK_CENTER,
-                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
+                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
@@ -80,7 +80,7 @@ namespace ams::controller {
             );
             m_right_stick.SetData(
                 STICK_CENTER,
-                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
+                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||

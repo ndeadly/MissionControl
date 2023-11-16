@@ -21,9 +21,9 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr u8 init_packet[] = {0x20, 0x00, 0x00};  // packet to init vibration apparently
+        constinit const u8 InitPacket[] = { 0x20, 0x00, 0x00 };  // packet to init vibration apparently
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -32,8 +32,8 @@ namespace ams::controller {
 
         std::scoped_lock lk(m_output_mutex);
 
-        m_output_report.size = sizeof(init_packet);
-        std::memcpy(m_output_report.data, init_packet, sizeof(init_packet));
+        m_output_report.size = sizeof(InitPacket);
+        std::memcpy(m_output_report.data, InitPacket, sizeof(InitPacket));
         R_TRY(this->WriteDataReport(&m_output_report));
 
         R_SUCCEED();
@@ -54,12 +54,12 @@ namespace ams::controller {
         m_battery = convert_battery_100(src->input0x04.battery);
 
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x04.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x04.left_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x04.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x04.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x04.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x04.right_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x04.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x04.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.dpad_down  = (src->input0x04.buttons.dpad == XiaomiDPad_S)  ||

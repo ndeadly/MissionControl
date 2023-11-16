@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr float stick_scale_factor = float(UINT12_MAX) / UINT16_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT16_MAX;
 
     }
 
@@ -55,12 +55,12 @@ namespace ams::controller {
 
     void XboxOneController::MapInputReport0x01(const XboxOneReportData *src, bool new_format) {
         m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x01.left_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT16_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT16_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
+            static_cast<u16>(StickScaleFactor * src->input0x01.right_stick.x) & UINT12_MAX,
+            static_cast<u16>(StickScaleFactor * (UINT16_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
         );
 
         m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * 0x3ff);

@@ -20,14 +20,14 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr size_t spi_flash_size = 0x10000;
+        constexpr size_t SpiFlashSize = 0x10000;
 
         // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
-        SwitchAnalogStickFactoryCalibration lstick_factory_calib = {0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80};
-        SwitchAnalogStickFactoryCalibration rstick_factory_calib = {0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f};
+        constinit const SwitchAnalogStickFactoryCalibration lstick_factory_calib = { 0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80 };
+        constinit const SwitchAnalogStickFactoryCalibration rstick_factory_calib = { 0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f };
 
         // Stick parameters data that produce a 12.5% inner deadzone and a 5% outer deadzone (in relation to the full 12 bit range above)
-        SwitchAnalogStickParameters default_stick_params = {0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63};
+        constinit const SwitchAnalogStickParameters default_stick_params = { 0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63 };
 
     }
 
@@ -94,7 +94,7 @@ namespace ams::controller {
 
     Result VirtualSpiFlash::CreateFile(const char *path) {
         // Create file representing first 64KB of SPI flash
-        R_TRY(fs::CreateFile(path, spi_flash_size));
+        R_TRY(fs::CreateFile(path, SpiFlashSize));
 
         R_TRY(fs::OpenFile(std::addressof(m_virtual_memory_file), path, fs::OpenMode_Write));
         ON_SCOPE_EXIT { fs::CloseFile(m_virtual_memory_file); };
@@ -103,8 +103,8 @@ namespace ams::controller {
         u8 buff[64];
         std::memset(buff, 0xff, sizeof(buff));
         unsigned int offset = 0;
-        while (offset < spi_flash_size) {
-            size_t write_size = std::min(static_cast<size_t>(spi_flash_size - offset), sizeof(buff));
+        while (offset < SpiFlashSize) {
+            size_t write_size = std::min(static_cast<size_t>(SpiFlashSize - offset), sizeof(buff));
             R_TRY(fs::WriteFile(m_virtual_memory_file, offset, buff, write_size, fs::WriteOption::None));
             offset += write_size;
         }
