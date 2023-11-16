@@ -24,22 +24,23 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr const char Ds3DeviceName[] = "PLAYSTATION(R)3 Controller";
-        constexpr u16 Ds3VendorId = 0x054c;
-        constexpr u16 Ds3ProductId = 0x0268;
-
         enum Dualshock3LedMode {
             Dualshock3LedMode_Switch = 0,
             Dualshock3LedMode_Ps3 = 1,
             Dualshock3LedMode_Hybrid = 2,
         };
 
+        constexpr const char Ds3DeviceName[] = "PLAYSTATION(R)3 Controller";
+        constexpr u16 Ds3VendorId = 0x054c;
+        constexpr u16 Ds3ProductId = 0x0268;
+
+        constexpr u8 TriggerMax = UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000 / 113;
+
         constinit const u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
         constinit const u8 LedConfig[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
         constinit const u8 PlayerLedPatterns[] = { 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
-
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
-        constexpr float AccelScaleFactor = 65535 / 16000.0f * 1000 / 113;
 
         alignas(os::MemoryPageSize) constinit u8 g_usb_buffer[0x1000];
 
@@ -265,9 +266,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0x01.buttons.square;
 
         m_buttons.R  = src->input0x01.buttons.R1;
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.L  = src->input0x01.buttons.L1;
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.minus = src->input0x01.buttons.select;
         m_buttons.plus  = src->input0x01.buttons.start;

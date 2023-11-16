@@ -21,9 +21,10 @@ namespace ams::controller {
 
     namespace {
 
-        constinit const u8 InitPacket[] = { 0x20, 0x00, 0x00 };  // packet to init vibration apparently
-
+        constexpr u8 TriggerMax = UINT8_MAX;
         constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
+
+        constinit const u8 InitPacket[] = { 0x20, 0x00, 0x00 };  // packet to init vibration apparently
 
     }
 
@@ -81,9 +82,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0x04.buttons.X;
 
         m_buttons.R  = src->input0x04.buttons.R1;
-        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.L  = src->input0x04.buttons.L1;
-        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.minus = src->input0x04.buttons.back;
         m_buttons.plus  = src->input0x04.buttons.menu;

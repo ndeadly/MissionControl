@@ -20,6 +20,7 @@ namespace ams::controller {
 
     namespace {
 
+        constexpr u8 TriggerMax = UINT8_MAX;
         constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
@@ -60,16 +61,16 @@ namespace ams::controller {
         this->MapAnalogSticks(&src->input0x01.left_stick, &src->input0x01.right_stick);
         this->MapButtons(&src->input0x01.buttons, src->id == 0x01);
 
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
     }
 
     void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
         this->MapAnalogSticks(&src->input0x04.left_stick, &src->input0x04.right_stick);
         this->MapButtons(&src->input0x04.buttons, 1);
 
-        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax);
     }
 
     void MocuteController::MapAnalogSticks(const MocuteStickData *left_stick, const MocuteStickData *right_stick) {

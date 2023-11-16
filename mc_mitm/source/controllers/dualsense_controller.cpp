@@ -21,10 +21,10 @@ namespace ams::controller {
 
     namespace {
 
+        constexpr u8 TriggerMax = UINT8_MAX;
         constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
-
-        constexpr float AccelScaleFactor = 65535 / 16000.0f * 1000;
-        constexpr float GyroScaleFactor = 65535 / (13371 * 360.0f) * 1000;
+        constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000;
+        constexpr float GyroScaleFactor = UINT16_MAX / (13371 * 360.0f) * 1000;
 
         constexpr u16 TouchpadWidth = 1920;
         constexpr u16 TouchpadHeight = 1080;
@@ -156,8 +156,8 @@ namespace ams::controller {
 
         this->MapButtons(&src->input0x01.buttons);
 
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
     }
 
     void DualsenseController::MapInputReport0x31(const DualsenseReportData *src) {
@@ -190,8 +190,8 @@ namespace ams::controller {
 
         this->MapButtons(&src->input0x31.buttons);
 
-        m_buttons.ZR = src->input0x31.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x31.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x31.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x31.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         if (src->input0x31.buttons.touchpad) {
             for (int i = 0; i < 2; ++i) {

@@ -20,6 +20,8 @@ namespace ams::controller {
 
     namespace {
 
+        constexpr u8 TriggerMax = UINT8_MAX;
+        constexpr u16 FixedTriggerThreshold = 0x7ff;
         constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
@@ -112,9 +114,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0x01_v2.buttons.X;
 
         m_buttons.R  = src->input0x01_v2.buttons.R1;
-        m_buttons.ZR = src->input0x01_v2.right_trigger > 0x7ff;
+        m_buttons.ZR = src->input0x01_v2.right_trigger > FixedTriggerThreshold;
         m_buttons.L  = src->input0x01_v2.buttons.L1;
-        m_buttons.ZL = src->input0x01_v2.left_trigger  > 0x7ff;
+        m_buttons.ZL = src->input0x01_v2.left_trigger  > FixedTriggerThreshold;
 
         m_buttons.rstick_press = src->input0x01_v2.buttons.R3;
         m_buttons.lstick_press = src->input0x01_v2.buttons.L3;
@@ -160,9 +162,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0xc4.buttons.X;
 
         m_buttons.R  = src->input0xc4.buttons.R1;
-        m_buttons.ZR = src->input0xc4.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0xc4.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.L  = src->input0xc4.buttons.L1;
-        m_buttons.ZL = src->input0xc4.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0xc4.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.lstick_press = src->input0xc4.buttons.L3;
         m_buttons.rstick_press = src->input0xc4.buttons.R3;   

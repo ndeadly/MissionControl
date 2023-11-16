@@ -20,6 +20,7 @@ namespace ams::controller {
 
     namespace {
 
+        constexpr u16 TriggerMax = 0x3ff;
         constexpr float StickScaleFactor = float(UINT12_MAX) / UINT16_MAX;
 
     }
@@ -67,8 +68,8 @@ namespace ams::controller {
 
         m_buttons.R  = src->input0x01.buttons.RB;
         m_buttons.L  = src->input0x01.buttons.LB;
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * 0x3ff);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * 0x3ff);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.lstick_press = src->input0x01.buttons.L3;
         m_buttons.rstick_press = src->input0x01.buttons.R3;
