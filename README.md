@@ -150,6 +150,8 @@ These are miscellaneous controller-specific settings etc.
     - `dualsense_lightbar_brightness` Set LED lightbar brightness for Sony Dualsense controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.
     - `dualsense_enable_player_leds` Enable/disable the white player indicator LEDs below the Dualsense touchpad.
     - `dualsense_vibration_intensity` Set Dualsense vibration intensity, 12.5% per increment. Valid range [1-8] where 1=12.5%, 8=100%.
+    - `dualsense_enable_adaptive_triggers` Enable/disable adaptive triggers for Dualsense.
+    - `dualsense_adaptive_triggers_resistance` Set Dualsense adaptive triggers resistance. Valid range [0-9] where 0=light, 9=heavy.
 
 ### Removal
 

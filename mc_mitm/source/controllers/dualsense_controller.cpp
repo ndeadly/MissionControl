@@ -310,6 +310,128 @@ namespace ams::controller {
         report.output0x31.data[2] = 0x54;
         report.output0x31.data[3] = m_rumble_state.amp_motor_right;
         report.output0x31.data[4] = m_rumble_state.amp_motor_left;
+
+        if (config->misc.dualsense_enable_adaptive_triggers) {
+            // Convert the floating-point value to a byte value (0x00 to 0xFF) rounded down
+            u8 trigger_threshold = static_cast<u8>(m_trigger_threshold * 255.0);
+
+            if (trigger_threshold > 0) {
+                trigger_threshold--;
+            }
+
+            // --- Control flags ---
+            report.output0x31.data[1] = 0x01 | 0x02 | 0x04 | 0x08;
+            report.output0x31.data[2] = 0x01 | 0x04 | 0x10 | 0x40;
+
+            // --- Right trigger ---
+
+            // [Mode]
+            // 0x00 = Off
+            // 0x01 = Rigid
+            // 0x02 = Pulse
+            // 0x20 = Extra A
+            // 0x04 = Extra B
+            // 0xFC = Calibration
+            report.output0x31.data[11] = 0x02; 
+
+            // [Force 1]
+            // Start of resistance section
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[12] = 0x00;
+            
+            // [Force 2]
+            // (Mode Rigid = Amount of force exerted)
+            // (Mode Pulse = End of resistance section)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[13] = 0xFF - trigger_threshold; // User setting is inverse of how the controller sets intensity
+            
+            // [Force 3]
+            // (Mode Pulse = Force exerted in range)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[14] = 0x00;
+
+            // [Force 4]
+            // (Mode Extra A & Extra B = Strength of effect near release state)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[15] = 0x00;
+
+            // [Force 5]
+            // (Mode Extra A & Extra B = Strength of effect near middle)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[16] = 0x00;
+
+            // [Force 6]
+            // (Mode Extra A & Extra B = Strength of effect at pressed state)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[17] = 0x00;
+
+            // [Force 7]
+            // (Mode Extra A & Extra B = Effect actuation frequency in Hz)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[20] = 0x00;
+
+            // --- Left trigger ---
+
+            // [Mode]
+            // 0x00 = Off
+            // 0x01 = Rigid
+            // 0x02 = Pulse
+            // 0x20 = Extra A
+            // 0x04 = Extra B
+            // 0xFC = Calibration
+            report.output0x31.data[22] = 0x02;
+
+            // [Force 1]
+            // Start of resistance section
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[23] = 0x00;
+
+            // [Force 2]
+            // (Mode Rigid = Amount of force exerted)
+            // (Mode Pulse = End of resistance section)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[24] = 0xFF - trigger_threshold; // User setting is inverse of how the controller sets intensity
+
+            // [Force 3]
+            // (Mode Pulse = Force exerted in range)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[25] = 0x00;
+
+            // [Force 4]
+            // (Mode Extra A & Extra B = Strength of effect near release state)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[26] = 0x00;
+
+            // [Force 5]
+            // (Mode Extra A & Extra B = Strength of effect near middle)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[27] = 0x00;
+
+            // [Force 6]
+            // (Mode Extra A & Extra B = Strength of effect at pressed state)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[28] = 0x00;
+
+            // [Force 7]
+            // (Mode Extra A & Extra B = Effect actuation frequency in Hz)
+            // 0x00 = 0%
+            // 0xFF = 100%
+            report.output0x31.data[31] = 0x00;
+        }
+
         report.output0x31.data[37] = 0x08 - config->misc.dualsense_vibration_intensity;  // User setting is inverse of how the controller sets intensity
         report.output0x31.data[39] = 0x02 | 0x01;
         report.output0x31.data[42] = 0x02;
