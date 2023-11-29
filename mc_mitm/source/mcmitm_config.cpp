@@ -36,7 +36,9 @@ namespace ams::mitm {
                 .dualshock4_lightbar_brightness = 5,
                 .dualsense_lightbar_brightness = 5,
                 .dualsense_enable_player_leds = true,
-                .dualsense_vibration_intensity = 4
+                .dualsense_vibration_intensity = 4,
+                .dualsense_enable_adaptive_triggers = true,
+                .dualsense_adaptive_triggers_resistance = 0
             }
         };
 
@@ -107,6 +109,10 @@ namespace ams::mitm {
                     ParseBoolean(value, &config->misc.dualsense_enable_player_leds);
                 } else if (strcasecmp(name, "dualsense_vibration_intensity") == 0) {
                     ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
+                } else if (strcasecmp(name, "dualsense_enable_adaptive_triggers") == 0) {
+                    ParseBoolean(value, &config->misc.dualsense_enable_adaptive_triggers);
+                } else if (strcasecmp(name, "dualsense_adaptive_triggers_resistance") == 0) {
+                    ParseInt(value, &config->misc.dualsense_adaptive_triggers_resistance, 0, 9);
                 }
             } else {
                 return 0;
