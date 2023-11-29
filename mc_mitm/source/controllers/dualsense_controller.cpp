@@ -312,12 +312,15 @@ namespace ams::controller {
         report.output0x31.data[4] = m_rumble_state.amp_motor_left;
 
         if (config->misc.dualsense_enable_adaptive_triggers) {
-            // Convert the floating-point value to a byte value (0x00 to 0xFF) rounded down
-            u8 trigger_threshold = static_cast<u8>(m_trigger_threshold * 255.0);
+            // Magic numbers that work best after some trial & error
+            float trigger_threshold = (std::min(m_trigger_threshold * UINT8_MAX, UINT8_MAX - 1.0f));
+            float adaptive_trigger_threshold_end = (std::max(trigger_threshold - 80.0f, 0.0f));
+            float adaptive_trigger_threshold_start = (std::max(adaptive_trigger_threshold_end - 10.0f, 0.0f));
 
-            if (trigger_threshold > 0) {
-                trigger_threshold--;
-            }
+            u8 force1 = static_cast<u8>(adaptive_trigger_threshold_start);
+            u8 force2 = static_cast<u8>(adaptive_trigger_threshold_end);
+
+            u8 force3 = static_cast<u8>(config->misc.dualsense_adaptive_triggers_resistance / 9.0 * 255.0);
 
             // --- Control flags ---
             report.output0x31.data[1] = 0x01 | 0x02 | 0x04 | 0x08;
@@ -338,20 +341,20 @@ namespace ams::controller {
             // Start of resistance section
             // 0x00 = 0%
             // 0xFF = 100%
-            report.output0x31.data[12] = 0x00;
+            report.output0x31.data[12] = force1;
             
             // [Force 2]
             // (Mode Rigid = Amount of force exerted)
             // (Mode Pulse = End of resistance section)
             // 0x00 = 0%
             // 0xFF = 100%
-            report.output0x31.data[13] = 0xFF - trigger_threshold; // User setting is inverse of how the controller sets intensity
+            report.output0x31.data[13] = force2;
             
             // [Force 3]
             // (Mode Pulse = Force exerted in range)
             // 0x00 = 0%
             // 0xFF = 100%
-            report.output0x31.data[14] = 0x00;
+            report.output0x31.data[14] = force3;
 
             // [Force 4]
             // (Mode Extra A & Extra B = Strength of effect near release state)
@@ -392,20 +395,20 @@ namespace ams::controller {
             // Start of resistance section
             // 0x00 = 0%
             // 0xFF = 100%
-            report.output0x31.data[23] = 0x00;
+            report.output0x31.data[23] = force1;
 
             // [Force 2]
             // (Mode Rigid = Amount of force exerted)
             // (Mode Pulse = End of resistance section)
             // 0x00 = 0%
             // 0xFF = 100%
-            report.output0x31.data[24] = 0xFF - trigger_threshold; // User setting is inverse of how the controller sets intensity
+            report.output0x31.data[24] = force2;
 
             // [Force 3]
             // (Mode Pulse = Force exerted in range)
             // 0x00 = 0%
             // 0xFF = 100%
-            report.output0x31.data[25] = 0x00;
+            report.output0x31.data[25] = force3;
 
             // [Force 4]
             // (Mode Extra A & Extra B = Strength of effect near release state)
