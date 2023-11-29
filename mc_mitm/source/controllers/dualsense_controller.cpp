@@ -320,7 +320,7 @@ namespace ams::controller {
             u8 force1 = static_cast<u8>(adaptive_trigger_threshold_start);
             u8 force2 = static_cast<u8>(adaptive_trigger_threshold_end);
 
-            u8 force3 = static_cast<u8>(config->misc.dualsense_adaptive_triggers_resistance / 9.0 * 255.0);
+            u8 force3 = static_cast<u8>(config->misc.dualsense_adaptive_triggers_resistance / 9.0f * 255.0f);
 
             // --- Control flags ---
             report.output0x31.data[1] = 0x01 | 0x02 | 0x04 | 0x08;
