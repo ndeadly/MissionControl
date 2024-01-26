@@ -35,7 +35,6 @@ namespace ams::controller {
         constexpr u16 Ds3ProductId = 0x0268;
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
         constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000 / 113;
 
         constinit const u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
@@ -246,14 +245,8 @@ namespace ams::controller {
             m_battery = 1;
         }
 
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
 
         m_buttons.dpad_down  = src->input0x01.buttons.dpad_down;
         m_buttons.dpad_up    = src->input0x01.buttons.dpad_up;

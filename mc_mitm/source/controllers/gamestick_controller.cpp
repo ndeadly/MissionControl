@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
-
-    }
-
     void GamestickController::ProcessInputData(const bluetooth::HidReport *report) {
         auto gamestick_report = reinterpret_cast<const GamestickReportData *>(&report->data);
 
@@ -43,14 +37,8 @@ namespace ams::controller {
     }
 
     void GamestickController::MapInputReport0x03(const GamestickReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x03.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x03.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x03.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x03.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x03.left_stick.x,  InvertAnalogStickValue(src->input0x03.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x03.right_stick.x, InvertAnalogStickValue(src->input0x03.right_stick.y));
         
         m_buttons.dpad_down  = (src->input0x03.dpad == GamestickDPad_S)  ||
                                (src->input0x03.dpad == GamestickDPad_SE) ||

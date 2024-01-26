@@ -21,7 +21,6 @@ namespace ams::controller {
     namespace {
 
         constexpr u16 TriggerMax = 0x3ff;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT16_MAX;
 
     }
 
@@ -39,14 +38,8 @@ namespace ams::controller {
     }
 
     void AtariController::MapInputReport0x01(const AtariReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>( StickScaleFactor * src->input0x01.left_stick.x + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(-StickScaleFactor * src->input0x01.left_stick.y + 0x7ff) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>( StickScaleFactor * src->input0x01.right_stick.x + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(-StickScaleFactor * src->input0x01.right_stick.y + 0x7ff) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
         
         m_buttons.dpad_down  = (src->input0x01.buttons.dpad == AtariDPad_S)  ||
                                (src->input0x01.buttons.dpad == AtariDPad_SE) ||
@@ -78,8 +71,6 @@ namespace ams::controller {
         m_buttons.plus  = src->input0x01.buttons.menu;
 
         m_buttons.home = src->input0x01.buttons.home;
-
-
     }
 
     void AtariController::MapInputReport0x02(const AtariReportData *src) {

@@ -30,11 +30,6 @@ namespace ams::controller {
         DualsenseDPad_Released
     };
 
-    struct DualsenseStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct DualsenseButtonData {
         u8 dpad     : 4;
         u8 square   : 1;
@@ -118,8 +113,8 @@ namespace ams::controller {
     } PACKED;
 
     struct DualsenseInputReport0x01 {
-        DualsenseStickData left_stick;
-        DualsenseStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         DualsenseButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
@@ -127,8 +122,8 @@ namespace ams::controller {
 
     struct DualsenseInputReport0x31 {
         u8 _unk0;
-        DualsenseStickData left_stick;
-        DualsenseStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         u8 counter;

@@ -50,11 +50,6 @@ namespace ams::controller {
         Dualshock4DPad_Released
     };
 
-    struct Dualshock4StickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct Dualshock4ButtonData {
         u8 dpad     : 4;
         u8 square   : 1;
@@ -145,8 +140,8 @@ namespace ams::controller {
     } PACKED;
 
     struct Dualshock4InputReport0x01 {
-        Dualshock4StickData left_stick;
-        Dualshock4StickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         Dualshock4ButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
@@ -154,8 +149,8 @@ namespace ams::controller {
 
     struct Dualshock4InputReport0x11 {
         u8 _unk0[2];
-        Dualshock4StickData left_stick;
-        Dualshock4StickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         Dualshock4ButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;

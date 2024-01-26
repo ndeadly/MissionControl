@@ -56,16 +56,6 @@ namespace ams::controller {
         EightBitDoDPadV2_Released
     };
 
-    struct EightBitDoStickData8 {
-        u8 x;
-        u8 y;
-    } PACKED;
-
-    struct EightBitDoStickData16 {
-        u16 x;
-        u16 y;
-    } PACKED;
-
     struct EightBitDoButtonData {
         u8 A              : 1;
         u8 B              : 1;
@@ -109,8 +99,8 @@ namespace ams::controller {
     struct EightBitDoInputReport0x01V2 {
         EightBitDoButtonData buttons;
         u8 dpad;
-        EightBitDoStickData16 left_stick;
-        EightBitDoStickData16 right_stick;
+        AnalogStick<u16> left_stick;
+        AnalogStick<u16> right_stick;
         u8 right_trigger;
         u8 left_trigger;
         u8 _unk0;
@@ -118,24 +108,24 @@ namespace ams::controller {
 
     struct EightBitDoInputReport0x03V1 {
         u8 dpad;
-        EightBitDoStickData8 left_stick;
-        EightBitDoStickData8 right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 _unk[3];
         EightBitDoButtonData buttons;
     } PACKED;
 
     struct EightBitDoInputReport0x03V2 {
         u8 dpad;
-        EightBitDoStickData8 left_stick;
-        EightBitDoStickData8 right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 _unk[2];
         EightBitDoButtonData buttons;
     } PACKED;
 
     struct EightBitDoInputReport0x03V3 {
         u8 dpad;
-        EightBitDoStickData8 left_stick;
-        EightBitDoStickData8 right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 right_trigger;
         u8 left_trigger;
         EightBitDoButtonData buttons;

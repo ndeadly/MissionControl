@@ -19,11 +19,6 @@
 
 namespace ams::controller {
 
-    struct Dualshock3StickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct Dualshock3ButtonData {
         u8 select     : 1;
         u8 L3         : 1;
@@ -56,8 +51,8 @@ namespace ams::controller {
         u8 unk0;
         Dualshock3ButtonData buttons;
         u8 unk1;
-        Dualshock3StickData left_stick;
-        Dualshock3StickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 unk2[4];
         u8 pressure_dpad_up;
         u8 pressure_dpad_right;

@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
-
-    }
-
     void LanShenController::ProcessInputData(const bluetooth::HidReport *report) {
         auto LanShen_report = reinterpret_cast<const LanShenReportData *>(&report->data);
 
@@ -36,14 +30,8 @@ namespace ams::controller {
     }
 
     void LanShenController::MapInputReport0x01(const LanShenReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
         
         m_buttons.dpad_down  = (src->input0x01.buttons.dpad == LanShenDPad_S)  ||
                                (src->input0x01.buttons.dpad == LanShenDPad_SE) ||

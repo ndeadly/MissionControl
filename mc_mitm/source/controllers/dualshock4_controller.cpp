@@ -23,7 +23,6 @@ namespace ams::controller {
     namespace {
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
         constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000;
         constexpr float GyroScaleFactor = UINT16_MAX / (13371 * 360.0f) * 1000;
 
@@ -108,14 +107,8 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::MapInputReport0x01(const Dualshock4ReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
 
         this->MapButtons(&src->input0x01.buttons);
 
@@ -142,14 +135,8 @@ namespace ams::controller {
 
         m_battery = static_cast<u8>(8 * (battery_level + 2) / 10) & 0x0e;
 
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x11.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x11.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x11.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x11.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x11.left_stick.x,  InvertAnalogStickValue(src->input0x11.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x11.right_stick.x, InvertAnalogStickValue(src->input0x11.right_stick.y));
 
         this->MapButtons(&src->input0x11.buttons);
 

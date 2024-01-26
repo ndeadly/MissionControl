@@ -30,11 +30,6 @@ namespace ams::controller {
         RazerDPad_Released
     };
 
-    struct RazerStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct RazerButtonData {
         u8 dpad   : 4;
         u8 A      : 1;
@@ -56,8 +51,8 @@ namespace ams::controller {
     } PACKED;
 
     struct RazerInputReport0x01 {
-        RazerStickData left_stick;
-        RazerStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         RazerButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;

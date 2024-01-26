@@ -30,11 +30,6 @@ namespace ams::controller {
         LanShenDPad_Released = 0x0f
     };
 
-    struct LanShenStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct LanShenButtonData {
         u8 dpad;
 
@@ -59,8 +54,8 @@ namespace ams::controller {
     } PACKED;
 
     struct LanShenInputReport0x01{
-        LanShenStickData left_stick;
-        LanShenStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         LanShenButtonData buttons;
         u8 _unk[4];
     } PACKED;

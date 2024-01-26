@@ -22,7 +22,6 @@ namespace ams::controller {
 
         constexpr u8 TriggerMax = UINT8_MAX;
         constexpr u16 FixedTriggerThreshold = 0x7ff;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -51,14 +50,8 @@ namespace ams::controller {
     }
 
     void SteelseriesController::MapInputReport0x01(const SteelseriesReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input0x01.left_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX + static_cast<s8>(~src->input0x01.left_stick.y + 1)) + 0x7ff) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input0x01.right_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX + static_cast<s8>(~src->input0x01.right_stick.y + 1)) + 0x7ff) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
 
         m_buttons.dpad_down  = (src->input0x01.dpad == SteelseriesDPad_S)  ||
                                (src->input0x01.dpad == SteelseriesDPad_SE) ||
@@ -86,14 +79,8 @@ namespace ams::controller {
     }
 
     void SteelseriesController::MapInputReport0x01_v2(const SteelseriesReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>( src->input0x01_v2.left_stick.x + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(-src->input0x01_v2.left_stick.y + 0x7ff) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>( src->input0x01_v2.right_stick.x + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(-src->input0x01_v2.right_stick.y + 0x7ff) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01_v2.left_stick.x,  InvertAnalogStickValue(src->input0x01_v2.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01_v2.right_stick.x, InvertAnalogStickValue(src->input0x01_v2.right_stick.y));
 
         m_buttons.dpad_down  = (src->input0x01_v2.dpad == SteelseriesDPad_S)  ||
                                (src->input0x01_v2.dpad == SteelseriesDPad_SE) ||
@@ -134,14 +121,8 @@ namespace ams::controller {
     }
 
     void SteelseriesController::MapInputReport0xc4(const SteelseriesReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0xc4.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0xc4.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0xc4.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0xc4.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0xc4.left_stick.x,  InvertAnalogStickValue(src->input0xc4.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0xc4.right_stick.x, InvertAnalogStickValue(src->input0xc4.right_stick.y));
 
         m_buttons.dpad_down  = (src->input0xc4.dpad == SteelseriesDPad2_S)  ||
                                (src->input0xc4.dpad == SteelseriesDPad2_SE) ||
@@ -174,14 +155,8 @@ namespace ams::controller {
     }
 
     void SteelseriesController::MapMfiInputReport(const SteelseriesReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input_mfi.left_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (-static_cast<s8>(~src->input_mfi.left_stick.y + 1)) + 0x7ff) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * -static_cast<s8>(~src->input_mfi.right_stick.x + 1) + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (-static_cast<s8>(~src->input_mfi.right_stick.y + 1)) + 0x7ff) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input_mfi.left_stick.x,  src->input_mfi.left_stick.y);
+        m_right_stick = PackAnalogStickValues(src->input_mfi.right_stick.x, src->input_mfi.right_stick.y);
 
         m_buttons.dpad_up    = src->input_mfi.buttons.dpad_up > 0;
         m_buttons.dpad_right = src->input_mfi.buttons.dpad_right > 0;

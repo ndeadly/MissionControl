@@ -21,7 +21,6 @@ namespace ams::controller {
     namespace {
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -73,15 +72,9 @@ namespace ams::controller {
         m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax);
     }
 
-    void MocuteController::MapAnalogSticks(const MocuteStickData *left_stick, const MocuteStickData *right_stick) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * left_stick->x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - left_stick->y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * right_stick->x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - right_stick->y)) & UINT12_MAX
-        );
+    void MocuteController::MapAnalogSticks(const AnalogStick<u8> *left_stick, const AnalogStick<u8> *right_stick) {
+        m_left_stick  = PackAnalogStickValues(left_stick->x,  InvertAnalogStickValue(left_stick->y));
+        m_right_stick = PackAnalogStickValues(right_stick->x, InvertAnalogStickValue(right_stick->y));
     }
 
     void MocuteController::MapButtons(const MocuteButtonData *buttons, u8 dpad_format) {

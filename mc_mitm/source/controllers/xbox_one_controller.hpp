@@ -36,11 +36,6 @@ namespace ams::controller {
         XboxOnePowerMode_PlayNCharge = 2
     };
 
-    struct XboxOneStickData {
-        u16 x;
-        u16 y;
-    } PACKED;
-
     // Used on older firmware
     struct XboxOneButtonDataOld {
         u8      dpad;
@@ -95,8 +90,8 @@ namespace ams::controller {
     } PACKED;
 
     struct XboxOneInputReport0x01 {
-        XboxOneStickData left_stick;
-        XboxOneStickData right_stick;
+        AnalogStick<u16> left_stick;
+        AnalogStick<u16> right_stick;
         u16 left_trigger;
         u16 right_trigger;
         union {

@@ -30,11 +30,6 @@ namespace ams::controller {
         IpegaDPad_Released = 0x88
     };
 
-    struct IpegaStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct IpegaButtonData {
         u8 dpad;
 
@@ -63,8 +58,8 @@ namespace ams::controller {
     } PACKED;
 
     struct IpegaInputReport0x07 {
-        IpegaStickData left_stick;
-        IpegaStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         IpegaButtonData buttons;
         u8 right_trigger;
         u8 left_trigger;

@@ -21,7 +21,6 @@ namespace ams::controller {
     namespace {
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -37,15 +36,9 @@ namespace ams::controller {
     }
 
     void RazerController::MapInputReport0x01(const RazerReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
-        );
-        
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
+
         m_buttons.dpad_down  = (src->input0x01.buttons.dpad == RazerDPad_S)  ||
                                (src->input0x01.buttons.dpad == RazerDPad_SE) ||
                                (src->input0x01.buttons.dpad == RazerDPad_SW);

@@ -42,16 +42,6 @@ namespace ams::controller {
         SteelseriesDPad2_NW,
     };
 
-    struct SteelseriesStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
-    struct SteelseriesStickData2 {
-        s16 x;
-        s16 y;
-    } PACKED;
-
     struct SteelseriesButtonData {
         u8 A      : 1;
         u8 B      : 1;
@@ -92,22 +82,22 @@ namespace ams::controller {
 
     struct SteelseriesMfiInputReport {
         SteelseriesMfiButtonData buttons;
-        SteelseriesStickData left_stick;
-        SteelseriesStickData right_stick;
+        AnalogStick<s8> left_stick;
+        AnalogStick<s8> right_stick;
     } PACKED;
 
     struct SteelseriesInputReport0x01 {
         u8 dpad;
-        SteelseriesStickData left_stick;
-        SteelseriesStickData right_stick;
+        AnalogStick<s8> left_stick;
+        AnalogStick<s8> right_stick;
         SteelseriesButtonData buttons;
     } PACKED;
 
     struct SteelseriesInputReport0x01_v2 {
         u8 dpad;
         SteelseriesButtonData buttons;
-        SteelseriesStickData2 left_stick;
-        SteelseriesStickData2 right_stick;
+        AnalogStick<s16> left_stick;
+        AnalogStick<s16> right_stick;
         u16 right_trigger;
         u16 left_trigger;
     } PACKED;
@@ -130,8 +120,8 @@ namespace ams::controller {
     } PACKED;
 
     struct SteelseriesInputReport0xc4 {
-        SteelseriesStickData left_stick;
-        SteelseriesStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         SteelseriesButtonData buttons;

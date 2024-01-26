@@ -22,7 +22,6 @@ namespace ams::controller {
     namespace {
 
         constexpr u16 TriggerMax = UINT16_MAX;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT16_MAX;
 
     }
 
@@ -44,15 +43,9 @@ namespace ams::controller {
     }
     
     void OuyaController::MapInputReport0x07(const OuyaReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x07.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT16_MAX - src->input0x07.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x07.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT16_MAX - src->input0x07.right_stick.y)) & UINT12_MAX
-        );
-        
+        m_left_stick  = PackAnalogStickValues(src->input0x07.left_stick.x,  InvertAnalogStickValue(src->input0x07.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x07.right_stick.x, InvertAnalogStickValue(src->input0x07.right_stick.y));
+
         m_buttons.dpad_down  = src->input0x07.buttons.dpad_down;
         m_buttons.dpad_up    = src->input0x07.buttons.dpad_up;
         m_buttons.dpad_right = src->input0x07.buttons.dpad_right;

@@ -30,11 +30,6 @@ namespace ams::controller {
         AtariDPad_NW,
     };
 
-    struct AtariStickData {
-        s16 x;
-        s16 y;
-    } PACKED;
-
     struct AtariButtonData {
         u8 A    : 1;
         u8 B    : 1;
@@ -54,8 +49,8 @@ namespace ams::controller {
 
     struct AtariInputReport0x01 {
         AtariButtonData buttons;
-        AtariStickData left_stick;
-        AtariStickData right_stick;
+        AnalogStick<s16> left_stick;
+        AnalogStick<s16> right_stick;
         u16 left_trigger;
         u16 right_trigger;
     } PACKED;

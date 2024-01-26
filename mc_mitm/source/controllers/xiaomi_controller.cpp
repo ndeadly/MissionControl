@@ -22,7 +22,6 @@ namespace ams::controller {
     namespace {
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
         constinit const u8 InitPacket[] = { 0x20, 0x00, 0x00 };  // packet to init vibration apparently
 
@@ -54,14 +53,8 @@ namespace ams::controller {
     void XiaomiController::MapInputReport0x04(const XiaomiReportData *src) {
         m_battery = convert_battery_100(src->input0x04.battery);
 
-        m_left_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x04.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x04.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(StickScaleFactor * src->input0x04.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x04.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x04.left_stick.x,  InvertAnalogStickValue(src->input0x04.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x04.right_stick.x, InvertAnalogStickValue(src->input0x04.right_stick.y));
 
         m_buttons.dpad_down  = (src->input0x04.buttons.dpad == XiaomiDPad_S)  ||
                                (src->input0x04.buttons.dpad == XiaomiDPad_SE) ||

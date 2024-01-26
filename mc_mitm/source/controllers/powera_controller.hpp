@@ -30,11 +30,6 @@ namespace ams::controller {
         PowerADPad_Released = 0x0f
     };
 
-    struct PowerAStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct PowerAButtonData {
         u8 dpad   : 4;
         u8 A      : 1;
@@ -52,8 +47,8 @@ namespace ams::controller {
     } PACKED;
 
     struct PowerAInputReport0x03 {
-        PowerAStickData left_stick;
-        PowerAStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         PowerAButtonData buttons;
         u8 L2;
         u8 R2;

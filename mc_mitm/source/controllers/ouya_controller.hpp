@@ -18,11 +18,6 @@
 
 namespace ams::controller {
 
-    struct OuyaStickData {
-        u16 x;
-        u16 y;
-    } PACKED;
-
     struct OuyaButtonData {
         u8 O            : 1;
         u8 U            : 1;
@@ -49,8 +44,8 @@ namespace ams::controller {
     } PACKED;
 
     struct OuyaInputReport0x07 {
-        OuyaStickData left_stick;
-        OuyaStickData right_stick;
+        AnalogStick<u16> left_stick;
+        AnalogStick<u16> right_stick;
         u16 left_trigger;
         u16 right_trigger;
         OuyaButtonData buttons;
