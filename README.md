@@ -151,6 +151,8 @@ These are miscellaneous controller-specific settings etc.
     - `dualsense_lightbar_brightness` Set LED lightbar brightness for Sony Dualsense controllers. Valid range [0-9] where 0=off, 1=min, 2-9=12.5-100% in 12.5% increments.
     - `dualsense_enable_player_leds` Enable/disable the white player indicator LEDs below the Dualsense touchpad.
     - `dualsense_vibration_intensity` Set Dualsense vibration intensity, 12.5% per increment. Valid range [1-8] where 1=12.5%, 8=100%.
+    - `enable_dualsense_mute_button` Enable the DualSense microphone mute button to be mapped to the Capture button (enabled by default).
+    - `swap_touchpad_button` Enables an alternate mapping for DualSense and DualShock 4 controllers so that the touchpad=minus and share=capture.
 
 ### Removal
 
