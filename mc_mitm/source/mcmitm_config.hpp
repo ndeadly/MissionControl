@@ -26,6 +26,7 @@ namespace ams::mitm {
         struct {
             char host_name[0x20];
             bluetooth::Address host_address;
+            int controller_idle_timeout;
         } bluetooth;
 
         struct {

@@ -336,6 +336,9 @@ namespace ams::controller {
                 {0x057e, 0x201a}    // Official Genesis/Megadrive Online Controller
             };
 
+            static os::Tick GetLatestReportTimestamp();
+
+        public:
             SwitchController(const bluetooth::Address *address, HardwareID id)
             : m_address(*address)
             , m_id(id) { }

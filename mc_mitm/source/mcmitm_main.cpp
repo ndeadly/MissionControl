@@ -19,6 +19,8 @@
 #include "mcmitm_config.hpp"
 #include "mcmitm_process_monitor.hpp"
 
+#include "controllers/switch_controller.hpp"
+
 namespace ams {
 
     namespace mitm {
@@ -86,6 +88,46 @@ namespace ams {
 
     }
 
+    namespace mc {
+
+        Result DisconnectAllControllers() {
+            auto version = hos::GetVersion();
+            if (version >= hos::Version_13_0_0) {
+                s32 total_out;
+                BtmConnectedDeviceV13 connected_devices[8];
+                R_TRY(btmGetDeviceCondition(BtmProfile_Hid, connected_devices, 8, &total_out));
+
+                for (int i = 0; i < total_out; ++i) {
+                    R_TRY(btmHidDisconnect(connected_devices[i].address));
+                }
+            } else {
+                BtmDeviceCondition device_condition;
+                R_TRY(btmLegacyGetDeviceCondition(&device_condition));
+
+                if (version >= hos::Version_9_0_0) {
+                    for (int i = 0; i < device_condition.v900.connected_count; ++i) {
+                        R_TRY(btmHidDisconnect(device_condition.v900.devices[i].address));
+                    }
+                } else if (version >= hos::Version_8_0_0) {
+                    for (int i = 0; i < device_condition.v800.connected_count; ++i) {
+                        R_TRY(btmHidDisconnect(device_condition.v800.devices[i].address));
+                    }
+                } else if (version >= hos::Version_5_1_0) {
+                    for (int i = 0; i < device_condition.v510.connected_count; ++i) {
+                        R_TRY(btmHidDisconnect(device_condition.v510.devices[i].address));
+                    }
+                } else {
+                    for (int i = 0; i < device_condition.v100.connected_count; ++i) {
+                        R_TRY(btmHidDisconnect(device_condition.v100.devices[i].address));
+                    }
+                }
+            }
+
+            R_SUCCEED();
+        }
+
+    }
+
     void Main() {
         // Launch mitm and other modules
         mitm::LaunchModules();
@@ -98,9 +140,11 @@ namespace ams {
         psc::PmFlagSet pm_flags;
         R_ABORT_UNLESS(pm_module.Initialize(pm_module_id, pm_dependencies, util::size(pm_dependencies), os::EventClearMode_ManualClear));
 
-        // Create timer event for periodically checking whether the current running application has changed
+        // Create periodic timer event for polling current title id and input timestamp
         os::TimerEvent timer_event(os::EventClearMode_ManualClear);
-        timer_event.StartPeriodic(ams::TimeSpan::FromSeconds(1), ams::TimeSpan::FromSeconds(1));
+        timer_event.StartPeriodic(TimeSpan::FromSeconds(1), TimeSpan::FromSeconds(1));
+
+        const TimeSpan controller_idle_timeout = TimeSpan::FromMinutes(mitm::GetGlobalConfig()->bluetooth.controller_idle_timeout);
 
         os::MultiWaitType wait_manager;
         os::MultiWaitHolderType holder_pm_module;
@@ -142,6 +186,13 @@ namespace ams {
                 case 1:
                     timer_event.Clear();
                     mc::CheckForProcessSwitch();
+
+                    if (controller_idle_timeout > 0) {
+                        if (os::ConvertToTimeSpan(os::GetSystemTick() - controller::SwitchController::GetLatestReportTimestamp()) > controller_idle_timeout) {
+                            R_ABORT_UNLESS(mc::DisconnectAllControllers());
+                        }
+                    }
+
                     break;
 
                 AMS_UNREACHABLE_DEFAULT_CASE();

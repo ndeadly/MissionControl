@@ -29,6 +29,9 @@ namespace ams::mitm {
                 .enable_rumble = true,
                 .enable_motion = true
             },
+            .bluetooth = {
+                .controller_idle_timeout = 0
+            },
             .misc = {
                 .analog_trigger_activation_threshold = 50,
                 .dualshock3_led_mode = 0,
@@ -91,6 +94,8 @@ namespace ams::mitm {
                     std::strncpy(config->bluetooth.host_name, value, sizeof(config->bluetooth.host_name));
                 } else if (strcasecmp(name, "host_address") == 0) {
                     ParseBluetoothAddress(value, &config->bluetooth.host_address);
+                } else if (strcasecmp(name, "controller_idle_timeout") == 0) {
+                    ParseInt(value, &config->bluetooth.controller_idle_timeout, 0, 120);
                 }
             } else if (strcasecmp(section, "misc") == 0) {
                 if (strcasecmp(name, "analog_trigger_activation_threshold") == 0) {

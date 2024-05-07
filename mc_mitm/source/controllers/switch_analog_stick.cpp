@@ -33,11 +33,11 @@ namespace ams::controller {
         m_xy[2] = (y >> 4) & 0xff;
     }
 
-    u16 SwitchAnalogStick::GetX() {
+    u16 SwitchAnalogStick::GetX() const {
         return m_xy[0] | ((m_xy[1] & 0xf) << 8);
     }
 
-    u16 SwitchAnalogStick::GetY() {
+    u16 SwitchAnalogStick::GetY() const {
         return (m_xy[1] >> 4) | (m_xy[2] << 4);
     }
 

@@ -40,6 +40,18 @@ namespace ams::controller {
             SwitchPlayerNumber_Four,    //1111
         };
 
+        constexpr SwitchButtonData ButtonsNone = {};
+
+        constexpr bool HasUserInput(const SwitchInputReport *report) {
+            return std::memcmp(&report->buttons, &ButtonsNone, sizeof(SwitchButtonData)) != 0
+                || std::abs(report->left_stick.GetX()  - SwitchAnalogStick::Center) > SwitchAnalogStick::Max >> 2
+                || std::abs(report->left_stick.GetY()  - SwitchAnalogStick::Center) > SwitchAnalogStick::Max >> 2
+                || std::abs(report->right_stick.GetX() - SwitchAnalogStick::Center) > SwitchAnalogStick::Max >> 2
+                || std::abs(report->right_stick.GetY() - SwitchAnalogStick::Center) > SwitchAnalogStick::Max >> 2;
+        }
+
+        os::Tick g_latest_tick;
+
     }
 
     Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number) {
@@ -62,6 +74,10 @@ namespace ams::controller {
             address->address[5]
         );
         return path;
+    }
+
+    os::Tick SwitchController::GetLatestReportTimestamp() {
+        return g_latest_tick;
     }
 
     Result SwitchController::Initialize() {
@@ -100,7 +116,12 @@ namespace ams::controller {
             }
         }
 
-        this->ApplyButtonCombos(&input_report->buttons); 
+        this->ApplyButtonCombos(&input_report->buttons);
+
+        // Store timestamp of most recent user input
+        if (HasUserInput(input_report)) {
+            g_latest_tick = os::GetSystemTick();
+        }
 
         R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
     }

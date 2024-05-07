@@ -29,8 +29,8 @@ namespace ams::controller {
         void SetData(u16 x, u16 y);
         void SetX(u16 x);
         void SetY(u16 y);
-        u16 GetX();
-        u16 GetY();
+        u16 GetX() const;
+        u16 GetY() const;
         void InvertX();
         void InvertY();
 
