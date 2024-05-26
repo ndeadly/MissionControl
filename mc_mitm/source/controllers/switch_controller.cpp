@@ -42,6 +42,13 @@ namespace ams::controller {
 
     }
 
+    SwitchController::SwitchController(const bluetooth::Address *address, HardwareID id)
+    : m_address(*address)
+    , m_id(id) {
+        auto config = mitm::GetGlobalConfig();
+        m_enable_abxy = config->general.enable_abxy;
+    };
+
     Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number) {
         *player_number = LedPlayerMappings[(led_mask & 0xf) | (led_mask >> 4)];
         if (*player_number == SwitchPlayerNumber_Unknown) {
@@ -70,6 +77,7 @@ namespace ams::controller {
 
     Result SwitchController::HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) {
         const bluetooth::HidReport *report;
+        unsigned char tempbutton;
         if (hos::GetVersion() >= hos::Version_9_0_0) {
             report = &event_info->data_report.v9.report;
         } else if (hos::GetVersion() >= hos::Version_7_0_0) {
@@ -101,6 +109,17 @@ namespace ams::controller {
         }
 
         this->ApplyButtonCombos(&input_report->buttons); 
+        if(m_enable_abxy)
+        {
+            tempbutton = input_report->buttons.X;
+            input_report->buttons.X = input_report->buttons.Y;
+            input_report->buttons.Y = tempbutton;
+
+            tempbutton = input_report->buttons.A;
+            input_report->buttons.A = input_report->buttons.B;
+            input_report->buttons.B = tempbutton;
+        }
+
 
         R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
     }

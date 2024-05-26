@@ -21,6 +21,7 @@ namespace ams::mitm {
         struct {
             bool enable_rumble;
             bool enable_motion;
+            bool enable_abxy;
         } general;
 
         struct {

@@ -336,9 +336,8 @@ namespace ams::controller {
                 {0x057e, 0x201a}    // Official Genesis/Megadrive Online Controller
             };
 
-            SwitchController(const bluetooth::Address *address, HardwareID id)
-            : m_address(*address)
-            , m_id(id) { }
+            SwitchController(const bluetooth::Address *address, HardwareID id);
+
 
             virtual ~SwitchController() { };
 
@@ -372,6 +371,8 @@ namespace ams::controller {
             bluetooth::HidReport m_output_report;
 
             std::queue<std::shared_ptr<HidResponse>> m_future_responses;
+
+            bool m_enable_abxy;
     };
 
 }
