@@ -143,28 +143,32 @@ namespace ams::controller {
         m_buttons.ZR = src->input0x11.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.ZL = src->input0x11.left_trigger  > (m_trigger_threshold * TriggerMax);
 
-        if (src->input0x11.buttons.touchpad) {
-            for (int i = 0; i < src->input0x11.num_reports; ++i) {
-                const Dualshock4TouchReport *touch_report = &src->input0x11.touch_reports[i];
-                for (int j = 0; j < 2; ++j) {
-                    const Dualshock4TouchpadPoint *point = &touch_report->points[j];
 
-                    bool active = point->contact & BIT(7) ? false : true;
-                    if (active) {
-                        u16 x = (point->x_hi << 8) | point->x_lo;
+        auto config = mitm::GetGlobalConfig();
+        if (!config->misc.swap_touchpad_button) {
+            if (src->input0x11.buttons.touchpad) {
+                for (int i = 0; i < src->input0x11.num_reports; ++i) {
+                    const Dualshock4TouchReport *touch_report = &src->input0x11.touch_reports[i];
+                    for (int j = 0; j < 2; ++j) {
+                        const Dualshock4TouchpadPoint *point = &touch_report->points[j];
 
-                        if (x < (0.15 * TouchpadWidth)) {
-                            m_buttons.minus = 1;
-                        } else if (x > (0.85 * TouchpadWidth)) {
-                            m_buttons.plus = 1;
-                        } else {
-                            m_buttons.capture = 1;
+                        bool active = point->contact & BIT(7) ? false : true;
+                        if (active) {
+                            u16 x = (point->x_hi << 8) | point->x_lo;
+
+                            if (x < (0.15 * TouchpadWidth)) {
+                                m_buttons.minus = 1;
+                            } else if (x > (0.85 * TouchpadWidth)) {
+                                m_buttons.plus = 1;
+                            } else {
+                                m_buttons.capture = 1;
+                            }
                         }
                     }
                 }
+            } else {
+                m_buttons.capture = 0;
             }
-        } else {
-            m_buttons.capture = 0;
         }
 
         if (m_enable_motion) {
@@ -225,13 +229,20 @@ namespace ams::controller {
         m_buttons.L  = buttons->L1;
         m_buttons.ZL = buttons->L2;
 
-        m_buttons.minus = buttons->share;
-        m_buttons.plus  = buttons->options;
-
         m_buttons.lstick_press = buttons->L3;
         m_buttons.rstick_press = buttons->R3;
 
-        m_buttons.home    = buttons->ps;
+        m_buttons.home = buttons->ps;
+
+        auto config = mitm::GetGlobalConfig();
+        if (config->misc.swap_touchpad_button) {
+            m_buttons.capture = buttons->share;
+            m_buttons.plus    = buttons->options;
+            m_buttons.minus   = buttons->touchpad;
+        } else {
+            m_buttons.minus   = buttons->share;
+            m_buttons.plus    = buttons->options;
+        }
     }
 
     Result Dualshock4Controller::GetVersionInfo(Dualshock4VersionInfo *version_info) {
