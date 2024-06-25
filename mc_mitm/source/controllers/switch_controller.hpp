@@ -37,6 +37,17 @@ namespace ams::controller {
         SwitchPlayerNumber_Eight,
         SwitchPlayerNumber_Unknown = 0xf
     };
+    
+    enum SwitchControllerType : u8 {
+        SwitchControllerType_LeftJoyCon     = 1,
+        SwitchControllerType_RightJoyCon    = 2,
+        SwitchControllerType_ProController  = 3,
+    };
+
+    struct FirmwareVersion {
+        u8 major;
+        u8 minor;
+    };
 
     struct HardwareID {
         u16 vid;
@@ -49,7 +60,7 @@ namespace ams::controller {
         u8 b;
     } PACKED;
 
-    struct ProControllerColours {
+    struct SwitchControllerColours {
         RGBColour body;
         RGBColour buttons;
         RGBColour left_grip;
@@ -61,7 +72,8 @@ namespace ams::controller {
         u8 X            : 1;
         u8 B            : 1;
         u8 A            : 1;
-        u8              : 2; // SR, SL (Right Joy)
+        u8 SR_R         : 1;
+        u8 SL_R         : 1;
         u8 R            : 1;
         u8 ZR           : 1;
 
@@ -77,7 +89,8 @@ namespace ams::controller {
         u8 dpad_up      : 1;
         u8 dpad_right   : 1;
         u8 dpad_left    : 1;
-        u8              : 2; // SR, SL (Left Joy)
+        u8 SR_L         : 1;
+        u8 SL_L         : 1;
         u8 L            : 1;
         u8 ZL           : 1;
     } PACKED;
@@ -322,6 +335,9 @@ namespace ams::controller {
 
     Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number);
 
+    constexpr const FirmwareVersion joycon_fw_version         = {0x04, 0x07};
+    constexpr const FirmwareVersion pro_controller_fw_version = {0x03, 0x48};
+
     std::string GetControllerDirectory(const bluetooth::Address *address);
 
     class SwitchController {
@@ -343,6 +359,8 @@ namespace ams::controller {
             virtual ~SwitchController() { };
 
             const bluetooth::Address& Address() const { return m_address; }
+        
+            virtual SwitchControllerType GetControllerType(void) { return SwitchControllerType_ProController; };  //.Todo: handle this properly for official controllers
 
             virtual bool IsOfficialController() { return true; }
 

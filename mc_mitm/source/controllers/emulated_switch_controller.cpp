@@ -15,6 +15,7 @@
  */
 #include "emulated_switch_controller.hpp"
 #include "../mcmitm_config.hpp"
+#include "../bluetooth_mitm/bluetooth/bluetooth_hid.hpp"
 
 namespace ams::controller {
 
@@ -86,6 +87,21 @@ namespace ams::controller {
             dec->low_band_amp   = RumbleAmpLookup[lo_amp_ind];
         }
 
+        const SwitchControllerColours default_colours_pro_controller = {
+            .body       = {0x32, 0x32, 0x32},
+            .buttons    = {0xe6, 0xe6, 0xe6},
+            .left_grip  = {0x46, 0x46, 0x46},
+            .right_grip = {0x46, 0x46, 0x46}
+        };
+
+        const SwitchControllerColours default_colours_joycon = {
+            .body       = {0x82, 0x82, 0x82},
+            .buttons    = {0x0f, 0x0f, 0x0f},
+            .left_grip  = {0xff, 0xff, 0xff},
+            .right_grip = {0xff, 0xff, 0xff}
+        };
+    
+
         // CRC-8 with polynomial 0x7 for NFC/IR packets
         constinit const u8 Crc8Lookup[] = {
             0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
@@ -120,6 +136,8 @@ namespace ams::controller {
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id)
     : SwitchController(address, id)
+    , m_emulated_type(SwitchControllerType_ProController)
+    , m_colours(default_colours_pro_controller)
     , m_charging(false)
     , m_ext_power(false)
     , m_battery(BATTERY_MAX)
@@ -148,6 +166,7 @@ namespace ams::controller {
     }
 
     void EmulatedSwitchController::ClearControllerState() {
+        std::memset(&m_buttons_previous, 0, sizeof(m_buttons_previous));
         std::memset(&m_buttons, 0, sizeof(m_buttons));
         m_left_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
         m_right_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
@@ -165,6 +184,62 @@ namespace ams::controller {
         input_report->buttons = m_buttons;
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick;
+        
+        // swap to right joycon
+        if (m_buttons.home && m_buttons.plus) {
+            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_RightJoyCon : SwitchControllerType_ProController);
+        }
+        
+        // swap to left joycon
+        if (m_buttons.home && m_buttons.minus) {
+            this->SetEmulatedControllerType(m_emulated_type == SwitchControllerType_ProController ? SwitchControllerType_LeftJoyCon : SwitchControllerType_ProController);
+        }
+        
+        
+        /* Note:
+         In change grip menu, to activate a horizontal joycon press "sl and sr"
+         On a wii remote, this equates to A+B currently */
+
+        // Fixup for identifying as horizontal joycon
+        switch (m_emulated_type) {
+                
+            // Right joycon implementation
+            case SwitchControllerType_RightJoyCon:
+                // invert Y axis as this is the right joyvon
+                m_left_stick.InvertY();
+                
+                // set stick data after inversion
+                input_report->right_stick.SetData(m_left_stick.GetY(), m_left_stick.GetX());
+                
+                input_report->buttons.SL_R = m_buttons.L | m_buttons.ZL;
+                input_report->buttons.SR_R = m_buttons.R | m_buttons.ZR;
+                input_report->buttons.A = m_buttons.B;
+                input_report->buttons.B = m_buttons.Y;
+                input_report->buttons.X = m_buttons.A;
+                input_report->buttons.Y = m_buttons.X;
+                break;
+                
+            // Left joycon implementation
+            case SwitchControllerType_LeftJoyCon:
+                // invert X axis as this is the left joycon
+                m_left_stick.InvertX();
+                
+                // set stick data after inversion
+                input_report->left_stick.SetData(m_left_stick.GetY(), m_left_stick.GetX());
+                
+                input_report->buttons.SL_L = m_buttons.L | m_buttons.ZL;
+                input_report->buttons.SR_L = m_buttons.R | m_buttons.ZR;
+                input_report->buttons.dpad_down = m_buttons.A;
+                input_report->buttons.dpad_left = m_buttons.B;
+                input_report->buttons.dpad_up = m_buttons.Y;
+                input_report->buttons.dpad_right = m_buttons.X;
+                break;
+                
+            default:
+                break;
+        }
+
+        m_buttons_previous = m_buttons;
 
         std::memcpy(&input_report->type0x30.motion_data, &m_motion_data, sizeof(m_motion_data));
         m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
@@ -276,20 +351,22 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command) {
+        const FirmwareVersion fw = (m_emulated_type == SwitchControllerType_ProController) ? pro_controller_fw_version : joycon_fw_version;
+        
         const SwitchHidCommandResponse response = {
             .ack = 0x82,
             .id = command->id,
             .data = {
                 .get_device_info = {
                     .fw_ver = {
-                        .major = 0x03,
-                        .minor = 0x48
+                        .major = fw.major,
+                        .minor = fw.minor
                     },
-                    .type = 0x03,
+                    .type = m_emulated_type,
                     ._unk0 = 0x02,
                     .address = m_address,
-                    ._unk1 = 0x01,
-                    ._unk2 = 0x02
+                    ._unk1 = static_cast<uint8_t>(m_emulated_type == SwitchControllerType_LeftJoyCon ? 0x03 : 0x01),
+                    ._unk2 = static_cast<uint8_t>(m_emulated_type == SwitchControllerType_ProController ? 0x02 : 0x01)
                 }
             }
         };
@@ -436,7 +513,7 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuWrite(const SwitchHidCommand *command) {
-        const SwitchHidCommandResponse response = {
+        const SwitchHidCommandResponse procontrollerResponse = {
             .ack = 0xa0,
             .id = command->id,
             .data = {
@@ -449,8 +526,30 @@ namespace ams::controller {
                 }
             }
         };
-
-        R_RETURN(this->FakeHidCommandResponse(&response));
+        
+        const SwitchHidCommandResponse joyconResponse = {
+            .ack = 0xa0,
+            .id = command->id,
+            .data = {
+                .raw = {
+                    0x01, 0x00, 0xff, 0x00, 0x08, 0x00, 0x1b, 0x06,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0xf6
+                }
+            }
+        };
+        
+        // set joycon or pro controller
+        if (m_emulated_type != SwitchControllerType_ProController)
+        {
+            R_RETURN(this->FakeHidCommandResponse(&joyconResponse));
+        }
+        else
+        {
+            R_RETURN(this->FakeHidCommandResponse(&procontrollerResponse));
+        }
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuResume(const SwitchHidCommand *command) {
@@ -569,6 +668,11 @@ namespace ams::controller {
 
         // Write a fake response into the report buffer
         R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
+    }
+
+    Result EmulatedSwitchController::SetEmulatedControllerType(SwitchControllerType type) {
+        m_emulated_type = type;
+        return bluetooth::hid::VirtualReconnect(&m_address);
     }
 
     Result EmulatedSwitchController::HandleNfcIrData(const u8 *nfc_ir) {
