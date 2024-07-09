@@ -13,5 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "utils/utils_bluetooth_address.hpp"
-#include "utils/utils_crc8.hpp"
+#include <stratosphere.hpp>
+#include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
+
+namespace ams::utils {
+
+    bool BluetoothAddressCompare(const bluetooth::Address *addr1, const bluetooth::Address *addr2);
+    Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size);
+
+}
