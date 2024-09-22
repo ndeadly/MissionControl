@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,9 +21,9 @@ namespace ams::bluetooth::core {
 
     namespace {
 
-        os::Mutex g_event_info_lock(false);
-        bluetooth::EventInfo g_event_info;
-        bluetooth::EventType g_current_event_type;
+        constinit os::SdkMutex g_event_info_lock;
+        constinit bluetooth::EventInfo g_event_info;
+        constinit bluetooth::EventType g_current_event_type;
 
         os::SystemEvent g_system_event;
         os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);
@@ -85,17 +85,17 @@ namespace ams::bluetooth::core {
         switch (event_type) {
             case BtdrvEventTypeOld_InquiryDevice:
                 if (controller::IsAllowedDeviceClass(&event_info->inquiry_device.v1.class_of_device) && !controller::IsOfficialSwitchControllerName(event_info->inquiry_device.v1.name)) {
-                    std::strncpy(event_info->inquiry_device.v1.name, controller::pro_controller_name, sizeof(event_info->inquiry_device.v1.name) - 1);
+                    std::strncpy(event_info->inquiry_device.v1.name, controller::ProControllerName, sizeof(event_info->inquiry_device.v1.name) - 1);
                 }
                 break;
             case BtdrvEventTypeOld_PairingPinCodeRequest:
                 if (!controller::IsOfficialSwitchControllerName(event_info->pairing_pin_code_request.name)) {
-                    std::strncpy(event_info->pairing_pin_code_request.name, controller::pro_controller_name, sizeof(event_info->pairing_pin_code_request.name) - 1);
+                    std::strncpy(event_info->pairing_pin_code_request.name, controller::ProControllerName, sizeof(event_info->pairing_pin_code_request.name) - 1);
                 }
                 break;
             case BtdrvEventTypeOld_SspRequest:
                 if (!controller::IsOfficialSwitchControllerName(event_info->ssp_request.v1.name)) {
-                    std::strncpy(event_info->ssp_request.v1.name, controller::pro_controller_name, sizeof(event_info->ssp_request.v1.name) - 1);
+                    std::strncpy(event_info->ssp_request.v1.name, controller::ProControllerName, sizeof(event_info->ssp_request.v1.name) - 1);
                 }
                 break;
             default:
@@ -107,17 +107,17 @@ namespace ams::bluetooth::core {
         switch (event_type) {
             case BtdrvEventType_InquiryDevice:
                 if (controller::IsAllowedDeviceClass(&event_info->inquiry_device.v12.class_of_device) && !controller::IsOfficialSwitchControllerName(event_info->inquiry_device.v12.name)) {
-                    std::strncpy(event_info->inquiry_device.v12.name, controller::pro_controller_name, sizeof(event_info->inquiry_device.v12.name) - 1);
+                    std::strncpy(event_info->inquiry_device.v12.name, controller::ProControllerName, sizeof(event_info->inquiry_device.v12.name) - 1);
                 }
                 break;
             case BtdrvEventType_PairingPinCodeRequest:
                 if (!controller::IsOfficialSwitchControllerName(event_info->pairing_pin_code_request.name)) {
-                    std::strncpy(event_info->pairing_pin_code_request.name, controller::pro_controller_name, sizeof(event_info->pairing_pin_code_request.name) - 1);
+                    std::strncpy(event_info->pairing_pin_code_request.name, controller::ProControllerName, sizeof(event_info->pairing_pin_code_request.name) - 1);
                 }
                 break;
             case BtdrvEventType_SspRequest:
                 if (!controller::IsOfficialSwitchControllerName(event_info->ssp_request.v12.name)) {
-                    std::strncpy(event_info->ssp_request.v12.name, controller::pro_controller_name, sizeof(event_info->ssp_request.v12.name) - 1);
+                    std::strncpy(event_info->ssp_request.v12.name, controller::ProControllerName, sizeof(event_info->ssp_request.v12.name) - 1);
                 }
                 break;
             default:
@@ -152,7 +152,7 @@ namespace ams::bluetooth::core {
         u8 pin_length = std::strlen(pin.code);
 
         // Reverse host address as pin code for wii devices
-        if (std::strncmp(event_info->pairing_pin_code_request.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
+        if (std::strncmp(event_info->pairing_pin_code_request.name, controller::WiiControllerPrefix, std::strlen(controller::WiiControllerPrefix)) == 0) {
             // Fetch host adapter address
             bluetooth::Address host_address;
             R_ABORT_UNLESS(btdrvLegacyGetAdapterProperty(BtdrvBluetoothPropertyType_Address, &host_address, sizeof(bluetooth::Address)));
@@ -170,7 +170,7 @@ namespace ams::bluetooth::core {
         BtdrvPinCode pin = {"0000", 4};
 
         // Reverse host address as pin code for wii devices
-        if (std::strncmp(event_info->pairing_pin_code_request.name, controller::wii_controller_prefix, std::strlen(controller::wii_controller_prefix)) == 0) {
+        if (std::strncmp(event_info->pairing_pin_code_request.name, controller::WiiControllerPrefix, std::strlen(controller::WiiControllerPrefix)) == 0) {
             // Fetch host adapter address
             BtdrvAdapterProperty property;
             R_ABORT_UNLESS(btdrvGetAdapterProperty(BtdrvAdapterPropertyType_Address, &property));

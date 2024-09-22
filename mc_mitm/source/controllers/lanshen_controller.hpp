@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         LanShenDPad_Released = 0x0f
     };
 
-    struct LanShenStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct LanShenButtonData {
         u8 dpad;
 
@@ -59,8 +54,8 @@ namespace ams::controller {
     } PACKED;
 
     struct LanShenInputReport0x01{
-        LanShenStickData left_stick;
-        LanShenStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         LanShenButtonData buttons;
         u8 _unk[4];
     } PACKED;

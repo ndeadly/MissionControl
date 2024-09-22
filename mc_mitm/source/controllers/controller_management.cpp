@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,7 +22,7 @@ namespace ams::controller {
 
     namespace {
 
-        const std::string official_npad_names[] = {
+        const std::string OfficialGamepadNames[] = {
             "NintendoGamepad",
             "Joy-Con (L)",
             "Joy-Con (R)",
@@ -36,12 +36,12 @@ namespace ams::controller {
             "Lic2 Pro Controller",
         };
 
-        constexpr auto cod_major_peripheral = 0x05;
-        constexpr auto cod_minor_gamepad    = 0x08;
-        constexpr auto cod_minor_joystick   = 0x04;
-        constexpr auto cod_minor_keyboard   = 0x40;
+        constexpr u8 DeviceClassMajorPeripheral = 0x05;
+        constexpr u8 DeviceClassMinorGamepad    = 0x08;
+        constexpr u8 DeviceClassMinorJoystick   = 0x04;
+        constexpr u8 DeviceClassMinorKeyboard   = 0x40;
 
-        os::Mutex g_controller_lock(false);
+        constinit os::SdkMutex g_controller_lock;
         std::vector<std::shared_ptr<SwitchController>> g_controllers;
 
     }
@@ -203,16 +203,22 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : BionikController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Bionik;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
     bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod) {
-        return ((cod->class_of_device[1] & 0x0f) == cod_major_peripheral) &&
-               (((cod->class_of_device[2] & 0x0f) == cod_minor_gamepad) || ((cod->class_of_device[2] & 0x0f) == cod_minor_joystick) || ((cod->class_of_device[2] & 0x40) == cod_minor_keyboard));
+        return ((cod->class_of_device[1] & 0x0f) == DeviceClassMajorPeripheral) &&
+               (((cod->class_of_device[2] & 0x0f) == DeviceClassMinorGamepad) || ((cod->class_of_device[2] & 0x0f) == DeviceClassMinorJoystick) || ((cod->class_of_device[2] & 0x40) == DeviceClassMinorKeyboard));
     }
 
     bool IsOfficialSwitchControllerName(const std::string& name) {
-        for (auto n : official_npad_names) {
+        for (auto n : OfficialGamepadNames) {
             if (name.rfind(n, 0) == 0)
                 return true;
         }
@@ -315,6 +321,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Atari:
                 controller = std::make_shared<AtariController>(address, id);
+                break;
+            case ControllerType_Bionik:
+                controller = std::make_shared<BionikController>(address, id);
                 break;
             default:
                 controller = std::make_shared<UnknownController>(address, id);

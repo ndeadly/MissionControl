@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         AtGamesDPad_Released = 0x08
     };
 
-    struct AtGamesStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct AtGamesInputReport0x01 {
         u8 rewind        : 1;
         u8 nudge_front   : 1;
@@ -55,8 +50,8 @@ namespace ams::controller {
 
         u8 unk1[2];
         u8 dpad;
-        AtGamesStickData left_stick;
-        AtGamesStickData right_stick; // Only right stick y-axis is used for plunger
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick; // Only right stick y-axis is used for plunger
         u8 unk2;
 
     } PACKED;

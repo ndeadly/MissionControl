@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT16_MAX;
+        constexpr u16 TriggerMax = 0x3ff;
 
     }
 
@@ -38,14 +38,8 @@ namespace ams::controller {
     }
 
     void AtariController::MapInputReport0x01(const AtariReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>( stick_scale_factor * src->input0x01.left_stick.x + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(-stick_scale_factor * src->input0x01.left_stick.y + 0x7ff) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>( stick_scale_factor * src->input0x01.right_stick.x + 0x7ff) & UINT12_MAX,
-            static_cast<u16>(-stick_scale_factor * src->input0x01.right_stick.y + 0x7ff) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
         
         m_buttons.dpad_down  = (src->input0x01.buttons.dpad == AtariDPad_S)  ||
                                (src->input0x01.buttons.dpad == AtariDPad_SE) ||
@@ -67,8 +61,8 @@ namespace ams::controller {
 
         m_buttons.R  = src->input0x01.buttons.RB;
         m_buttons.L  = src->input0x01.buttons.LB;
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * 0x3ff);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * 0x3ff);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.lstick_press = src->input0x01.buttons.L3;
         m_buttons.rstick_press = src->input0x01.buttons.R3;
@@ -77,8 +71,6 @@ namespace ams::controller {
         m_buttons.plus  = src->input0x01.buttons.menu;
 
         m_buttons.home = src->input0x01.buttons.home;
-
-
     }
 
     void AtariController::MapInputReport0x02(const AtariReportData *src) {

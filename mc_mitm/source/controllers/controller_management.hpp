@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -43,11 +43,12 @@
 #include "hyperkin_controller.hpp"
 #include "betop_controller.hpp"
 #include "atari_controller.hpp"
+#include "bionik_controller.hpp"
 
 namespace ams::controller {
 
-    const constexpr char* pro_controller_name = "Pro Controller";
-    const constexpr char* wii_controller_prefix = "Nintendo RVL";
+    constexpr const char ProControllerName[] = "Pro Controller";
+    constexpr const char WiiControllerPrefix[] = "Nintendo RVL";
 
     enum ControllerType {
         ControllerType_Switch,
@@ -75,6 +76,7 @@ namespace ams::controller {
         ControllerType_Hyperkin,
         ControllerType_Betop,
         ControllerType_Atari,
+        ControllerType_Bionik,
         ControllerType_Unknown,
     };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,7 +26,7 @@ namespace ams::mitm::btm {
             for (unsigned int i = 0; i < count; ++i) {
                 auto device = &devices[i];
                 if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                    std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                    std::strncpy(device->name, controller::ProControllerName, sizeof(device->name) - 1);
                 }
             }
         }
@@ -40,7 +40,7 @@ namespace ams::mitm::btm {
         for (int i = 0; i < total_out.GetValue(); ++i) {
             auto device = &device_condition[i];
             if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                std::strncpy(device->name, controller::ProControllerName, sizeof(device->name) - 1);
             }
         }
 
@@ -54,7 +54,7 @@ namespace ams::mitm::btm {
         for (int i = 0; i < total_out.GetValue(); ++i) {
             auto device = &device_info[i];
             if (!controller::IsOfficialSwitchControllerName(device->name)) {
-                std::strncpy(device->name, controller::pro_controller_name, sizeof(device->name) - 1);
+                std::strncpy(device->name, controller::ProControllerName, sizeof(device->name) - 1);
             }
             else if (mitm::GetGlobalConfig()->misc.force_pro_controller && controller::IsNotJoyconOrProController(device->name)) {
                 device->profile_info.hid_device_info.vid = 0x057e; //This may not have any effect, it's just to fix problems with a Licensed Pro Controller
@@ -111,7 +111,7 @@ namespace ams::mitm::btm {
         for (unsigned int i = 0; i < device_info->device_count; ++i) {
             auto device = &device_info->devices[i];
             if (!controller::IsOfficialSwitchControllerName(device->name.name)) {
-                std::strncpy(device->name.name, controller::pro_controller_name, sizeof(device->name) - 1);
+                std::strncpy(device->name.name, controller::ProControllerName, sizeof(device->name) - 1);
             }
             else if (mitm::GetGlobalConfig()->misc.force_pro_controller && controller::IsNotJoyconOrProController(device->name.name)) {
                 device->profile_info.hid_device_info.vid = 0x057e; //This may not have any effect, it's just to fix problems with a Licensed Pro Controller

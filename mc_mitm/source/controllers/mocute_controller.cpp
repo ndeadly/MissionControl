@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr u8 TriggerMax = UINT8_MAX;
 
     }
 
@@ -60,27 +60,21 @@ namespace ams::controller {
         this->MapAnalogSticks(&src->input0x01.left_stick, &src->input0x01.right_stick);
         this->MapButtons(&src->input0x01.buttons, src->id == 0x01);
 
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
     }
 
     void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
         this->MapAnalogSticks(&src->input0x04.left_stick, &src->input0x04.right_stick);
         this->MapButtons(&src->input0x04.buttons, 1);
 
-        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax);
     }
 
-    void MocuteController::MapAnalogSticks(const MocuteStickData *left_stick, const MocuteStickData *right_stick) {
-        m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * left_stick->x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - left_stick->y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * right_stick->x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - right_stick->y)) & UINT12_MAX
-        );
+    void MocuteController::MapAnalogSticks(const AnalogStick<u8> *left_stick, const AnalogStick<u8> *right_stick) {
+        m_left_stick  = PackAnalogStickValues(left_stick->x,  InvertAnalogStickValue(left_stick->y));
+        m_right_stick = PackAnalogStickValues(right_stick->x, InvertAnalogStickValue(right_stick->y));
     }
 
     void MocuteController::MapButtons(const MocuteButtonData *buttons, u8 dpad_format) {

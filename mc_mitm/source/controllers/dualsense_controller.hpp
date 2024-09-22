@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,11 +29,6 @@ namespace ams::controller {
         DualsenseDPad_NW,
         DualsenseDPad_Released
     };
-
-    struct DualsenseStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
 
     struct DualsenseButtonData {
         u8 dpad     : 4;
@@ -118,8 +113,8 @@ namespace ams::controller {
     } PACKED;
 
     struct DualsenseInputReport0x01 {
-        DualsenseStickData left_stick;
-        DualsenseStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         DualsenseButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
@@ -127,8 +122,8 @@ namespace ams::controller {
 
     struct DualsenseInputReport0x31 {
         u8 _unk0;
-        DualsenseStickData left_stick;
-        DualsenseStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         u8 counter;

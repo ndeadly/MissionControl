@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         MadCatzDPad_NW
     };
 
-    struct MadCatzStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct MadCatzButtonData {
         u8 X      : 1;
         u8 A      : 1;
@@ -57,8 +52,8 @@ namespace ams::controller {
 
     struct MadCatzInputReport0x01 {
         MadCatzButtonData buttons;
-        MadCatzStickData left_stick;
-        MadCatzStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
     } PACKED;
@@ -112,8 +107,8 @@ namespace ams::controller {
 
             u8 dpad;
         } buttons;
-        MadCatzStickData left_stick;
-        MadCatzStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         u8 reserved;
@@ -142,7 +137,7 @@ namespace ams::controller {
             u8 L3 : 1;
             u8    : 0;
         } buttons;
-        MadCatzStickData left_stick;
+        AnalogStick<u8> left_stick;
         u8 reserved[2];
     } PACKED;
 
@@ -177,7 +172,6 @@ namespace ams::controller {
             void MapInputReport0x81(const MadCatzReportData *src);
             void MapInputReport0x82(const MadCatzReportData *src);
             void MapInputReport0x83(const MadCatzReportData *src);
-
     };
 
 }

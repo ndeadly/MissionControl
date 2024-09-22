@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         NvidiaShieldDPad_Released = 0x80
     };
 
-    struct NvidiaShieldStickData {
-        u16 x;
-        u16 y;
-    } PACKED;
-
     struct NvidiaShieldButtonData {
         u8 A     : 1;
         u8 B     : 1;
@@ -55,8 +50,8 @@ namespace ams::controller {
         NvidiaShieldButtonData buttons;
         u16 left_trigger;
         u16 right_trigger;
-        NvidiaShieldStickData left_stick;
-        NvidiaShieldStickData right_stick;
+        AnalogStick<u16> left_stick;
+        AnalogStick<u16> right_stick;
         u8 home : 1;
         u8 back : 1;
         u8      : 0;

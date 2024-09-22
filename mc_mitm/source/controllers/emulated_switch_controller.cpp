@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,7 +22,7 @@ namespace ams::controller {
 
         // Frequency in Hz rounded to nearest int
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#frequency-table
-        const u16 rumble_freq_lut[] = {
+        constinit const u16 RumbleFreqLookup[] = {
             0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f, 0x0030, 0x0031,
             0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0039, 0x003a, 0x003b,
             0x003c, 0x003e, 0x003f, 0x0040, 0x0042, 0x0043, 0x0045, 0x0046, 0x0048,
@@ -42,12 +42,12 @@ namespace ams::controller {
             0x039d, 0x03b1, 0x03c6, 0x03db, 0x03f1, 0x0407, 0x041d, 0x0434, 0x044c,
             0x0464, 0x047d, 0x0496, 0x04af, 0x04ca, 0x04e5
         };
-        constexpr size_t rumble_freq_lut_size = sizeof(rumble_freq_lut) / sizeof(u16);
+        constexpr size_t RumbleFreqLookupSize = sizeof(RumbleFreqLookup) / sizeof(u16);
 
         // Floats from dekunukem repo normalised and scaled by function used by yuzu
         // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#amplitude-table
         // https://github.com/yuzu-emu/yuzu/blob/d3a4a192fe26e251f521f0311b2d712f5db9918e/src/input_common/sdl/sdl_impl.cpp#L429
-        const float rumble_amp_lut_f[] = {
+        constinit const float RumbleAmpLookup[] = {
             0.000000, 0.120576, 0.137846, 0.146006, 0.154745, 0.164139, 0.174246,
             0.185147, 0.196927, 0.209703, 0.223587, 0.238723, 0.255268, 0.273420,
             0.293398, 0.315462, 0.321338, 0.327367, 0.333557, 0.339913, 0.346441,
@@ -64,7 +64,7 @@ namespace ams::controller {
             0.883035, 0.895119, 0.907420, 0.919943, 0.932693, 0.945673, 0.958889,
             0.972345, 0.986048, 1.000000
         };
-        constexpr size_t rumble_amp_lut_f_size = sizeof(rumble_amp_lut_f) / sizeof(float);
+        constexpr size_t RumbleAmpLookupSize = sizeof(RumbleAmpLookup) / sizeof(float);
 
         void DecodeRumbleValues(const u8 enc[], SwitchRumbleData *dec) {
             u8 hi_freq_ind = 0x20 + (enc[0] >> 2) + ((enc[1] & 0x01) * 0x40) - 1;
@@ -72,22 +72,22 @@ namespace ams::controller {
             u8 lo_freq_ind = (enc[2] & 0x7f) - 1;
             u8 lo_amp_ind  = ((enc[3] - 0x40) << 1) + ((enc[2] & 0x80) >> 7);
 
-            if (!((hi_freq_ind < rumble_freq_lut_size) &&
-                  (hi_amp_ind < rumble_amp_lut_f_size) &&
-                  (lo_freq_ind < rumble_freq_lut_size) &&
-                  (lo_amp_ind < rumble_amp_lut_f_size))) {
+            if (!((hi_freq_ind < RumbleFreqLookupSize) &&
+                  (hi_amp_ind < RumbleAmpLookupSize) &&
+                  (lo_freq_ind < RumbleFreqLookupSize) &&
+                  (lo_amp_ind < RumbleAmpLookupSize))) {
                 std::memset(dec, 0, sizeof(SwitchRumbleData));
                 return;
             }
 
-            dec->high_band_freq = float(rumble_freq_lut[hi_freq_ind]);
-            dec->high_band_amp  = rumble_amp_lut_f[hi_amp_ind];
-            dec->low_band_freq  = float(rumble_freq_lut[lo_freq_ind]);
-            dec->low_band_amp   = rumble_amp_lut_f[lo_amp_ind];
+            dec->high_band_freq = float(RumbleFreqLookup[hi_freq_ind]);
+            dec->high_band_amp  = RumbleAmpLookup[hi_amp_ind];
+            dec->low_band_freq  = float(RumbleFreqLookup[lo_freq_ind]);
+            dec->low_band_amp   = RumbleAmpLookup[lo_amp_ind];
         }
 
         // CRC-8 with polynomial 0x7 for NFC/IR packets
-        u8 crc8_lut[] = {
+        constinit const u8 Crc8Lookup[] = {
             0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
             0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
             0xE0, 0xE7, 0xEE, 0xE9, 0xFC, 0xFB, 0xF2, 0xF5, 0xD8, 0xDF, 0xD6, 0xD1, 0xC4, 0xC3, 0xCA, 0xCD,
@@ -111,7 +111,7 @@ namespace ams::controller {
 
             u8 crc = 0x00;
             for (size_t i = 0; i < size; ++i) {
-                crc = crc8_lut[crc ^ bytes[i]];
+                crc = Crc8Lookup[crc ^ bytes[i]];
             }
             return crc;
         }
@@ -149,8 +149,8 @@ namespace ams::controller {
 
     void EmulatedSwitchController::ClearControllerState() {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
-        m_left_stick.SetData(STICK_CENTER, STICK_CENTER);
-        m_right_stick.SetData(STICK_CENTER, STICK_CENTER);
+        m_left_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
+        m_right_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
         std::memset(&m_motion_data, 0, sizeof(m_motion_data));
     }
 

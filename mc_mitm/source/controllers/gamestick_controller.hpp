@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         GamestickDPad_Released = 0x0f
     };
 
-    struct GamestickStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct GamestickInputReport0x01 {
         u8 _unk0;
 
@@ -50,8 +45,8 @@ namespace ams::controller {
 
     struct GamestickInputReport0x03 {
         u8 dpad;
-        GamestickStickData left_stick;
-        GamestickStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 _unk0[2];
         
         struct {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -111,8 +111,8 @@ namespace ams::mitm {
     }
 
     void LaunchModules() {
-        const s32 ThreadPriority = -7;
-        const size_t ThreadStackSize = 0x1000;
+        constexpr s32 ThreadPriority = -7;
+        constexpr size_t ThreadStackSize = 0x1000;
         os::ThreadType init_thread;
 
         // Allocate temporary thread stack on heap

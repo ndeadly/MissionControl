@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,11 +29,6 @@ namespace ams::controller {
         GemboxDPad_NW,
         GemboxDPad_Released = 0x0f
     };
-
-    struct GemboxStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
 
     struct GemboxButtonData {
         u8 A     : 1;
@@ -67,8 +62,8 @@ namespace ams::controller {
 
     struct GemboxInputReport0x07 {
         u8 dpad;
-        GemboxStickData left_stick;
-        GemboxStickData right_stick;
+        AnalogStick<s8> left_stick;
+        AnalogStick<s8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         GemboxButtonData buttons;

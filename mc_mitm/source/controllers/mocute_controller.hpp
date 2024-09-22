@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,11 +35,6 @@ namespace ams::controller {
         MocuteDPad_Released = 0x0f
     };
 
-    struct MocuteStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct MocuteButtonData {
         u8 dpad   : 4;
         u8 A      : 1;
@@ -58,8 +53,8 @@ namespace ams::controller {
     } PACKED;
 
     struct MocuteInputReport0x01 {
-        MocuteStickData left_stick;
-        MocuteStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         MocuteButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
@@ -67,8 +62,8 @@ namespace ams::controller {
 
     // This only applies for mocute 053. 050 sends reports 0x04 and 0x06 in the same format as 0x01
     struct MocuteInputReport0x04 {
-        MocuteStickData left_stick;
-        MocuteStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         MocuteButtonData buttons;
@@ -99,7 +94,7 @@ namespace ams::controller {
             void MapInputReport0x01(const MocuteReportData *src);
             void MapInputReport0x04(const MocuteReportData *src);
 
-            void MapAnalogSticks(const MocuteStickData *left_stick, const MocuteStickData *right_stick);
+            void MapAnalogSticks(const AnalogStick<u8> *left_stick, const AnalogStick<u8> *right_stick);
             void MapButtons(const MocuteButtonData *buttons, u8 dpad_format);
 
             MocuteControllerVariant m_variant;

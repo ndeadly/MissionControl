@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
-
-    }
-
     void BetopController::ProcessInputData(const bluetooth::HidReport *report) {
         auto betop_report = reinterpret_cast<const BetopReportData *>(&report->data);
 
@@ -36,15 +30,9 @@ namespace ams::controller {
     }
 
     void BetopController::MapInputReport0x03(const BetopReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & UINT12_MAX
-        );
-        
+        m_left_stick  = PackAnalogStickValues(src->input0x03.left_stick.x,  InvertAnalogStickValue(src->input0x03.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x03.right_stick.x, InvertAnalogStickValue(src->input0x03.right_stick.y));
+
         m_buttons.dpad_down  = (src->input0x03.buttons.dpad == BetopDPad_S)  ||
                                (src->input0x03.buttons.dpad == BetopDPad_SE) ||
                                (src->input0x03.buttons.dpad == BetopDPad_SW);

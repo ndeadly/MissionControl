@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,20 +22,20 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr u8 init_data1[] = {0x55};
-        constexpr u8 init_data2[] = {0x00};
+        constinit const u8 InitData1[] = { 0x55 };
+        constinit const u8 InitData2[] = { 0x00 };
 
-        constexpr float nunchuck_stick_scale_factor = float(UINT12_MAX) / 0xb8;
-        constexpr float wiiu_scale_factor           = 2.0;
-        constexpr float left_stick_scale_factor     = float(UINT12_MAX) / 0x3f;
-        constexpr float right_stick_scale_factor    = float(UINT12_MAX) / 0x1f;
+        constexpr float NunchuckStickScaleFactor = float(UINT12_MAX) / 0xb8;
+        constexpr float WiiUStickScaleFactor     = 2.0;
+        constexpr float LeftStickScaleFactor     = float(UINT12_MAX) / 0x3f;
+        constexpr float RighStickScaleFactor     = float(UINT12_MAX) / 0x1f;
 
-        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
-        constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
+        constexpr float AccelScaleFactor = 65535 / 16000.0f * 1000;
+        constexpr float GyroScaleFactor = 65535 / (13371 * 360.0f) * 1000;
 
-        const u16 dpad_stick_positions[] = { STICK_MIN, STICK_CENTER, STICK_MAX };
+        constinit const u16 DpadStickPositions[] = { SwitchAnalogStick::Min, SwitchAnalogStick::Center, SwitchAnalogStick::Max };
 
-        float CalibrateWeightData(u16 x, u16 cal_0kg, u16 cal_17kg, u16 cal_34kg) {
+        constexpr float CalibrateWeightData(u16 x, u16 cal_0kg, u16 cal_17kg, u16 cal_34kg) {
             x = util::SwapEndian(x);
 
             if (x < cal_0kg) {
@@ -47,7 +47,7 @@ namespace ams::controller {
             }
         }
 
-        float ApplyEasingFunction(float x) {
+        constexpr float ApplyEasingFunction(float x) {
             constexpr float a = 3.0;
             constexpr float s = 0.15;
 
@@ -163,8 +163,8 @@ namespace ams::controller {
         if (m_orientation == WiiControllerOrientation_Horizontal) {
             // Map dpad as left stick to increase compatibility with games not supporting movement via dpad
             m_left_stick.SetData(
-                dpad_stick_positions[1 + buttons->dpad_down - buttons->dpad_up],
-                dpad_stick_positions[1 + buttons->dpad_right - buttons->dpad_left]
+                DpadStickPositions[1 + buttons->dpad_down - buttons->dpad_up],
+                DpadStickPositions[1 + buttons->dpad_right - buttons->dpad_left]
             );
 
             m_buttons.A = buttons->two;
@@ -209,9 +209,9 @@ namespace ams::controller {
             u16 y_raw = (accel->y << 2) | (((buttons->raw[1] >> 4) & 0x1) << 1);
             u16 z_raw = (accel->z << 2) | (((buttons->raw[1] >> 5) & 0x1) << 1);
 
-            s16 x = -static_cast<s16>(accel_scale_factor * (float(x_raw - m_accel_calibration.acc_x_0g) / float(m_accel_calibration.acc_x_1g - m_accel_calibration.acc_x_0g)));
-            s16 y = -static_cast<s16>(accel_scale_factor * (float(y_raw - m_accel_calibration.acc_y_0g) / float(m_accel_calibration.acc_y_1g - m_accel_calibration.acc_y_0g)));
-            s16 z =  static_cast<s16>(accel_scale_factor * (float(z_raw - m_accel_calibration.acc_z_0g) / float(m_accel_calibration.acc_z_1g - m_accel_calibration.acc_z_0g)));
+            s16 x = -static_cast<s16>(AccelScaleFactor * (float(x_raw - m_accel_calibration.acc_x_0g) / float(m_accel_calibration.acc_x_1g - m_accel_calibration.acc_x_0g)));
+            s16 y = -static_cast<s16>(AccelScaleFactor * (float(y_raw - m_accel_calibration.acc_y_0g) / float(m_accel_calibration.acc_y_1g - m_accel_calibration.acc_y_0g)));
+            s16 z =  static_cast<s16>(AccelScaleFactor * (float(z_raw - m_accel_calibration.acc_z_0g) / float(m_accel_calibration.acc_z_1g - m_accel_calibration.acc_z_0g)));
 
             if (m_orientation == WiiControllerOrientation_Horizontal) {
                 m_motion_data[0].accel_x = x;
@@ -268,8 +268,8 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiNunchuckExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_x - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX),
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_y - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX)
+            std::clamp<u16>(static_cast<u16>(NunchuckStickScaleFactor * (extension_data->stick_x - 0x80) + SwitchAnalogStick::Center), SwitchAnalogStick::Min, SwitchAnalogStick::Max),
+            std::clamp<u16>(static_cast<u16>(NunchuckStickScaleFactor * (extension_data->stick_y - 0x80) + SwitchAnalogStick::Center), SwitchAnalogStick::Min, SwitchAnalogStick::Max)
         );
 
         m_buttons.L  = !extension_data->C;
@@ -280,12 +280,12 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiClassicControllerExtensionData *>(ext);
 
         m_left_stick.SetData(
-            static_cast<u16>(left_stick_scale_factor * (extension_data->left_stick_x - 0x20) + STICK_CENTER) & UINT12_MAX,
-            static_cast<u16>(left_stick_scale_factor * (extension_data->left_stick_y - 0x20) + STICK_CENTER) & UINT12_MAX
+            static_cast<u16>(LeftStickScaleFactor * (extension_data->left_stick_x - 0x20) + SwitchAnalogStick::Center) & UINT12_MAX,
+            static_cast<u16>(LeftStickScaleFactor * (extension_data->left_stick_y - 0x20) + SwitchAnalogStick::Center) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(right_stick_scale_factor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + STICK_CENTER) & UINT12_MAX,
-            static_cast<u16>(right_stick_scale_factor * (extension_data->right_stick_y - 0x10) + STICK_CENTER) & UINT12_MAX
+            static_cast<u16>(RighStickScaleFactor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + SwitchAnalogStick::Center) & UINT12_MAX,
+            static_cast<u16>(RighStickScaleFactor * (extension_data->right_stick_y - 0x10) + SwitchAnalogStick::Center) & UINT12_MAX
         );
 
         m_buttons.dpad_down  |= !extension_data->buttons.dpad_down;
@@ -313,12 +313,12 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiUProExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->left_stick_x - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX),
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->left_stick_y - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX)
+            std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->left_stick_x - SwitchAnalogStick::Center))) + SwitchAnalogStick::Center, SwitchAnalogStick::Min, SwitchAnalogStick::Max),
+            std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->left_stick_y - SwitchAnalogStick::Center))) + SwitchAnalogStick::Center, SwitchAnalogStick::Min, SwitchAnalogStick::Max)
         );
         m_right_stick.SetData(
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->right_stick_x - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX),
-            std::clamp<u16>(((wiiu_scale_factor * (extension_data->right_stick_y - STICK_CENTER))) + STICK_CENTER, STICK_MIN, STICK_MAX)
+            std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->right_stick_x - SwitchAnalogStick::Center))) + SwitchAnalogStick::Center, SwitchAnalogStick::Min, SwitchAnalogStick::Max),
+            std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->right_stick_y - SwitchAnalogStick::Center))) + SwitchAnalogStick::Center, SwitchAnalogStick::Min, SwitchAnalogStick::Max)
         );
 
         m_buttons.dpad_down  = !extension_data->buttons.dpad_down;
@@ -375,8 +375,8 @@ namespace ams::controller {
         }
 
         m_left_stick.SetData(
-            std::clamp<u16>(static_cast<u16>((x * (UINT12_MAX / 2)) + STICK_CENTER), STICK_MIN, STICK_MAX),
-            std::clamp<u16>(static_cast<u16>((y * (UINT12_MAX / 2)) + STICK_CENTER), STICK_MIN, STICK_MAX)
+            std::clamp<u16>(static_cast<u16>((x * (UINT12_MAX / 2)) + SwitchAnalogStick::Center), SwitchAnalogStick::Min, SwitchAnalogStick::Max),
+            std::clamp<u16>(static_cast<u16>((y * (UINT12_MAX / 2)) + SwitchAnalogStick::Center), SwitchAnalogStick::Min, SwitchAnalogStick::Max)
         );
     }
 
@@ -402,9 +402,9 @@ namespace ams::controller {
             u16 scale_deg_roll  = 6 * (extension_data->roll_slow_mode  ? m_ext_calibration.motion_plus.slow.degrees_div_6 : m_ext_calibration.motion_plus.fast.degrees_div_6);
             u16 scale_deg_yaw   = 6 * (extension_data->yaw_slow_mode   ? m_ext_calibration.motion_plus.slow.degrees_div_6 : m_ext_calibration.motion_plus.fast.degrees_div_6);
 
-            s16 pitch = static_cast<s16>(gyro_scale_factor * (float(pitch_raw - pitch_0deg) / (float(pitch_scale - pitch_0deg) / scale_deg_pitch)));
-            s16 roll = -static_cast<s16>(gyro_scale_factor * (float(roll_raw  - roll_0deg)  / (float(roll_scale  - roll_0deg)  / scale_deg_roll)));
-            s16 yaw =  -static_cast<s16>(gyro_scale_factor * (float(yaw_raw   - yaw_0deg)   / (float(yaw_scale   - yaw_0deg)   / scale_deg_yaw)));
+            s16 pitch = static_cast<s16>(GyroScaleFactor * (float(pitch_raw - pitch_0deg) / (float(pitch_scale - pitch_0deg) / scale_deg_pitch)));
+            s16 roll = -static_cast<s16>(GyroScaleFactor * (float(roll_raw  - roll_0deg)  / (float(roll_scale  - roll_0deg)  / scale_deg_roll)));
+            s16 yaw =  -static_cast<s16>(GyroScaleFactor * (float(yaw_raw   - yaw_0deg)   / (float(yaw_scale   - yaw_0deg)   / scale_deg_yaw)));
 
             if (m_orientation == WiiControllerOrientation_Horizontal) {
                 m_motion_data[0].gyro_1 = pitch;
@@ -444,8 +444,8 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiNunchuckPassthroughExtensionData *>(ext);
 
         m_left_stick.SetData(
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_x - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX),
-            std::clamp<u16>(static_cast<u16>(nunchuck_stick_scale_factor * (extension_data->stick_y - 0x80) + STICK_CENTER), STICK_MIN, STICK_MAX)
+            std::clamp<u16>(static_cast<u16>(NunchuckStickScaleFactor * (extension_data->stick_x - 0x80) + SwitchAnalogStick::Center), SwitchAnalogStick::Min, SwitchAnalogStick::Max),
+            std::clamp<u16>(static_cast<u16>(NunchuckStickScaleFactor * (extension_data->stick_y - 0x80) + SwitchAnalogStick::Center), SwitchAnalogStick::Min, SwitchAnalogStick::Max)
         );
 
         m_buttons.L  = !extension_data->C;
@@ -456,12 +456,12 @@ namespace ams::controller {
         auto extension_data = reinterpret_cast<const WiiClassicControllerPassthroughExtensionData *>(ext);
 
         m_left_stick.SetData(
-            static_cast<u16>(left_stick_scale_factor * ((extension_data->left_stick_x_51 << 1) - 0x20) + STICK_CENTER) & UINT12_MAX,
-            static_cast<u16>(left_stick_scale_factor * ((extension_data->left_stick_y_51 << 1) - 0x20) + STICK_CENTER) & UINT12_MAX
+            static_cast<u16>(LeftStickScaleFactor * ((extension_data->left_stick_x_51 << 1) - 0x20) + SwitchAnalogStick::Center) & UINT12_MAX,
+            static_cast<u16>(LeftStickScaleFactor * ((extension_data->left_stick_y_51 << 1) - 0x20) + SwitchAnalogStick::Center) & UINT12_MAX
         );
         m_right_stick.SetData(
-            static_cast<u16>(right_stick_scale_factor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + STICK_CENTER) & UINT12_MAX,
-            static_cast<u16>(right_stick_scale_factor * (extension_data->right_stick_y - 0x10) + STICK_CENTER) & UINT12_MAX
+            static_cast<u16>(RighStickScaleFactor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + SwitchAnalogStick::Center) & UINT12_MAX,
+            static_cast<u16>(RighStickScaleFactor * (extension_data->right_stick_y - 0x10) + SwitchAnalogStick::Center) & UINT12_MAX
         );
 
         m_buttons.dpad_down  |= !extension_data->buttons.dpad_down;
@@ -826,14 +826,14 @@ namespace ams::controller {
     }
 
     Result WiiController::InitializeStandardExtension() {
-        R_TRY(this->WriteMemory(0x04a400f0, init_data1, sizeof(init_data1)));
-        R_TRY(this->WriteMemory(0x04a400fb, init_data2, sizeof(init_data2)));
+        R_TRY(this->WriteMemory(0x04a400f0, InitData1, sizeof(InitData1)));
+        R_TRY(this->WriteMemory(0x04a400fb, InitData2, sizeof(InitData2)));
 
         R_SUCCEED();
     }
 
     Result WiiController::InitializeMotionPlus() {
-        R_TRY(this->WriteMemory(0x04a600f0, init_data1, sizeof(init_data1)));
+        R_TRY(this->WriteMemory(0x04a600f0, InitData1, sizeof(InitData1)));
 
         // Get the MotionPlus calibration
         R_TRY(this->GetMotionPlusCalibration(&m_ext_calibration.motion_plus));
@@ -893,7 +893,7 @@ namespace ams::controller {
     }
 
     Result WiiController::DeactivateMotionPlus() {
-        R_RETURN(this->WriteMemory(0x04a400f0, init_data1, sizeof(init_data1)));
+        R_RETURN(this->WriteMemory(0x04a400f0, InitData1, sizeof(InitData1)));
     }
 
     Result WiiController::UpdateMotionPlusExtensionStatus(bool extension_connected) {

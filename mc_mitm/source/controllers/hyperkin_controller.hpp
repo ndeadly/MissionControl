@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         HyperkinDPad_NW
     };
 
-    struct HyperkinStickData {
-        u16 x;
-        u16 y;
-    } PACKED;
-
     struct HyperkinButtonData {
         u8 B      : 1;
         u8 A      : 1;
@@ -53,8 +48,8 @@ namespace ams::controller {
 
     struct HyperkinInputReport0x3f{
         HyperkinButtonData buttons;
-        HyperkinStickData left_stick;
-        HyperkinStickData right_stick;
+        AnalogStick<u16> left_stick;
+        AnalogStick<u16> right_stick;
         u8 unk;
     } PACKED;
 

@@ -72,6 +72,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Hyperkin Scout__
 * __Betop 2585N2__
 * __Atari Wireless Modern Controller__
+* __SCUF Vantage 2__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
@@ -85,7 +86,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. Reboot your console to activate the module and you're done!
 
 ***IMPORTANT: 
-Atmosphère >= 1.6.0 is required to run the latest release of Mission Control on firmware 17.0.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
+Atmosphère >= 1.7.1 is required to run the latest release of Mission Control on firmware 18.1.0. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
 
 ### Usage
 

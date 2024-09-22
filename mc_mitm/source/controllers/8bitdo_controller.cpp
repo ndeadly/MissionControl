@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,10 +21,9 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr float stick_scale_factor_16bit = float(UINT12_MAX) / UINT16_MAX;
-        constexpr float stick_scale_factor_8bit  = float(UINT12_MAX) / UINT8_MAX;
+        constexpr u8 TriggerMax = UINT8_MAX;
 
-        const u16 dpad_stick_positions[] = { STICK_MIN, STICK_CENTER, STICK_MAX };
+        constinit const u16 DpadStickPositions[] = { SwitchAnalogStick::Min, SwitchAnalogStick::Center, SwitchAnalogStick::Max };
 
     }
 
@@ -58,18 +57,12 @@ namespace ams::controller {
 
             // Map dpad as left stick
             m_left_stick.SetData(
-                dpad_stick_positions[1 + dpad_right - dpad_left],
-                dpad_stick_positions[1 + dpad_up - dpad_down]
+                DpadStickPositions[1 + dpad_right - dpad_left],
+                DpadStickPositions[1 + dpad_up - dpad_down]
             );
         } else {
-            m_left_stick.SetData(
-                static_cast<u16>(stick_scale_factor_16bit * src->input0x01_v2.left_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_16bit * (UINT16_MAX - src->input0x01_v2.left_stick.y)) & UINT12_MAX
-            );
-            m_right_stick.SetData(
-                static_cast<u16>(stick_scale_factor_16bit * src->input0x01_v2.right_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_16bit * (UINT16_MAX - src->input0x01_v2.right_stick.y)) & UINT12_MAX
-            );
+            m_left_stick  = PackAnalogStickValues(src->input0x01_v2.left_stick.x,  InvertAnalogStickValue(src->input0x01_v2.left_stick.y));
+            m_right_stick = PackAnalogStickValues(src->input0x01_v2.right_stick.x, InvertAnalogStickValue(src->input0x01_v2.right_stick.y));
 
             m_buttons.dpad_down  = (src->input0x01_v2.dpad == EightBitDoDPadV2_S)  ||
                                    (src->input0x01_v2.dpad == EightBitDoDPadV2_SE) ||
@@ -92,8 +85,8 @@ namespace ams::controller {
             m_buttons.L = src->input0x01_v2.buttons.L1;
             m_buttons.R = src->input0x01_v2.buttons.R1;
 
-            m_buttons.ZL = src->input0x01_v2.left_trigger  > (m_trigger_threshold * UINT8_MAX);
-            m_buttons.ZR = src->input0x01_v2.right_trigger > (m_trigger_threshold * UINT8_MAX);
+            m_buttons.ZL = src->input0x01_v2.left_trigger  > (m_trigger_threshold * TriggerMax);
+            m_buttons.ZR = src->input0x01_v2.right_trigger > (m_trigger_threshold * TriggerMax);
 
             if (m_controller_type == EightBitDoControllerType_Sn30ProXboxCloud) {
                 m_buttons.minus = src->input0x01_v2.buttons.v1.select;
@@ -136,8 +129,8 @@ namespace ams::controller {
 
                 // Map dpad as left stick
                 m_left_stick.SetData(
-                    dpad_stick_positions[1 + dpad_right - dpad_left],
-                    dpad_stick_positions[1 + dpad_up - dpad_down]
+                    DpadStickPositions[1 + dpad_right - dpad_left],
+                    DpadStickPositions[1 + dpad_up - dpad_down]
                 );
 
                 m_buttons.A = src->input0x03_v2.buttons.B;
@@ -152,14 +145,8 @@ namespace ams::controller {
                 m_buttons.plus  = src->input0x03_v2.buttons.v2.start;
             }
         } else {
-            m_left_stick.SetData(
-                static_cast<u16>(stick_scale_factor_8bit * src->input0x03_v3.left_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_8bit * (UINT8_MAX - src->input0x03_v3.left_stick.y)) & UINT12_MAX
-            );
-            m_right_stick.SetData(
-                static_cast<u16>(stick_scale_factor_8bit * src->input0x03_v3.right_stick.x) & UINT12_MAX,
-                static_cast<u16>(stick_scale_factor_8bit * (UINT8_MAX - src->input0x03_v3.right_stick.y)) & UINT12_MAX
-            );
+            m_left_stick  = PackAnalogStickValues(src->input0x03_v3.left_stick.x,  InvertAnalogStickValue(src->input0x03_v3.left_stick.y));
+            m_right_stick = PackAnalogStickValues(src->input0x03_v3.right_stick.x, InvertAnalogStickValue(src->input0x03_v3.right_stick.y));
 
             m_buttons.dpad_down  = (src->input0x03_v3.dpad == EightBitDoDPadV2_S)  ||
                                    (src->input0x03_v3.dpad == EightBitDoDPadV2_SE) ||
@@ -182,8 +169,8 @@ namespace ams::controller {
             m_buttons.L = src->input0x03_v3.buttons.L1;
             m_buttons.R = src->input0x03_v3.buttons.R1;
 
-            m_buttons.ZL = src->input0x03_v3.left_trigger  > (m_trigger_threshold * UINT8_MAX);
-            m_buttons.ZR = src->input0x03_v3.right_trigger > (m_trigger_threshold * UINT8_MAX);
+            m_buttons.ZL = src->input0x03_v3.left_trigger  > (m_trigger_threshold * TriggerMax);
+            m_buttons.ZR = src->input0x03_v3.right_trigger > (m_trigger_threshold * TriggerMax);
 
             m_buttons.minus = src->input0x03_v3.buttons.v2.select;
             m_buttons.plus  = src->input0x03_v3.buttons.v2.start;

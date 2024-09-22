@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
 
     }
 
@@ -42,12 +42,12 @@ namespace ams::controller {
                 m_arcadepanel = true;
             }
             m_left_stick.SetData(
-                STICK_CENTER + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
-                STICK_CENTER
+                SwitchAnalogStick::Center + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
+                SwitchAnalogStick::Center
             );
             m_right_stick.SetData(
-                STICK_CENTER,
-                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
+                SwitchAnalogStick::Center,
+                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
@@ -75,12 +75,12 @@ namespace ams::controller {
             m_buttons.plus  = src->input0x01.home_twirl;
         } else {
             m_left_stick.SetData(
-                STICK_CENTER + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
-                STICK_CENTER + 0x7ff * (src->input0x01.nudge_front)
+                SwitchAnalogStick::Center + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
+                SwitchAnalogStick::Center + 0x7ff * (src->input0x01.nudge_front)
             );
             m_right_stick.SetData(
-                STICK_CENTER,
-                static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
+                SwitchAnalogStick::Center,
+                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||

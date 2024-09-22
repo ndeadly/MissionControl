@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         XiaomiDPad_Released = 0x0f
     };
 
-    struct XiaomiStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct XiaomiButtonData {
         u8 A            : 1;
         u8 B            : 1;
@@ -61,8 +56,8 @@ namespace ams::controller {
 
     struct XiaomiInputReport0x04 {
         XiaomiButtonData buttons;
-        XiaomiStickData left_stick;
-        XiaomiStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 _unk0[2];
         u8 left_trigger;
         u8 right_trigger;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -49,11 +49,6 @@ namespace ams::controller {
         Dualshock4DPad_NW,
         Dualshock4DPad_Released
     };
-
-    struct Dualshock4StickData {
-        u8 x;
-        u8 y;
-    } PACKED;
 
     struct Dualshock4ButtonData {
         u8 dpad     : 4;
@@ -145,8 +140,8 @@ namespace ams::controller {
     } PACKED;
 
     struct Dualshock4InputReport0x01 {
-        Dualshock4StickData left_stick;
-        Dualshock4StickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         Dualshock4ButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
@@ -154,8 +149,8 @@ namespace ams::controller {
 
     struct Dualshock4InputReport0x11 {
         u8 _unk0[2];
-        Dualshock4StickData left_stick;
-        Dualshock4StickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         Dualshock4ButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
@@ -204,7 +199,8 @@ namespace ams::controller {
                 {0x054c, 0x09cc},   // Official Dualshock4 v2
                 {0x0f0d, 0x00f6},   // Hori ONYX
                 {0x1532, 0x1009},   // Razer Raiju Ultimate
-                {0x1532, 0x100a}    // Razer Raiju Tournament
+                {0x1532, 0x100a},   // Razer Raiju Tournament
+                {0x2e95, 0x7725}    // SCUF Vantage 2
             };
 
             Dualshock4Controller(const bluetooth::Address *address, HardwareID id)

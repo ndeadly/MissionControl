@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,11 +35,6 @@ namespace ams::controller {
         XboxOnePowerMode_Battery     = 1,
         XboxOnePowerMode_PlayNCharge = 2
     };
-
-    struct XboxOneStickData {
-        u16 x;
-        u16 y;
-    } PACKED;
 
     // Used on older firmware
     struct XboxOneButtonDataOld {
@@ -95,8 +90,8 @@ namespace ams::controller {
     } PACKED;
 
     struct XboxOneInputReport0x01 {
-        XboxOneStickData left_stick;
-        XboxOneStickData right_stick;
+        AnalogStick<u16> left_stick;
+        AnalogStick<u16> right_stick;
         u16 left_trigger;
         u16 right_trigger;
         union {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,6 @@ namespace ams::controller {
         BetopDPad_Released = 0x0f
     };
 
-    struct BetopStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct BetopButtonData {
         u8 dpad;
 
@@ -60,8 +55,8 @@ namespace ams::controller {
     struct BetopInputReport0x03 {
         u8 unk0;
         BetopButtonData buttons;
-        BetopStickData left_stick;
-        BetopStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         u8 unk1;

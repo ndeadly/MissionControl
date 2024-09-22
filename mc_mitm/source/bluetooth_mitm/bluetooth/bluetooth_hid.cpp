@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,9 +21,9 @@ namespace ams::bluetooth::hid {
 
     namespace {
 
-        os::Mutex g_event_info_lock(false);
-        bluetooth::HidEventInfo g_event_info;
-        bluetooth::HidEventType g_current_event_type;
+        constinit os::SdkMutex g_event_info_lock;
+        constinit bluetooth::HidEventInfo g_event_info;
+        constinit bluetooth::HidEventType g_current_event_type;
 
         os::SystemEvent g_system_event;
         os::SystemEvent g_system_event_fwd(os::EventClearMode_AutoClear, true);

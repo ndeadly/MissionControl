@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,15 +22,14 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr u8 TriggerMax = UINT8_MAX;
+        constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000;
+        constexpr float GyroScaleFactor = UINT16_MAX / (13371 * 360.0f) * 1000;
 
-        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000;
-        constexpr float gyro_scale_factor = 65535 / (13371 * 360.0f) * 1000;
+        constexpr u16 TouchpadWidth = 1920;
+        constexpr u16 TouchpadHeight = 942;
 
-        constexpr u16 touchpad_width = 1920;
-        constexpr u16 touchpad_height = 942;
-
-        const RGBColour player_led_base_colours[] = {
+        constinit const RGBColour PlayerLedBaseColours[] = {
             // Same colours used by PS4
             {0x00, 0x00, 0x04}, // blue
             {0x04, 0x00, 0x00}, // red
@@ -43,10 +42,10 @@ namespace ams::controller {
             {0x01, 0x00, 0x03}  // purple
         };
 
-        constexpr u8 step = 4;
-        const u8 led_brightness_multipliers[] = { 0, 1, 1 * step, 2 * step, 3 * step, 4 * step, 5 * step, 6 * step, 7 * step, 8 * step };
+        constexpr u8 Step = 4;
+        constinit const u8 LedBrightnessMultipliers[] = { 0, 1, 1 * Step, 2 * Step, 3 * Step, 4 * Step, 5 * Step, 6 * Step, 7 * Step, 8 * Step };
 
-        constexpr u32 crc_seed = 0xB758EC66;  // CRC32 of {0xa2, 0x11} bytes at beginning of output report
+        constexpr u32 CrcSeed = 0xB758EC66;  // CRC32 of {0xa2, 0x11} bytes at beginning of output report
 
     }
 
@@ -81,8 +80,8 @@ namespace ams::controller {
     Result Dualshock4Controller::SetPlayerLed(u8 led_mask) {
         u8 player_number;
         R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
-        RGBColour colour = player_led_base_colours[player_number];
-        u8 multiplier = led_brightness_multipliers[m_lightbar_brightness];
+        RGBColour colour = PlayerLedBaseColours[player_number];
+        u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
         colour.r *= multiplier;
         colour.g *= multiplier;
         colour.b *= multiplier;
@@ -108,19 +107,13 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::MapInputReport0x01(const Dualshock4ReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
 
         this->MapButtons(&src->input0x01.buttons);
 
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
     }
 
     void Dualshock4Controller::MapInputReport0x11(const Dualshock4ReportData *src) {
@@ -142,19 +135,13 @@ namespace ams::controller {
 
         m_battery = static_cast<u8>(8 * (battery_level + 2) / 10) & 0x0e;
 
-        m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x11.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x11.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x11.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x11.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x11.left_stick.x,  InvertAnalogStickValue(src->input0x11.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x11.right_stick.x, InvertAnalogStickValue(src->input0x11.right_stick.y));
 
         this->MapButtons(&src->input0x11.buttons);
 
-        m_buttons.ZR = src->input0x11.right_trigger > (m_trigger_threshold * UINT8_MAX);
-        m_buttons.ZL = src->input0x11.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x11.right_trigger > (m_trigger_threshold * TriggerMax);
+        m_buttons.ZL = src->input0x11.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         if (src->input0x11.buttons.touchpad) {
             for (int i = 0; i < src->input0x11.num_reports; ++i) {
@@ -166,9 +153,9 @@ namespace ams::controller {
                     if (active) {
                         u16 x = (point->x_hi << 8) | point->x_lo;
 
-                        if (x < (0.15 * touchpad_width)) {
+                        if (x < (0.15 * TouchpadWidth)) {
                             m_buttons.minus = 1;
-                        } else if (x > (0.85 * touchpad_width)) {
+                        } else if (x > (0.85 * TouchpadWidth)) {
                             m_buttons.plus = 1;
                         } else {
                             m_buttons.capture = 1;
@@ -181,13 +168,13 @@ namespace ams::controller {
         }
 
         if (m_enable_motion) {
-            s16 acc_x = -static_cast<s16>(accel_scale_factor * src->input0x11.acc_z / float(m_motion_calibration.acc.z_max));
-            s16 acc_y = -static_cast<s16>(accel_scale_factor * src->input0x11.acc_x / float(m_motion_calibration.acc.x_max));
-            s16 acc_z =  static_cast<s16>(accel_scale_factor * src->input0x11.acc_y / float(m_motion_calibration.acc.y_max));
+            s16 acc_x = -static_cast<s16>(AccelScaleFactor * src->input0x11.acc_z / float(m_motion_calibration.acc.z_max));
+            s16 acc_y = -static_cast<s16>(AccelScaleFactor * src->input0x11.acc_x / float(m_motion_calibration.acc.x_max));
+            s16 acc_z =  static_cast<s16>(AccelScaleFactor * src->input0x11.acc_y / float(m_motion_calibration.acc.y_max));
 
-            s16 vel_x = -static_cast<s16>(gyro_scale_factor * (src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_y = -static_cast<s16>(gyro_scale_factor * (src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
-            s16 vel_z =  static_cast<s16>(gyro_scale_factor * (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_x = -static_cast<s16>(GyroScaleFactor * (src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max - m_motion_calibration.gyro.roll_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_y = -static_cast<s16>(GyroScaleFactor * (src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
+            s16 vel_z =  static_cast<s16>(GyroScaleFactor * (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max- m_motion_calibration.gyro.yaw_bias) / m_motion_calibration.gyro.speed_max));
 
             m_motion_data[0].gyro_1  = vel_x;
             m_motion_data[0].gyro_2  = vel_y;
@@ -281,7 +268,7 @@ namespace ams::controller {
         report.output0x11.data[7] = m_lightbar_colour.r;
         report.output0x11.data[8] = m_lightbar_colour.g;
         report.output0x11.data[9] = m_lightbar_colour.b;
-        report.output0x11.crc = crc32CalculateWithSeed(crc_seed, report.output0x11.data, sizeof(report.output0x11.data));
+        report.output0x11.crc = crc32CalculateWithSeed(CrcSeed, report.output0x11.data, sizeof(report.output0x11.data));
 
         m_output_report.size = sizeof(report.output0x11) + sizeof(report.id);
         std::memcpy(m_output_report.data, &report, m_output_report.size);

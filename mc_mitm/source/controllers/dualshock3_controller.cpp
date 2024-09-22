@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,29 +24,29 @@ namespace ams::controller {
 
     namespace {
 
-        const char *ds3_device_name = "PLAYSTATION(R)3 Controller";
-        constexpr u16 ds3_vendor_id = 0x054c;
-        constexpr u16 ds3_product_id = 0x0268;
-
         enum Dualshock3LedMode {
             Dualshock3LedMode_Switch = 0,
             Dualshock3LedMode_Ps3 = 1,
             Dualshock3LedMode_Hybrid = 2,
         };
 
-        const u8 enable_payload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
-        const u8 led_config[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
-        const u8 player_led_patterns[] = { 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
+        constexpr const char Ds3DeviceName[] = "PLAYSTATION(R)3 Controller";
+        constexpr u16 Ds3VendorId = 0x054c;
+        constexpr u16 Ds3ProductId = 0x0268;
 
-        constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
-        constexpr float accel_scale_factor = 65535 / 16000.0f * 1000 / 113;
+        constexpr u8 TriggerMax = UINT8_MAX;
+        constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000 / 113;
+
+        constinit const u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
+        constinit const u8 LedConfig[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
+        constinit const u8 PlayerLedPatterns[] = { 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
 
         alignas(os::MemoryPageSize) constinit u8 g_usb_buffer[0x1000];
 
-        const UsbHsInterfaceFilter g_interface_filter = {
+        constinit const UsbHsInterfaceFilter g_interface_filter = {
             .Flags = UsbHsInterfaceFilterFlags_idVendor | UsbHsInterfaceFilterFlags_idProduct | UsbHsInterfaceFilterFlags_bInterfaceClass,
-            .idVendor = ds3_vendor_id,
-            .idProduct = ds3_product_id,
+            .idVendor = Ds3VendorId,
+            .idProduct = Ds3ProductId,
             .bInterfaceClass = USB_CLASS_HID,
         };
 
@@ -96,16 +96,16 @@ namespace ams::controller {
             device.class_of_device = {0x00, 0x05, 0x08};
             device.link_key_present = false;
             device.trusted_services = 0x100000;
-            device.vid = ds3_vendor_id;
-            device.pid = ds3_product_id;
+            device.vid = Ds3VendorId;
+            device.pid = Ds3ProductId;
             device.sub_class = 0x08;
             device.attribute_mask = 0xff;
 
             if (hos::GetVersion() < hos::Version_13_0_0) {
-                std::strncpy(device.name.name, ds3_device_name, sizeof(device.name));
+                std::strncpy(device.name.name, Ds3DeviceName, sizeof(device.name));
             }
             else {
-                std::strncpy(device.name2, ds3_device_name, sizeof(device.name2));
+                std::strncpy(device.name2, Ds3DeviceName, sizeof(device.name2));
             }
 
             R_RETURN(btdrvAddPairedDeviceInfo(&device));
@@ -148,7 +148,7 @@ namespace ams::controller {
     }
 
     bool Dualshock3Controller::UsbIdentify(UsbHsInterface *iface) {
-        return (iface->device_desc.idVendor == ds3_vendor_id) && (iface->device_desc.idProduct == ds3_product_id);
+        return (iface->device_desc.idVendor == Ds3VendorId) && (iface->device_desc.idProduct == Ds3ProductId);
     }
 
     Result Dualshock3Controller::UsbPair(UsbHsInterface *iface) {
@@ -210,7 +210,7 @@ namespace ams::controller {
         auto config = mitm::GetGlobalConfig();
         switch(config->misc.dualshock3_led_mode) {
             case Dualshock3LedMode_Switch:
-                m_led_mask = player_led_patterns[player_index];
+                m_led_mask = PlayerLedPatterns[player_index];
                 break;
             case Dualshock3LedMode_Ps3:
                 m_led_mask = player_index < 4 ? 1 << player_index : ~(1 << player_index) & 0x0f;
@@ -245,14 +245,8 @@ namespace ams::controller {
             m_battery = 1;
         }
 
-        m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x01.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x01.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
 
         m_buttons.dpad_down  = src->input0x01.buttons.dpad_down;
         m_buttons.dpad_up    = src->input0x01.buttons.dpad_up;
@@ -265,9 +259,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0x01.buttons.square;
 
         m_buttons.R  = src->input0x01.buttons.R1;
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.L  = src->input0x01.buttons.L1;
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.minus = src->input0x01.buttons.select;
         m_buttons.plus  = src->input0x01.buttons.start;
@@ -278,9 +272,9 @@ namespace ams::controller {
         m_buttons.home = src->input0x01.buttons.ps;
 
         if (m_enable_motion) {
-            s16 acc_x = -static_cast<s16>(accel_scale_factor * (511 - util::SwapEndian(src->input0x01.accel_y)));
-            s16 acc_y = -static_cast<s16>(accel_scale_factor * (util::SwapEndian(src->input0x01.accel_x) - 511));
-            s16 acc_z =  static_cast<s16>(accel_scale_factor * (511 - util::SwapEndian(src->input0x01.accel_z)));
+            s16 acc_x = -static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y)));
+            s16 acc_y = -static_cast<s16>(AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511));
+            s16 acc_z =  static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z)));
 
             m_motion_data[0].accel_x = acc_x;
             m_motion_data[0].accel_y = acc_y;
@@ -299,8 +293,8 @@ namespace ams::controller {
     }
 
     Result Dualshock3Controller::SendEnablePayload() {
-        m_output_report.size = sizeof(enable_payload);
-        std::memcpy(m_output_report.data, enable_payload, m_output_report.size);
+        m_output_report.size = sizeof(EnablePayload);
+        std::memcpy(m_output_report.data, EnablePayload, m_output_report.size);
 
         R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Feature, &m_output_report));
     }
@@ -315,10 +309,10 @@ namespace ams::controller {
         report.output0x01.data[3] = 10;
         report.output0x01.data[4] = m_rumble_state.amp_motor_left;
         report.output0x01.data[9] = m_led_mask << 1;
-        std::memcpy(&report.output0x01.data[10], led_config, sizeof(led_config));
-        std::memcpy(&report.output0x01.data[15], led_config, sizeof(led_config));
-        std::memcpy(&report.output0x01.data[20], led_config, sizeof(led_config));
-        std::memcpy(&report.output0x01.data[25], led_config, sizeof(led_config));
+        std::memcpy(&report.output0x01.data[10], LedConfig, sizeof(LedConfig));
+        std::memcpy(&report.output0x01.data[15], LedConfig, sizeof(LedConfig));
+        std::memcpy(&report.output0x01.data[20], LedConfig, sizeof(LedConfig));
+        std::memcpy(&report.output0x01.data[25], LedConfig, sizeof(LedConfig));
 
         m_output_report.size = sizeof(report.output0x01) + sizeof(report.id);
         std::memcpy(m_output_report.data, &report, m_output_report.size);

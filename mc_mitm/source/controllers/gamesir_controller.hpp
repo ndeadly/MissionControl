@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -42,11 +42,6 @@ namespace ams::controller {
         GamesirDpad2_Released = 0x0f,
     };
 
-    struct GamesirStickData {
-        u8 x;
-        u8 y;
-    } PACKED;
-
     struct GamesirButtonData {
         u8 A      : 1;
         u8 B      : 1;
@@ -71,8 +66,8 @@ namespace ams::controller {
 
     struct GamesirReport0x03 {
         GamesirButtonData buttons;
-        GamesirStickData left_stick;
-        GamesirStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         u8 _unk[2];
@@ -87,8 +82,8 @@ namespace ams::controller {
     } PACKED;
 
     struct GamesirReport0xc4 {
-        GamesirStickData left_stick;
-        GamesirStickData right_stick;
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
         u8 left_trigger;
         u8 right_trigger;
         GamesirButtonData buttons;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        const constexpr float stick_scale_factor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr u8 TriggerMax = UINT8_MAX;
 
     }
 
@@ -40,14 +40,8 @@ namespace ams::controller {
     }
 
     void GamesirController::MapInputReport0x03(const GamesirReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0x03.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0x03.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0x03.left_stick.x,  InvertAnalogStickValue(src->input0x03.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0x03.right_stick.x, InvertAnalogStickValue(src->input0x03.right_stick.y));
 
         m_buttons.dpad_down  = (src->input0x03.buttons.dpad == GamesirDpad2_S)  ||
                                (src->input0x03.buttons.dpad == GamesirDpad2_SE) ||
@@ -68,9 +62,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0x03.buttons.X;
 
         m_buttons.R  = src->input0x03.buttons.RB;
-        m_buttons.ZR = src->input0x03.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0x03.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.L  = src->input0x03.buttons.LB;
-        m_buttons.ZL = src->input0x03.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0x03.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.minus = src->input0x03.buttons.select;
         m_buttons.plus  = src->input0x03.buttons.start;
@@ -86,14 +80,8 @@ namespace ams::controller {
     }
 
     void GamesirController::MapInputReport0xc4(const GamesirReportData *src) {
-        m_left_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0xc4.left_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.left_stick.y)) & UINT12_MAX
-        );
-        m_right_stick.SetData(
-            static_cast<u16>(stick_scale_factor * src->input0xc4.right_stick.x) & UINT12_MAX,
-            static_cast<u16>(stick_scale_factor * (UINT8_MAX - src->input0xc4.right_stick.y)) & UINT12_MAX
-        );
+        m_left_stick  = PackAnalogStickValues(src->input0xc4.left_stick.x,  InvertAnalogStickValue(src->input0xc4.left_stick.y));
+        m_right_stick = PackAnalogStickValues(src->input0xc4.right_stick.x, InvertAnalogStickValue(src->input0xc4.right_stick.y));
 
         m_buttons.dpad_down   = (src->input0xc4.buttons.dpad == GamesirDpad_S)  ||
                                 (src->input0xc4.buttons.dpad == GamesirDpad_SE) ||
@@ -114,9 +102,9 @@ namespace ams::controller {
         m_buttons.Y = src->input0xc4.buttons.X;
 
         m_buttons.R  = src->input0xc4.buttons.RB;
-        m_buttons.ZR = src->input0xc4.right_trigger > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZR = src->input0xc4.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.L  = src->input0xc4.buttons.LB;
-        m_buttons.ZL = src->input0xc4.left_trigger  > (m_trigger_threshold * UINT8_MAX);
+        m_buttons.ZL = src->input0xc4.left_trigger  > (m_trigger_threshold * TriggerMax);
 
         m_buttons.minus = src->input0xc4.buttons.select;
         m_buttons.plus  = src->input0xc4.buttons.start;
