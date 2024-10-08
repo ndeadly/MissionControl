@@ -201,6 +201,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : BionikController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Bionik;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -301,6 +307,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Atari:
                 controller = std::make_shared<AtariController>(address, id);
+                break;
+            case ControllerType_Bionik:
+                controller = std::make_shared<BionikController>(address, id);
                 break;
             default:
                 controller = std::make_shared<UnknownController>(address, id);
