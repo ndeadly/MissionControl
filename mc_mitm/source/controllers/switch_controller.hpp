@@ -157,6 +157,36 @@ namespace ams::controller {
         HidCommand_ReadChargeSetting      = 0x52,
     };
 
+    enum McuCommandType : u8 {
+        McuCommand_Invalid = 0x00,
+        McuCommand_StateReport = 0x01,
+        McuCommand_IrData = 0x03,
+        McuCommand_BusyInitializing = 0x0b,
+        McuCommand_IrStatus = 0x13,
+        McuCommand_IrRegisters = 0x1b,
+        McuCommand_ConfigureMcu = 0x21,
+        McuCommand_ConfigureIr= 0x23,
+        McuCommand_NfcState = 0x2a,
+        McuCommand_NfcReadData = 0x3a,
+        McuCommand_EmptyAwaitingCmd = 0xff,
+    };
+
+    enum McuSubCommandType : u8 {
+        McuSubCommand_SetMcuMode = 0x00,
+        McuSubCommand_GetMcuMode = 0x01,
+        McuSubCommand_ReadDeviceMode = 0x02,
+        McuSubCommand_WriteDeviceRegisters = 0x04,
+    };
+
+    enum McuModeType : u8 {
+        McuMode_Suspended = 0,
+        McuMode_Standby = 1,
+        McuMode_Ringcon = 3,
+        McuMode_Nfc = 4,
+        McuMode_Ir = 5,
+        McuMode_Busy = 6,
+    };
+
     struct SwitchHidCommand {
         u8 id;
         union {
@@ -206,6 +236,21 @@ namespace ams::controller {
             struct {
                 bool enabled;
             } motor_enable;
+
+            struct {
+                McuCommandType command;
+                union {
+                    u8 raw[0x25];
+                    struct {
+                        u8 pad;
+                        McuModeType mode;
+                    } configure_mcu;
+                } data;
+            } mcu_write;
+            
+            struct {
+                bool enabled;
+            } mcu_resume;
         };
     } PACKED;
 
@@ -258,8 +303,39 @@ namespace ams::controller {
         } data;
     } PACKED;
 
-    struct SwitchNfcIrResponse {
-        u8 data[0x138];
+    struct SwitchMcuCommand {
+        McuSubCommandType sub_command;
+        union {
+            u8 raw[0x26];
+
+            struct {
+                McuModeType mode;
+            } set_mcu_mode;
+        } data;
+    } PACKED;
+
+    struct SwitchMcuResponse {
+        McuCommandType command;
+        union {
+            u8 raw[0x137];
+
+            struct {
+                u8 pad[3];
+                u8 unknown_1;
+                u8 pad2;
+                u8 unknown_2;
+                McuModeType mode;
+            } get_mcu_mode;
+            
+            struct {
+                u8 pad;
+                u8 unknown_1;
+                u8 pad2[2];
+                u8 unknown_2;
+                u8 unknown_3;
+                u8 is_ready;
+            } read_device_mode;
+        } data;
     } PACKED;
 
     struct SwitchInputReport {
@@ -287,7 +363,7 @@ namespace ams::controller {
 
             struct {
                 Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
-                SwitchNfcIrResponse nfc_ir_response;
+                SwitchMcuResponse mcu_response;
                 u8 crc;
             } type0x31;
         };
@@ -304,7 +380,7 @@ namespace ams::controller {
             } type0x01;
 
             struct {
-                u8 nfc_ir_data[0x16];
+                SwitchMcuCommand mcu_command;
             } type0x11;
         };
     } PACKED;
