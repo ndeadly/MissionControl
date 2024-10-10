@@ -18,6 +18,7 @@
 #include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "../async/future_response.hpp"
+#include "switch_rumble_handler.hpp"
 #include <queue>
 
 namespace ams::controller {
@@ -121,18 +122,6 @@ namespace ams::controller {
         s16 x;
         s16 y;
         s16 z;
-    } PACKED;
-
-    struct SwitchRumbleDataEncoded {
-        u8 left_motor[4];
-        u8 right_motor[4];
-    } PACKED;
-
-    struct SwitchRumbleData {
-        float high_band_freq;
-        float high_band_amp;
-        float low_band_freq;
-        float low_band_amp;
     } PACKED;
 
     enum HidCommandType : u8 {
@@ -307,7 +296,7 @@ namespace ams::controller {
     struct SwitchOutputReport {
         u8 id;
         u8 counter;
-        SwitchRumbleDataEncoded rumble_data;
+        SwitchEncodedMotorData enc_motor_data;
 
         union {
             struct{

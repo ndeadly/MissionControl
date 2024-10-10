@@ -32,14 +32,14 @@ namespace ams::controller {
 
         protected:
             void ClearControllerState();
-            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { AMS_UNUSED(rumble_data); R_SUCCEED(); }
+            virtual Result SetVibration(const SwitchMotorData *motor_data) { AMS_UNUSED(motor_data); R_SUCCEED(); }
             virtual Result CancelVibration() { R_SUCCEED(); }
             virtual Result SetPlayerLed(u8 led_mask) { AMS_UNUSED(led_mask); R_SUCCEED(); }
 
             void UpdateControllerState(const bluetooth::HidReport *report) override;
             virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
-            Result HandleRumbleData(const SwitchRumbleDataEncoded *encoded);
+            Result HandleRumbleData(const SwitchEncodedMotorData *enc_motor_data);
             Result HandleHidCommand(const SwitchHidCommand *command);
             Result HandleNfcIrData(const u8 *nfc_ir);
 
@@ -79,6 +79,8 @@ namespace ams::controller {
             u16 m_acc_sensitivity;
 
             u8 m_input_report_mode;
+
+            SwitchRumbleHandler m_rumble_handler;
 
             bool m_enable_rumble;
             bool m_enable_motion;

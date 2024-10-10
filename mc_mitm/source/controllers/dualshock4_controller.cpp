@@ -65,9 +65,9 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result Dualshock4Controller::SetVibration(const SwitchRumbleData *rumble_data) {
-        m_rumble_state.amp_motor_left  = static_cast<u8>(255 * std::max(rumble_data[0].low_band_amp, rumble_data[1].low_band_amp));
-        m_rumble_state.amp_motor_right = static_cast<u8>(255 * std::max(rumble_data[0].high_band_amp, rumble_data[1].high_band_amp));
+    Result Dualshock4Controller::SetVibration(const SwitchMotorData *motor_data) {
+        m_rumble_state.amp_motor_left  = static_cast<u8>(255 * std::max(motor_data->left_motor.low_band_amp,  motor_data->right_motor.low_band_amp));
+        m_rumble_state.amp_motor_right = static_cast<u8>(255 * std::max(motor_data->left_motor.high_band_amp, motor_data->right_motor.high_band_amp));
         R_RETURN(this->PushRumbleLedState());
     }
 

@@ -914,11 +914,11 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result WiiController::SetVibration(const SwitchRumbleData *rumble_data) {
-        m_rumble_state = rumble_data[0].low_band_amp  > 0 ||
-                         rumble_data[0].high_band_amp > 0 ||
-                         rumble_data[1].low_band_amp  > 0 ||
-                         rumble_data[1].high_band_amp > 0;
+    Result WiiController::SetVibration(const SwitchMotorData *motor_data) {
+        m_rumble_state = motor_data->left_motor.low_band_amp   > 0 ||
+                         motor_data->left_motor.high_band_amp  > 0 ||
+                         motor_data->right_motor.low_band_amp  > 0 ||
+                         motor_data->right_motor.high_band_amp > 0;
 
         std::scoped_lock lk(m_output_mutex);
 
