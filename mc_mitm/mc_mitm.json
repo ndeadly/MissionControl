@@ -14,6 +14,8 @@
     "address_space_type": 3,
     "optimize_memory_allocation": false,
     "disable_device_address_space_merge": true,
+    "enable_alias_region_extra_size": false,
+    "prevent_code_reads": false,
     "system_resource_size": "0",
     "filesystem_access": {
         "permissions": "0xFFFFFFFFFFFFFFFF"
