@@ -129,10 +129,13 @@ namespace ams::bluetooth::hid::report {
 
     Result InitializeReportBuffer() {
         g_fake_bt_shmem.Map(os::MemoryPermission_ReadWrite);
-        g_fake_buffer = reinterpret_cast<bluetooth::CircularBuffer *>(g_fake_bt_shmem.GetMappedAddress());
-        g_fake_buffer->Initialize("HID Report");
-        g_fake_buffer->type = bluetooth::CircularBufferType_HidReport;
-        g_fake_buffer->_unk3 = 1;
+
+        auto event_info = reinterpret_cast<bluetooth::BufferedEventInfo *>(g_fake_bt_shmem.GetMappedAddress());
+        event_info->buffer.Initialize("HID Report");
+        event_info->type = bluetooth::EventBufferType_HidReport;
+        event_info->ready = true;
+
+        g_fake_buffer = &event_info->buffer;
 
         R_SUCCEED();
     }

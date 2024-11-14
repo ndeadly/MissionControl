@@ -21,29 +21,21 @@
 
 namespace ams::bluetooth {
 
-    constexpr int BLUETOOTH_BUFFER_SIZE = 10000;
-
-    enum CircularBufferType {
-        CircularBufferType_Other,
-        CircularBufferType_HidReport,
-        CircularBufferType_Bluetooth,
-        CircularBufferType_Ble,
-        CircularBufferType_BleCore,
-        CircularBufferType_BleHid,
-    };
-
-    struct CircularBufferPacketHeader{
+    struct CircularBufferPacketHeader {
         u8 type;
         os::Tick timestamp;
         u64 size;
     };
 
-    struct CircularBufferPacket{
+    struct CircularBufferPacket {
         CircularBufferPacketHeader header;
         HidReportEventInfo data;
     };
 
     class CircularBuffer {
+        public:
+            static constexpr size_t BufferSize = 10000;
+            static constexpr size_t MaxNameLength = 16;
 
         public:
             CircularBuffer();
@@ -53,36 +45,45 @@ namespace ams::bluetooth {
             bool IsInitialized();
             u64 GetWriteableSize();
             void SetWriteCompleteEvent(os::EventType *event);
-            u64 Write(u8 type, void *data, size_t size);
-            void DiscardOldPackets(u8 type, u32 ageLimit);
+            Result Write(u8 type, const void *data, size_t size);
+            void DiscardOldPackets(u8 type, u32 age_limit);
             CircularBufferPacket *Read();
-            u64 Free();
+            Result Free();
 
         private:
-            void _setReadOffset(u32 offset);
-            void _setWriteOffset(u32 offset);
-            u32  _getWriteOffset();
-            u32  _getReadOffset();
-            u64  _write(u8 type, void *data, size_t size);
-            void _updateUtilization();
-            CircularBufferPacket *_read();
+            ALWAYS_INLINE void _setReadOffset(u32 offset);
+            ALWAYS_INLINE void _setWriteOffset(u32 offset);
+            ALWAYS_INLINE u32 _getWriteOffset();
+            ALWAYS_INLINE u32 _getReadOffset();
+            ALWAYS_INLINE Result _write(u8 type, const void *data, size_t size);
+            ALWAYS_INLINE void _updateUtilization();
+            ALWAYS_INLINE CircularBufferPacket *_read();
 
-            os::SdkMutex  mutex;
-            os::EventType *event;
-            
-            u8 data[BLUETOOTH_BUFFER_SIZE];
-            std::atomic<u32> writeOffset;
-            std::atomic<u32> readOffset;
-            s64 size;
-            char name[16];
-            u8 _unk1;
-            bool isInitialized;
-            u8 _unk2[6];
+        private:
+            os::SdkMutex  m_mutex;
+            os::EventType *m_event;
 
-        public:
-            CircularBufferType type;
-            bool _unk3;
-            //u8 _unk3[4];
+            u8 m_data[BufferSize];
+            util::Atomic<u32> m_write_offset;
+            util::Atomic<u32> m_read_offset;
+            s64 m_size;
+            char m_name[MaxNameLength + 1];
+            bool m_initialized;
+    };
+
+    enum EventBufferType {
+        EventBufferType_None,
+        EventBufferType_HidReport,
+        EventBufferType_Bluetooth,
+        EventBufferType_Ble,
+        EventBufferType_BleCore,
+        EventBufferType_BleHid,
+    };
+
+    struct BufferedEventInfo {
+        CircularBuffer buffer;
+        EventBufferType type;
+        bool ready;
     };
 
 }
