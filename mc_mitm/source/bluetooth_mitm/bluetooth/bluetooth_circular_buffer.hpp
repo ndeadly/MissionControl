@@ -71,8 +71,8 @@ namespace ams::bluetooth {
             os::EventType *event;
             
             u8 data[BLUETOOTH_BUFFER_SIZE];
-            u32 writeOffset;
-            u32 readOffset;
+            std::atomic<u32> writeOffset;
+            std::atomic<u32> readOffset;
             s64 size;
             char name[16];
             u8 _unk1;
