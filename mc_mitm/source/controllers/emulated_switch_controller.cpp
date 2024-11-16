@@ -210,8 +210,8 @@ namespace ams::controller {
             .data = {
                 .get_device_info = {
                     .fw_ver = {
-                        .major = 0x03,
-                        .minor = 0x48
+                        .major = 0x04,
+                        .minor = 0x21
                     },
                     .type = 0x03,
                     ._unk0 = 0x02,
