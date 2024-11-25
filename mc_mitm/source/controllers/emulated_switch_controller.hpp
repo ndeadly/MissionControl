@@ -78,8 +78,8 @@ namespace ams::controller {
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
-            Vec3d m_accel;
-            Vec3d m_gyro;
+            Vec3d<float> m_accel;
+            Vec3d<float> m_gyro;
 
             u8 m_input_report_mode;
 

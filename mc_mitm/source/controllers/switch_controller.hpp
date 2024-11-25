@@ -234,8 +234,8 @@ namespace ams::controller {
             } sensor_sleep;
 
             struct {
-                u8 gyro_sensitivity;
-                u8 acc_sensitivity;
+                GyroSensitivity gyro_sensitivity;
+                AccelSensitivity accel_sensitivity;
                 u8 gyro_perf_rate;
                 u8 acc_aa_bandwidth;
             } sensor_config;

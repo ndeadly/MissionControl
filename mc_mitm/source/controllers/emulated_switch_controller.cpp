@@ -61,8 +61,8 @@ namespace ams::controller {
         m_right_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
         std::memset(&m_accel, 0, sizeof(m_accel));
         std::memset(&m_gyro, 0, sizeof(m_gyro));
-        m_motion_packer->SetGyroSensitivity(2000);
-        m_motion_packer->SetAccSensitivity(8);
+        m_motion_packer->SetGyroSensitivity(GyroSensitivity_2000Dps);
+        m_motion_packer->SetAccelSensitivity(AccelSensitivity_8G);
     }
 
     void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
@@ -484,8 +484,8 @@ namespace ams::controller {
     Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand* command) {
         m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion;
 
-        u16 gyro_sensitivity = m_motion_packer->GetGyroSensitivity();
-        u16 acc_sensitivity = m_motion_packer->GetAccSensitivity();
+        GyroSensitivity gyro_sensitivity = m_motion_packer->GetGyroSensitivity();
+        AccelSensitivity accel_sensitivity = m_motion_packer->GetAccelSensitivity();
 
         if (m_enable_motion) {
             switch (command->sensor_sleep.mode) {
@@ -509,7 +509,7 @@ namespace ams::controller {
         }
 
         m_motion_packer->SetGyroSensitivity(gyro_sensitivity);
-        m_motion_packer->SetAccSensitivity(acc_sensitivity);
+        m_motion_packer->SetAccelSensitivity(accel_sensitivity);
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
@@ -520,28 +520,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandSensorConfig(const SwitchHidCommand *command) {
-        u16 gyro_sensitivity;
-        u16 acc_sensitivity;
-        
-        switch (command->sensor_config.gyro_sensitivity) {
-            case 0: gyro_sensitivity = 250; break;
-            case 1: gyro_sensitivity = 500; break;
-            case 2: gyro_sensitivity = 1000; break;
-            case 3: gyro_sensitivity = 2000; break;
-            AMS_UNREACHABLE_DEFAULT_CASE();
-        }
-
-        m_motion_packer->SetGyroSensitivity(gyro_sensitivity);
-
-        switch (command->sensor_config.acc_sensitivity) {
-            case 0: acc_sensitivity = 8000; break;
-            case 1: acc_sensitivity = 4000; break;
-            case 2: acc_sensitivity = 2000; break;
-            case 3: acc_sensitivity = 16000; break;
-            AMS_UNREACHABLE_DEFAULT_CASE();
-        }
-
-        m_motion_packer->SetAccSensitivity(acc_sensitivity);
+        m_motion_packer->SetGyroSensitivity(command->sensor_config.gyro_sensitivity);
+        m_motion_packer->SetAccelSensitivity(command->sensor_config.accel_sensitivity);
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,

@@ -35,7 +35,7 @@ namespace ams::controller {
         constexpr u16 Ds3ProductId = 0x0268;
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000 / 113;
+        constexpr float AccelScaleFactor = 1 / 113.0f;
 
         constinit const u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
         constinit const u8 LedConfig[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
@@ -271,9 +271,9 @@ namespace ams::controller {
 
         m_buttons.home = src->input0x01.buttons.ps;
 
-        m_accel.x = -static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y)));
-        m_accel.y = -static_cast<s16>(AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511));
-        m_accel.z =  static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z)));
+        m_accel.x = -AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y));
+        m_accel.y = -AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511);
+        m_accel.z =  AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z));
     }
 
     Result Dualshock3Controller::SendEnablePayload() {

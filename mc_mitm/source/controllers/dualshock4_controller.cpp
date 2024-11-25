@@ -23,8 +23,6 @@ namespace ams::controller {
     namespace {
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000;
-        constexpr float GyroScaleFactor = UINT16_MAX / (13371 * 360.0f) * 1000;
 
         constexpr u16 TouchpadWidth = 1920;
         constexpr u16 TouchpadHeight = 942;
@@ -167,13 +165,13 @@ namespace ams::controller {
             m_buttons.capture = 0;
         }
 
-        m_accel.x = -static_cast<s16>(AccelScaleFactor * src->input0x11.acc_z / float(m_motion_calibration.acc.z_max));
-        m_accel.y = -static_cast<s16>(AccelScaleFactor * src->input0x11.acc_x / float(m_motion_calibration.acc.x_max));
-        m_accel.z =  static_cast<s16>(AccelScaleFactor * src->input0x11.acc_y / float(m_motion_calibration.acc.y_max));
+        m_accel.x = -src->input0x11.acc_z / float(m_motion_calibration.acc.z_max);
+        m_accel.y = -src->input0x11.acc_x / float(m_motion_calibration.acc.x_max);
+        m_accel.z =  src->input0x11.acc_y / float(m_motion_calibration.acc.y_max);
 
-        m_gyro.x = -static_cast<s16>(GyroScaleFactor * (src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max  - m_motion_calibration.gyro.roll_bias)  / m_motion_calibration.gyro.speed_max));
-        m_gyro.y = -static_cast<s16>(GyroScaleFactor * (src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max));
-        m_gyro.z =  static_cast<s16>(GyroScaleFactor * (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max   - m_motion_calibration.gyro.yaw_bias)   / m_motion_calibration.gyro.speed_max));
+        m_gyro.x = -(src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max  - m_motion_calibration.gyro.roll_bias)  / m_motion_calibration.gyro.speed_max);
+        m_gyro.y = -(src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max);
+        m_gyro.z =  (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max   - m_motion_calibration.gyro.yaw_bias)   / m_motion_calibration.gyro.speed_max);
     }
 
     void Dualshock4Controller::MapButtons(const Dualshock4ButtonData *buttons) {

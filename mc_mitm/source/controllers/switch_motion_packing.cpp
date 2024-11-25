@@ -19,24 +19,44 @@ namespace ams::controller {
 
     namespace {
 
-        // Bits to degrees, degrees to radians and nanoseconds to seconds
-        constexpr double QuatScaleFactor = 2000.0f / INT16_MAX * M_PI / 180.0f / 1000000000.0f;
+        // Degrees to radians and nanoseconds to seconds
+        constexpr double QuatScaleFactor = std::numbers::pi / 180.0f / 1000000000.0f;
+
+        // See https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/issues/18#issuecomment-331324555
+        constexpr float BaseGyroSensitivity = 936.0f / (13371 - 0); // 13371 and 0 (offset, would technically need to be done for each axis) match the factory_motion_calibration value in the SPI flash
+        constexpr float BaseAccelSensitivity = 4.0f / (16384 - 0); // 16384 and 0 (offset, would technically need to be done for each axis) match the factory_motion_calibration value in the SPI flash
+
+        constexpr float GyroSensitivities[] = { BaseGyroSensitivity / 8, BaseGyroSensitivity / 4, BaseGyroSensitivity / 2, BaseGyroSensitivity };
+        constexpr float AccelSensitivities[] = { BaseAccelSensitivity, BaseAccelSensitivity / 2, BaseAccelSensitivity / 4, BaseAccelSensitivity * 2};
 
     }
 
-    void NullMotionPacker::PackData(SwitchMotionData* motion_data, Vec3d accel, Vec3d gyro) {
+    void NullMotionPacker::PackData(SwitchMotionData* motion_data, Vec3d<float> accel, Vec3d<float> gyro) {
         AMS_UNUSED(accel);
         AMS_UNUSED(gyro);
         std::memset(motion_data, 0, sizeof(SwitchMotionData));
     };
 
-    void StandardMotionPacker::PackData(SwitchMotionData* motion_data, Vec3d accel, Vec3d gyro) {
-        motion_data->standard.accel_0 = accel;
-        motion_data->standard.accel_1 = accel;
-        motion_data->standard.accel_2 = accel;
-        motion_data->standard.gyro_0 = gyro;
-        motion_data->standard.gyro_1 = gyro;
-        motion_data->standard.gyro_2 = gyro;
+    void StandardMotionPacker::PackData(SwitchMotionData* motion_data, Vec3d<float> accel, Vec3d<float> gyro) {
+        const Vec3d<s16> accel_scaled = {
+            .x = static_cast<s16>(std::clamp<float>(accel.x / AccelSensitivities[m_accel_sensitivity], INT16_MIN, INT16_MAX)),
+            .y = static_cast<s16>(std::clamp<float>(accel.y / AccelSensitivities[m_accel_sensitivity], INT16_MIN, INT16_MAX)),
+            .z = static_cast<s16>(std::clamp<float>(accel.z / AccelSensitivities[m_accel_sensitivity], INT16_MIN, INT16_MAX))
+        };
+
+        motion_data->standard.accel_0 = accel_scaled;
+        motion_data->standard.accel_1 = accel_scaled;
+        motion_data->standard.accel_2 = accel_scaled;
+
+        const Vec3d<s16> gyro_scaled = {
+            .x = static_cast<s16>(std::clamp<float>(gyro.x / GyroSensitivities[m_gyro_sensitivity], INT16_MIN, INT16_MAX)),
+            .y = static_cast<s16>(std::clamp<float>(gyro.y / GyroSensitivities[m_gyro_sensitivity], INT16_MIN, INT16_MAX)),
+            .z = static_cast<s16>(std::clamp<float>(gyro.z / GyroSensitivities[m_gyro_sensitivity], INT16_MIN, INT16_MAX))
+        };
+
+        motion_data->standard.gyro_0 = gyro_scaled;
+        motion_data->standard.gyro_1 = gyro_scaled;
+        motion_data->standard.gyro_2 = gyro_scaled;
     };
 
     QuaternionMotionPacker::QuaternionMotionPacker() {
@@ -59,16 +79,22 @@ namespace ams::controller {
                           q.w * norm_inverse);
     };
 
-    void QuaternionMotionPacker::PackData(SwitchMotionData* motion_data, Vec3d accel, Vec3d gyro) {
-        motion_data->quaternion.packing_mode_2.accel_0 = accel;
-        motion_data->quaternion.packing_mode_2.accel_1 = accel;
-        motion_data->quaternion.packing_mode_2.accel_2 = accel;
+    void QuaternionMotionPacker::PackData(SwitchMotionData* motion_data, Vec3d<float> accel, Vec3d<float> gyro) {
+        const Vec3d<s16> accel_scaled = {
+            .x = static_cast<s16>(std::clamp<float>(accel.x / AccelSensitivities[m_accel_sensitivity], INT16_MIN, INT16_MAX)),
+            .y = static_cast<s16>(std::clamp<float>(accel.y / AccelSensitivities[m_accel_sensitivity], INT16_MIN, INT16_MAX)),
+            .z = static_cast<s16>(std::clamp<float>(accel.z / AccelSensitivities[m_accel_sensitivity], INT16_MIN, INT16_MAX))
+        };
+
+        motion_data->standard.accel_0 = accel_scaled;
+        motion_data->standard.accel_1 = accel_scaled;
+        motion_data->standard.accel_2 = accel_scaled;
 
         this->UpdateRotationState(gyro);
         this->PackGyroFixedPrecision(motion_data);
     };
 
-    void QuaternionMotionPacker::UpdateRotationState(Vec3d gyro) {
+    void QuaternionMotionPacker::UpdateRotationState(Vec3d<float> gyro) {
         os::Tick current_tick = os::GetSystemTick();
 
         double dt = os::ConvertToTimeSpan(current_tick - m_last_tick).GetNanoSeconds();
@@ -132,7 +158,7 @@ namespace ams::controller {
         motion_data->quaternion.packing_mode_2.timestamp_count = 3;
 
         // Increment for the next cycle
-        m_timestamp_start += 12;
+        m_timestamp_start += 8;
     };
 
 }
