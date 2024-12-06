@@ -60,8 +60,7 @@ namespace ams::controller {
     };
 
     QuaternionMotionPacker::QuaternionMotionPacker() {
-        m_last_tick = os::GetSystemTick();
-        m_timestamp_start = 0;
+        m_previous_tick = os::GetSystemTick();
     };
 
     constexpr QuaternionMotionPacker::Quaternion QuaternionMotionPacker::HamiltonProduct(Quaternion q1, Quaternion q2) {
@@ -97,7 +96,7 @@ namespace ams::controller {
     void QuaternionMotionPacker::UpdateRotationState(Vec3d<float> gyro) {
         os::Tick current_tick = os::GetSystemTick();
 
-        double dt = os::ConvertToTimeSpan(current_tick - m_last_tick).GetNanoSeconds();
+        double dt = os::ConvertToTimeSpan(current_tick - m_previous_tick).GetNanoSeconds();
 
         double angle_x = gyro.x * QuatScaleFactor * dt;
         double angle_y = gyro.y * QuatScaleFactor * dt;
@@ -113,7 +112,7 @@ namespace ams::controller {
 
         m_rotation_state = QuaternionNormalize(HamiltonProduct(m_rotation_state, current_rotation));
 
-        m_last_tick = current_tick;
+        m_previous_tick = current_tick;
     };
 
     void QuaternionMotionPacker::PackGyroFixedPrecision(SwitchMotionData* motion_data) {
@@ -153,12 +152,10 @@ namespace ams::controller {
         motion_data->quaternion.packing_mode_2.delta_mid_avg_2 = 0;
 
         // Timestamps handling is still a bit unclear, these are the values that result in no drifting 
-        motion_data->quaternion.packing_mode_2.timestamp_start_l = m_timestamp_start & 0x1;
-        motion_data->quaternion.packing_mode_2.timestamp_start_h = (m_timestamp_start >> 1) & 0x3FF;
+        auto timestamp_start = os::ConvertToTimeSpan(m_previous_tick).GetMilliSeconds();
+        motion_data->quaternion.packing_mode_2.timestamp_start_l = timestamp_start & 0x1;
+        motion_data->quaternion.packing_mode_2.timestamp_start_h = (timestamp_start >> 1) & 0x3FF;
         motion_data->quaternion.packing_mode_2.timestamp_count = 3;
-
-        // Increment for the next cycle
-        m_timestamp_start += 8;
     };
 
 }

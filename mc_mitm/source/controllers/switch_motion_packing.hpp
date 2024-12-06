@@ -191,8 +191,7 @@ namespace ams::controller {
             void PackGyroFixedPrecision(SwitchMotionData* motion_data);
             
         private:
-            os::Tick m_last_tick;
-            u16 m_timestamp_start;
+            os::Tick m_previous_tick;
             Quaternion m_rotation_state;
     };
 }
