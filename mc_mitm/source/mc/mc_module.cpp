@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 ndeadly
+ * Copyright (c) 2020-2024 ndeadly
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,7 +27,13 @@ namespace ams::mc {
 
         constexpr sm::ServiceName MissionControlServiceName = sm::ServiceName::Encode("mc");
 
-        using ServerOptions = sf::hipc::DefaultServerManagerOptions;
+        struct ServerOptions {
+            static constexpr size_t PointerBufferSize   = 0x1000;
+            static constexpr size_t MaxDomains          = 0;
+            static constexpr size_t MaxDomainObjects    = 0;
+            static constexpr bool CanDeferInvokeRequest = false;
+            static constexpr bool CanManageMitmServers  = false;
+        };
 
         constexpr size_t MaxSessions = 4;
 
@@ -52,7 +58,7 @@ namespace ams::mc {
         constexpr size_t ThreadStackSize = 0x1000;
         alignas(os::ThreadStackAlignment) constinit u8 g_thread_stack[ThreadStackSize];
         constinit os::ThreadType g_thread;
-        
+
         void MissionControlThreadFunction(void *) {
             R_ABORT_UNLESS(g_server_manager.RegisterServer(PortIndex_MissionControl, MissionControlServiceName, MaxSessions));
             g_server_manager.LoopProcess();
@@ -68,7 +74,7 @@ namespace ams::mc {
             ThreadStackSize,
             ThreadPriority
         ));
-        
+
         os::SetThreadNamePointer(&g_thread, "mc::MissionControlThread");
         os::StartThread(&g_thread);
     }

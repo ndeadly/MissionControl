@@ -26,6 +26,7 @@ namespace ams::bluetooth::core {
     void SignalEnabled();
     void WaitEnabled();
 
+    os::Event *GetCustomDataEvent();
     os::SystemEvent *GetSystemEvent();
     os::SystemEvent *GetForwardEvent();
     os::SystemEvent *GetUserForwardEvent();

@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "bluetooth_core.hpp"
+#include "../btdrv_ext.h"
 #include "../btdrv_mitm_flags.hpp"
 #include "../../controllers/controller_management.hpp"
 
@@ -31,6 +32,7 @@ namespace ams::bluetooth::core {
 
         os::Event g_init_event(os::EventClearMode_ManualClear);
         os::Event g_enable_event(os::EventClearMode_ManualClear);
+        os::Event g_custom_data_event(os::EventClearMode_AutoClear);
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
 
         bluetooth::Address ReverseBluetoothAddress(bluetooth::Address address) {
@@ -60,6 +62,10 @@ namespace ams::bluetooth::core {
 
     void WaitEnabled() {
         g_enable_event.Wait();
+    }
+
+    os::Event *GetCustomDataEvent() {
+        return &g_custom_data_event;
     }
 
     os::SystemEvent *GetSystemEvent() {
@@ -189,6 +195,13 @@ namespace ams::bluetooth::core {
         {
             std::scoped_lock lk(g_event_info_lock);
             R_ABORT_UNLESS(btdrvGetEventInfo(&g_event_info, sizeof(bluetooth::EventInfo), &g_current_event_type));
+        }
+
+        // Process custom event and return
+        if (g_current_event_type == BtdrvEventType_MissionControlCustomEvent) {
+            g_custom_data_event.Signal();
+            g_data_read_event.Wait();
+            return;
         }
 
         if (!g_redirect_core_events) {
