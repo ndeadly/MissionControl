@@ -79,4 +79,8 @@ namespace ams::mc {
         R_SUCCEED();
     }
 
+    Result MissionControlService::DmSetConfig(const ams::mc::BsaSetConfig &set_config) {
+        R_RETURN(btdrvextDmSetConfig(&set_config.config));
+    }
+
 }

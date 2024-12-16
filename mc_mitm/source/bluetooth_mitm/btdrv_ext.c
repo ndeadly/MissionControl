@@ -47,3 +47,12 @@ Result btdrvextSendHciCommand(u16 opcode, const void *data, size_t size) {
 
     return _btdrvCustomCommand(&cmd, sizeof(cmd));
 }
+
+Result btdrvextDmSetConfig(const tBSA_DM_SET_CONFIG *set_config) {
+    const struct NX_PACKED {
+        u32 type;
+        tBSA_DM_SET_CONFIG set_config;
+    } cmd = { BtdrvExtCustomEventType_DmSetConfig, *set_config };
+
+    return _btdrvCustomCommand(&cmd, sizeof(cmd));
+}

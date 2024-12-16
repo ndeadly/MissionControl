@@ -15,12 +15,14 @@
  */
 #pragma once
 #include <switch.h>
+#include "bsa_defs.h"
 
 #define BtdrvEventType_MissionControlCustomEvent 0x69
 
 typedef enum {
     BtdrvExtCustomEventType_GetHciHandle   = 0x0,
     BtdrvExtCustomEventType_SendHciCommand = 0x1,
+    BtdrvExtCustomEventType_DmSetConfig    = 0x2,
 } BtdrvExtCustomEventType;
 
 typedef struct {
@@ -49,6 +51,7 @@ extern "C" {
 
 Result btdrvextGetHciHandle(BtdrvAddress address);
 Result btdrvextSendHciCommand(u16 opcode, const void *data, size_t size);
+Result btdrvextDmSetConfig(const tBSA_DM_SET_CONFIG *add_dev);
 
 #ifdef __cplusplus
 }

@@ -14,6 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <stratosphere.hpp>
+#include "../bluetooth_mitm/bsa_defs.h"
 
 namespace ams::mc {
 
@@ -23,6 +25,10 @@ namespace ams::mc {
 
     struct DateString {
         char date[32];
+    };
+
+    struct BsaSetConfig : sf::LargeData {
+        tBSA_DM_SET_CONFIG config;
     };
 
 }
