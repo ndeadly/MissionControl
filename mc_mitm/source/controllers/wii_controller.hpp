@@ -500,7 +500,7 @@ namespace ams::controller {
             , m_mp_state_changing(false) { }
 
             Result Initialize();
-            Result SetVibration(const SwitchRumbleData *rumble_data);
+            Result SetVibration(const SwitchMotorData *motor_data);
             Result CancelVibration();
             Result SetPlayerLed(u8 led_mask);
             void ProcessInputData(const bluetooth::HidReport *report) override;

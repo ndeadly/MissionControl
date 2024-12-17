@@ -14,106 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "emulated_switch_controller.hpp"
+#include "../utils.hpp"
 #include "../mcmitm_config.hpp"
 
 namespace ams::controller {
 
     namespace {
 
-        // Frequency in Hz rounded to nearest int
-        // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#frequency-table
-        constinit const u16 RumbleFreqLookup[] = {
-            0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f, 0x0030, 0x0031,
-            0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0039, 0x003a, 0x003b,
-            0x003c, 0x003e, 0x003f, 0x0040, 0x0042, 0x0043, 0x0045, 0x0046, 0x0048,
-            0x0049, 0x004b, 0x004d, 0x004e, 0x0050, 0x0052, 0x0054, 0x0055, 0x0057,
-            0x0059, 0x005b, 0x005d, 0x005f, 0x0061, 0x0063, 0x0066, 0x0068, 0x006a,
-            0x006c, 0x006f, 0x0071, 0x0074, 0x0076, 0x0079, 0x007b, 0x007e, 0x0081,
-            0x0084, 0x0087, 0x0089, 0x008d, 0x0090, 0x0093, 0x0096, 0x0099, 0x009d,
-            0x00a0, 0x00a4, 0x00a7, 0x00ab, 0x00ae, 0x00b2, 0x00b6, 0x00ba, 0x00be,
-            0x00c2, 0x00c7, 0x00cb, 0x00cf, 0x00d4, 0x00d9, 0x00dd, 0x00e2, 0x00e7,
-            0x00ec, 0x00f1, 0x00f7, 0x00fc, 0x0102, 0x0107, 0x010d, 0x0113, 0x0119,
-            0x011f, 0x0125, 0x012c, 0x0132, 0x0139, 0x0140, 0x0147, 0x014e, 0x0155,
-            0x015d, 0x0165, 0x016c, 0x0174, 0x017d, 0x0185, 0x018d, 0x0196, 0x019f,
-            0x01a8, 0x01b1, 0x01bb, 0x01c5, 0x01ce, 0x01d9, 0x01e3, 0x01ee, 0x01f8,
-            0x0203, 0x020f, 0x021a, 0x0226, 0x0232, 0x023e, 0x024b, 0x0258, 0x0265,
-            0x0272, 0x0280, 0x028e, 0x029c, 0x02ab, 0x02ba, 0x02c9, 0x02d9, 0x02e9,
-            0x02f9, 0x030a, 0x031b, 0x032c, 0x033e, 0x0350, 0x0363, 0x0376, 0x0389,
-            0x039d, 0x03b1, 0x03c6, 0x03db, 0x03f1, 0x0407, 0x041d, 0x0434, 0x044c,
-            0x0464, 0x047d, 0x0496, 0x04af, 0x04ca, 0x04e5
-        };
-        constexpr size_t RumbleFreqLookupSize = sizeof(RumbleFreqLookup) / sizeof(u16);
-
-        // Floats from dekunukem repo normalised and scaled by function used by yuzu
-        // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md#amplitude-table
-        // https://github.com/yuzu-emu/yuzu/blob/d3a4a192fe26e251f521f0311b2d712f5db9918e/src/input_common/sdl/sdl_impl.cpp#L429
-        constinit const float RumbleAmpLookup[] = {
-            0.000000, 0.120576, 0.137846, 0.146006, 0.154745, 0.164139, 0.174246,
-            0.185147, 0.196927, 0.209703, 0.223587, 0.238723, 0.255268, 0.273420,
-            0.293398, 0.315462, 0.321338, 0.327367, 0.333557, 0.339913, 0.346441,
-            0.353145, 0.360034, 0.367112, 0.374389, 0.381870, 0.389564, 0.397476,
-            0.405618, 0.413996, 0.422620, 0.431501, 0.436038, 0.440644, 0.445318,
-            0.450062, 0.454875, 0.459764, 0.464726, 0.469763, 0.474876, 0.480068,
-            0.485342, 0.490694, 0.496130, 0.501649, 0.507256, 0.512950, 0.518734,
-            0.524609, 0.530577, 0.536639, 0.542797, 0.549055, 0.555413, 0.561872,
-            0.568436, 0.575106, 0.581886, 0.588775, 0.595776, 0.602892, 0.610127,
-            0.617482, 0.624957, 0.632556, 0.640283, 0.648139, 0.656126, 0.664248,
-            0.672507, 0.680906, 0.689447, 0.698135, 0.706971, 0.715957, 0.725098,
-            0.734398, 0.743857, 0.753481, 0.763273, 0.773235, 0.783370, 0.793684,
-            0.804178, 0.814858, 0.825726, 0.836787, 0.848044, 0.859502, 0.871165,
-            0.883035, 0.895119, 0.907420, 0.919943, 0.932693, 0.945673, 0.958889,
-            0.972345, 0.986048, 1.000000
-        };
-        constexpr size_t RumbleAmpLookupSize = sizeof(RumbleAmpLookup) / sizeof(float);
-
-        void DecodeRumbleValues(const u8 enc[], SwitchRumbleData *dec) {
-            u8 hi_freq_ind = 0x20 + (enc[0] >> 2) + ((enc[1] & 0x01) * 0x40) - 1;
-            u8 hi_amp_ind  = (enc[1] & 0xfe) >> 1;
-            u8 lo_freq_ind = (enc[2] & 0x7f) - 1;
-            u8 lo_amp_ind  = ((enc[3] - 0x40) << 1) + ((enc[2] & 0x80) >> 7);
-
-            if (!((hi_freq_ind < RumbleFreqLookupSize) &&
-                  (hi_amp_ind < RumbleAmpLookupSize) &&
-                  (lo_freq_ind < RumbleFreqLookupSize) &&
-                  (lo_amp_ind < RumbleAmpLookupSize))) {
-                std::memset(dec, 0, sizeof(SwitchRumbleData));
-                return;
-            }
-
-            dec->high_band_freq = float(RumbleFreqLookup[hi_freq_ind]);
-            dec->high_band_amp  = RumbleAmpLookup[hi_amp_ind];
-            dec->low_band_freq  = float(RumbleFreqLookup[lo_freq_ind]);
-            dec->low_band_amp   = RumbleAmpLookup[lo_amp_ind];
-        }
-
         // CRC-8 with polynomial 0x7 for NFC/IR packets
-        constinit const u8 Crc8Lookup[] = {
-            0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
-            0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
-            0xE0, 0xE7, 0xEE, 0xE9, 0xFC, 0xFB, 0xF2, 0xF5, 0xD8, 0xDF, 0xD6, 0xD1, 0xC4, 0xC3, 0xCA, 0xCD,
-            0x90, 0x97, 0x9E, 0x99, 0x8C, 0x8B, 0x82, 0x85, 0xA8, 0xAF, 0xA6, 0xA1, 0xB4, 0xB3, 0xBA, 0xBD,
-            0xC7, 0xC0, 0xC9, 0xCE, 0xDB, 0xDC, 0xD5, 0xD2, 0xFF, 0xF8, 0xF1, 0xF6, 0xE3, 0xE4, 0xED, 0xEA,
-            0xB7, 0xB0, 0xB9, 0xBE, 0xAB, 0xAC, 0xA5, 0xA2, 0x8F, 0x88, 0x81, 0x86, 0x93, 0x94, 0x9D, 0x9A,
-            0x27, 0x20, 0x29, 0x2E, 0x3B, 0x3C, 0x35, 0x32, 0x1F, 0x18, 0x11, 0x16, 0x03, 0x04, 0x0D, 0x0A,
-            0x57, 0x50, 0x59, 0x5E, 0x4B, 0x4C, 0x45, 0x42, 0x6F, 0x68, 0x61, 0x66, 0x73, 0x74, 0x7D, 0x7A,
-            0x89, 0x8E, 0x87, 0x80, 0x95, 0x92, 0x9B, 0x9C, 0xB1, 0xB6, 0xBF, 0xB8, 0xAD, 0xAA, 0xA3, 0xA4,
-            0xF9, 0xFE, 0xF7, 0xF0, 0xE5, 0xE2, 0xEB, 0xEC, 0xC1, 0xC6, 0xCF, 0xC8, 0xDD, 0xDA, 0xD3, 0xD4,
-            0x69, 0x6E, 0x67, 0x60, 0x75, 0x72, 0x7B, 0x7C, 0x51, 0x56, 0x5F, 0x58, 0x4D, 0x4A, 0x43, 0x44,
-            0x19, 0x1E, 0x17, 0x10, 0x05, 0x02, 0x0B, 0x0C, 0x21, 0x26, 0x2F, 0x28, 0x3D, 0x3A, 0x33, 0x34,
-            0x4E, 0x49, 0x40, 0x47, 0x52, 0x55, 0x5C, 0x5B, 0x76, 0x71, 0x78, 0x7F, 0x6A, 0x6D, 0x64, 0x63,
-            0x3E, 0x39, 0x30, 0x37, 0x22, 0x25, 0x2C, 0x2B, 0x06, 0x01, 0x08, 0x0F, 0x1A, 0x1D, 0x14, 0x13,
-            0xAE, 0xA9, 0xA0, 0xA7, 0xB2, 0xB5, 0xBC, 0xBB, 0x96, 0x91, 0x98, 0x9F, 0x8A, 0x8D, 0x84, 0x83,
-            0xDE, 0xD9, 0xD0, 0xD7, 0xC2, 0xC5, 0xCC, 0xCB, 0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
-        };
-
-        u8 ComputeCrc8(const void *data, size_t size) {
-            auto *bytes = reinterpret_cast<const u8 *>(data);
-
-            u8 crc = 0x00;
-            for (size_t i = 0; i < size; ++i) {
-                crc = Crc8Lookup[crc ^ bytes[i]];
-            }
-            return crc;
+        constexpr u8 ComputeCrc8(const void *data, size_t size) {
+            return utils::Crc8<7>::Calculate(data, size);
         }
 
     }
@@ -126,7 +36,8 @@ namespace ams::controller {
     , m_led_pattern(0)
     , m_gyro_sensitivity(2000)
     , m_acc_sensitivity(8000)
-    , m_input_report_mode(0x30) {
+    , m_input_report_mode(0x30)
+    , m_mcu_mode(McuMode_Suspended) {
         this->ClearControllerState();
 
         auto config = mitm::GetGlobalConfig();
@@ -158,7 +69,7 @@ namespace ams::controller {
         this->ProcessInputData(report);
 
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
-        input_report->id = 0x30;
+        input_report->id = m_input_report_mode;
         input_report->timer = (input_report->timer + 1) & 0xff;
         input_report->conn_info = (0 << 1) | m_ext_power;
         input_report->battery = m_battery | m_charging;
@@ -166,8 +77,23 @@ namespace ams::controller {
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick;
 
-        std::memcpy(&input_report->type0x30.motion_data, &m_motion_data, sizeof(m_motion_data));
-        m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
+        const SwitchMcuResponse empty_mcu_response = {
+          .command = McuCommand_EmptyAwaitingCmd,
+          .data = {},
+        };
+
+        switch (m_input_report_mode) {
+            case 0x31:
+                std::memcpy(&input_report->type0x31.motion_data, &m_motion_data, sizeof(m_motion_data));
+                std::memcpy(&input_report->type0x31.mcu_response, &empty_mcu_response, sizeof(empty_mcu_response));
+                input_report->type0x31.crc = ComputeCrc8(&empty_mcu_response, sizeof(SwitchMcuResponse));
+                m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);
+                break;
+            default:
+                std::memcpy(&input_report->type0x30.motion_data, &m_motion_data, sizeof(m_motion_data));
+                m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
+                break;
+        }
     }
 
     Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
@@ -175,15 +101,15 @@ namespace ams::controller {
 
         switch (output_report->id) {
             case 0x01:
-                R_TRY(this->HandleRumbleData(&output_report->rumble_data));
+                R_TRY(this->HandleRumbleData(&output_report->enc_motor_data));
                 R_TRY(this->HandleHidCommand(&output_report->type0x01.hid_command));
                 break;
             case 0x10:
-                R_TRY(this->HandleRumbleData(&output_report->rumble_data));
+                R_TRY(this->HandleRumbleData(&output_report->enc_motor_data));
                 break;
             case 0x11:
-                R_TRY(this->HandleRumbleData(&output_report->rumble_data));
-                //R_TRY(this->HandleNfcIrData(output_report->type0x11.nfc_ir_data));
+                R_TRY(this->HandleRumbleData(&output_report->enc_motor_data));
+                R_TRY(this->HandleMcuCommand(&output_report->type0x11.mcu_command));
                 break;
             default:
                 break;
@@ -192,12 +118,12 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleRumbleData(const SwitchRumbleDataEncoded *encoded) {
+    Result EmulatedSwitchController::HandleRumbleData(const SwitchEncodedMotorData *encoded_motor_data) {
         if (m_enable_rumble) {
-            SwitchRumbleData rumble_data[2];
-            DecodeRumbleValues(encoded->left_motor,  &rumble_data[0]);
-            DecodeRumbleValues(encoded->right_motor, &rumble_data[1]);
-            R_TRY(this->SetVibration(rumble_data));
+            SwitchMotorData motor_data;
+            if (m_rumble_handler.GetDecodedValues(encoded_motor_data, &motor_data)) {
+                R_TRY(this->SetVibration(&motor_data));
+            }
         }
 
         R_SUCCEED();
@@ -436,11 +362,18 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuWrite(const SwitchHidCommand *command) {
+        switch (command->mcu_write.command){
+            case McuCommand_ConfigureMcu:
+                return this->HandleHidCommandConfigureMcu(command);
+            default:
+                break;
+        }
+    
         const SwitchHidCommandResponse response = {
             .ack = 0xa0,
             .id = command->id,
             .data = {
-                .raw = {
+                .raw = {// This looks a lot like mcu get status
                     0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -452,8 +385,57 @@ namespace ams::controller {
 
         R_RETURN(this->FakeHidCommandResponse(&response));
     }
+    
+    Result EmulatedSwitchController::HandleHidCommandConfigureMcu(const SwitchHidCommand *command) {
+        if (m_mcu_mode == McuMode_Suspended || m_mcu_mode == McuMode_Busy) {
+          const SwitchHidCommandResponse response = {
+              .ack = 0xa0,
+              .id = command->id,
+              .data = {
+                  .raw = {// This looks a lot like mcu get status
+                      0x01, 0x00, 0xff, 0x00, 0x08, 0x00, 0x1b, 0x06,
+                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0xf6
+                  }
+              }
+          };
+
+          R_RETURN(this->FakeHidCommandResponse(&response));
+        }
+        
+        if (m_mcu_mode == McuMode_Standby){
+            m_mcu_mode = command->mcu_write.data.configure_mcu.mode;
+        }
+
+    
+        const SwitchHidCommandResponse response = {
+            .ack = 0xa0,
+            .id = command->id,
+            .data = {
+                .raw = {// This looks a lot like mcu get status
+                    0x01, 0x00, 0x00, 0x00, 0x08, 0x00, 0x1b, 0x01,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0xef
+                }
+            }
+        };
+
+        R_RETURN(this->FakeHidCommandResponse(&response));
+    }
 
     Result EmulatedSwitchController::HandleHidCommandMcuResume(const SwitchHidCommand *command) {
+        if(command->mcu_resume.enabled && m_mcu_mode == McuMode_Suspended){
+          m_mcu_mode = McuMode_Standby;
+        }
+
+        if (!command->mcu_resume.enabled){
+          m_mcu_mode = McuMode_Suspended;
+        }
+
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
             .id = command->id
@@ -571,18 +553,78 @@ namespace ams::controller {
         R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
     }
 
-    Result EmulatedSwitchController::HandleNfcIrData(const u8 *nfc_ir) {
-        AMS_UNUSED(nfc_ir);
+    Result EmulatedSwitchController::HandleMcuCommand(const SwitchMcuCommand *command) {
+        switch (command->sub_command) {
+            case McuSubCommand_SetMcuMode:
+                R_TRY(this->HandleMcuCommandSetMcuMode());
+                break;
+            case McuSubCommand_GetMcuMode:
+                R_TRY(this->HandleMcuCommandGetMcuMode());
+                break;
+            case McuSubCommand_ReadDeviceMode:
+                R_TRY(this->HandleMcuCommandReadDeviceMode());
+                break;
+            case McuSubCommand_WriteDeviceRegisters:
+                //R_TRY(this->HandleMcuCommandWriteDeviceRegisters(command));
+                break;
+            default: {
+                // Send device not ready response for now
+                const SwitchMcuResponse response = {
+                    .command = McuCommand_EmptyAwaitingCmd,
+                    .data = {
+                        .get_mcu_mode = {
+                            .mode = m_mcu_mode
+                        }
+                    }
+                };
 
-        SwitchNfcIrResponse response = {};
+                R_RETURN(this->FakeMcuResponse(&response));
+            }
+        }
 
-        // Send device not ready response for now
-        response.data[0] = 0xff;
-
-        R_RETURN(this->FakeNfcIrResponse(&response));
+        R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::FakeNfcIrResponse(const SwitchNfcIrResponse *response) {
+    Result EmulatedSwitchController::HandleMcuCommandSetMcuMode() {
+        const SwitchMcuResponse response = {
+            .command = McuCommand_EmptyAwaitingCmd
+        };
+
+        R_RETURN(this->FakeMcuResponse(&response));
+    }
+
+    Result EmulatedSwitchController::HandleMcuCommandGetMcuMode() {
+        const SwitchMcuResponse response = {
+            .command = McuCommand_StateReport,
+            .data = {
+                .get_mcu_mode = {
+                    .unknown_1 = 0x08,
+                    .unknown_2 = 0x1b,
+                    .mode = m_mcu_mode
+                }
+            }
+        };
+
+        R_RETURN(this->FakeMcuResponse(&response));
+    }
+    
+    Result EmulatedSwitchController::HandleMcuCommandReadDeviceMode() {
+        const SwitchMcuResponse response = {
+            .command = McuCommand_NfcState,
+            .data = {
+                .read_device_mode = {
+                    .unknown_1 = 0x05,
+                    .unknown_2 = 0x09,
+                    .unknown_3 = 0x31,
+                    .is_ready = 0x01
+                }
+            }
+        };
+
+        R_RETURN(this->FakeMcuResponse(&response));
+    }
+
+    Result EmulatedSwitchController::FakeMcuResponse(const SwitchMcuResponse *response) {
         std::scoped_lock lk(m_input_mutex);
 
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
@@ -596,8 +638,8 @@ namespace ams::controller {
         input_report->vibrator = 0;
 
         std::memcpy(&input_report->type0x31.motion_data, &m_motion_data, sizeof(m_motion_data));
-        std::memcpy(&input_report->type0x31.nfc_ir_response, response, sizeof(SwitchNfcIrResponse));
-        input_report->type0x31.crc = ComputeCrc8(response, sizeof(SwitchNfcIrResponse));
+        std::memcpy(&input_report->type0x31.mcu_response, response, sizeof(SwitchMcuResponse));
+        input_report->type0x31.crc = ComputeCrc8(response, sizeof(SwitchMcuResponse));
         m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);
 
         // Write a fake response into the report buffer

@@ -32,16 +32,16 @@ namespace ams::controller {
 
         protected:
             void ClearControllerState();
-            virtual Result SetVibration(const SwitchRumbleData *rumble_data) { AMS_UNUSED(rumble_data); R_SUCCEED(); }
+            virtual Result SetVibration(const SwitchMotorData *motor_data) { AMS_UNUSED(motor_data); R_SUCCEED(); }
             virtual Result CancelVibration() { R_SUCCEED(); }
             virtual Result SetPlayerLed(u8 led_mask) { AMS_UNUSED(led_mask); R_SUCCEED(); }
 
             void UpdateControllerState(const bluetooth::HidReport *report) override;
             virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
-            Result HandleRumbleData(const SwitchRumbleDataEncoded *encoded);
+            Result HandleRumbleData(const SwitchEncodedMotorData *enc_motor_data);
             Result HandleHidCommand(const SwitchHidCommand *command);
-            Result HandleNfcIrData(const u8 *nfc_ir);
+            Result HandleMcuCommand(const SwitchMcuCommand *command);
 
             Result HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command);
             Result HandleHidCommandSetDataFormat(const SwitchHidCommand *command);
@@ -52,6 +52,7 @@ namespace ams::controller {
             Result HandleHidCommandSerialFlashWrite(const SwitchHidCommand *command);
             Result HandleHidCommandSerialFlashSectorErase(const SwitchHidCommand *command);
             Result HandleHidCommandMcuWrite(const SwitchHidCommand *command);
+            Result HandleHidCommandConfigureMcu(const SwitchHidCommand *command);
             Result HandleHidCommandMcuResume(const SwitchHidCommand *command);
             Result HandleHidCommandMcuPollingEnable(const SwitchHidCommand *command);
             Result HandleHidCommandMcuPollingDisable(const SwitchHidCommand *command);
@@ -62,8 +63,12 @@ namespace ams::controller {
             Result HandleHidCommandSensorConfig(const SwitchHidCommand *command);
             Result HandleHidCommandMotorEnable(const SwitchHidCommand *command);
 
+            Result HandleMcuCommandSetMcuMode();
+            Result HandleMcuCommandGetMcuMode();
+            Result HandleMcuCommandReadDeviceMode();
+
             Result FakeHidCommandResponse(const SwitchHidCommandResponse *response);
-            Result FakeNfcIrResponse(const SwitchNfcIrResponse *response);
+            Result FakeMcuResponse(const SwitchMcuResponse *response);
 
             bool m_charging;
             bool m_ext_power;
@@ -80,10 +85,14 @@ namespace ams::controller {
 
             u8 m_input_report_mode;
 
+            SwitchRumbleHandler m_rumble_handler;
+
             bool m_enable_rumble;
             bool m_enable_motion;
 
             float m_trigger_threshold;
+
+            McuModeType m_mcu_mode;
 
             VirtualSpiFlash m_virtual_memory;
     };

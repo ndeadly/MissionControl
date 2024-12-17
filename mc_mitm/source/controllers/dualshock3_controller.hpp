@@ -106,7 +106,7 @@ namespace ams::controller {
             : EmulatedSwitchController(address, id) { }
 
             Result Initialize(void);
-            Result SetVibration(const SwitchRumbleData *rumble_data);
+            Result SetVibration(const SwitchMotorData *motor_data);
             Result CancelVibration();
             Result SetPlayerLed(u8 led_mask);
 
