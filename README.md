@@ -159,6 +159,7 @@ To functionally uninstall Mission Control and its components, all that needs to 
 * `/atmosphere/contents/010000000000bd00`
 * `/atmosphere/exefs_patches/bluetooth_patches`
 * `/atmosphere/exefs_patches/btm_patches`
+* `/atmosphere/exefs_patches/hid_patches`
 
 If you wish to completely remove all traces of the software ever having been installed (telemetry excepted), you may also want to follow these additional steps
 
@@ -287,6 +288,8 @@ Intercepting initialisation IPC commands also allows homebrew to properly make u
 exefs patches to the `bluetooth` module are provided to enable the pairing of Wii/WiiU and other controllers that makes use of legacy pincode pairing, Xbox Elite 2 Wireless controllers, and to relax device class checks added on newer firmwares to also allow devices identifying as keyboard or joystick to be connected.
 
 exefs patches to the `btm` module have been added to skip over calls to `nn::bluetooth::hal::CloseHidConnection` when a controller fails to respond correctly to the broadcom vendor command sent by `nn::bluetooth::hal::SetTsi`. This prevents all affected controllers from being disconnected immediately after connection, and eliminates the need to manually flag certain controllers with a `settsi_disable.flag` file.
+
+exefs patches to the `hid` module are used to unlock native button remapping (HOS 10.0.0+) for officially licensed 3rd party Pro Controllers.
 
 The `btm` service is now also MITM'd, allowing for faking controller names on the fly while retaining the original names in the pairing database.
 
