@@ -25,7 +25,6 @@ namespace ams::controller {
         constexpr u8 ComputeCrc8(const void *data, size_t size) {
             return utils::Crc8<7>::Calculate(data, size);
         }
-
     }
 
     EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id)
@@ -34,8 +33,6 @@ namespace ams::controller {
     , m_ext_power(false)
     , m_battery(BATTERY_MAX)
     , m_led_pattern(0)
-    , m_gyro_sensitivity(2000)
-    , m_acc_sensitivity(8000)
     , m_input_report_mode(0x30)
     , m_mcu_mode(McuMode_Suspended) {
         this->ClearControllerState();
@@ -62,7 +59,10 @@ namespace ams::controller {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
         m_left_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
         m_right_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
-        std::memset(&m_motion_data, 0, sizeof(m_motion_data));
+        std::memset(&m_accel, 0, sizeof(m_accel));
+        std::memset(&m_gyro, 0, sizeof(m_gyro));
+        m_motion_packer->SetGyroSensitivity(GyroSensitivity_2000Dps);
+        m_motion_packer->SetAccelSensitivity(AccelSensitivity_8G);
     }
 
     void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
@@ -75,7 +75,9 @@ namespace ams::controller {
         input_report->battery = m_battery | m_charging;
         input_report->buttons = m_buttons;
         input_report->left_stick = m_left_stick;
-        input_report->right_stick = m_right_stick;
+        input_report->right_stick = m_right_stick; 
+
+        m_motion_packer->PackData(&input_report->type0x30.motion_data, m_accel, m_gyro);
 
         const SwitchMcuResponse empty_mcu_response = {
           .command = McuCommand_EmptyAwaitingCmd,
@@ -84,13 +86,13 @@ namespace ams::controller {
 
         switch (m_input_report_mode) {
             case 0x31:
-                std::memcpy(&input_report->type0x31.motion_data, &m_motion_data, sizeof(m_motion_data));
+                m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);
                 std::memcpy(&input_report->type0x31.mcu_response, &empty_mcu_response, sizeof(empty_mcu_response));
                 input_report->type0x31.crc = ComputeCrc8(&empty_mcu_response, sizeof(SwitchMcuResponse));
                 m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);
                 break;
             default:
-                std::memcpy(&input_report->type0x30.motion_data, &m_motion_data, sizeof(m_motion_data));
+                m_motion_packer->PackData(&input_report->type0x30.motion_data, m_accel, m_gyro);
                 m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
                 break;
         }
@@ -208,14 +210,14 @@ namespace ams::controller {
             .data = {
                 .get_device_info = {
                     .fw_ver = {
-                        .major = 0x03,
-                        .minor = 0x48
+                        .major = 0x04,
+                        .minor = 0x21
                     },
                     .type = 0x03,
                     ._unk0 = 0x02,
                     .address = m_address,
-                    ._unk1 = 0x01,
-                    ._unk2 = 0x02
+                    .sensor_type = SensorType_LSM6DS3H,
+                    .format_version = 0x02
                 }
             }
         };
@@ -479,15 +481,35 @@ namespace ams::controller {
         R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
-    Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand *command) {
-        if (command->sensor_sleep.disabled) {
-            if (!m_enable_motion) {
-                m_gyro_sensitivity = 2000;
-                m_acc_sensitivity = 8000;
+    Result EmulatedSwitchController::HandleHidCommandSensorSleep(const SwitchHidCommand* command) {
+        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion;
+
+        GyroSensitivity gyro_sensitivity = m_motion_packer->GetGyroSensitivity();
+        AccelSensitivity accel_sensitivity = m_motion_packer->GetAccelSensitivity();
+
+        if (m_enable_motion) {
+            switch (command->sensor_sleep.mode) {
+                case SensorSleepType_Active:
+                    m_motion_packer = std::make_unique<StandardMotionPacker>();
+                    break;
+
+                case SensorSleepType_ActiveDscaleMode1:
+                case SensorSleepType_ActiveDscaleMode2:
+                case SensorSleepType_ActiveDscaleMode3:
+                case SensorSleepType_ActiveDscaleMode4:
+                    m_motion_packer = std::make_unique<QuaternionMotionPacker>();
+                    break;
+
+                default:
+                    m_motion_packer = std::make_unique<NullMotionPacker>();
+                    break;
             }
+        } else {
+            m_motion_packer = std::make_unique<NullMotionPacker>();
         }
 
-        m_enable_motion = mitm::GetGlobalConfig()->general.enable_motion & command->sensor_sleep.disabled;
+        m_motion_packer->SetGyroSensitivity(gyro_sensitivity);
+        m_motion_packer->SetAccelSensitivity(accel_sensitivity);
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
@@ -498,21 +520,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandSensorConfig(const SwitchHidCommand *command) {
-        switch (command->sensor_config.gyro_sensitivity) {
-            case 0: m_gyro_sensitivity = 250; break;
-            case 1: m_gyro_sensitivity = 500; break;
-            case 2: m_gyro_sensitivity = 1000; break;
-            case 3: m_gyro_sensitivity = 2000; break;
-            AMS_UNREACHABLE_DEFAULT_CASE();
-        }
-
-        switch (command->sensor_config.acc_sensitivity) {
-            case 0: m_acc_sensitivity = 8000; break;
-            case 1: m_acc_sensitivity = 4000; break;
-            case 2: m_acc_sensitivity = 2000; break;
-            case 3: m_acc_sensitivity = 16000; break;
-            AMS_UNREACHABLE_DEFAULT_CASE();
-        }
+        m_motion_packer->SetGyroSensitivity(command->sensor_config.gyro_sensitivity);
+        m_motion_packer->SetAccelSensitivity(command->sensor_config.accel_sensitivity);
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
@@ -637,7 +646,7 @@ namespace ams::controller {
         input_report->right_stick = m_right_stick;
         input_report->vibrator = 0;
 
-        std::memcpy(&input_report->type0x31.motion_data, &m_motion_data, sizeof(m_motion_data));
+        m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);
         std::memcpy(&input_report->type0x31.mcu_response, response, sizeof(SwitchMcuResponse));
         input_report->type0x31.crc = ComputeCrc8(response, sizeof(SwitchMcuResponse));
         m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);

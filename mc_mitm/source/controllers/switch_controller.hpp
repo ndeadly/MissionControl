@@ -19,6 +19,7 @@
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "../async/future_response.hpp"
 #include "switch_rumble_handler.hpp"
+#include "switch_motion_packing.hpp"
 #include <queue>
 
 namespace ams::controller {
@@ -81,15 +82,6 @@ namespace ams::controller {
         u8              : 2; // SR, SL (Left Joy)
         u8 L            : 1;
         u8 ZL           : 1;
-    } PACKED;
-
-    struct Switch6AxisData {
-        s16 accel_x;
-        s16 accel_y;
-        s16 accel_z;
-        s16 gyro_1;
-        s16 gyro_2;
-        s16 gyro_3;
     } PACKED;
 
     struct Switch6AxisCalibrationData {
@@ -187,6 +179,21 @@ namespace ams::controller {
         McuMode_Busy = 6,
     };
 
+    enum SensorSleepType : u8 {
+        SensorSleepType_Inactive          = 0x0,
+        SensorSleepType_Active            = 0x1,
+        SensorSleepType_ActiveDscaleMode1 = 0x2,
+        SensorSleepType_ActiveDscaleMode2 = 0x3,
+        SensorSleepType_ActiveDscaleMode3 = 0x4,
+        SensorSleepType_ActiveDscaleMode4 = 0x5,
+    };
+
+    enum SensorType : u8 {
+        SensorType_LSM6DS3H   = 0x1,
+        SensorType_ICM20600   = 0x3,
+        SensorType_LSM6DS3TRC = 0x4
+    };
+
     struct SwitchHidCommand {
         u8 id;
         union {
@@ -223,12 +230,12 @@ namespace ams::controller {
             } set_indicator_led;
 
             struct {
-                bool disabled;
+                SensorSleepType mode;
             } sensor_sleep;
 
             struct {
-                u8 gyro_sensitivity;
-                u8 acc_sensitivity;
+                GyroSensitivity gyro_sensitivity;
+                AccelSensitivity accel_sensitivity;
                 u8 gyro_perf_rate;
                 u8 acc_aa_bandwidth;
             } sensor_config;
@@ -268,8 +275,8 @@ namespace ams::controller {
                 u8 type;
                 u8 _unk0;  // Always 0x02
                 bluetooth::Address address;
-                u8 _unk1;  // Always 0x01
-                u8 _unk2;  // If 01, colors in SPI are used. Otherwise default ones
+                SensorType sensor_type;
+                u8 format_version;  // If 01, colors in SPI are used. Otherwise default ones
             } __attribute__ ((__packed__)) get_device_info;
 
             struct {
@@ -358,11 +365,11 @@ namespace ams::controller {
             } type0x23;
 
             struct {
-                Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
+                SwitchMotionData motion_data; // IMU samples at 0, 5 and 10ms
             } type0x30;
 
             struct {
-                Switch6AxisData motion_data[3]; // IMU samples at 0, 5 and 10ms
+                SwitchMotionData motion_data; // IMU samples at 0, 5 and 10ms
                 SwitchMcuResponse mcu_response;
                 u8 crc;
             } type0x31;

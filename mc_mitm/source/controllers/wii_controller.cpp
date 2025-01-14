@@ -30,9 +30,6 @@ namespace ams::controller {
         constexpr float LeftStickScaleFactor     = float(UINT12_MAX) / 0x3f;
         constexpr float RighStickScaleFactor     = float(UINT12_MAX) / 0x1f;
 
-        constexpr float AccelScaleFactor = 65535 / 16000.0f * 1000;
-        constexpr float GyroScaleFactor = 65535 / (13371 * 360.0f) * 1000;
-
         constinit const u16 DpadStickPositions[] = { SwitchAnalogStick::Min, SwitchAnalogStick::Center, SwitchAnalogStick::Max };
 
         constexpr float CalibrateWeightData(u16 x, u16 cal_0kg, u16 cal_17kg, u16 cal_34kg) {
@@ -204,42 +201,22 @@ namespace ams::controller {
     }
 
     void WiiController::MapAccelerometerData(const WiiAccelerometerData *accel, const WiiButtonData *buttons) {
-        if (m_enable_motion) {
-            u16 x_raw = (accel->x << 2) | ((buttons->raw[0] >> 5) & 0x3);
-            u16 y_raw = (accel->y << 2) | (((buttons->raw[1] >> 4) & 0x1) << 1);
-            u16 z_raw = (accel->z << 2) | (((buttons->raw[1] >> 5) & 0x1) << 1);
+        u16 x_raw = (accel->x << 2) | ((buttons->raw[0] >> 5) & 0x3);
+        u16 y_raw = (accel->y << 2) | (((buttons->raw[1] >> 4) & 0x1) << 1);
+        u16 z_raw = (accel->z << 2) | (((buttons->raw[1] >> 5) & 0x1) << 1);
 
-            s16 x = -static_cast<s16>(AccelScaleFactor * (float(x_raw - m_accel_calibration.acc_x_0g) / float(m_accel_calibration.acc_x_1g - m_accel_calibration.acc_x_0g)));
-            s16 y = -static_cast<s16>(AccelScaleFactor * (float(y_raw - m_accel_calibration.acc_y_0g) / float(m_accel_calibration.acc_y_1g - m_accel_calibration.acc_y_0g)));
-            s16 z =  static_cast<s16>(AccelScaleFactor * (float(z_raw - m_accel_calibration.acc_z_0g) / float(m_accel_calibration.acc_z_1g - m_accel_calibration.acc_z_0g)));
+        float x = -float(x_raw - m_accel_calibration.acc_x_0g) / float(m_accel_calibration.acc_x_1g - m_accel_calibration.acc_x_0g);
+        float y = -float(y_raw - m_accel_calibration.acc_y_0g) / float(m_accel_calibration.acc_y_1g - m_accel_calibration.acc_y_0g);
+        float z =  float(z_raw - m_accel_calibration.acc_z_0g) / float(m_accel_calibration.acc_z_1g - m_accel_calibration.acc_z_0g);
 
-            if (m_orientation == WiiControllerOrientation_Horizontal) {
-                m_motion_data[0].accel_x = x;
-                m_motion_data[0].accel_y = y;
-                m_motion_data[0].accel_z = z;
-
-                m_motion_data[1].accel_x = x;
-                m_motion_data[1].accel_y = y;
-                m_motion_data[1].accel_z = z;
-
-                m_motion_data[2].accel_x = x;
-                m_motion_data[2].accel_y = y;
-                m_motion_data[2].accel_z = z;
-            } else {
-                m_motion_data[0].accel_x =  y;
-                m_motion_data[0].accel_y = -x;
-                m_motion_data[0].accel_z =  z;
-
-                m_motion_data[1].accel_x =  y;
-                m_motion_data[1].accel_y = -x;
-                m_motion_data[1].accel_z =  z;
-
-                m_motion_data[2].accel_x =  y;
-                m_motion_data[2].accel_y = -x;
-                m_motion_data[2].accel_z =  z;
-            }
+        if (m_orientation == WiiControllerOrientation_Horizontal) {
+            m_accel.x =  x;
+            m_accel.y =  y;
+            m_accel.z =  z;
         } else {
-            std::memset(&m_motion_data, 0, sizeof(m_motion_data));
+            m_accel.x =  y;
+            m_accel.y = -x;
+            m_accel.z =  z;
         }
     }
 
@@ -402,34 +379,18 @@ namespace ams::controller {
             u16 scale_deg_roll  = 6 * (extension_data->roll_slow_mode  ? m_ext_calibration.motion_plus.slow.degrees_div_6 : m_ext_calibration.motion_plus.fast.degrees_div_6);
             u16 scale_deg_yaw   = 6 * (extension_data->yaw_slow_mode   ? m_ext_calibration.motion_plus.slow.degrees_div_6 : m_ext_calibration.motion_plus.fast.degrees_div_6);
 
-            s16 pitch = static_cast<s16>(GyroScaleFactor * (float(pitch_raw - pitch_0deg) / (float(pitch_scale - pitch_0deg) / scale_deg_pitch)));
-            s16 roll = -static_cast<s16>(GyroScaleFactor * (float(roll_raw  - roll_0deg)  / (float(roll_scale  - roll_0deg)  / scale_deg_roll)));
-            s16 yaw =  -static_cast<s16>(GyroScaleFactor * (float(yaw_raw   - yaw_0deg)   / (float(yaw_scale   - yaw_0deg)   / scale_deg_yaw)));
+            float pitch =  float(pitch_raw - pitch_0deg) / (float(pitch_scale - pitch_0deg) / scale_deg_pitch);
+            float roll  = -float(roll_raw  - roll_0deg)  / (float(roll_scale  - roll_0deg)  / scale_deg_roll);
+            float yaw   = -float(yaw_raw   - yaw_0deg)   / (float(yaw_scale   - yaw_0deg)   / scale_deg_yaw);
 
             if (m_orientation == WiiControllerOrientation_Horizontal) {
-                m_motion_data[0].gyro_1 = pitch;
-                m_motion_data[0].gyro_2 = roll;
-                m_motion_data[0].gyro_3 = yaw;
-
-                m_motion_data[1].gyro_1 = pitch;
-                m_motion_data[1].gyro_2 = roll;
-                m_motion_data[1].gyro_3 = yaw;
-
-                m_motion_data[2].gyro_1 = pitch;
-                m_motion_data[2].gyro_2 = roll;
-                m_motion_data[2].gyro_3 = yaw;
+                m_gyro.x = pitch;
+                m_gyro.y = roll;
+                m_gyro.z = yaw;
             } else {
-                m_motion_data[0].gyro_1 =  roll;
-                m_motion_data[0].gyro_2 = -pitch;
-                m_motion_data[0].gyro_3 =  yaw;
-
-                m_motion_data[1].gyro_1 =  roll;
-                m_motion_data[1].gyro_2 = -pitch;
-                m_motion_data[1].gyro_3 =  yaw;
-
-                m_motion_data[2].gyro_1 =  roll;
-                m_motion_data[2].gyro_2 = -pitch;
-                m_motion_data[2].gyro_3 =  yaw;
+                m_gyro.x =  roll;
+                m_gyro.y = -pitch;
+                m_gyro.z =  yaw;
             }
         } else {
             if (m_extension == WiiExtensionController_MotionPlusNunchuckPassthrough) {

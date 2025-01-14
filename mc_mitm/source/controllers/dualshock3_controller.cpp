@@ -35,7 +35,7 @@ namespace ams::controller {
         constexpr u16 Ds3ProductId = 0x0268;
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float AccelScaleFactor = UINT16_MAX / 16000.0f * 1000 / 113;
+        constexpr float AccelScaleFactor = 1 / 113.0f;
 
         constinit const u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
         constinit const u8 LedConfig[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
@@ -271,25 +271,9 @@ namespace ams::controller {
 
         m_buttons.home = src->input0x01.buttons.ps;
 
-        if (m_enable_motion) {
-            s16 acc_x = -static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y)));
-            s16 acc_y = -static_cast<s16>(AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511));
-            s16 acc_z =  static_cast<s16>(AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z)));
-
-            m_motion_data[0].accel_x = acc_x;
-            m_motion_data[0].accel_y = acc_y;
-            m_motion_data[0].accel_z = acc_z;
-
-            m_motion_data[1].accel_x = acc_x;
-            m_motion_data[1].accel_y = acc_y;
-            m_motion_data[1].accel_z = acc_z;
-
-            m_motion_data[2].accel_x = acc_x;
-            m_motion_data[2].accel_y = acc_y;
-            m_motion_data[2].accel_z = acc_z;
-        } else {
-            std::memset(&m_motion_data, 0, sizeof(m_motion_data));
-        }
+        m_accel.x = -AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y));
+        m_accel.y = -AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511);
+        m_accel.z =  AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z));
     }
 
     Result Dualshock3Controller::SendEnablePayload() {
