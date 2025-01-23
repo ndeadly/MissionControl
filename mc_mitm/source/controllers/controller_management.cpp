@@ -53,8 +53,10 @@ namespace ams::controller {
             }
         }
 
+        const char *controller_name = hos::GetVersion() < hos::Version_13_0_0 ? device->name.name : device->name2;
+
         // Additionally check controller name against known official Nintendo controllers, as some controllers (eg. JoyCons paired via rails) don't report the correct vid/pid
-        if (IsOfficialSwitchControllerName(hos::GetVersion() < hos::Version_13_0_0 ? device->name.name : device->name2))
+        if (IsOfficialSwitchControllerName(controller_name))
             return ControllerType_Switch;
 
         for (auto hwId : WiiController::hardware_ids) {
@@ -107,7 +109,11 @@ namespace ams::controller {
 
         for (auto hwId : IpegaController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
-                return ControllerType_Ipega;
+                if (std::strcmp(controller_name, AmazonController::FireGameControllerName) ==  0) {
+                    return ControllerType_Amazon;
+                } else {
+                    return ControllerType_Ipega;
+                }
             }
         }
 
@@ -310,6 +316,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Bionik:
                 controller = std::make_shared<BionikController>(address, id);
+                break;
+            case ControllerType_Amazon:
+                controller = std::make_shared<AmazonController>(address, id);
                 break;
             default:
                 controller = std::make_shared<UnknownController>(address, id);

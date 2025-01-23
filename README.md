@@ -76,6 +76,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Betop 2585N2__
 * __Atari Wireless Modern Controller__
 * __SCUF Vantage 2__
+* __Amazon Fire Game Controller__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 

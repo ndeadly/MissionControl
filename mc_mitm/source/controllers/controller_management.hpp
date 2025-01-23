@@ -43,6 +43,7 @@
 #include "betop_controller.hpp"
 #include "atari_controller.hpp"
 #include "bionik_controller.hpp"
+#include "amazon_controller.hpp"
 
 namespace ams::controller {
 
@@ -77,6 +78,7 @@ namespace ams::controller {
         ControllerType_Betop,
         ControllerType_Atari,
         ControllerType_Bionik,
+        ControllerType_Amazon,
         ControllerType_Unknown,
     };
 
