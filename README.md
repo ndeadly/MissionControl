@@ -4,6 +4,7 @@
 <a href="https://github.com/ndeadly/MissionControl/releases"><img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/total"></a>
 <a href="https://github.com/ndeadly/MissionControl/releases/latest"><img alt="GitHub Releases" src="https://img.shields.io/github/downloads/ndeadly/MissionControl/latest/total"></a>
 <a href="https://discord.gg/gegfNZ5Ucz"><img alt="Discord Server" src="https://discordapp.com/api/guilds/905069757361971303/widget.png?style=shield"/></a>
+<a href="https://ko-fi.com/J3J01BZZ6"><img alt="Support me on Ko-fi" src="https://img.shields.io/badge/Support%20me%20on%20Ko--fi-72A5F2?logo=ko-fi&logoColor=FF6433"/></a>
 <br>
 <a href="https://www.bitcoinqrcodemaker.com/api/?style=bitcoin&prefix=on&address=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0"><img alt="Donate Bitcoin" src="https://img.shields.io/static/v1?label=donate&message=bc1q4rh4vmqaujmewrswes303nms5mj3p80j7lqat0&color=yellow&style=flat&logo=bitcoin"></a>
 <a href="https://www.bitcoinqrcodemaker.com/api/?style=ethereum&prefix=on&address=0xFD28C8680416D5c706Ad8E404955e0a3A2aA7124"><img alt="Donate Ethereum" src="https://img.shields.io/static/v1?label=donate&message=0xFD28C8680416D5c706Ad8E404955e0a3A2aA7124&color=yellow&style=flat&logo=ethereum"></a>
