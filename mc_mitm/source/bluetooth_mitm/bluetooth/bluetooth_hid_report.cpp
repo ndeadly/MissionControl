@@ -41,6 +41,8 @@ namespace ams::bluetooth::hid::report {
         os::Event g_init_event(os::EventClearMode_ManualClear);
         os::Event g_report_read_event(os::EventClearMode_AutoClear);
 
+        bool g_should_forward_report = true;
+
         os::SharedMemory g_real_bt_shmem;
         os::SharedMemory g_fake_bt_shmem(BluetoothSharedMemorySize, os::MemoryPermission_ReadWrite, os::MemoryPermission_ReadWrite);
 
@@ -72,7 +74,13 @@ namespace ams::bluetooth::hid::report {
         g_init_event.Signal();
     }
 
-    void SignalReportRead() {
+    void ForwardHidReportEvent() {
+        g_should_forward_report = true;
+        g_report_read_event.Signal();
+    }
+
+    void ConsumeHidReportEvent() {
+        g_should_forward_report = false;
         g_report_read_event.Signal();
     }
 
@@ -347,6 +355,11 @@ namespace ams::bluetooth::hid::report {
         if (g_redirect_hid_report_events) {
             g_system_event_user_fwd.Signal();
             g_report_read_event.Wait();
+
+            // Return early if event was consumed by the client
+            if (!g_should_forward_report) {
+                return;
+            }
         }
 
         if (hos::GetVersion() >= hos::Version_12_0_0) {

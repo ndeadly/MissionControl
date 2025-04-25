@@ -39,7 +39,8 @@
     AMS_SF_METHOD_INFO(C, H, 65003, void,   RedirectHidEvents,                (bool redirect),                                                                          (redirect))                                                     \
     AMS_SF_METHOD_INFO(C, H, 65004, void,   RedirectHidReportEvents,          (bool redirect),                                                                          (redirect))                                                     \
     AMS_SF_METHOD_INFO(C, H, 65005, void,   RedirectBleEvents,                (bool redirect),                                                                          (redirect))                                                     \
-    AMS_SF_METHOD_INFO(C, H, 65006, void,   SignalHidReportRead,              (),                                                                                       ())                                                             \
+    AMS_SF_METHOD_INFO(C, H, 65006, void,   ForwardHidReportEvent,            (),                                                                                       ())                                                             \
+    AMS_SF_METHOD_INFO(C, H, 65007, void,   ConsumeHidReportEvent,            (),                                                                                       ())                                                             \
 
 AMS_SF_DEFINE_MITM_INTERFACE(ams::mitm::bluetooth, IBtdrvMitmInterface, AMS_BTDRV_MITM_INTERFACE_INFO, 0xAACFC9A7)
 
@@ -83,7 +84,8 @@ namespace ams::mitm::bluetooth {
             void RedirectHidEvents(bool redirect);
             void RedirectHidReportEvents(bool redirect);
             void RedirectBleEvents(bool redirect);
-            void SignalHidReportRead();
+            void ForwardHidReportEvent();
+            void ConsumeHidReportEvent();
     };
     static_assert(IsIBtdrvMitmInterface<BtdrvMitmService>);
 

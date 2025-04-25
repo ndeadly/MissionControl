@@ -226,8 +226,12 @@ namespace ams::mitm::bluetooth {
         g_redirect_ble_events = redirect;
     }
 
-    void BtdrvMitmService::SignalHidReportRead() {
-        ams::bluetooth::hid::report::SignalReportRead();
+    void BtdrvMitmService::ForwardHidReportEvent() {
+        ams::bluetooth::hid::report::ForwardHidReportEvent();
+    }
+
+    void BtdrvMitmService::ConsumeHidReportEvent() {
+        ams::bluetooth::hid::report::ConsumeHidReportEvent();
     }
 
 }

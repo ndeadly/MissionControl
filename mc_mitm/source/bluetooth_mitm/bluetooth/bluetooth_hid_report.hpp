@@ -23,7 +23,9 @@ namespace ams::bluetooth::hid::report {
     bool IsInitialized();
     void WaitInitialized();
     void SignalInitialized();
-    void SignalReportRead();
+
+    void ForwardHidReportEvent();
+    void ConsumeHidReportEvent();
 
     os::SharedMemory *GetRealSharedMemory();
     os::SharedMemory *GetFakeSharedMemory();
