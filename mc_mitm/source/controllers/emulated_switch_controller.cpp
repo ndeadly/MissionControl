@@ -213,7 +213,7 @@ namespace ams::controller {
                         .major = 0x04,
                         .minor = 0x21
                     },
-                    .type = 0x03,
+                    .type = 0x06, // 0x03,
                     ._unk0 = 0x02,
                     .address = m_address,
                     .sensor_type = SensorType_LSM6DS3H,

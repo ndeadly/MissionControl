@@ -47,6 +47,7 @@
 namespace ams::controller {
 
     constexpr const char ProControllerName[] = "Pro Controller";
+    constexpr const char LicensedProControllerName[] = "Lic Pro Controller";
     constexpr const char WiiControllerPrefix[] = "Nintendo RVL";
 
     enum ControllerType {
