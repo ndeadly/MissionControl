@@ -42,6 +42,14 @@ namespace ams::usb {
             UsbHsInterface interfaces[8] = {};
             R_TRY(usbHsQueryAvailableInterfaces(controller::Dualshock3Controller::GetUsbInterfaceFilter(), interfaces, sizeof(interfaces), &total_entries));
 
+            // Only connect to these services when we need them, since there is only one free handle available for either on 17.0.0+
+            R_TRY(btmInitialize());
+            R_TRY(btmsysInitialize());
+            ON_SCOPE_EXIT {
+                btmsysExit();
+                btmExit();
+            };
+
             for(int i = 0; i < total_entries; ++i) {
                 if (controller::Dualshock3Controller::UsbIdentify(&interfaces[i])) {
                     bool pairing_started = false;

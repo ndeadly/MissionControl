@@ -96,16 +96,6 @@ namespace ams::mitm {
             }
 
             g_init_event.Signal();
-
-            // Loop until we can initialise btm:sys
-            while (R_FAILED(btmsysInitialize())) {
-                os::SleepThread(ams::TimeSpan::FromMilliSeconds(200));
-            }
-
-            // Loop until we can initialise btm
-            while (R_FAILED(btmInitialize())) {
-                os::SleepThread(ams::TimeSpan::FromMilliSeconds(200));
-            }
         }
 
     }
