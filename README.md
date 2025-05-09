@@ -22,6 +22,8 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * Support for rumble and motion controls (compatible controllers only)
 * Low input lag.
 * File-based virtual controller memory allowing for data such as analog stick calibration to be stored and retrieved.
+* Unlocks such as button remapping and stick calibration for third-party Licensed Pro Controllers.
+* Enables use of [JoyConDroid](https://github.com/TeamJCD/JoyConDroid) without root access.
 * Spoofing of host Bluetooth adapter name and address.
 * `mc.mitm` module adds extension IPC commands that can be used to interact with the `bluetooth` process without interfering with the state of the system.
 
@@ -87,7 +89,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. Reboot your console to activate the module and you're done!
 
 ***IMPORTANT: 
-Atmosphère >= 1.8.0 is required to run the latest release of Mission Control on firmware 19.0.0. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
+Atmosphère >= 1.9.0 is required to run the latest release of Mission Control on firmware 20.0.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
 
 ### Usage
 
@@ -280,7 +282,7 @@ Unlikely. As far as I know, controllers supporting headset audio do so via propr
 
 ### How it works
 
-Mission Control works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating incoming/outgoing data to convince the Switch that it's communicating with an official Pro Controller.
+Mission Control works by Man-In-The-Middling the `bluetooth` system module and intercepting its initialisation IPC commands and system events, and translating incoming/outgoing data to convince the Switch that it's communicating with an official Licensed Pro Controller.
 
 To achieve this, the `btdrv.mitm` module obtains the handles to `bluetooth` system events and shared memory when the system attempts to initialise them over IPC via the `btm` and `hid` modules. It then creates its own secondary versions of these and passes their handles on instead of the original. This allows modifications to be made to any data buffers before notifying (or not) the system. Additionally, the `WriteHidData` IPC command is intercepted to translate or drop outgoing requests to the controller. In the case of the latter, fake responses can be written directly to the buffer in shared memory.
 
@@ -290,7 +292,7 @@ exefs patches to the `bluetooth` module are provided to enable the pairing of Wi
 
 exefs patches to the `btm` module have been added to skip over calls to `nn::bluetooth::hal::CloseHidConnection` when a controller fails to respond correctly to the broadcom vendor command sent by `nn::bluetooth::hal::SetTsi`. This prevents all affected controllers from being disconnected immediately after connection, and eliminates the need to manually flag certain controllers with a `settsi_disable.flag` file.
 
-exefs patches to the `hid` module are used to unlock native button remapping (HOS 10.0.0+) for officially licensed 3rd party Pro Controllers.
+exefs patches to the `hid` module are used to unlock native button remapping (HOS 10.0.0+) and calibration of analog sticks and motion sensors for officially licensed 3rd party Pro Controllers.
 
 The `btm` service is now also MITM'd, allowing for faking controller names on the fly while retaining the original names in the pairing database.
 

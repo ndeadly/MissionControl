@@ -12,12 +12,13 @@ body:
       label: Switch Firmware Version
       description: Which Nintendo Switch firmware (HOS) version are you running?
       options:
-        - 19.0.0 (Latest)
+        - 20.0.1 (Latest)
+        - 20.0.0
+        - 19.0.1
+        - 19.0.0
         - 18.1.0
         - 18.0.1
         - 18.0.0
-        - 17.0.1
-        - 17.0.0
         - Other (please specify in issue description)
     validations:
       required: true
@@ -27,12 +28,10 @@ body:
       label: Atmosphère Version
       description: Which version of Atmosphère are you using?
       options:
-        - 1.8.0 (Latest)
+        - 1.9.0 (Latest)
+        - 1.8.0
         - 1.7.1
         - 1.7.0
-        - 1.6.2
-        - 1.6.1
-        - 1.6.0
         - Other (please specify in issue description)
     validations:
       required: true
@@ -42,10 +41,10 @@ body:
       label: Mission Control Version
       description: Which version of Mission Control are you using?
       options:
-        - 0.12.0 (Latest)
+        - 0.13.0 (Latest)
+        - 0.12.0
         - 0.11.1
         - 0.11.0
-        - 0.10.0
         - Other (please specify in issue description)
     validations:
       required: true
