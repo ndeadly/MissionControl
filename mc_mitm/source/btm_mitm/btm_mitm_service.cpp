@@ -16,6 +16,7 @@
 #include "btm_mitm_service.hpp"
 #include "btm_shim.h"
 #include "../controllers/controller_management.hpp"
+#include "../mcmitm_config.hpp"
 
 namespace ams::mitm::btm {
 
@@ -54,6 +55,10 @@ namespace ams::mitm::btm {
             auto device = &device_info[i];
             if (!controller::IsOfficialSwitchControllerName(device->name)) {
                 std::strncpy(device->name, controller::LicensedProControllerName, sizeof(device->name) - 1);
+            }
+            else if (mitm::GetGlobalConfig()->misc.force_pro_controller && controller::IsNotJoyconOrProController(device->name)) {
+                device->profile_info.hid_device_info.vid = 0x057e; //This may not have any effect, it's just to fix problems with a Licensed Pro Controller
+                device->profile_info.hid_device_info.pid = 0x2009; //Change Pid to a Pro controller one
             }
         }
 
@@ -107,6 +112,10 @@ namespace ams::mitm::btm {
             auto device = &device_info->devices[i];
             if (!controller::IsOfficialSwitchControllerName(device->name.name)) {
                 std::strncpy(device->name.name, controller::LicensedProControllerName, sizeof(device->name) - 1);
+            }
+            else if (mitm::GetGlobalConfig()->misc.force_pro_controller && controller::IsNotJoyconOrProController(device->name.name)) {
+                device->profile_info.hid_device_info.vid = 0x057e; //This may not have any effect, it's just to fix problems with a Licensed Pro Controller
+                device->profile_info.hid_device_info.pid = 0x2009; //Change Pid to a Pro controller one
             }
         }
 
