@@ -41,7 +41,8 @@ body:
       label: Mission Control Version
       description: Which version of Mission Control are you using?
       options:
-        - 0.13.0 (Latest)
+        - 0.13.1 (Latest)
+        - 0.13.0
         - 0.12.0
         - 0.11.1
         - 0.11.0
