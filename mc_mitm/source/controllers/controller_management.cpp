@@ -33,6 +33,7 @@ namespace ams::controller {
             "N64 Controller",
             "MD/Gen Control Pad",
             "Lic2 Pro Controller",
+            "Lic3 Pro Controller",
         };
 
         constexpr u8 DeviceClassMajorPeripheral = 0x05;
