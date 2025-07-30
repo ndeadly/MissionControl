@@ -31,6 +31,7 @@ namespace ams::mitm {
             },
             .misc = {
                 .analog_trigger_activation_threshold = 50,
+                .dualshock3_enable_usb_pairing = true,
                 .dualshock3_led_mode = 0,
                 .dualshock4_polling_rate = 8,
                 .dualshock4_lightbar_brightness = 5,
@@ -95,6 +96,8 @@ namespace ams::mitm {
             } else if (strcasecmp(section, "misc") == 0) {
                 if (strcasecmp(name, "analog_trigger_activation_threshold") == 0) {
                     ParseInt(value, &config->misc.analog_trigger_activation_threshold, 0, 100);
+                } else if (strcasecmp(name, "dualshock3_enable_usb_pairing") == 0) {
+                    ParseBoolean(value, &config->misc.dualshock3_enable_usb_pairing);
                 } else if (strcasecmp(name, "dualshock3_led_mode") == 0) {
                     ParseInt(value, &config->misc.dualshock3_led_mode, 0, 2);
                 } else if (strcasecmp(name, "dualshock4_polling_rate") == 0) {

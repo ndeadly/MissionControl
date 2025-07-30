@@ -30,6 +30,7 @@ namespace ams::mitm {
 
         struct {
             int analog_trigger_activation_threshold;
+            bool dualshock3_enable_usb_pairing;
             int dualshock3_led_mode;
             int dualshock4_polling_rate;
             int dualshock4_lightbar_brightness;

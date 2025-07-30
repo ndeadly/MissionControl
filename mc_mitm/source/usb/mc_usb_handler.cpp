@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "mc_usb_handler.hpp"
+#include "../mcmitm_config.hpp"
 #include "../controllers/dualshock3_controller.hpp"
 
 namespace ams::usb {
@@ -100,20 +101,24 @@ namespace ams::usb {
     }
 
     void Launch() {
-        R_ABORT_UNLESS(os::CreateThread(&g_thread,
-            UsbThreadFunction,
-            nullptr,
-            g_thread_stack,
-            ThreadStackSize,
-            ThreadPriority
-        ));
+        if (mitm::GetGlobalConfig()->misc.dualshock3_enable_usb_pairing) {
+            R_ABORT_UNLESS(os::CreateThread(&g_thread,
+                UsbThreadFunction,
+                nullptr,
+                g_thread_stack,
+                ThreadStackSize,
+                ThreadPriority
+            ));
 
-        os::SetThreadNamePointer(&g_thread, "mc::UsbThread");
-        os::StartThread(&g_thread);
+            os::SetThreadNamePointer(&g_thread, "mc::UsbThread");
+            os::StartThread(&g_thread);
+        }
     }
 
     void WaitFinished() {
-        os::WaitThread(&g_thread);
+        if (mitm::GetGlobalConfig()->misc.dualshock3_enable_usb_pairing) {
+            os::WaitThread(&g_thread);
+        }
     }
 
 }
