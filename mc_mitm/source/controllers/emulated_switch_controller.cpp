@@ -77,8 +77,6 @@ namespace ams::controller {
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick; 
 
-        m_motion_packer->PackData(&input_report->type0x30.motion_data, m_accel, m_gyro);
-
         const SwitchMcuResponse empty_mcu_response = {
           .command = McuCommand_EmptyAwaitingCmd,
           .data = {},
