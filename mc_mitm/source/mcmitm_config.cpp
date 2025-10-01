@@ -37,7 +37,9 @@ namespace ams::mitm {
                 .dualshock4_lightbar_brightness = 5,
                 .dualsense_lightbar_brightness = 5,
                 .dualsense_enable_player_leds = true,
-                .dualsense_vibration_intensity = 4
+                .dualsense_vibration_intensity = 4,
+                .enable_dualsense_mute_button = true,
+                .swap_touchpad_button = false
             }
         };
 
@@ -110,6 +112,10 @@ namespace ams::mitm {
                     ParseBoolean(value, &config->misc.dualsense_enable_player_leds);
                 } else if (strcasecmp(name, "dualsense_vibration_intensity") == 0) {
                     ParseInt(value, &config->misc.dualsense_vibration_intensity, 1, 8);
+                } else if (strcasecmp(name, "enable_dualsense_mute_button") == 0) {
+                    ParseBoolean(value, &config->misc.enable_dualsense_mute_button);
+                } else if (strcasecmp(name, "swap_touchpad_button") == 0) {
+                    ParseBoolean(value, &config->misc.swap_touchpad_button);
                 }
             } else {
                 return 0;
