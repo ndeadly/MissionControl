@@ -60,14 +60,23 @@ namespace ams::controller {
         u8 L3     : 1;
         u8 R3     : 1;
         u8        : 0;
-
-        u8 dpad;
     } PACKED;
 
     struct GamesirReport0x03 {
         GamesirButtonData buttons;
+        u8 dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
+        u8 left_trigger;
+        u8 right_trigger;
+        u8 _unk[2];
+    } PACKED;
+
+    struct GamesirReport0x07 {
+        AnalogStick<u8> left_stick;
+        AnalogStick<u8> right_stick;
+        u8 dpad;
+        GamesirButtonData buttons;
         u8 left_trigger;
         u8 right_trigger;
         u8 _unk[2];
@@ -87,6 +96,7 @@ namespace ams::controller {
         u8 left_trigger;
         u8 right_trigger;
         GamesirButtonData buttons;
+        u8 dpad;
         u8 _unk;
     } PACKED;
 
@@ -94,6 +104,7 @@ namespace ams::controller {
         u8 id;
         union {
             GamesirReport0x03 input0x03;
+            GamesirReport0x07 input0x07;
             GamesirReport0x12 input0x12;
             GamesirReport0xc4 input0xc4;
         };
@@ -106,6 +117,7 @@ namespace ams::controller {
                 {0xffff, 0x046e},   // Gamesir G3s
                 {0x05ac, 0x022d},   // Gamesir G3s (Alternate mode. Lol, this is actually the ID of an Apple wireless keyboard)
                 {0xffff, 0x046f},   // Gamesir G4s
+                {0x3537, 0x1022},   // Gamesir G7 Pro
                 {0xffff, 0x0450},   // Gamesir T1s
                 {0x05ac, 0x056b}    // Gamesir T2a
             };
@@ -117,6 +129,7 @@ namespace ams::controller {
 
         private:
             void MapInputReport0x03(const GamesirReportData *src);
+            void MapInputReport0x07(const GamesirReportData *src);
             void MapInputReport0x12(const GamesirReportData *src);
             void MapInputReport0xc4(const GamesirReportData *src);
 
