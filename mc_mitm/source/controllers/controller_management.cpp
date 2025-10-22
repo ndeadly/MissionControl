@@ -23,8 +23,7 @@ namespace ams::controller {
 
         const std::string OfficialGamepadNames[] = {
             "NintendoGamepad",
-            "Joy-Con (L)",
-            "Joy-Con (R)",
+            "Joy-Con",
             "Pro Controller",
             "Lic Pro Controller",
             "NES Controller",
