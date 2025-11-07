@@ -298,7 +298,8 @@ The `btm` service is now also MITM'd, allowing for faking controller names on th
 
 ### Building from source
 
-> Note: To build Mission Control, you will need the devkitPro toolchain installed on your system, along with the required packages for Switch development. Refer to the devkitPro [Getting Started](https://devkitpro.org/wiki/Getting_Started) guide for further info.
+> [!Note] 
+To build Mission Control, you will need the devkitPro toolchain installed on your system, along with the required packages for Switch development. Refer to the devkitPro [Getting Started](https://devkitpro.org/wiki/Getting_Started) guide for further info.
 
 First, check for updates to the devkitPro repositories and make sure your installed packages are up to date. You may need to re-run this command a second time if it asks to restart the pacman terminal.
 ```
@@ -321,7 +322,8 @@ Finally, run the make command. This will build `libstratosphere` before building
 make dist
 ```
 
-> Note: build times (for `libstratosphere` in particular) can be quite long, especially on older machines. You may wish to build the project using multiple CPU cores via the `-j` flag to speed things up, eg. `make dist -j$(nproc)`
+> [!Note] 
+Build times (for `libstratosphere` in particular) can be quite long, especially on older machines. You may wish to build the project using multiple CPU cores via the `-j` flag to speed things up, eg. `make dist -j$(nproc)`
 
 ### Credits
 
