@@ -54,6 +54,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Steelseries Stratus XL__
 * __GameSir G3s__
 * __GameSir G4s__
+* __GameSir G7 Pro__
 * __GameSir T1s__
 * __GameSir T2a__
 * __Hori Onyx__
@@ -76,7 +77,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Betop 2585N2__
 * __Atari Wireless Modern Controller__
 * __SCUF Vantage 2__
-* __Amazon Fire Game Controller__
+* __Amazon Fire TV Game Controller__
 
 **Not all Xbox One wireless controllers support Bluetooth. Older variants use a proprietary 2.4Ghz protocol and cannot be used with the Switch. See [here](https://support.xbox.com/help/hardware-network/accessories/connect-and-troubleshoot-xbox-one-bluetooth-issues) for information on identifying the Bluetooth variant.*
 
@@ -90,7 +91,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. Reboot your console to activate the module and you're done!
 
 ***IMPORTANT: 
-Atmosphère >= 1.9.5 is required to run the latest release of Mission Control on firmware 20.5.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
+Atmosphère >= 1.10.0 is required to run the latest release of Mission Control on firmware 21.0.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
 
 ### Usage
 
