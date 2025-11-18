@@ -77,8 +77,8 @@ namespace ams::controller {
         AnalogStick<u8> right_stick;
         u8 dpad;
         GamesirButtonData buttons;
-        u8 left_trigger;
         u8 right_trigger;
+        u8 left_trigger;
         u8 _unk[2];
     } PACKED;
 
