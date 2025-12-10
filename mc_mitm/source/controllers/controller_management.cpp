@@ -16,6 +16,7 @@
 #include "controller_management.hpp"
 #include <stratosphere.hpp>
 #include "../utils.hpp"
+#include "../mcmitm_config.hpp"
 
 namespace ams::controller {
 
@@ -58,6 +59,7 @@ namespace ams::controller {
         // Additionally check controller name against known official Nintendo controllers, as some controllers (eg. JoyCons paired via rails) don't report the correct vid/pid
         if (IsOfficialSwitchControllerName(controller_name))
             return ControllerType_Switch;
+
 
         for (auto hwId : WiiController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
@@ -230,6 +232,16 @@ namespace ams::controller {
         return false;
     }
 
+    bool IsNotJoyconOrProController(const std::string& name) {
+        std::string JoyconName = "Joy-Con";
+        std::string ProControllerName = "Pro Controller";
+        if (name.rfind(JoyconName) == 0 || name.rfind(ProControllerName) == 0) {
+            return false;
+        }
+
+        return true;
+    }
+
     void AttachHandler(const bluetooth::Address *address) {
         bluetooth::DevicesSettings device_settings;
         R_ABORT_UNLESS(btdrvGetPairedDeviceInfo(*address, &device_settings));
@@ -240,7 +252,9 @@ namespace ams::controller {
 
         switch (Identify(&device_settings)) {
             case ControllerType_Switch:
-                controller = std::make_shared<SwitchController>(address, id);
+                if (mitm::GetGlobalConfig()->misc.force_pro_controller && IsNotJoyconOrProController(hos::GetVersion() < hos::Version_13_0_0 ? device_settings.name.name : device_settings.name2))
+                    controller = std::make_shared<ForcedProController>(address, id);
+                else controller = std::make_shared<SwitchController>(address, id);
                 break;
             case ControllerType_Wii:
                 controller = std::make_shared<WiiController>(address, id);
