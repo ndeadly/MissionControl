@@ -178,7 +178,8 @@ namespace ams::controller {
         m_buttons.ZR = src->input0x31.right_trigger > (m_trigger_threshold * TriggerMax);
         m_buttons.ZL = src->input0x31.left_trigger  > (m_trigger_threshold * TriggerMax);
 
-        if (src->input0x31.buttons.touchpad) {
+        auto config = mitm::GetGlobalConfig();
+        if (!config->misc.swap_touchpad_button && src->input0x31.buttons.touchpad) {
             for (int i = 0; i < 2; ++i) {
                 const DualsenseTouchpadPoint *point = &src->input0x31.touch_points[i];
 
@@ -228,14 +229,24 @@ namespace ams::controller {
         m_buttons.R  = buttons->R1;
         m_buttons.L  = buttons->L1;
 
-        m_buttons.minus = buttons->share;
-        m_buttons.plus  = buttons->options;
-
         m_buttons.lstick_press = buttons->L3;
         m_buttons.rstick_press = buttons->R3;
 
-        m_buttons.capture = buttons->mute;
-        m_buttons.home    = buttons->ps;
+        m_buttons.home = buttons->ps;
+
+        auto config = mitm::GetGlobalConfig();
+        if (config->misc.swap_touchpad_button) {
+            m_buttons.capture = buttons->share;
+            m_buttons.plus    = buttons->options;
+            m_buttons.minus   = buttons->touchpad;
+        } else {
+            m_buttons.minus   = buttons->share;
+            m_buttons.plus    = buttons->options;
+        }
+
+        if (config->misc.enable_dualsense_mute_button) {
+            m_buttons.capture = buttons->mute;
+        }
     }
 
     Result DualsenseController::GetVersionInfo(DualsenseVersionInfo *version_info) {
