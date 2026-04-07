@@ -17,6 +17,7 @@
 #include "../btdrv_ext.h"
 #include "../btdrv_mitm_flags.hpp"
 #include "../../controllers/controller_management.hpp"
+#include "../../utils.hpp"
 
 namespace ams::bluetooth::core {
 
@@ -34,13 +35,6 @@ namespace ams::bluetooth::core {
         os::Event g_enable_event(os::EventClearMode_ManualClear);
         os::Event g_custom_data_event(os::EventClearMode_AutoClear);
         os::Event g_data_read_event(os::EventClearMode_AutoClear);
-
-        bluetooth::Address ReverseBluetoothAddress(bluetooth::Address address) {
-            u64 tmp;
-            std::memcpy(&tmp, &address, sizeof(address));
-            tmp = util::SwapEndian(tmp) >> 16;
-            return *reinterpret_cast<bluetooth::Address *>(&tmp);
-        }
 
     }
 
@@ -154,8 +148,8 @@ namespace ams::bluetooth::core {
 
     inline void HandlePinCodeRequestEventV1(bluetooth::EventInfo *event_info) {
         // Default pin used by bluetooth service
-        bluetooth::PinCode pin = {"0000"};
-        u8 pin_length = std::strlen(pin.code);
+        bluetooth::PinCode pin = { "0000" };
+        u8 pin_length = 4;
 
         // Reverse host address as pin code for wii devices
         if (std::strncmp(event_info->pairing_pin_code_request.name, controller::WiiControllerPrefix, std::strlen(controller::WiiControllerPrefix)) == 0) {
@@ -164,7 +158,8 @@ namespace ams::bluetooth::core {
             R_ABORT_UNLESS(btdrvLegacyGetAdapterProperty(BtdrvBluetoothPropertyType_Address, &host_address, sizeof(bluetooth::Address)));
 
             // Set reversed bluetooth address as pin code
-            *reinterpret_cast<bluetooth::Address *>(&pin) = ReverseBluetoothAddress(host_address);
+            bluetooth::Address reversed = utils::BluetoothAddressReverse(host_address);
+            std::memcpy(&pin, &reversed, sizeof(reversed));
             pin_length = sizeof(bluetooth::Address);
         }
 
@@ -173,18 +168,19 @@ namespace ams::bluetooth::core {
 
     inline void HandlePinCodeRequestEventV12(bluetooth::EventInfo *event_info) {
         // Default pin used by bluetooth service
-        BtdrvPinCode pin = {"0000", 4};
+        BtdrvPinCode pin = { "0000", 4 };
 
         // Reverse host address as pin code for wii devices
         if (std::strncmp(event_info->pairing_pin_code_request.name, controller::WiiControllerPrefix, std::strlen(controller::WiiControllerPrefix)) == 0) {
             // Fetch host adapter address
+            bluetooth::Address host_address;
             BtdrvAdapterProperty property;
             R_ABORT_UNLESS(btdrvGetAdapterProperty(BtdrvAdapterPropertyType_Address, &property));
-
-            bluetooth::Address host_address = *reinterpret_cast<bluetooth::Address *>(property.data);
+            std::memcpy(&host_address, property.data, sizeof(host_address));
 
             // Set reversed bluetooth address as pin code
-            *reinterpret_cast<bluetooth::Address *>(&pin.code) = ReverseBluetoothAddress(host_address);
+            bluetooth::Address reversed = utils::BluetoothAddressReverse(host_address);
+            std::memcpy(&pin.code, &reversed, sizeof(reversed));
             pin.length = sizeof(bluetooth::Address);
         }
 

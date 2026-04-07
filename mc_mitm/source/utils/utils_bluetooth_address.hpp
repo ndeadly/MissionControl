@@ -19,6 +19,7 @@
 namespace ams::utils {
 
     bool BluetoothAddressCompare(bluetooth::Address addr1, bluetooth::Address addr2);
+    bluetooth::Address BluetoothAddressReverse(bluetooth::Address address);
     Result BluetoothAddressToString(bluetooth::Address address, char *out, size_t out_size);
 
 }

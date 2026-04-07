@@ -21,6 +21,16 @@ namespace ams::utils {
         return std::memcmp(&addr1, &addr2, sizeof(bluetooth::Address)) == 0;
     }
 
+    bluetooth::Address BluetoothAddressReverse(bluetooth::Address address) {
+        u64 tmp = 0;
+        std::memcpy(&tmp, &address, sizeof(address));
+        tmp = util::SwapEndian(tmp) >> 16;
+
+        bluetooth::Address out;
+        std::memcpy(&out, &tmp, sizeof(address));
+        return out;
+    }
+
     Result BluetoothAddressToString(bluetooth::Address address, char *out, size_t out_size) {
         if (out_size < 2*sizeof(bluetooth::Address) + 1) {
             return -1;
