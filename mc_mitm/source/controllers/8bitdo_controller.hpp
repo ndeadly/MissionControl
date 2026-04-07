@@ -154,8 +154,7 @@ namespace ams::controller {
                 {0x2dc8, 0x3012}  // 8BitDo Ultimate 2.4g Wireless
             };
 
-            EightBitDoController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { 
+            EightBitDoController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { 
                 if ((id.vid == hardware_ids[0].vid) && (id.pid == hardware_ids[0].pid))
                     m_controller_type = EightBitDoControllerType_Zero;
                 else if ((id.vid == hardware_ids[1].vid) && (id.pid == hardware_ids[1].pid))

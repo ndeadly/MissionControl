@@ -17,20 +17,20 @@
 
 namespace ams::utils {
 
-    bool BluetoothAddressCompare(const bluetooth::Address *addr1, const bluetooth::Address *addr2) {
-        return std::memcmp(addr1, addr2, sizeof(bluetooth::Address)) == 0;
+    bool BluetoothAddressCompare(bluetooth::Address addr1, bluetooth::Address addr2) {
+        return std::memcmp(&addr1, &addr2, sizeof(bluetooth::Address)) == 0;
     }
 
-    Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size) {
+    Result BluetoothAddressToString(bluetooth::Address address, char *out, size_t out_size) {
         if (out_size < 2*sizeof(bluetooth::Address) + 1) {
             return -1;
         }
 
         char ch;
         for (u32 i = 0; i < sizeof(bluetooth::Address); ++i) {
-            ch = address->address[i] >> 4;
+            ch = address.address[i] >> 4;
             *out++ = ch + (ch <= 9 ? '0' : 'a' - 0xa);
-            ch = address->address[i] & 0x0f;
+            ch = address.address[i] & 0x0f;
             *out++ = ch + (ch <= 9 ? '0' : 'a' - 0xa);
         }
         *out = '\0';

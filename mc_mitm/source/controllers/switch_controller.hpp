@@ -394,7 +394,7 @@ namespace ams::controller {
 
     SwitchPlayerNumber LedMaskToPlayerNumber(u8 led_mask);
 
-    std::string GetControllerDirectory(const bluetooth::Address *address);
+    std::string GetControllerDirectory(bluetooth::Address address);
 
     class SwitchController {
 
@@ -408,9 +408,7 @@ namespace ams::controller {
                 {0x057e, 0x201a}    // Official Genesis/Megadrive Online Controller
             };
 
-            SwitchController(const bluetooth::Address *address, HardwareID id)
-            : m_address(*address)
-            , m_id(id) { }
+            SwitchController(bluetooth::Address address, HardwareID id) : m_address(address), m_id(id) { }
 
             virtual ~SwitchController() { };
 

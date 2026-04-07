@@ -76,8 +76,7 @@ namespace ams::controller {
                 {0x20bc, 0x5501}    // Betop 2585N2
             };
 
-            BetopController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            BetopController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

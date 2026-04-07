@@ -72,8 +72,7 @@ namespace ams::controller {
                 {0x1532, 0x0900}    // Razer Serval
             };
 
-            RazerController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            RazerController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

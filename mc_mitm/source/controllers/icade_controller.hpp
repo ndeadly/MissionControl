@@ -36,8 +36,7 @@ namespace ams::controller {
                 {0x15e4, 0x0132}    // ION iCade Controller
             };
 
-            ICadeController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            ICadeController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
             void ApplyButtonCombos(SwitchButtonData *buttons) override;

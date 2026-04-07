@@ -156,8 +156,7 @@ namespace ams::controller {
                 {0x0111, 0x1419}    // Steelseries Stratus XL
             };
 
-            SteelseriesController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            SteelseriesController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

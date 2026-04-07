@@ -31,7 +31,7 @@ namespace ams::controller {
             case 0x01:
                 this->MapInputReport0x01(atari_report); break;
             case 0x02:
-                this->MapInputReport0x02(atari_report); break;    
+                this->MapInputReport0x02(atari_report); break;
             default:
                 break;
         }

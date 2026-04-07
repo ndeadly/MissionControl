@@ -25,9 +25,10 @@ namespace ams::controller {
         constexpr u8 ComputeCrc8(const void *data, size_t size) {
             return utils::Crc8<7>::Calculate(data, size);
         }
+
     }
 
-    EmulatedSwitchController::EmulatedSwitchController(const bluetooth::Address *address, HardwareID id)
+    EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id)
     : SwitchController(address, id)
     , m_charging(false)
     , m_ext_power(false)
@@ -47,7 +48,7 @@ namespace ams::controller {
         R_TRY(SwitchController::Initialize());
 
         // Ensure config directory for this controller exists
-        std::string controller_dir = GetControllerDirectory(&m_address);
+        std::string controller_dir = GetControllerDirectory(m_address);
         R_TRY(fs::EnsureDirectory(controller_dir.c_str()));
 
         R_TRY(m_virtual_memory.Initialize((controller_dir + "/spi_flash.bin").c_str()));
@@ -295,7 +296,7 @@ namespace ams::controller {
 
         if (read_addr == 0x6050) {
             if (ams::mitm::GetSystemLanguage() == 10) {
-                u8 data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                const u8 data[] = { 0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7 };
                 std::memcpy(response.data.serial_flash_read.data, data, sizeof(data));
             }
         }
@@ -409,7 +410,6 @@ namespace ams::controller {
             m_mcu_mode = command->mcu_write.data.configure_mcu.mode;
         }
 
-    
         const SwitchHidCommandResponse response = {
             .ack = 0xa0,
             .id = command->id,

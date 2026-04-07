@@ -203,8 +203,7 @@ namespace ams::controller {
                 {0x2e95, 0x7725}    // SCUF Vantage 2
             };
 
-            Dualshock4Controller(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id)
+            Dualshock4Controller(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id)
             , m_report_rate(Dualshock4ReportRate_125Hz)
             , m_lightbar_colour({0, 0, 0})
             , m_lightbar_brightness(0)

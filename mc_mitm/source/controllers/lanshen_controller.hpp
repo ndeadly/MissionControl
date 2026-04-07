@@ -74,8 +74,7 @@ namespace ams::controller {
                 {0x0079, 0x181c}    // LanShen X1Pro
             };
 
-            LanShenController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            LanShenController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

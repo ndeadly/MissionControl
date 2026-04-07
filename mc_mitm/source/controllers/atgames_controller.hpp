@@ -70,8 +70,7 @@ namespace ams::controller {
                 {0x1d6b, 0x0246},   // AtGames Legends Pinball
             };
 
-            AtGamesController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id), m_arcadepanel(false) { }
+            AtGamesController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id), m_arcadepanel(false) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
@@ -79,7 +78,6 @@ namespace ams::controller {
             void MapInputReport0x01(const AtGamesReportData *src);
         
             bool m_arcadepanel;
-
     };
 
 }

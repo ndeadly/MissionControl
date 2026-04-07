@@ -102,8 +102,7 @@ namespace ams::controller {
             static Result UsbPair(UsbHsInterface *iface);
 
         public:
-            Dualshock3Controller(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            Dualshock3Controller(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             Result Initialize(void);
             Result SetVibration(const SwitchMotorData *motor_data);

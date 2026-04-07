@@ -22,7 +22,7 @@ namespace ams::controller {
     class EmulatedSwitchController : public SwitchController {
 
         public:
-            EmulatedSwitchController(const bluetooth::Address *address, HardwareID id);
+            EmulatedSwitchController(bluetooth::Address address, HardwareID id);
             virtual ~EmulatedSwitchController() {};
 
             virtual Result Initialize();

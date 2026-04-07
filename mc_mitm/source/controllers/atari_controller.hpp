@@ -74,8 +74,7 @@ namespace ams::controller {
                 {0x3250, 0x1002}    // Atari VCS Wireless Modern Controller
             };
 
-            AtariController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            AtariController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

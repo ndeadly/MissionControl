@@ -86,7 +86,7 @@ namespace ams::controller {
                 {0x0000, 0x0000}    // Mocute 053 Controller (bring on the clashing hardware IDs)
             };
 
-            MocuteController(const bluetooth::Address *address, HardwareID id);
+            MocuteController(bluetooth::Address address, HardwareID id);
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

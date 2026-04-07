@@ -86,8 +86,7 @@ namespace ams::controller {
                 {0x2e2c, 0x0002}    // Bionik Vulkan
             };
 
-            BionikController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            BionikController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

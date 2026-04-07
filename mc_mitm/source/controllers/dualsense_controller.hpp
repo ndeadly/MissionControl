@@ -165,8 +165,7 @@ namespace ams::controller {
                 {0x054c, 0x0df2}    // Sony Dualsense Edge Controller
             };
 
-            DualsenseController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id)
+            DualsenseController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id)
             , m_led_flags(0)
             , m_lightbar_colour({0, 0, 0})
             , m_lightbar_brightness(0)

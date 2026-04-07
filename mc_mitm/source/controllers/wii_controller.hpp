@@ -491,8 +491,7 @@ namespace ams::controller {
                 {0x057e, 0x0330},  // Official Wii U Pro Controller
             };
 
-            WiiController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id)
+            WiiController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id)
             , m_orientation(WiiControllerOrientation_Horizontal)
             , m_extension(WiiExtensionController_None)
             , m_rumble_state(0)

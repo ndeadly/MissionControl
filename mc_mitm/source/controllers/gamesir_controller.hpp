@@ -122,8 +122,7 @@ namespace ams::controller {
                 {0x05ac, 0x056b}    // Gamesir T2a
             };
 
-            GamesirController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            GamesirController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

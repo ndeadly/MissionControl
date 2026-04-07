@@ -18,7 +18,7 @@
 
 namespace ams::utils {
 
-    bool BluetoothAddressCompare(const bluetooth::Address *addr1, const bluetooth::Address *addr2);
-    Result BluetoothAddressToString(const bluetooth::Address *address, char *out, size_t out_size);
+    bool BluetoothAddressCompare(bluetooth::Address addr1, bluetooth::Address addr2);
+    Result BluetoothAddressToString(bluetooth::Address address, char *out, size_t out_size);
 
 }

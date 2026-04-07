@@ -67,8 +67,7 @@ namespace ams::controller {
                 {0x2e24, 0x200a}    // Hyperkin Scout
             };
 
-            HyperkinController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            HyperkinController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

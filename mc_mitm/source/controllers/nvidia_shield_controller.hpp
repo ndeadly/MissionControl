@@ -76,8 +76,7 @@ namespace ams::controller {
                 {0x0955, 0x7214}    // Nvidia Shield Controller (2017) v1.04
             };
 
-            NvidiaShieldController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            NvidiaShieldController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

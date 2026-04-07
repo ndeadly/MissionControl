@@ -66,8 +66,7 @@ namespace ams::controller {
                 {0x2836, 0x0001}
             };
 
-            OuyaController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            OuyaController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

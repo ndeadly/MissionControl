@@ -72,8 +72,7 @@ namespace ams::controller {
                 {0x20d6, 0x6271}    // Moga Pro 2 Controller
             };
 
-            PowerAController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            PowerAController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

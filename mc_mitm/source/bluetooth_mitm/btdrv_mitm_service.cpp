@@ -87,12 +87,12 @@ namespace ams::mitm::bluetooth {
     Result BtdrvMitmService::WriteHidData(ams::bluetooth::Address address, const sf::InPointerBuffer &buffer) {
         auto report = reinterpret_cast<const ams::bluetooth::HidReport *>(buffer.GetPointer());
         if (m_client_info.program_id == ncm::SystemProgramId::Hid) {
-            auto device = controller::LocateHandler(&address);
+            auto device = controller::LocateHandler(address);
             if (device) {
                 device->HandleOutputDataReport(report);
             }
         } else {
-            R_TRY(btdrvWriteHidDataFwd(m_forward_service.get(), &address, report));
+            R_TRY(btdrvWriteHidDataFwd(m_forward_service.get(), address, report));
         }
 
         R_SUCCEED();
@@ -100,16 +100,16 @@ namespace ams::mitm::bluetooth {
 
     Result BtdrvMitmService::WriteHidData2(ams::bluetooth::Address address, const sf::InPointerBuffer &buffer) {
         if (m_client_info.program_id == ncm::SystemProgramId::Hid) {
-            auto device = controller::LocateHandler(&address);
+            auto device = controller::LocateHandler(address);
             if (device) {
                 device->HandleOutputDataReport(reinterpret_cast<const ams::bluetooth::HidReport *>(buffer.GetPointer()));
             }
         }
         else {
-            R_TRY(btdrvWriteHidData2Fwd(m_forward_service.get(), &address, buffer.GetPointer(), buffer.GetSize()));
+            R_TRY(btdrvWriteHidData2Fwd(m_forward_service.get(), address, buffer.GetPointer(), buffer.GetSize()));
         }
 
-        return ams::ResultSuccess();
+        R_SUCCEED();
     }
 
     Result BtdrvMitmService::GetHidEventInfo(sf::Out<ams::bluetooth::HidEventType> out_type, const sf::OutPointerBuffer &out_buffer) {

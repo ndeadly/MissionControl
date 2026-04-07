@@ -24,7 +24,7 @@ namespace ams::controller {
 
     }
 
-    MocuteController::MocuteController(const bluetooth::Address *address, HardwareID id)
+    MocuteController::MocuteController(bluetooth::Address address, HardwareID id)
     : EmulatedSwitchController(address, id) {
         if (id.vid == 0x0000 && id.pid == 0x0000) {
             m_variant = MocuteControllerVariant_053;

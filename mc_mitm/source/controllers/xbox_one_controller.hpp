@@ -137,8 +137,7 @@ namespace ams::controller {
                 {0x045e, 0x0b0a}    // Official Xbox Adaptive Controller
             };
 
-            XboxOneController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            XboxOneController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             Result SetVibration(const SwitchMotorData *motor_data);
             void ProcessInputData(const bluetooth::HidReport *report) override;

@@ -83,8 +83,7 @@ namespace ams::controller {
                 {0x2717, 0x3144}    // Xiaomi Mi Controller
             };
 
-            XiaomiController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            XiaomiController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             Result Initialize();
 

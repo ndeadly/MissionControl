@@ -84,8 +84,7 @@ namespace ams::controller {
                 {0x1d79, 0x0009}
             };
 
-            GemboxController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            GemboxController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

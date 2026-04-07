@@ -84,7 +84,7 @@ namespace ams::controller {
 
     class UnknownController : public EmulatedSwitchController {
         public:
-            UnknownController(const bluetooth::Address *address, HardwareID id)
+            UnknownController(bluetooth::Address address, HardwareID id)
             : EmulatedSwitchController(address, id) { }
     };
 
@@ -92,8 +92,8 @@ namespace ams::controller {
     bool IsAllowedDeviceClass(const bluetooth::DeviceClass *cod);
     bool IsOfficialSwitchControllerName(const std::string& name);
 
-    void AttachHandler(const bluetooth::Address *address);
-    void RemoveHandler(const bluetooth::Address *address);
-    std::shared_ptr<SwitchController> LocateHandler(const bluetooth::Address *address);
+    void AttachHandler(bluetooth::Address address);
+    void RemoveHandler(bluetooth::Address address);
+    std::shared_ptr<SwitchController> LocateHandler(bluetooth::Address address);
 
 }

@@ -46,15 +46,15 @@ namespace ams::controller {
         return LedPlayerMappings[(led_mask & 0xf) | (led_mask >> 4)];
     }
 
-    std::string GetControllerDirectory(const bluetooth::Address *address) {
+    std::string GetControllerDirectory(bluetooth::Address address) {
         char path[0x100];
         util::SNPrintf(path, sizeof(path), "sdmc:/config/MissionControl/controllers/%02x%02x%02x%02x%02x%02x",
-            address->address[0],
-            address->address[1],
-            address->address[2],
-            address->address[3],
-            address->address[4],
-            address->address[5]
+            address.address[0],
+            address.address[1],
+            address.address[2],
+            address.address[3],
+            address.address[4],
+            address.address[5]
         );
         return path;
     }

@@ -84,8 +84,7 @@ namespace ams::controller {
                 {0x0f0d, 0x1011}
             };
 
-            GamestickController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            GamestickController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

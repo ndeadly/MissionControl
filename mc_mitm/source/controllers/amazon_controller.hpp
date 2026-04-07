@@ -84,8 +84,7 @@ namespace ams::controller {
 
             static constexpr const char FireGameControllerName[] = "Amazon Fire Game Controller";
 
-            AmazonController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            AmazonController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 

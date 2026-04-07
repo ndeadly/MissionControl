@@ -161,8 +161,7 @@ namespace ams::controller {
                 {0x0738, 0x5269}    // Mad Catz L.Y.N.X. 3
             };
 
-            MadCatzController(const bluetooth::Address *address, HardwareID id)
-            : EmulatedSwitchController(address, id) { }
+            MadCatzController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
