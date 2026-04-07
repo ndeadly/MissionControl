@@ -76,13 +76,17 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::SetPlayerLed(u8 led_mask) {
-        u8 player_number;
-        R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
-        RGBColour colour = PlayerLedBaseColours[player_number];
-        u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
-        colour.r *= multiplier;
-        colour.g *= multiplier;
-        colour.b *= multiplier;
+        SwitchPlayerNumber player_number = LedMaskToPlayerNumber(led_mask);
+
+        RGBColour colour  = { 0, 0, 0 };
+        if (player_number != SwitchPlayerNumber_Unknown) {
+            colour = PlayerLedBaseColours[player_number];
+            u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
+            colour.r *= multiplier;
+            colour.g *= multiplier;
+            colour.b *= multiplier;
+        }
+
         R_RETURN(this->SetLightbarColour(colour));
     }
 

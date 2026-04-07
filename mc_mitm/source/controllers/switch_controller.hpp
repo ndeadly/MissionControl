@@ -392,7 +392,7 @@ namespace ams::controller {
         };
     } PACKED;
 
-    Result LedsMaskToPlayerNumber(u8 led_mask, u8 *player_number);
+    SwitchPlayerNumber LedMaskToPlayerNumber(u8 led_mask);
 
     std::string GetControllerDirectory(const bluetooth::Address *address);
 

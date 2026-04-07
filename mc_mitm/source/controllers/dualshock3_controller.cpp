@@ -204,16 +204,15 @@ namespace ams::controller {
     }
 
     Result Dualshock3Controller::SetPlayerLed(u8 led_mask) {
-        u8 player_index;
-        R_TRY(LedsMaskToPlayerNumber(led_mask, &player_index));
+        SwitchPlayerNumber player_number = LedMaskToPlayerNumber(led_mask); 
 
         auto config = mitm::GetGlobalConfig();
         switch(config->misc.dualshock3_led_mode) {
             case Dualshock3LedMode_Switch:
-                m_led_mask = PlayerLedPatterns[player_index];
+                m_led_mask = (player_number != SwitchPlayerNumber_Unknown) ? PlayerLedPatterns[player_number] : 0;
                 break;
             case Dualshock3LedMode_Ps3:
-                m_led_mask = player_index < 4 ? 1 << player_index : ~(1 << player_index) & 0x0f;
+                m_led_mask = (player_number != SwitchPlayerNumber_Unknown) ? player_number < 4 ? 1 << player_number : ~(1 << player_number) & 0x0f : 0;
                 break;
             case Dualshock3LedMode_Hybrid:
                 m_led_mask = led_mask;

@@ -98,13 +98,12 @@ namespace ams::controller {
     }
 
     Result DualsenseController::SetPlayerLed(u8 led_mask) {
-        u8 player_number;
-        R_TRY(LedsMaskToPlayerNumber(led_mask, &player_number));
+        SwitchPlayerNumber player_number = LedMaskToPlayerNumber(led_mask);
 
         u16 fw_version = *reinterpret_cast<u16 *>(&m_version_info.data[43]);
 
         auto config = mitm::GetGlobalConfig();
-        if (!config->misc.dualsense_enable_player_leds) {
+        if (!config->misc.dualsense_enable_player_leds || (player_number == SwitchPlayerNumber_Unknown)) {
             m_led_flags = 0x00;
         } else if (fw_version < 0x0282) {
             m_led_flags = PlayerLedFlags[player_number];
@@ -115,11 +114,15 @@ namespace ams::controller {
         // Disable LED fade-in
         m_led_flags |= 0x20;
 
-        RGBColour colour = PlayerLedBaseColours[player_number];
-        u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
-        colour.r *= multiplier;
-        colour.g *= multiplier;
-        colour.b *= multiplier;
+        RGBColour colour  = { 0, 0, 0 };
+        if (player_number != SwitchPlayerNumber_Unknown) {
+            colour = PlayerLedBaseColours[player_number];
+            u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
+            colour.r *= multiplier;
+            colour.g *= multiplier;
+            colour.b *= multiplier;
+        }
+
         R_RETURN(this->SetLightbarColour(colour));
     }
 
