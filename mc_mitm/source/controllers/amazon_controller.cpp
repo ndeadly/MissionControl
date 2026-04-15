@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "amazon_controller.hpp"
-#include "controller_utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -73,7 +72,8 @@ namespace ams::controller {
 
         m_buttons.capture = src->input0x01.buttons.middle;
 
-        m_battery = convert_battery_100(src->input0x01.battery);
+        auto battery_level = SwitchBatteryLevelConverter::ConvertPercentage(src->input0x01.battery);
+        m_power_info.SetBatteryLevel(battery_level);
     }
 
     void AmazonController::MapInputReport0x02(const AmazonReportData *src) {

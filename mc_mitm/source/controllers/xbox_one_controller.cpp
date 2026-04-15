@@ -124,9 +124,12 @@ namespace ams::controller {
     }
 
     void XboxOneController::MapInputReport0x04(const XboxOneReportData *src) {
-        m_ext_power = src->input0x04.mode != XboxOnePowerMode_Battery;
-        m_battery = (src->input0x04.mode == XboxOnePowerMode_USB) ? BATTERY_MAX : src->input0x04.capacity << 1;
-        m_charging = src->input0x04.charging;
+        bool powered = src->input0x04.mode != XboxOnePowerMode_Battery;
+        bool charging = src->input0x04.charging;
+        auto battery_level = (src->input0x04.mode == XboxOnePowerMode_USB) ? SwitchBatteryLevel::Full : static_cast<SwitchBatteryLevel>(src->input0x04.capacity);
+        m_power_info.SetPowered(powered);
+        m_power_info.SetCharging(charging);
+        m_power_info.SetBatteryLevel(battery_level);
     }
 
 }

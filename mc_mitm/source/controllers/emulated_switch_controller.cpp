@@ -28,11 +28,8 @@ namespace ams::controller {
 
     }
 
-    EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id)
-    : SwitchController(address, id)
-    , m_charging(false)
-    , m_ext_power(false)
-    , m_battery(BATTERY_MAX)
+    EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
+    , m_power_info(false, 0, false, SwitchBatteryLevel::Full)
     , m_led_pattern(0)
     , m_input_report_mode(0x30)
     , m_mcu_mode(McuMode_Suspended) {
@@ -72,8 +69,7 @@ namespace ams::controller {
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
         input_report->id = m_input_report_mode;
         input_report->timer = (input_report->timer + 1) & 0xff;
-        input_report->conn_info = (0 << 1) | m_ext_power;
-        input_report->battery = m_battery | m_charging;
+        input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick; 
@@ -546,8 +542,7 @@ namespace ams::controller {
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
         input_report->id = 0x21;
         input_report->timer = (input_report->timer + 1) & 0xff;
-        input_report->conn_info = (0 << 1) | m_ext_power;
-        input_report->battery = m_battery | m_charging;
+        input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick;
@@ -637,8 +632,7 @@ namespace ams::controller {
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
         input_report->id = 0x31;
         input_report->timer = (input_report->timer + 1) & 0xff;
-        input_report->conn_info = (0 << 1) | m_ext_power;
-        input_report->battery = m_battery | m_charging;
+        input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
         input_report->left_stick = m_left_stick;
         input_report->right_stick = m_right_stick;

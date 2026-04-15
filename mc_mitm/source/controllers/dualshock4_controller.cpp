@@ -119,23 +119,20 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::MapInputReport0x11(const Dualshock4ReportData *src) {
-        m_ext_power = src->input0x11.usb;
-
-        if (!src->input0x11.usb || src->input0x11.battery_level > 10) {
-            m_charging = false;
-        } else {
-            m_charging = true;
-        }
-
-        u8 battery_level = src->input0x11.battery_level;
+        u8 battery = src->input0x11.battery_level;
         if (!src->input0x11.usb) {
-            battery_level++;
+            battery++;
         }
-        if (battery_level > 10) {
-            battery_level = 10;
+        if (battery > 10) {
+            battery = 10;
         }
 
-        m_battery = static_cast<u8>(8 * (battery_level + 2) / 10) & 0x0e;
+        bool powered = src->input0x11.usb;
+        bool charging = src->input0x11.usb && !(src->input0x11.battery_level > 10);
+        auto battery_level = static_cast<SwitchBatteryLevel>(4 * (battery + 2) / 10);
+        m_power_info.SetPowered(powered);
+        m_power_info.SetCharging(charging);
+        m_power_info.SetBatteryLevel(battery_level);
 
         m_left_stick  = PackAnalogStickValues(src->input0x11.left_stick.x,  InvertAnalogStickValue(src->input0x11.left_stick.y));
         m_right_stick = PackAnalogStickValues(src->input0x11.right_stick.x, InvertAnalogStickValue(src->input0x11.right_stick.y));

@@ -18,6 +18,7 @@
 #include "../bluetooth_mitm/bluetooth/bluetooth_types.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "../async/future_response.hpp"
+#include "switch_power_info.hpp"
 #include "switch_rumble_handler.hpp"
 #include "switch_motion_packing.hpp"
 #include <queue>
@@ -25,8 +26,6 @@
 namespace ams::controller {
 
     using HidResponse = FutureResponse<bluetooth::HidEventType, bluetooth::HidReportEventInfo, u8>;
-
-    constexpr auto BATTERY_MAX = 8;
 
     enum SwitchPlayerNumber : u8 {
         SwitchPlayerNumber_One,
@@ -348,8 +347,7 @@ namespace ams::controller {
     struct SwitchInputReport {
         u8 id;
         u8 timer;
-        u8 conn_info : 4;
-        u8 battery   : 4;
+        SwitchPowerInfoType power_info;
         SwitchButtonData buttons;
         SwitchAnalogStick left_stick;
         SwitchAnalogStick right_stick;

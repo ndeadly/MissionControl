@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xiaomi_controller.hpp"
-#include "controller_utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -51,7 +50,8 @@ namespace ams::controller {
     }
 
     void XiaomiController::MapInputReport0x04(const XiaomiReportData *src) {
-        m_battery = convert_battery_100(src->input0x04.battery);
+        auto battery_level = SwitchBatteryLevelConverter::ConvertPercentage(src->input0x04.battery);
+        m_power_info.SetBatteryLevel(battery_level);
 
         m_left_stick  = PackAnalogStickValues(src->input0x04.left_stick.x,  InvertAnalogStickValue(src->input0x04.left_stick.y));
         m_right_stick = PackAnalogStickValues(src->input0x04.right_stick.x, InvertAnalogStickValue(src->input0x04.right_stick.y));

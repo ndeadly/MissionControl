@@ -15,7 +15,6 @@
  */
 #include "8bitdo_controller.hpp"
 #include <stratosphere.hpp>
-#include "controller_utils.hpp"
 
 namespace ams::controller {
 
@@ -180,7 +179,8 @@ namespace ams::controller {
 
             m_buttons.home = src->input0x03_v3.buttons.v2.home;
 
-            m_battery = convert_battery_100(src->input0x03_v3.battery);
+            auto battery_level = SwitchBatteryLevelConverter::ConvertPercentage(src->input0x03_v3.battery);
+            m_power_info.SetBatteryLevel(battery_level);
         }
 
     }

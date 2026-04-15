@@ -236,13 +236,14 @@ namespace ams::controller {
     }
 
     void Dualshock3Controller::MapInputReport0x01(const Dualshock3ReportData *src) {
-        m_charging = src->input0x01.charge == 0x02;
-        m_battery = std::clamp<u8>(src->input0x01.battery, 0, 4) * 2;
-
+        bool charging = src->input0x01.charge == 0x02;
+        auto battery_level = static_cast<SwitchBatteryLevel>(std::clamp<u8>(src->input0x01.battery, 0, 4));
         // Workaround for controller reporting battery empty and being disconnected under certain conditions
-        if (m_battery == 0) {
-            m_battery = 1;
+        if (battery_level == SwitchBatteryLevel::Empty) {
+            charging = true;
         }
+        m_power_info.SetCharging(charging);
+        m_power_info.SetBatteryLevel(battery_level);
 
         m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
         m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "powera_controller.hpp"
-#include "controller_utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -31,7 +30,8 @@ namespace ams::controller {
     }
 
     void PowerAController::MapInputReport0x03(const PowerAReportData *src) {
-        m_battery = convert_battery_255(src->input0x03.battery);
+        auto battery_level = SwitchBatteryLevelConverter::ConvertValue(src->input0x03.battery);
+        m_power_info.SetBatteryLevel(battery_level);
 
         m_left_stick  = PackAnalogStickValues(src->input0x03.left_stick.x,  InvertAnalogStickValue(src->input0x03.left_stick.y));
         m_right_stick = PackAnalogStickValues(src->input0x03.right_stick.x, InvertAnalogStickValue(src->input0x03.right_stick.y));

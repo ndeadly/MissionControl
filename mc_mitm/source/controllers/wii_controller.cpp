@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "wii_controller.hpp"
-#include "controller_utils.hpp"
 #include "../async/async.hpp"
 #include <stratosphere.hpp>
 
@@ -102,7 +101,8 @@ namespace ams::controller {
         this->MapCoreButtons(&src->input0x20.buttons);
 
         if (m_extension != WiiExtensionController_WiiUPro) {
-            m_battery = convert_battery_255(src->input0x20.battery);
+            auto battery_level = SwitchBatteryLevelConverter::ConvertValue(src->input0x20.battery);
+            m_power_info.SetBatteryLevel(battery_level);
         }
     }
 
@@ -321,9 +321,12 @@ namespace ams::controller {
 
         m_buttons.home = !extension_data->buttons.home;
 
-        m_ext_power = !extension_data->buttons.usb_connected;
-        m_charging = !extension_data->buttons.charging;
-        m_battery = (extension_data->buttons.battery == 0b111) ? 0 : (extension_data->buttons.battery << 1);
+        bool powered = !extension_data->buttons.usb_connected;
+        bool charging = !extension_data->buttons.charging;
+        auto battery_level = static_cast<SwitchBatteryLevel>((extension_data->buttons.battery == 0b111) ? 0 : (extension_data->buttons.battery));
+        m_power_info.SetPowered(powered);
+        m_power_info.SetCharging(charging);
+        m_power_info.SetBatteryLevel(battery_level);
     }
 
     void WiiController::MapTaTaConExtension(const u8 ext[]) {

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ouya_controller.hpp"
-#include "controller_utils.hpp"
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -39,7 +38,8 @@ namespace ams::controller {
     }
 
     void OuyaController::MapInputReport0x03(const OuyaReportData *src) {
-        m_battery = convert_battery_255(src->input0x03.battery);
+        auto battery_level = SwitchBatteryLevelConverter::ConvertValue(src->input0x03.battery);
+        m_power_info.SetBatteryLevel(battery_level);
     }
     
     void OuyaController::MapInputReport0x07(const OuyaReportData *src) {
