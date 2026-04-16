@@ -66,8 +66,8 @@ namespace ams::controller {
         u8 pressure_cross;
         u8 pressure_square;
         u8 unk4[3];
-        u8 charge;
-        u8 battery;
+        u8 charge_status;
+        u8 battery_level;
         u8 connection;
         u8 unk5[9];
         u16 accel_x;

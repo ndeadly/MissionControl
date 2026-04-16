@@ -62,6 +62,20 @@ namespace ams::controller {
             {0x01, 0x00, 0x03}  // purple
         };
 
+        constexpr SwitchBatteryLevel BatteryLookup[] = {
+            SwitchBatteryLevel::Critical,
+            SwitchBatteryLevel::Low,
+            SwitchBatteryLevel::Low,
+            SwitchBatteryLevel::Low,
+            SwitchBatteryLevel::Medium,
+            SwitchBatteryLevel::Medium,
+            SwitchBatteryLevel::Medium,
+            SwitchBatteryLevel::Full,
+            SwitchBatteryLevel::Full,
+            SwitchBatteryLevel::Full,
+            SwitchBatteryLevel::Full,
+        };
+
         constexpr u8 Step = 4;
         constexpr u8 LedBrightnessMultipliers[] = { 0, 1, 1 * Step, 2 * Step, 3 * Step, 4 * Step, 5 * Step, 6 * Step, 7 * Step, 8 * Step };
 
@@ -162,20 +176,9 @@ namespace ams::controller {
     }
 
     void DualsenseController::MapInputReport0x31(const DualsenseReportData *src) {
-        u8 battery = src->input0x31.battery_level;
-        if (!src->input0x31.usb) {
-            battery++;
-        }
-        if (battery > 10) {
-            battery = 10;
-        }
-
-        bool powered = src->input0x31.usb;
-        bool charging = src->input0x31.usb && !src->input0x31.full;
-        auto battery_level = static_cast<SwitchBatteryLevel>(4 * (battery + 2) / 10);
-        m_power_info.SetPowered(powered);
-        m_power_info.SetCharging(charging);
-        m_power_info.SetBatteryLevel(battery_level);
+        m_power_info.SetPowered(src->input0x31.powered);
+        m_power_info.SetCharging(src->input0x31.powered && !src->input0x31.charge_complete);
+        m_power_info.SetBatteryLevel(BatteryLookup[std::clamp<u8>(src->input0x31.battery_level, 0, sizeof(BatteryLookup) - 1)]);
 
         m_left_stick.SetValuesFrom(
             src->input0x31.left_stick.GetX(),

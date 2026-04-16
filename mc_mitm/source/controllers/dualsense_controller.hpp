@@ -128,7 +128,7 @@ namespace ams::controller {
         u8 right_trigger;
         u8 counter;
         DualsenseButtonData buttons;
-        u8 _unk1[4];
+        u32 _unk1;
         s16 vel_x;
         s16 vel_y;
         s16 vel_z;
@@ -136,14 +136,14 @@ namespace ams::controller {
         s16 acc_y;
         s16 acc_z;
         s32 timestamp;
-        u8 _unk2;
+        u8 temperature;
         DualsenseTouchpadPoint touch_points[2];
         u8 _unk3[12];
 
-        u8 battery_level : 4;
-        u8 usb           : 1;
-        u8 full          : 1;
-        u8               : 0;
+        u8 battery_level   : 4;
+        u8 powered         : 1;
+        u8 charge_complete : 1;
+        u8                 : 0;
     } PACKED;
 
     struct DualsenseReportData {

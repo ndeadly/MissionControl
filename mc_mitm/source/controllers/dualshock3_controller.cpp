@@ -30,6 +30,14 @@ namespace ams::controller {
             Dualshock3LedMode_Hybrid = 2,
         };
 
+        constexpr SwitchBatteryLevel BatteryLookup[] = {
+            SwitchBatteryLevel::Critical,
+            SwitchBatteryLevel::Low,
+            SwitchBatteryLevel::Medium,
+            SwitchBatteryLevel::Full,
+            SwitchBatteryLevel::Full,
+        };
+
         constexpr const char Ds3DeviceName[] = "PLAYSTATION(R)3 Controller";
         constexpr u16 Ds3VendorId = 0x054c;
         constexpr u16 Ds3ProductId = 0x0268;
@@ -236,12 +244,19 @@ namespace ams::controller {
     }
 
     void Dualshock3Controller::MapInputReport0x01(const Dualshock3ReportData *src) {
-        bool charging = src->input0x01.charge == 0x02;
-        auto battery_level = static_cast<SwitchBatteryLevel>(std::clamp<u8>(src->input0x01.battery, 0, 4));
-        // Workaround for controller reporting battery empty and being disconnected under certain conditions
-        if (battery_level == SwitchBatteryLevel::Empty) {
+        bool powered;
+        bool charging;
+        SwitchBatteryLevel battery_level;
+        if (src->input0x01.battery_level == 0x00 || src->input0x01.battery_level == 0xEE) {
+            powered = true;
             charging = true;
+            battery_level = SwitchBatteryLevel::Full;
+        } else {
+            powered = false;
+            charging = false;
+            battery_level = BatteryLookup[std::clamp<u8>(src->input0x01.battery_level - 1, 0, sizeof(BatteryLookup) - 1)];
         }
+        m_power_info.SetPowered(powered);
         m_power_info.SetCharging(charging);
         m_power_info.SetBatteryLevel(battery_level);
 

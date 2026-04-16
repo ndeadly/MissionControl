@@ -166,7 +166,7 @@ namespace ams::controller {
         u8 _unk1[5];
 
         u8 battery_level : 4;
-        u8 usb           : 1;
+        u8 powered       : 1;
         u8 mic           : 1;
         u8 phone         : 1;
         u8               : 0;
