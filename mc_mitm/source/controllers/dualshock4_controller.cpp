@@ -27,7 +27,7 @@ namespace ams::controller {
         constexpr u16 TouchpadWidth = 1920;
         constexpr u16 TouchpadHeight = 942;
 
-        constinit const RGBColour PlayerLedBaseColours[] = {
+        constexpr RGBColour PlayerLedBaseColours[] = {
             // Same colours used by PS4
             {0x00, 0x00, 0x04}, // blue
             {0x04, 0x00, 0x00}, // red
@@ -41,7 +41,7 @@ namespace ams::controller {
         };
 
         constexpr u8 Step = 4;
-        constinit const u8 LedBrightnessMultipliers[] = { 0, 1, 1 * Step, 2 * Step, 3 * Step, 4 * Step, 5 * Step, 6 * Step, 7 * Step, 8 * Step };
+        constexpr u8 LedBrightnessMultipliers[] = { 0, 1, 1 * Step, 2 * Step, 3 * Step, 4 * Step, 5 * Step, 6 * Step, 7 * Step, 8 * Step };
 
         constexpr u32 CrcSeed = 0xB758EC66;  // CRC32 of {0xa2, 0x11} bytes at beginning of output report
 

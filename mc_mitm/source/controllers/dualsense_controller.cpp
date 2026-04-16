@@ -26,7 +26,7 @@ namespace ams::controller {
         constexpr u16 TouchpadWidth = 1920;
         constexpr u16 TouchpadHeight = 1080;
 
-        constinit const u8 PlayerLedFlags[] = {
+        constexpr u8 PlayerLedFlags[] = {
             // Mimic the Switch's player LEDs
             0x01,
             0x03,
@@ -38,7 +38,7 @@ namespace ams::controller {
             0x0A
         };
 
-        constinit const u8 NewPlayerLedFlags[] = {
+        constexpr u8 NewPlayerLedFlags[] = {
             0x04,
             0x02,
             0x05,
@@ -49,7 +49,7 @@ namespace ams::controller {
             0x07
         };
 
-        constinit const RGBColour PlayerLedBaseColours[] = {
+        constexpr RGBColour PlayerLedBaseColours[] = {
             // Same colours used by PS4
             {0x00, 0x00, 0x04}, // blue
             {0x04, 0x00, 0x00}, // red
@@ -63,7 +63,7 @@ namespace ams::controller {
         };
 
         constexpr u8 Step = 4;
-        constinit const u8 LedBrightnessMultipliers[] = { 0, 1, 1 * Step, 2 * Step, 3 * Step, 4 * Step, 5 * Step, 6 * Step, 7 * Step, 8 * Step };
+        constexpr u8 LedBrightnessMultipliers[] = { 0, 1, 1 * Step, 2 * Step, 3 * Step, 4 * Step, 5 * Step, 6 * Step, 7 * Step, 8 * Step };
 
         constexpr u32 CrcSeed = 0x8C36CCAE; // CRC32 of {0xa2, 0x31} bytes at beginning of output report
 

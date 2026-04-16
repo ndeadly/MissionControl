@@ -37,13 +37,13 @@ namespace ams::controller {
         constexpr u8 TriggerMax = UINT8_MAX;
         constexpr float AccelScaleFactor = 1 / 113.0f;
 
-        constinit const u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
-        constinit const u8 LedConfig[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
-        constinit const u8 PlayerLedPatterns[] = { 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
+        constexpr u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
+        constexpr u8 LedConfig[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
+        constexpr u8 PlayerLedPatterns[] = { 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
 
         alignas(os::MemoryPageSize) constinit u8 g_usb_buffer[0x1000];
 
-        constinit const UsbHsInterfaceFilter g_interface_filter = {
+        constexpr UsbHsInterfaceFilter g_interface_filter = {
             .Flags = UsbHsInterfaceFilterFlags_idVendor | UsbHsInterfaceFilterFlags_idProduct | UsbHsInterfaceFilterFlags_bInterfaceClass,
             .idVendor = Ds3VendorId,
             .idProduct = Ds3ProductId,
