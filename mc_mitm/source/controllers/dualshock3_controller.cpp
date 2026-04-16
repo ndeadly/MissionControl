@@ -245,8 +245,15 @@ namespace ams::controller {
         m_power_info.SetCharging(charging);
         m_power_info.SetBatteryLevel(battery_level);
 
-        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0x01.left_stick.GetX(),
+            src->input0x01.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x01.right_stick.GetX(),
+            src->input0x01.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down  = src->input0x01.buttons.dpad_down;
         m_buttons.dpad_up    = src->input0x01.buttons.dpad_up;

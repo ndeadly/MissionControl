@@ -21,7 +21,7 @@ namespace ams::controller {
     namespace {
 
         constexpr u8 TriggerMax = UINT8_MAX;
-        constexpr float MediaModeStickScaleFactor = float(UINT12_MAX) / 39;
+        constexpr float MediaModeStickScaleFactor = float(SwitchAnalogStick::MaximumValue) / 39;
 
     }
 
@@ -45,8 +45,15 @@ namespace ams::controller {
     }
 
     void MadCatzController::MapInputReport0x01(const MadCatzReportData *src) {
-        m_left_stick  = PackAnalogStickValues(src->input0x01.left_stick.x,  InvertAnalogStickValue(src->input0x01.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0x01.right_stick.x, InvertAnalogStickValue(src->input0x01.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0x01.left_stick.GetX(),
+            src->input0x01.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x01.right_stick.GetX(),
+            src->input0x01.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down  = (src->input0x01.buttons.dpad == MadCatzDPad_S)  ||
                                (src->input0x01.buttons.dpad == MadCatzDPad_SE) ||
@@ -86,8 +93,15 @@ namespace ams::controller {
     }
 
     void MadCatzController::MapInputReport0x81(const MadCatzReportData *src) {
-        m_left_stick  = PackAnalogStickValues(src->input0x81.left_stick.x,  InvertAnalogStickValue(src->input0x81.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0x81.right_stick.x, InvertAnalogStickValue(src->input0x81.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0x81.left_stick.GetX(),
+            src->input0x81.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x81.right_stick.GetX(),
+            src->input0x81.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down  = (src->input0x81.buttons.dpad == MadCatzDPad_S)  ||
                                (src->input0x81.buttons.dpad == MadCatzDPad_SE) ||
@@ -136,9 +150,9 @@ namespace ams::controller {
     }
 
     void MadCatzController::MapInputReport0x83(const MadCatzReportData *src) {
-        m_left_stick.SetData(
-            std::clamp<u16>(MediaModeStickScaleFactor * -src->input0x83.left_stick.x + 0x7ff, SwitchAnalogStick::Min, SwitchAnalogStick::Max),
-            std::clamp<u16>(MediaModeStickScaleFactor *  src->input0x83.left_stick.y + 0x7ff, SwitchAnalogStick::Min, SwitchAnalogStick::Max)
+        m_left_stick.SetValues(
+            std::clamp<u16>(MediaModeStickScaleFactor * -src->input0x83.left_stick.x + 0x7ff, SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue),
+            std::clamp<u16>(MediaModeStickScaleFactor *  src->input0x83.left_stick.y + 0x7ff, SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue)
         );
 
         m_buttons.ZR = src->input0x83.buttons.R2;

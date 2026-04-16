@@ -349,8 +349,8 @@ namespace ams::controller {
         u8 timer;
         SwitchPowerInfoType power_info;
         SwitchButtonData buttons;
-        SwitchAnalogStick left_stick;
-        SwitchAnalogStick right_stick;
+        SwitchAnalogStickType left_stick;
+        SwitchAnalogStickType right_stick;
         u8 vibrator;
 
         union {

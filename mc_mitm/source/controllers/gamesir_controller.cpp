@@ -42,8 +42,15 @@ namespace ams::controller {
     }
 
     void GamesirController::MapInputReport0x03(const GamesirReportData *src) {
-        m_left_stick  = PackAnalogStickValues(src->input0x03.left_stick.x,  InvertAnalogStickValue(src->input0x03.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0x03.right_stick.x, InvertAnalogStickValue(src->input0x03.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0x03.left_stick.GetX(),
+            src->input0x03.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x03.right_stick.GetX(),
+            src->input0x03.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down  = (src->input0x03.dpad == GamesirDpad2_S)  ||
                                (src->input0x03.dpad == GamesirDpad2_SE) ||
@@ -78,8 +85,15 @@ namespace ams::controller {
     }
 
     void GamesirController::MapInputReport0x07(const GamesirReportData *src) {
-        m_left_stick  = PackAnalogStickValues(src->input0x07.left_stick.x,  InvertAnalogStickValue(src->input0x07.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0x07.right_stick.x, InvertAnalogStickValue(src->input0x07.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0x07.left_stick.GetX(),
+            src->input0x07.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x07.right_stick.GetX(),
+            src->input0x07.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down  = (src->input0x07.dpad == GamesirDpad2_S)  ||
                                (src->input0x07.dpad == GamesirDpad2_SE) ||
@@ -118,8 +132,15 @@ namespace ams::controller {
     }
 
     void GamesirController::MapInputReport0xc4(const GamesirReportData *src) {
-        m_left_stick  = PackAnalogStickValues(src->input0xc4.left_stick.x,  InvertAnalogStickValue(src->input0xc4.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0xc4.right_stick.x, InvertAnalogStickValue(src->input0xc4.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0xc4.left_stick.GetX(),
+            src->input0xc4.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0xc4.right_stick.GetX(),
+            src->input0xc4.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down   = (src->input0xc4.dpad == GamesirDpad_S)  ||
                                 (src->input0xc4.dpad == GamesirDpad_SE) ||

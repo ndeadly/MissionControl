@@ -22,7 +22,7 @@ namespace ams::controller {
 
         constexpr u8 TriggerMax = UINT8_MAX;
 
-        constinit const u16 DpadStickPositions[] = { SwitchAnalogStick::Min, SwitchAnalogStick::Center, SwitchAnalogStick::Max };
+        constexpr u16 DpadStickPositions[] = { SwitchAnalogStick::MinimumValue, SwitchAnalogStick::CenterValue, SwitchAnalogStick::MaximumValue };
 
     }
 
@@ -55,13 +55,20 @@ namespace ams::controller {
                               (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
 
             // Map dpad as left stick
-            m_left_stick.SetData(
+            m_left_stick.SetValues(
                 DpadStickPositions[1 + dpad_right - dpad_left],
                 DpadStickPositions[1 + dpad_up - dpad_down]
             );
         } else {
-            m_left_stick  = PackAnalogStickValues(src->input0x01_v2.left_stick.x,  InvertAnalogStickValue(src->input0x01_v2.left_stick.y));
-            m_right_stick = PackAnalogStickValues(src->input0x01_v2.right_stick.x, InvertAnalogStickValue(src->input0x01_v2.right_stick.y));
+            m_left_stick.SetValuesFrom(
+                src->input0x01_v2.left_stick.GetX(),
+                src->input0x01_v2.left_stick.GetYInverted()
+            );
+
+            m_right_stick.SetValuesFrom(
+                src->input0x01_v2.right_stick.GetX(),
+                src->input0x01_v2.right_stick.GetYInverted()
+            );
 
             m_buttons.dpad_down  = (src->input0x01_v2.dpad == EightBitDoDPadV2_S)  ||
                                    (src->input0x01_v2.dpad == EightBitDoDPadV2_SE) ||
@@ -127,7 +134,7 @@ namespace ams::controller {
                 bool dpad_left  = src->input0x03_v2.left_stick.x == 0x00;
 
                 // Map dpad as left stick
-                m_left_stick.SetData(
+                m_left_stick.SetValues(
                     DpadStickPositions[1 + dpad_right - dpad_left],
                     DpadStickPositions[1 + dpad_up - dpad_down]
                 );
@@ -144,8 +151,15 @@ namespace ams::controller {
                 m_buttons.plus  = src->input0x03_v2.buttons.v2.start;
             }
         } else {
-            m_left_stick  = PackAnalogStickValues(src->input0x03_v3.left_stick.x,  InvertAnalogStickValue(src->input0x03_v3.left_stick.y));
-            m_right_stick = PackAnalogStickValues(src->input0x03_v3.right_stick.x, InvertAnalogStickValue(src->input0x03_v3.right_stick.y));
+            m_left_stick.SetValuesFrom(
+                src->input0x03_v3.left_stick.GetX(),
+                src->input0x03_v3.left_stick.GetYInverted()
+            );
+
+            m_right_stick.SetValuesFrom(
+                src->input0x03_v3.right_stick.GetX(),
+                src->input0x03_v3.right_stick.GetYInverted()
+            );
 
             m_buttons.dpad_down  = (src->input0x03_v3.dpad == EightBitDoDPadV2_S)  ||
                                    (src->input0x03_v3.dpad == EightBitDoDPadV2_SE) ||

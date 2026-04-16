@@ -20,7 +20,7 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr float StickScaleFactor = float(UINT12_MAX) / UINT8_MAX;
+        constexpr float StickScaleFactor = float(SwitchAnalogStick::MaximumValue) / UINT8_MAX;
 
     }
 
@@ -41,13 +41,13 @@ namespace ams::controller {
             if (src->input0x01.a_button || src->input0x01.b_button || src->input0x01.c_button || src->input0x01.x_button || src->input0x01.y_button || src->input0x01.z_button) {
                 m_arcadepanel = true;
             }
-            m_left_stick.SetData(
-                SwitchAnalogStick::Center + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
-                SwitchAnalogStick::Center
+            m_left_stick.SetValues(
+                SwitchAnalogStick::CenterValue + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
+                SwitchAnalogStick::CenterValue
             );
-            m_right_stick.SetData(
-                SwitchAnalogStick::Center,
-                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
+            m_right_stick.SetValues(
+                SwitchAnalogStick::CenterValue,
+                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & SwitchAnalogStick::MaximumValue
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
@@ -74,13 +74,13 @@ namespace ams::controller {
 
             m_buttons.plus  = src->input0x01.home_twirl;
         } else {
-            m_left_stick.SetData(
-                SwitchAnalogStick::Center + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
-                SwitchAnalogStick::Center + 0x7ff * (src->input0x01.nudge_front)
+            m_left_stick.SetValues(
+                SwitchAnalogStick::CenterValue + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
+                SwitchAnalogStick::CenterValue + 0x7ff * (src->input0x01.nudge_front)
             );
-            m_right_stick.SetData(
-                SwitchAnalogStick::Center,
-                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & UINT12_MAX
+            m_right_stick.SetValues(
+                SwitchAnalogStick::CenterValue,
+                static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & SwitchAnalogStick::MaximumValue
             );
             
             m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||

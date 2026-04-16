@@ -42,8 +42,15 @@ namespace ams::controller {
     }
 
     void IpegaController::MapInputReport0x07(const IpegaReportData *src) {
-        m_left_stick  = PackAnalogStickValues(src->input0x07.left_stick.x,  InvertAnalogStickValue(src->input0x07.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0x07.right_stick.x, InvertAnalogStickValue(src->input0x07.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0x07.left_stick.GetX(),
+            src->input0x07.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x07.right_stick.GetX(),
+            src->input0x07.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down  = (src->input0x07.buttons.dpad == IpegaDPad_S)  ||
                                (src->input0x07.buttons.dpad == IpegaDPad_SE) ||

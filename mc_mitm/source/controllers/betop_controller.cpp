@@ -30,8 +30,15 @@ namespace ams::controller {
     }
 
     void BetopController::MapInputReport0x03(const BetopReportData *src) {
-        m_left_stick  = PackAnalogStickValues(src->input0x03.left_stick.x,  InvertAnalogStickValue(src->input0x03.left_stick.y));
-        m_right_stick = PackAnalogStickValues(src->input0x03.right_stick.x, InvertAnalogStickValue(src->input0x03.right_stick.y));
+        m_left_stick.SetValuesFrom(
+            src->input0x03.left_stick.GetX(),
+            src->input0x03.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x03.right_stick.GetX(),
+            src->input0x03.right_stick.GetYInverted()
+        );
 
         m_buttons.dpad_down  = (src->input0x03.buttons.dpad == BetopDPad_S)  ||
                                (src->input0x03.buttons.dpad == BetopDPad_SE) ||

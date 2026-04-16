@@ -55,8 +55,8 @@ namespace ams::controller {
 
     void EmulatedSwitchController::ClearControllerState() {
         std::memset(&m_buttons, 0, sizeof(m_buttons));
-        m_left_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
-        m_right_stick.SetData(SwitchAnalogStick::Center, SwitchAnalogStick::Center);
+        m_left_stick.Reset();
+        m_right_stick.Reset();
         std::memset(&m_accel, 0, sizeof(m_accel));
         std::memset(&m_gyro, 0, sizeof(m_gyro));
         m_motion_packer->SetGyroSensitivity(GyroSensitivity_2000Dps);
@@ -71,8 +71,8 @@ namespace ams::controller {
         input_report->timer = (input_report->timer + 1) & 0xff;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
-        input_report->left_stick = m_left_stick;
-        input_report->right_stick = m_right_stick; 
+        input_report->left_stick  = m_left_stick.GetState();
+        input_report->right_stick = m_right_stick.GetState();
 
         const SwitchMcuResponse empty_mcu_response = {
           .command = McuCommand_EmptyAwaitingCmd,
@@ -544,8 +544,8 @@ namespace ams::controller {
         input_report->timer = (input_report->timer + 1) & 0xff;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
-        input_report->left_stick = m_left_stick;
-        input_report->right_stick = m_right_stick;
+        input_report->left_stick  = m_left_stick.GetState();
+        input_report->right_stick = m_right_stick.GetState();
         input_report->vibrator = 0;
 
         std::memcpy(&input_report->type0x21.hid_command_response, response, sizeof(SwitchHidCommandResponse));
@@ -634,8 +634,8 @@ namespace ams::controller {
         input_report->timer = (input_report->timer + 1) & 0xff;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
-        input_report->left_stick = m_left_stick;
-        input_report->right_stick = m_right_stick;
+        input_report->left_stick  = m_left_stick.GetState();
+        input_report->right_stick = m_right_stick.GetState();
         input_report->vibrator = 0;
 
         m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);

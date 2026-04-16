@@ -23,11 +23,11 @@ namespace ams::controller {
         constexpr size_t SpiFlashSize = 0x10000;
 
         // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
-        constinit const SwitchAnalogStickFactoryCalibration lstick_factory_calib = { 0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80 };
-        constinit const SwitchAnalogStickFactoryCalibration rstick_factory_calib = { 0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f };
+        constexpr SwitchAnalogStick::CalibrationValues DefaultLeftStickCalibrationValues  = { 0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80 };
+        constexpr SwitchAnalogStick::CalibrationValues DefaultRightStickCalibrationValues = { 0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f };
 
         // Stick parameters data that produce a 12.5% inner deadzone and a 5% outer deadzone (in relation to the full 12 bit range above)
-        constinit const SwitchAnalogStickParameters default_stick_params = { 0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63 };
+        constexpr SwitchAnalogStick::ModelValues DefaultAnalogStickModelValues = { 0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63 };
 
     }
 
@@ -134,9 +134,9 @@ namespace ams::controller {
         R_TRY(this->EnsureMemoryRegion(0x6020, &factory_motion_calibration, sizeof(factory_motion_calibration)));
 
         const struct {
-            SwitchAnalogStickFactoryCalibration lstick_factory_calib;
-            SwitchAnalogStickFactoryCalibration rstick_factory_calib;
-        } factory_stick_calibration = { lstick_factory_calib, rstick_factory_calib };
+            SwitchAnalogStick::CalibrationValues lstick_factory_calib;
+            SwitchAnalogStick::CalibrationValues rstick_factory_calib;
+        } factory_stick_calibration = { DefaultLeftStickCalibrationValues, DefaultRightStickCalibrationValues };
         R_TRY(this->EnsureMemoryRegion(0x603d, &factory_stick_calibration, sizeof(factory_stick_calibration)));
 
         const struct {
@@ -151,9 +151,9 @@ namespace ams::controller {
         R_TRY(this->EnsureMemoryRegion(0x6080, &offset, sizeof(offset)));
 
         const struct {
-            SwitchAnalogStickParameters lstick_default_parameters;
-            SwitchAnalogStickParameters rstick_default_parameters;
-        } factory_stick_parameters = { default_stick_params, default_stick_params };
+            SwitchAnalogStick::ModelValues lstick_default_parameters;
+            SwitchAnalogStick::ModelValues rstick_default_parameters;
+        } factory_stick_parameters = { DefaultAnalogStickModelValues, DefaultAnalogStickModelValues };
         R_TRY(this->EnsureMemoryRegion(0x6086, &factory_stick_parameters, sizeof(factory_stick_parameters)));
 
         R_TRY(fs::FlushFile(m_virtual_memory_file));

@@ -73,8 +73,15 @@ namespace ams::controller {
     }
 
     void MocuteController::MapAnalogSticks(const AnalogStick<u8> *left_stick, const AnalogStick<u8> *right_stick) {
-        m_left_stick  = PackAnalogStickValues(left_stick->x,  InvertAnalogStickValue(left_stick->y));
-        m_right_stick = PackAnalogStickValues(right_stick->x, InvertAnalogStickValue(right_stick->y));
+        m_left_stick.SetValuesFrom(
+            left_stick->GetX(),
+            left_stick->GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            right_stick->GetX(),
+            right_stick->GetYInverted()
+        );
     }
 
     void MocuteController::MapButtons(const MocuteButtonData *buttons, u8 dpad_format) {
