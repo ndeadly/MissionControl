@@ -70,11 +70,9 @@ namespace ams::controller {
             Result FakeHidCommandResponse(const SwitchHidCommandResponse *response);
             Result FakeMcuResponse(const SwitchMcuResponse *response);
 
-            // bool m_charging;
-            // bool m_ext_power;
-            // u8 m_battery;
+        protected:
             SwitchPowerInfo m_power_info;
-            u8 m_led_pattern;
+            SwitchPlayerIndicator m_player_indicator;
 
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;

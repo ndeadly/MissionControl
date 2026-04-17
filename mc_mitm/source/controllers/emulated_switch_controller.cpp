@@ -30,7 +30,7 @@ namespace ams::controller {
 
     EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
     , m_power_info(false, 0, false, SwitchBatteryLevel::Full)
-    , m_led_pattern(0)
+    , m_player_indicator()
     , m_input_report_mode(0x30)
     , m_mcu_mode(McuMode_Suspended) {
         this->ClearControllerState();
@@ -441,8 +441,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandSetIndicatorLed(const SwitchHidCommand *command) {
-        m_led_pattern = command->set_indicator_led.leds;
-        R_TRY(this->SetPlayerLed(m_led_pattern));
+        m_player_indicator.SetState(command->set_indicator_led.led_state);
+        R_TRY(this->SetPlayerLed(m_player_indicator.GetLedPattern()));
 
         const SwitchHidCommandResponse response = {
             .ack = 0x80,
@@ -458,7 +458,7 @@ namespace ams::controller {
             .id = command->id,
             .data = {
                 .get_indicator_led = {
-                    .leds = m_led_pattern
+                    .led_state = m_player_indicator.GetState()
                 }
             }
         };
