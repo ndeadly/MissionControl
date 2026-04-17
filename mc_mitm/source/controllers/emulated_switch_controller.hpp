@@ -15,7 +15,7 @@
  */
 #pragma once
 #include "switch_controller.hpp"
-#include "virtual_spi_flash.hpp"
+#include "switch_virtual_controller_memory.hpp"
 
 namespace ams::controller {
 
@@ -94,7 +94,7 @@ namespace ams::controller {
 
             McuModeType m_mcu_mode;
 
-            VirtualSpiFlash m_virtual_memory;
+            SwitchVirtualControllerMemory m_virtual_memory;
     };
 
 }

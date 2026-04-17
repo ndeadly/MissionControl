@@ -13,8 +13,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "virtual_spi_flash.hpp"
-#include "switch_controller.hpp"
+#include "switch_virtual_controller_memory.hpp"
+#include "switch_types.hpp"
 
 namespace ams::controller {
 
@@ -23,27 +23,34 @@ namespace ams::controller {
         constexpr size_t SpiFlashSize = 0x10000;
 
         // Factory calibration data representing analog stick ranges that span the entire 12-bit data type in x and y
-        constexpr SwitchAnalogStick::CalibrationValues DefaultLeftStickCalibrationValues  = { 0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80 };
-        constexpr SwitchAnalogStick::CalibrationValues DefaultRightStickCalibrationValues = { 0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f };
+        constexpr SwitchAnalogStick::CalibrationValues DefaultLeftStickCalibrationValues  = {
+            0xff, 0xf7, 0x7f, 0x00, 0x08, 0x80, 0x00, 0x08, 0x80
+        };
+
+        constexpr SwitchAnalogStick::CalibrationValues DefaultRightStickCalibrationValues = {
+            0x00, 0x08, 0x80, 0x00, 0x08, 0x80, 0xff, 0xf7, 0x7f
+        };
 
         // Stick parameters data that produce a 12.5% inner deadzone and a 5% outer deadzone (in relation to the full 12 bit range above)
-        constexpr SwitchAnalogStick::ModelValues DefaultAnalogStickModelValues = { 0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63 };
+        constexpr SwitchAnalogStick::ModelValues DefaultAnalogStickModelValues = {
+            0x0f, 0x30, 0x61, 0x00, 0x31, 0xf3, 0xd4, 0x14, 0x54, 0x41, 0x15, 0x54, 0xc7, 0x79, 0x9c, 0x33, 0x36, 0x63
+        };
 
     }
 
-    VirtualSpiFlash::~VirtualSpiFlash() {
+    SwitchVirtualControllerMemory::~SwitchVirtualControllerMemory() {
         fs::CloseFile(m_virtual_memory_file);
     }
 
-    Result VirtualSpiFlash::Initialize(const char *path) {
-        // Check if the virtual spi flash file already exists and create it if not
+    Result SwitchVirtualControllerMemory::Initialize(const char *path) {
+        // Check if the virtual memory file already exists and create it if not
         bool file_exists;
         R_TRY(fs::HasFile(&file_exists, path));
         if (!file_exists) {
             R_TRY(this->CreateFile(path));
         }
 
-        // Open the virtual spi flash file for read and write
+        // Open the virtual memory file for read and write
         R_TRY(fs::OpenFile(std::addressof(m_virtual_memory_file), path, fs::OpenMode_ReadWrite));
 
         // Make sure that all memory regions that we care about are initialised with defaults
@@ -52,15 +59,15 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result VirtualSpiFlash::Read(int offset, void *data, size_t size) {
+    Result SwitchVirtualControllerMemory::Read(int offset, void *data, size_t size) {
         R_RETURN(fs::ReadFile(m_virtual_memory_file, offset, data, size));
     }
 
-    Result VirtualSpiFlash::Write(int offset, const void *data, size_t size) {
+    Result SwitchVirtualControllerMemory::Write(int offset, const void *data, size_t size) {
         R_RETURN(fs::WriteFile(m_virtual_memory_file, offset, data, size, fs::WriteOption::Flush));
     }
 
-    Result VirtualSpiFlash::SectorErase(int offset) {
+    Result SwitchVirtualControllerMemory::SectorErase(int offset) {
         u8 buff[64];
         std::memset(buff, 0xff, sizeof(buff));
 
@@ -76,7 +83,7 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result VirtualSpiFlash::CheckMemoryRegion(int offset, size_t size, bool *is_initialized) {
+    Result SwitchVirtualControllerMemory::CheckMemoryRegion(int offset, size_t size, bool *is_initialized) {
         auto data = std::unique_ptr<u8[]>(new u8[size]());
 
         R_TRY(this->Read(offset, data.get(), size));
@@ -92,8 +99,8 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result VirtualSpiFlash::CreateFile(const char *path) {
-        // Create file representing first 64KB of SPI flash
+    Result SwitchVirtualControllerMemory::CreateFile(const char *path) {
+        // Create file representing first 64KB of memory
         R_TRY(fs::CreateFile(path, SpiFlashSize));
 
         R_TRY(fs::OpenFile(std::addressof(m_virtual_memory_file), path, fs::OpenMode_Write));
@@ -114,7 +121,7 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result VirtualSpiFlash::EnsureMemoryRegion(int offset, const void *data, size_t size) {
+    Result SwitchVirtualControllerMemory::EnsureMemoryRegion(int offset, const void *data, size_t size) {
         bool initialized;
         R_TRY(this->CheckMemoryRegion(offset, size, &initialized));
         if (!initialized) {
@@ -124,7 +131,7 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result VirtualSpiFlash::EnsureInitialized() {
+    Result SwitchVirtualControllerMemory::EnsureInitialized() {
         const Switch6AxisCalibrationData factory_motion_calibration = {
             .acc_bias = {0, 0, 0},
             .acc_sensitivity = {16384, 16384, 16384},

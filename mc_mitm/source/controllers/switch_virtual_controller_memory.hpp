@@ -18,10 +18,10 @@
 
 namespace ams::controller {
 
-    class VirtualSpiFlash {
+    class SwitchVirtualControllerMemory {
         public:
-            VirtualSpiFlash() {};
-            ~VirtualSpiFlash();
+            SwitchVirtualControllerMemory() {};
+            ~SwitchVirtualControllerMemory();
             
             Result Initialize(const char *path);
             Result Read(int offset, void *data, size_t size);
