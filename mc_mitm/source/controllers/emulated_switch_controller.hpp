@@ -90,7 +90,7 @@ namespace ams::controller {
 
             float m_trigger_threshold;
 
-            McuModeType m_mcu_mode;
+            SwitchMcuMode m_mcu_mode;
 
             SwitchVirtualControllerMemory m_virtual_memory;
     };

@@ -135,86 +135,117 @@ namespace ams::controller {
         Report0x82             = 0x82,
     };
 
-    enum HidCommandType : u8 {
-        HidCommand_PairingOut             = 0x01,
-        HidCommand_GetDeviceInfo          = 0x02,
-        HidCommand_SetDataFormat          = 0x03,
-        HidCommand_LRButtonDetection      = 0x04,
-        HidCommand_Page                   = 0x05,
-        HidCommand_Reset                  = 0x06,
-        HidCommand_ClearPairingInfo       = 0x07,
-        HidCommand_Shipment               = 0x08,
-        HidCommand_SerialFlashRead        = 0x10,
-        HidCommand_SerialFlashWrite       = 0x11,
-        HidCommand_SerialFlashSectorErase = 0x12,
-        HidCommand_McuReset               = 0x20,
-        HidCommand_McuWrite               = 0x21,
-        HidCommand_McuResume              = 0x22,
-        HidCommand_McuPollingEnable       = 0x24,
-        HidCommand_McuPollingDisable      = 0x25,
-        HidCommand_AttachmentWrite        = 0x28,
-        HidCommand_AttachmentRead         = 0x29,
-        HidCommand_AttachmentEnable       = 0x2a,
-        HidCommand_SetIndicatorLed        = 0x30,
-        HidCommand_GetIndicatorLed        = 0x31,
-        HidCommand_SetNotificationLed     = 0x38,
-        HidCommand_SensorSleep            = 0x40,
-        HidCommand_SensorConfig           = 0x41,
-        HidCommand_SensorWrite            = 0x42,
-        HidCommand_SensorRead             = 0x43,
-        HidCommand_MotorEnable            = 0x48,
-        HidCommand_GetBatteryVoltage      = 0x50,
-        HidCommand_WriteChargeSetting     = 0x51,
-        HidCommand_ReadChargeSetting      = 0x52,
+    enum class SwitchHidCommandId : u8 {
+        PairingOut                       = 0x01,
+        GetDeviceInfo                    = 0x02,
+        SetDataFormat                    = 0x03,
+        LRButtonDetection                = 0x04,
+        Page                             = 0x05,
+        Reset                            = 0x06,
+        ClearPairingInfo                 = 0x07,
+        Shipment                         = 0x08,
+        SerialFlashRead                  = 0x10,
+        SerialFlashWrite                 = 0x11,
+        SerialFlashSectorErase           = 0x12,
+        McuReset                         = 0x20,
+        McuWrite                         = 0x21,
+        McuResume                        = 0x22,
+        McuPollingEnable                 = 0x24,
+        McuPollingDisable                = 0x25,
+        AttachmentWrite                  = 0x28,
+        AttachmentRead                   = 0x29,
+        AttachmentEnable                 = 0x2A,
+        GetAttachmentInfo                = 0x2B,
+        SetIndicatorLed                  = 0x30,
+        GetIndicatorLed                  = 0x31,
+        SetNotificationLed               = 0x38,
+        SensorSleep                      = 0x40,
+        SensorConfig                     = 0x41,
+        SensorWrite                      = 0x42,
+        SensorRead                       = 0x43,
+        MotorEnable                      = 0x48,
+        GetBatteryVoltage                = 0x50,
+        WriteChargeSetting               = 0x51,
+        ReadChargeSetting                = 0x52,
+        ExtDevWrite                      = 0x58,
+        GetExtDevInfo                    = 0x59,
+        ExtDevPollingEnable              = 0x5A,
+        ExtDevPollingDisable             = 0x5B,
+        ExtDevInFormatConfig             = 0x5C,
+        Command0x5D                      = 0x5D,
+        InternalAttachmentWrite          = 0x60,
+        Command0x61                      = 0x61,
+        InternalAttachmentEnable         = 0x62,
+        InternalAttachmentPollingEnable  = 0x63,
+        InternalAttachmentPollingDisable = 0x64,
+        AddButtonPlayData                = 0x7A,
+        StartStopButtonPlayData          = 0x7B,
     };
 
-    enum McuCommandType : u8 {
-        McuCommand_Invalid = 0x00,
-        McuCommand_StateReport = 0x01,
-        McuCommand_IrData = 0x03,
-        McuCommand_BusyInitializing = 0x0b,
-        McuCommand_IrStatus = 0x13,
-        McuCommand_IrRegisters = 0x1b,
-        McuCommand_ConfigureMcu = 0x21,
-        McuCommand_ConfigureIr= 0x23,
-        McuCommand_NfcState = 0x2a,
-        McuCommand_NfcReadData = 0x3a,
-        McuCommand_EmptyAwaitingCmd = 0xff,
+    enum class SwitchHidCommandAck : u8 {
+        Default                = 0x80,
+        PairingIn              = 0x81,
+        DeviceInfo             = 0x82,
+        LRButtonElapsedTime    = 0x83,
+        SerialFlashData        = 0x90,
+        McuData                = 0xA0,
+        AttachmentData         = 0xA8,
+        AttachmentInfo         = 0xA9,
+        InternalAttachmentRead = 0xAA,
+        IndicatorLed           = 0xB0,
+        SensorData             = 0xC0,
+        BatteryVoltage         = 0xD0,
+        ExtDevRead             = 0xD8,
+        ExtDevInfo             = 0xD9,
     };
 
-    enum McuSubCommandType : u8 {
-        McuSubCommand_SetMcuMode = 0x00,
-        McuSubCommand_GetMcuMode = 0x01,
-        McuSubCommand_ReadDeviceMode = 0x02,
-        McuSubCommand_WriteDeviceRegisters = 0x04,
+    enum class SwitchMcuCommandId : u8 {
+        Invalid          = 0x00,
+        StateReport      = 0x01,
+        IrData           = 0x03,
+        BusyInitializing = 0x0B,
+        IrStatus         = 0x13,
+        IrRegisters      = 0x1B,
+        ConfigureMcu     = 0x21,
+        ConfigureIr      = 0x23,
+        NfcState         = 0x2A,
+        NfcReadData      = 0x3A,
+        EmptyAwaitingCmd = 0xFF,
     };
 
-    enum McuModeType : u8 {
-        McuMode_Suspended = 0,
-        McuMode_Standby = 1,
-        McuMode_Ringcon = 3,
-        McuMode_Nfc = 4,
-        McuMode_Ir = 5,
-        McuMode_Busy = 6,
+    enum class SwitchMcuSubCommandId : u8 {
+        SetMcuMode           = 0x00,
+        GetMcuMode           = 0x01,
+        ReadDeviceMode       = 0x02,
+        WriteDeviceRegisters = 0x04,
     };
 
-    enum SensorSleepType : u8 {
-        SensorSleepType_Inactive          = 0x0,
-        SensorSleepType_Active            = 0x1,
-        SensorSleepType_ActiveDscaleMode1 = 0x2,
-        SensorSleepType_ActiveDscaleMode2 = 0x3,
-        SensorSleepType_ActiveDscaleMode3 = 0x4,
-        SensorSleepType_ActiveDscaleMode4 = 0x5,
+    enum class SwitchMcuMode : u8 {
+        Suspended = 0,
+        Standby   = 1,
+        Ringcon   = 3,
+        Nfc       = 4,
+        Ir        = 5,
+        Busy      = 6,
     };
 
-    enum SensorType : u8 {
-        SensorType_LSM6DS3H   = 0x1,
-        SensorType_ICM20600   = 0x3,
-        SensorType_LSM6DS3TRC = 0x4
+    enum class SwitchImuSensorSleepMode : u8 {
+        Inactive          = 0x00,
+        Active            = 0x01,
+        ActiveDscaleMode1 = 0x02,
+        ActiveDscaleMode2 = 0x03,
+        ActiveDscaleMode3 = 0x04,
+        ActiveDscaleMode4 = 0x05,
+    };
+
+    enum class SwitchImuSensorType : u8 {
+        LSM6DS3H   = 0x01,
+        ICM20600   = 0x03,
+        LSM6DS3TRC = 0x04
     };
 
     struct SwitchHidCommand {
-        u8 id;
+        SwitchHidCommandId id;
         union {
             u8 data[0x26];
 
@@ -242,7 +273,7 @@ namespace ams::controller {
             } set_indicator_led;
 
             struct {
-                SensorSleepType mode;
+                SwitchImuSensorSleepMode mode;
             } sensor_sleep;
 
             struct {
@@ -257,12 +288,12 @@ namespace ams::controller {
             } motor_enable;
 
             struct {
-                McuCommandType command;
+                SwitchMcuCommandId command;
                 union {
                     u8 raw[0x25];
                     struct {
                         u8 pad;
-                        McuModeType mode;
+                        SwitchMcuMode mode;
                     } configure_mcu;
                 } data;
             } mcu_write;
@@ -274,8 +305,8 @@ namespace ams::controller {
     } PACKED;
 
     struct SwitchHidCommandResponse {
-        u8 ack;
-        u8 id;
+        SwitchHidCommandAck ack;
+        SwitchHidCommandId id;
         union {
             u8 raw[0x23];
 
@@ -287,7 +318,7 @@ namespace ams::controller {
                 u8 type;
                 u8 _unk0;  // Always 0x02
                 bluetooth::Address address;
-                SensorType sensor_type;
+                SwitchImuSensorType sensor_type;
                 u8 format_version;  // If 01, colors in SPI are used. Otherwise default ones
             } __attribute__ ((__packed__)) get_device_info;
 
@@ -316,18 +347,18 @@ namespace ams::controller {
     } PACKED;
 
     struct SwitchMcuCommand {
-        McuSubCommandType sub_command;
+        SwitchMcuSubCommandId sub_command;
         union {
             u8 raw[0x26];
 
             struct {
-                McuModeType mode;
+                SwitchMcuMode mode;
             } set_mcu_mode;
         } data;
     } PACKED;
 
     struct SwitchMcuResponse {
-        McuCommandType command;
+        SwitchMcuCommandId command;
         union {
             u8 raw[0x137];
 
@@ -336,7 +367,7 @@ namespace ams::controller {
                 u8 unknown_1;
                 u8 pad2;
                 u8 unknown_2;
-                McuModeType mode;
+                SwitchMcuMode mode;
             } get_mcu_mode;
             
             struct {

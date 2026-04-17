@@ -32,7 +32,7 @@ namespace ams::controller {
     , m_power_info(false, 0, false, SwitchBatteryLevel::Full)
     , m_player_indicator()
     , m_input_report_mode(SwitchHidReportId::BasicInputReport)
-    , m_mcu_mode(McuMode_Suspended) {
+    , m_mcu_mode(SwitchMcuMode::Suspended) {
         this->ClearControllerState();
 
         auto config = mitm::GetGlobalConfig();
@@ -75,7 +75,7 @@ namespace ams::controller {
         input_report->right_stick = m_right_stick.GetState();
 
         const SwitchMcuResponse empty_mcu_response = {
-          .command = McuCommand_EmptyAwaitingCmd,
+          .command = SwitchMcuCommandId::EmptyAwaitingCmd,
           .data = {},
         };
 
@@ -128,63 +128,63 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommand(const SwitchHidCommand *command) {
         switch (command->id) {
-            case HidCommand_GetDeviceInfo:
+            case SwitchHidCommandId::GetDeviceInfo:
                 R_TRY(this->HandleHidCommandGetDeviceInfo(command));
                 break;
-            case HidCommand_SetDataFormat:
+            case SwitchHidCommandId::SetDataFormat:
                 R_TRY(this->HandleHidCommandSetDataFormat(command));
                 break;
-            case HidCommand_LRButtonDetection:
+            case SwitchHidCommandId::LRButtonDetection:
                 R_TRY(this->HandleHidCommandLRButtonDetection(command));
                 break;
-            case HidCommand_ClearPairingInfo:
+            case SwitchHidCommandId::ClearPairingInfo:
                 R_TRY(this->HandleHidCommandClearPairingInfo(command));
                 break;
-            case HidCommand_Shipment:
+            case SwitchHidCommandId::Shipment:
                 R_TRY(this->HandleHidCommandShipment(command));
                 break;
-            case HidCommand_SerialFlashRead:
+            case SwitchHidCommandId::SerialFlashRead:
                 R_TRY(this->HandleHidCommandSerialFlashRead(command));
                 break;
-            case HidCommand_SerialFlashWrite:
+            case SwitchHidCommandId::SerialFlashWrite:
                 R_TRY(this->HandleHidCommandSerialFlashWrite(command));
                 break;
-            case HidCommand_SerialFlashSectorErase:
+            case SwitchHidCommandId::SerialFlashSectorErase:
                 R_TRY(this->HandleHidCommandSerialFlashSectorErase(command));
                 break;
-            case HidCommand_McuWrite:
+            case SwitchHidCommandId::McuWrite:
                 R_TRY(this->HandleHidCommandMcuWrite(command));
                 break;
-            case HidCommand_McuResume:
+            case SwitchHidCommandId::McuResume:
                 R_TRY(this->HandleHidCommandMcuResume(command));
                 break;
-            case HidCommand_McuPollingEnable:
+            case SwitchHidCommandId::McuPollingEnable:
                 R_TRY(this->HandleHidCommandMcuPollingEnable(command));
                 break;
-            case HidCommand_McuPollingDisable:
+            case SwitchHidCommandId::McuPollingDisable:
                 R_TRY(this->HandleHidCommandMcuPollingDisable(command));
                 break;
-            case HidCommand_SetIndicatorLed:
+            case SwitchHidCommandId::SetIndicatorLed:
                 R_TRY(this->HandleHidCommandSetIndicatorLed(command));
                 break;
-            case HidCommand_GetIndicatorLed:
+            case SwitchHidCommandId::GetIndicatorLed:
                 R_TRY(this->HandleHidCommandGetIndicatorLed(command));
                 break;
-            case HidCommand_SetNotificationLed:
+            case SwitchHidCommandId::SetNotificationLed:
                 R_TRY(this->HandleHidCommandSetNotificationLed(command));
                 break;
-            case HidCommand_SensorSleep:
+            case SwitchHidCommandId::SensorSleep:
                 R_TRY(this->HandleHidCommandSensorSleep(command));
                 break;
-            case HidCommand_SensorConfig:
+            case SwitchHidCommandId::SensorConfig:
                 R_TRY(this->HandleHidCommandSensorConfig(command));
                 break;
-            case HidCommand_MotorEnable:
+            case SwitchHidCommandId::MotorEnable:
                 R_TRY(this->HandleHidCommandMotorEnable(command));
                 break;
             default:
                 const SwitchHidCommandResponse response = {
-                    .ack = 0x80,
+                    .ack = SwitchHidCommandAck::Default,
                     .id = command->id,
                     .data = {
                         .raw = { 0x03 }
@@ -200,7 +200,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command) {
         const SwitchHidCommandResponse response = {
-            .ack = 0x82,
+            .ack = SwitchHidCommandAck::DeviceInfo,
             .id = command->id,
             .data = {
                 .get_device_info = {
@@ -211,7 +211,7 @@ namespace ams::controller {
                     .type = 0x06, // 0x03,
                     ._unk0 = 0x02,
                     .address = m_address,
-                    .sensor_type = SensorType_LSM6DS3H,
+                    .sensor_type = SwitchImuSensorType::LSM6DS3H,
                     .format_version = 0x02
                 }
             }
@@ -224,7 +224,7 @@ namespace ams::controller {
         m_input_report_mode = command->set_data_format.id;
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -233,7 +233,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandLRButtonDetection(const SwitchHidCommand *command) {
         const SwitchHidCommandResponse response = {
-            .ack = 0x83,
+            .ack = SwitchHidCommandAck::LRButtonElapsedTime,
             .id = command->id
         };
 
@@ -244,7 +244,7 @@ namespace ams::controller {
         R_TRY(m_virtual_memory.SectorErase(0x2000));
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -253,7 +253,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandShipment(const SwitchHidCommand *command) {
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id,
             .data = {
                 .shipment = {
@@ -278,7 +278,7 @@ namespace ams::controller {
         auto read_size = command->serial_flash_read.size;
 
         SwitchHidCommandResponse response = {
-            .ack = 0x90,
+            .ack = SwitchHidCommandAck::SerialFlashData,
             .id = command->id,
             .data = {
                 .serial_flash_read = {
@@ -306,7 +306,7 @@ namespace ams::controller {
         auto write_data = command->serial_flash_write.data;
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id,
             .data = {
                 .serial_flash_write = {
@@ -322,7 +322,7 @@ namespace ams::controller {
         auto erase_addr = command->serial_flash_sector_erase.address;
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id,
             .data = {
                 .serial_flash_sector_erase = {
@@ -336,7 +336,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandMcuPollingEnable(const SwitchHidCommand *command) {
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id,
             .data = {
                 .raw = { 0x00 }
@@ -348,7 +348,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandMcuPollingDisable(const SwitchHidCommand *command) {
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id,
             .data = {
                 .raw = { 0x00 }
@@ -360,14 +360,14 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandMcuWrite(const SwitchHidCommand *command) {
         switch (command->mcu_write.command){
-            case McuCommand_ConfigureMcu:
+            case SwitchMcuCommandId::ConfigureMcu:
                 return this->HandleHidCommandConfigureMcu(command);
             default:
                 break;
         }
     
         const SwitchHidCommandResponse response = {
-            .ack = 0xa0,
+            .ack = SwitchHidCommandAck::McuData,
             .id = command->id,
             .data = {
                 .raw = {// This looks a lot like mcu get status
@@ -384,9 +384,9 @@ namespace ams::controller {
     }
     
     Result EmulatedSwitchController::HandleHidCommandConfigureMcu(const SwitchHidCommand *command) {
-        if (m_mcu_mode == McuMode_Suspended || m_mcu_mode == McuMode_Busy) {
+        if (m_mcu_mode == SwitchMcuMode::Suspended || m_mcu_mode == SwitchMcuMode::Busy) {
           const SwitchHidCommandResponse response = {
-              .ack = 0xa0,
+              .ack = SwitchHidCommandAck::McuData,
               .id = command->id,
               .data = {
                   .raw = {// This looks a lot like mcu get status
@@ -402,12 +402,12 @@ namespace ams::controller {
           R_RETURN(this->FakeHidCommandResponse(&response));
         }
         
-        if (m_mcu_mode == McuMode_Standby){
+        if (m_mcu_mode == SwitchMcuMode::Standby){
             m_mcu_mode = command->mcu_write.data.configure_mcu.mode;
         }
 
         const SwitchHidCommandResponse response = {
-            .ack = 0xa0,
+            .ack = SwitchHidCommandAck::McuData,
             .id = command->id,
             .data = {
                 .raw = {// This looks a lot like mcu get status
@@ -424,16 +424,16 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuResume(const SwitchHidCommand *command) {
-        if(command->mcu_resume.enabled && m_mcu_mode == McuMode_Suspended){
-          m_mcu_mode = McuMode_Standby;
+        if(command->mcu_resume.enabled && m_mcu_mode == SwitchMcuMode::Suspended){
+          m_mcu_mode = SwitchMcuMode::Standby;
         }
 
         if (!command->mcu_resume.enabled){
-          m_mcu_mode = McuMode_Suspended;
+          m_mcu_mode = SwitchMcuMode::Suspended;
         }
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -445,7 +445,7 @@ namespace ams::controller {
         R_TRY(this->SetPlayerLed(m_player_indicator.GetLedPattern()));
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -454,7 +454,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandGetIndicatorLed(const SwitchHidCommand *command) {
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id,
             .data = {
                 .get_indicator_led = {
@@ -468,7 +468,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleHidCommandSetNotificationLed(const SwitchHidCommand *command) {
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -483,14 +483,14 @@ namespace ams::controller {
 
         if (m_enable_motion) {
             switch (command->sensor_sleep.mode) {
-                case SensorSleepType_Active:
+                case SwitchImuSensorSleepMode::Active:
                     m_motion_packer = std::make_unique<StandardMotionPacker>();
                     break;
 
-                case SensorSleepType_ActiveDscaleMode1:
-                case SensorSleepType_ActiveDscaleMode2:
-                case SensorSleepType_ActiveDscaleMode3:
-                case SensorSleepType_ActiveDscaleMode4:
+                case SwitchImuSensorSleepMode::ActiveDscaleMode1:
+                case SwitchImuSensorSleepMode::ActiveDscaleMode2:
+                case SwitchImuSensorSleepMode::ActiveDscaleMode3:
+                case SwitchImuSensorSleepMode::ActiveDscaleMode4:
                     m_motion_packer = std::make_unique<QuaternionMotionPacker>();
                     break;
 
@@ -506,7 +506,7 @@ namespace ams::controller {
         m_motion_packer->SetAccelSensitivity(accel_sensitivity);
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -518,7 +518,7 @@ namespace ams::controller {
         m_motion_packer->SetAccelSensitivity(command->sensor_config.accel_sensitivity);
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -529,7 +529,7 @@ namespace ams::controller {
         m_enable_rumble = mitm::GetGlobalConfig()->general.enable_rumble & command->motor_enable.enabled;
 
         const SwitchHidCommandResponse response = {
-            .ack = 0x80,
+            .ack = SwitchHidCommandAck::Default,
             .id = command->id
         };
 
@@ -557,22 +557,22 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleMcuCommand(const SwitchMcuCommand *command) {
         switch (command->sub_command) {
-            case McuSubCommand_SetMcuMode:
+            case SwitchMcuSubCommandId::SetMcuMode:
                 R_TRY(this->HandleMcuCommandSetMcuMode());
                 break;
-            case McuSubCommand_GetMcuMode:
+            case SwitchMcuSubCommandId::GetMcuMode:
                 R_TRY(this->HandleMcuCommandGetMcuMode());
                 break;
-            case McuSubCommand_ReadDeviceMode:
+            case SwitchMcuSubCommandId::ReadDeviceMode:
                 R_TRY(this->HandleMcuCommandReadDeviceMode());
                 break;
-            case McuSubCommand_WriteDeviceRegisters:
+            case SwitchMcuSubCommandId::WriteDeviceRegisters:
                 //R_TRY(this->HandleMcuCommandWriteDeviceRegisters(command));
                 break;
             default: {
                 // Send device not ready response for now
                 const SwitchMcuResponse response = {
-                    .command = McuCommand_EmptyAwaitingCmd,
+                    .command = SwitchMcuCommandId::EmptyAwaitingCmd,
                     .data = {
                         .get_mcu_mode = {
                             .mode = m_mcu_mode
@@ -589,7 +589,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleMcuCommandSetMcuMode() {
         const SwitchMcuResponse response = {
-            .command = McuCommand_EmptyAwaitingCmd
+            .command = SwitchMcuCommandId::EmptyAwaitingCmd
         };
 
         R_RETURN(this->FakeMcuResponse(&response));
@@ -597,7 +597,7 @@ namespace ams::controller {
 
     Result EmulatedSwitchController::HandleMcuCommandGetMcuMode() {
         const SwitchMcuResponse response = {
-            .command = McuCommand_StateReport,
+            .command = SwitchMcuCommandId::StateReport,
             .data = {
                 .get_mcu_mode = {
                     .unknown_1 = 0x08,
@@ -612,7 +612,7 @@ namespace ams::controller {
     
     Result EmulatedSwitchController::HandleMcuCommandReadDeviceMode() {
         const SwitchMcuResponse response = {
-            .command = McuCommand_NfcState,
+            .command = SwitchMcuCommandId::NfcState,
             .data = {
                 .read_device_mode = {
                     .unknown_1 = 0x05,
