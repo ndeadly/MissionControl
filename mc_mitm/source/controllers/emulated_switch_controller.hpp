@@ -80,7 +80,7 @@ namespace ams::controller {
             Vec3d<float> m_accel;
             Vec3d<float> m_gyro;
 
-            u8 m_input_report_mode;
+            SwitchHidReportId m_input_report_mode;
 
             SwitchRumbleHandler m_rumble_handler;
             std::unique_ptr<SwitchMotionPacker> m_motion_packer = std::make_unique<NullMotionPacker>();

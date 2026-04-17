@@ -111,6 +111,30 @@ namespace ams::controller {
         s16 z;
     } PACKED;
 
+    enum class SwitchHidReportId : u8 {
+        CommandOutputReport    = 0x01,
+        McuUpdateOutputReport  = 0x03,
+        BasicOutputReport      = 0x10,
+        McuOutputReport        = 0x11,
+        AttachmentOutputReport = 0x12,
+        CommandInputReport     = 0x21,
+        McuUpdateInputReport   = 0x23,
+        BasicInputReport       = 0x30,
+        McuInputReport         = 0x31,
+        AttachmentInputReport  = 0x32,
+        Report0x33             = 0x33,
+        GenericInputReport     = 0x3F,
+        OtaEnableFwuReport     = 0x70,
+        OtaSetupReadReport     = 0x71,
+        OtaReadReport          = 0x72,
+        OtaWriteReport         = 0x73,
+        OtaEraseReport         = 0x74,
+        OtaLaunchReport        = 0x75,
+        ExtGripOutputReport    = 0x80,
+        ExtGripInputReport     = 0x81,
+        Report0x82             = 0x82,
+    };
+
     enum HidCommandType : u8 {
         HidCommand_PairingOut             = 0x01,
         HidCommand_GetDeviceInfo          = 0x02,
@@ -195,7 +219,7 @@ namespace ams::controller {
             u8 data[0x26];
 
             struct {
-                u8 id;
+                SwitchHidReportId id;
             } set_data_format;
 
             struct {
@@ -327,7 +351,7 @@ namespace ams::controller {
     } PACKED;
 
     struct SwitchInputReport {
-        u8 id;
+        SwitchHidReportId id;
         u8 timer;
         SwitchPowerInfoType power_info;
         SwitchButtonData buttons;
@@ -357,7 +381,7 @@ namespace ams::controller {
     } PACKED;
 
     struct SwitchOutputReport {
-        u8 id;
+        SwitchHidReportId id;
         u8 counter;
         SwitchEncodedMotorData enc_motor_data;
 

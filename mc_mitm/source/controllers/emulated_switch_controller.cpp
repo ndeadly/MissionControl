@@ -31,7 +31,7 @@ namespace ams::controller {
     EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
     , m_power_info(false, 0, false, SwitchBatteryLevel::Full)
     , m_player_indicator()
-    , m_input_report_mode(0x30)
+    , m_input_report_mode(SwitchHidReportId::BasicInputReport)
     , m_mcu_mode(McuMode_Suspended) {
         this->ClearControllerState();
 
@@ -80,7 +80,7 @@ namespace ams::controller {
         };
 
         switch (m_input_report_mode) {
-            case 0x31:
+            case SwitchHidReportId::McuInputReport:
                 m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);
                 std::memcpy(&input_report->type0x31.mcu_response, &empty_mcu_response, sizeof(empty_mcu_response));
                 input_report->type0x31.crc = ComputeCrc8(&empty_mcu_response, sizeof(SwitchMcuResponse));
@@ -97,14 +97,14 @@ namespace ams::controller {
         auto output_report = reinterpret_cast<const SwitchOutputReport *>(&report->data);
 
         switch (output_report->id) {
-            case 0x01:
+            case SwitchHidReportId::CommandOutputReport:
                 R_TRY(this->HandleRumbleData(&output_report->enc_motor_data));
                 R_TRY(this->HandleHidCommand(&output_report->type0x01.hid_command));
                 break;
-            case 0x10:
+            case SwitchHidReportId::BasicOutputReport:
                 R_TRY(this->HandleRumbleData(&output_report->enc_motor_data));
                 break;
-            case 0x11:
+            case SwitchHidReportId::McuOutputReport:
                 R_TRY(this->HandleRumbleData(&output_report->enc_motor_data));
                 R_TRY(this->HandleMcuCommand(&output_report->type0x11.mcu_command));
                 break;
@@ -540,7 +540,7 @@ namespace ams::controller {
         std::scoped_lock lk(m_input_mutex);
 
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
-        input_report->id = 0x21;
+        input_report->id = SwitchHidReportId::CommandInputReport;
         input_report->timer = (input_report->timer + 1) & 0xff;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
@@ -630,7 +630,7 @@ namespace ams::controller {
         std::scoped_lock lk(m_input_mutex);
 
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
-        input_report->id = 0x31;
+        input_report->id = SwitchHidReportId::McuInputReport;
         input_report->timer = (input_report->timer + 1) & 0xff;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
