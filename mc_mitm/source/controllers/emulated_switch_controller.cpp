@@ -21,6 +21,9 @@ namespace ams::controller {
 
     namespace {
 
+        constexpr u8 ProControllerFirmwareVersionMajor = 0x04;
+        constexpr u8 ProControllerFirmwareVersionMinor = 0x21;
+
         // CRC-8 with polynomial 0x7 for NFC/IR packets
         constexpr u8 ComputeCrc8(const void *data, size_t size) {
             return utils::Crc8<7>::Calculate(data, size);
@@ -205,8 +208,8 @@ namespace ams::controller {
             .data = {
                 .get_device_info = {
                     .fw_ver = {
-                        .major = 0x04,
-                        .minor = 0x21
+                        .major = ProControllerFirmwareVersionMajor,
+                        .minor = ProControllerFirmwareVersionMinor
                     },
                     .type = 0x06, // 0x03,
                     ._unk0 = 0x02,
