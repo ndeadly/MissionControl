@@ -24,6 +24,11 @@ namespace ams::controller {
         constexpr u8 ProControllerFirmwareVersionMajor = 0x04;
         constexpr u8 ProControllerFirmwareVersionMinor = 0x21;
 
+        constexpr SwitchMcuResponse EmptyMcuResponse = {
+            .command = SwitchMcuCommandId::EmptyAwaitingCmd,
+            .data = {}
+        };
+
         // CRC-8 with polynomial 0x7 for NFC/IR packets
         constexpr u8 ComputeCrc8(const void *data, size_t size) {
             return utils::Crc8<7>::Calculate(data, size);
@@ -33,9 +38,7 @@ namespace ams::controller {
 
     EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
     , m_power_info(false, 0, false, SwitchBatteryLevel::Full)
-    , m_player_indicator()
-    , m_input_report_mode(SwitchHidReportId::BasicInputReport)
-    , m_mcu_mode(SwitchMcuMode::Suspended) {
+    , m_input_report_mode(SwitchHidReportId::BasicInputReport) {
         this->ClearControllerState();
 
         auto config = mitm::GetGlobalConfig();
@@ -77,16 +80,12 @@ namespace ams::controller {
         input_report->left_stick  = m_left_stick.GetState();
         input_report->right_stick = m_right_stick.GetState();
 
-        const SwitchMcuResponse empty_mcu_response = {
-          .command = SwitchMcuCommandId::EmptyAwaitingCmd,
-          .data = {},
-        };
-
         switch (m_input_report_mode) {
             case SwitchHidReportId::McuInputReport:
                 m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);
-                std::memcpy(&input_report->type0x31.mcu_response, &empty_mcu_response, sizeof(empty_mcu_response));
-                input_report->type0x31.crc = ComputeCrc8(&empty_mcu_response, sizeof(SwitchMcuResponse));
+
+                std::memcpy(&input_report->type0x31.mcu_response, &EmptyMcuResponse, sizeof(EmptyMcuResponse));
+                input_report->type0x31.crc = ComputeCrc8(&EmptyMcuResponse, sizeof(SwitchMcuResponse));
                 m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);
                 break;
             default:
@@ -387,53 +386,19 @@ namespace ams::controller {
     }
     
     Result EmulatedSwitchController::HandleHidCommandConfigureMcu(const SwitchHidCommand *command) {
-        if (m_mcu_mode == SwitchMcuMode::Suspended || m_mcu_mode == SwitchMcuMode::Busy) {
-          const SwitchHidCommandResponse response = {
-              .ack = SwitchHidCommandAck::McuData,
-              .id = command->id,
-              .data = {
-                  .raw = {// This looks a lot like mcu get status
-                      0x01, 0x00, 0xff, 0x00, 0x08, 0x00, 0x1b, 0x06,
-                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0xf6
-                  }
-              }
-          };
-
-          R_RETURN(this->FakeHidCommandResponse(&response));
-        }
-        
-        if (m_mcu_mode == SwitchMcuMode::Standby){
-            m_mcu_mode = command->mcu_write.data.configure_mcu.mode;
-        }
-
-        const SwitchHidCommandResponse response = {
+        SwitchHidCommandResponse response = {
             .ack = SwitchHidCommandAck::McuData,
             .id = command->id,
-            .data = {
-                .raw = {// This looks a lot like mcu get status
-                    0x01, 0x00, 0x00, 0x00, 0x08, 0x00, 0x1b, 0x01,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0xef
-                }
-            }
         };
+
+        m_mcu_command_processor.GetStatus(&response.data);
+        m_mcu_command_processor.McuConfigure(command->mcu_write.data.configure_mcu.mode);
 
         R_RETURN(this->FakeHidCommandResponse(&response));
     }
 
     Result EmulatedSwitchController::HandleHidCommandMcuResume(const SwitchHidCommand *command) {
-        if(command->mcu_resume.enabled && m_mcu_mode == SwitchMcuMode::Suspended){
-          m_mcu_mode = SwitchMcuMode::Standby;
-        }
-
-        if (!command->mcu_resume.enabled){
-          m_mcu_mode = SwitchMcuMode::Suspended;
-        }
+        m_mcu_command_processor.McuResume(command->mcu_resume.enabled);
 
         const SwitchHidCommandResponse response = {
             .ack = SwitchHidCommandAck::Default,
@@ -559,72 +524,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleMcuCommand(const SwitchMcuCommand *command) {
-        switch (command->sub_command) {
-            case SwitchMcuSubCommandId::SetMcuMode:
-                R_TRY(this->HandleMcuCommandSetMcuMode());
-                break;
-            case SwitchMcuSubCommandId::GetMcuMode:
-                R_TRY(this->HandleMcuCommandGetMcuMode());
-                break;
-            case SwitchMcuSubCommandId::ReadDeviceMode:
-                R_TRY(this->HandleMcuCommandReadDeviceMode());
-                break;
-            case SwitchMcuSubCommandId::WriteDeviceRegisters:
-                //R_TRY(this->HandleMcuCommandWriteDeviceRegisters(command));
-                break;
-            default: {
-                // Send device not ready response for now
-                const SwitchMcuResponse response = {
-                    .command = SwitchMcuCommandId::EmptyAwaitingCmd,
-                    .data = {
-                        .get_mcu_mode = {
-                            .mode = m_mcu_mode
-                        }
-                    }
-                };
-
-                R_RETURN(this->FakeMcuResponse(&response));
-            }
-        }
-
-        R_SUCCEED();
-    }
-
-    Result EmulatedSwitchController::HandleMcuCommandSetMcuMode() {
-        const SwitchMcuResponse response = {
-            .command = SwitchMcuCommandId::EmptyAwaitingCmd
-        };
-
-        R_RETURN(this->FakeMcuResponse(&response));
-    }
-
-    Result EmulatedSwitchController::HandleMcuCommandGetMcuMode() {
-        const SwitchMcuResponse response = {
-            .command = SwitchMcuCommandId::StateReport,
-            .data = {
-                .get_mcu_mode = {
-                    .unknown_1 = 0x08,
-                    .unknown_2 = 0x1b,
-                    .mode = m_mcu_mode
-                }
-            }
-        };
-
-        R_RETURN(this->FakeMcuResponse(&response));
-    }
-    
-    Result EmulatedSwitchController::HandleMcuCommandReadDeviceMode() {
-        const SwitchMcuResponse response = {
-            .command = SwitchMcuCommandId::NfcState,
-            .data = {
-                .read_device_mode = {
-                    .unknown_1 = 0x05,
-                    .unknown_2 = 0x09,
-                    .unknown_3 = 0x31,
-                    .is_ready = 0x01
-                }
-            }
-        };
+        SwitchMcuResponse response = {};
+        m_mcu_command_processor.ProcessCommand(command, &response);
 
         R_RETURN(this->FakeMcuResponse(&response));
     }

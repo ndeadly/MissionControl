@@ -20,6 +20,7 @@
 #include "switch_analog_stick.hpp"
 #include "switch_rumble_handler.hpp"
 #include "switch_motion_packing.hpp"
+#include "switch_mcu_command_processor.hpp"
 
 namespace ams::controller {
 
@@ -199,36 +200,6 @@ namespace ams::controller {
         ExtDevInfo             = 0xD9,
     };
 
-    enum class SwitchMcuCommandId : u8 {
-        Invalid          = 0x00,
-        StateReport      = 0x01,
-        IrData           = 0x03,
-        BusyInitializing = 0x0B,
-        IrStatus         = 0x13,
-        IrRegisters      = 0x1B,
-        ConfigureMcu     = 0x21,
-        ConfigureIr      = 0x23,
-        NfcState         = 0x2A,
-        NfcReadData      = 0x3A,
-        EmptyAwaitingCmd = 0xFF,
-    };
-
-    enum class SwitchMcuSubCommandId : u8 {
-        SetMcuMode           = 0x00,
-        GetMcuMode           = 0x01,
-        ReadDeviceMode       = 0x02,
-        WriteDeviceRegisters = 0x04,
-    };
-
-    enum class SwitchMcuMode : u8 {
-        Suspended = 0,
-        Standby   = 1,
-        Ringcon   = 3,
-        Nfc       = 4,
-        Ir        = 5,
-        Busy      = 6,
-    };
-
     struct SwitchHidCommand {
         SwitchHidCommandId id;
         union {
@@ -328,41 +299,6 @@ namespace ams::controller {
             struct {
                 SwitchPlayerIndicatorType led_state;
             } get_indicator_led;
-        } data;
-    } PACKED;
-
-    struct SwitchMcuCommand {
-        SwitchMcuSubCommandId sub_command;
-        union {
-            u8 raw[0x26];
-
-            struct {
-                SwitchMcuMode mode;
-            } set_mcu_mode;
-        } data;
-    } PACKED;
-
-    struct SwitchMcuResponse {
-        SwitchMcuCommandId command;
-        union {
-            u8 raw[0x137];
-
-            struct {
-                u8 pad[3];
-                u8 unknown_1;
-                u8 pad2;
-                u8 unknown_2;
-                SwitchMcuMode mode;
-            } get_mcu_mode;
-            
-            struct {
-                u8 pad;
-                u8 unknown_1;
-                u8 pad2[2];
-                u8 unknown_2;
-                u8 unknown_3;
-                u8 is_ready;
-            } read_device_mode;
         } data;
     } PACKED;
 

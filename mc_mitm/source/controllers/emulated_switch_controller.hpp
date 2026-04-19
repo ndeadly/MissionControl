@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "switch_controller.hpp"
+#include "switch_mcu_command_processor.hpp"
 #include "switch_virtual_controller_memory.hpp"
 
 namespace ams::controller {
@@ -74,23 +75,24 @@ namespace ams::controller {
             SwitchPowerInfo m_power_info;
             SwitchPlayerIndicator m_player_indicator;
 
+            SwitchHidReportId m_input_report_mode;
+
             SwitchButtonData m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
-            Vec3d<float> m_accel;
-            Vec3d<float> m_gyro;
-
-            SwitchHidReportId m_input_report_mode;
-
-            SwitchRumbleHandler m_rumble_handler;
-            std::unique_ptr<SwitchMotionPacker> m_motion_packer = std::make_unique<NullMotionPacker>();
-
-            bool m_enable_rumble;
-            bool m_enable_motion;
 
             float m_trigger_threshold;
 
-            SwitchMcuMode m_mcu_mode;
+            bool m_enable_motion;
+            Vec3d<float> m_accel;
+            Vec3d<float> m_gyro;
+            std::unique_ptr<SwitchMotionPacker> m_motion_packer = std::make_unique<NullMotionPacker>();
+
+            bool m_enable_rumble;
+            SwitchRumbleHandler m_rumble_handler;
+
+            // SwitchMcuMode m_mcu_mode;
+            SwitchMcuCommandProcessor m_mcu_command_processor;
 
             SwitchVirtualControllerMemory m_virtual_memory;
     };
