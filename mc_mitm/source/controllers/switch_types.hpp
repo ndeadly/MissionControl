@@ -229,21 +229,6 @@ namespace ams::controller {
         Busy      = 6,
     };
 
-    enum class SwitchImuSensorSleepMode : u8 {
-        Inactive          = 0x00,
-        Active            = 0x01,
-        ActiveDscaleMode1 = 0x02,
-        ActiveDscaleMode2 = 0x03,
-        ActiveDscaleMode3 = 0x04,
-        ActiveDscaleMode4 = 0x05,
-    };
-
-    enum class SwitchImuSensorType : u8 {
-        LSM6DS3H   = 0x01,
-        ICM20600   = 0x03,
-        LSM6DS3TRC = 0x04
-    };
-
     struct SwitchHidCommand {
         SwitchHidCommandId id;
         union {
