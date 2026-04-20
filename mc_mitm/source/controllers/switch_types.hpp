@@ -306,7 +306,7 @@ namespace ams::controller {
 
     struct SwitchInputReport {
         SwitchHidReportId id;
-        u8 timer;
+        u8 latency_timer;
         SwitchPowerInfoType power_info;
         SwitchButtonData buttons;
         SwitchAnalogStickType left_stick;

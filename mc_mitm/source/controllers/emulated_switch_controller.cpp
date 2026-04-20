@@ -37,6 +37,7 @@ namespace ams::controller {
     }
 
     EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
+    , m_latency_timer(0);
     , m_power_info(false, 0, false, SwitchBatteryLevel::Full)
     , m_input_report_mode(SwitchHidReportId::BasicInputReport) {
         this->ClearControllerState();
@@ -74,7 +75,7 @@ namespace ams::controller {
 
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
         input_report->id = m_input_report_mode;
-        input_report->timer = (input_report->timer + 1) & 0xff;
+        input_report->latency_timer = m_latency_timer;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
         input_report->left_stick  = m_left_stick.GetState();
@@ -93,6 +94,8 @@ namespace ams::controller {
                 m_input_report.size = offsetof(SwitchInputReport, type0x30) + sizeof(input_report->type0x30);
                 break;
         }
+
+        m_latency_timer = (m_latency_timer + 1) & 0xff;
     }
 
     Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
@@ -509,7 +512,7 @@ namespace ams::controller {
 
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
         input_report->id = SwitchHidReportId::CommandInputReport;
-        input_report->timer = (input_report->timer + 1) & 0xff;
+        input_report->latency_timer = m_latency_timer;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
         input_report->left_stick  = m_left_stick.GetState();
@@ -518,6 +521,8 @@ namespace ams::controller {
 
         std::memcpy(&input_report->type0x21.hid_command_response, response, sizeof(SwitchHidCommandResponse));
         m_input_report.size = offsetof(SwitchInputReport, type0x21) + sizeof(input_report->type0x21);
+
+        m_latency_timer = (m_latency_timer + 1) & 0xff;
 
         // Write a fake response into the report buffer
         R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
@@ -535,7 +540,7 @@ namespace ams::controller {
 
         auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
         input_report->id = SwitchHidReportId::McuInputReport;
-        input_report->timer = (input_report->timer + 1) & 0xff;
+        input_report->latency_timer = m_latency_timer;
         input_report->power_info = m_power_info.GetState();
         input_report->buttons = m_buttons;
         input_report->left_stick  = m_left_stick.GetState();
@@ -546,6 +551,8 @@ namespace ams::controller {
         std::memcpy(&input_report->type0x31.mcu_response, response, sizeof(SwitchMcuResponse));
         input_report->type0x31.crc = ComputeCrc8(response, sizeof(SwitchMcuResponse));
         m_input_report.size = offsetof(SwitchInputReport, type0x31) + sizeof(input_report->type0x31);
+
+        m_latency_timer = (m_latency_timer + 1) & 0xff;
 
         // Write a fake response into the report buffer
         R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));

@@ -72,6 +72,7 @@ namespace ams::controller {
             Result FakeMcuResponse(const SwitchMcuResponse *response);
 
         protected:
+            u8 m_latency_timer;
             SwitchPowerInfo m_power_info;
             SwitchPlayerIndicator m_player_indicator;
 
