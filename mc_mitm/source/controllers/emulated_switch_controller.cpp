@@ -80,6 +80,7 @@ namespace ams::controller {
         input_report->buttons = m_buttons;
         input_report->left_stick  = m_left_stick.GetState();
         input_report->right_stick = m_right_stick.GetState();
+        input_report->motor_status = 0;
 
         switch (m_input_report_mode) {
             case SwitchHidReportId::McuInputReport:
@@ -517,7 +518,7 @@ namespace ams::controller {
         input_report->buttons = m_buttons;
         input_report->left_stick  = m_left_stick.GetState();
         input_report->right_stick = m_right_stick.GetState();
-        input_report->vibrator = 0;
+        input_report->motor_status = 0;
 
         std::memcpy(&input_report->type0x21.hid_command_response, response, sizeof(SwitchHidCommandResponse));
         m_input_report.size = offsetof(SwitchInputReport, type0x21) + sizeof(input_report->type0x21);
@@ -545,7 +546,7 @@ namespace ams::controller {
         input_report->buttons = m_buttons;
         input_report->left_stick  = m_left_stick.GetState();
         input_report->right_stick = m_right_stick.GetState();
-        input_report->vibrator = 0;
+        input_report->motor_status = 0;
 
         m_motion_packer->PackData(&input_report->type0x31.motion_data, m_accel, m_gyro);
         std::memcpy(&input_report->type0x31.mcu_response, response, sizeof(SwitchMcuResponse));

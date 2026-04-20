@@ -311,7 +311,7 @@ namespace ams::controller {
         SwitchButtonData buttons;
         SwitchAnalogStickType left_stick;
         SwitchAnalogStickType right_stick;
-        u8 vibrator;
+        u8 motor_status;
 
         union {
             struct {
