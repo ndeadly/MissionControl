@@ -92,7 +92,6 @@ namespace ams::controller {
             bool m_enable_rumble;
             SwitchRumbleHandler m_rumble_handler;
 
-            // SwitchMcuMode m_mcu_mode;
             SwitchMcuCommandProcessor m_mcu_command_processor;
 
             SwitchVirtualControllerMemory m_virtual_memory;

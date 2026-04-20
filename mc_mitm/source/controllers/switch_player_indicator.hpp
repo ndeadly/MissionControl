@@ -16,7 +16,7 @@
 #pragma once
 #include <stratosphere.hpp>
 
-namespace ams {
+namespace ams::controller {
 
     using SwitchPlayerIndicatorType = util::BitPack8;
 

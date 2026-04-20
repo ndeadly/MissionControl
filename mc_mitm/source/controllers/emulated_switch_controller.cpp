@@ -37,7 +37,7 @@ namespace ams::controller {
     }
 
     EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
-    , m_latency_timer(0);
+    , m_latency_timer(0)
     , m_power_info(false, 0, false, SwitchBatteryLevel::Full)
     , m_input_report_mode(SwitchHidReportId::BasicInputReport) {
         this->ClearControllerState();

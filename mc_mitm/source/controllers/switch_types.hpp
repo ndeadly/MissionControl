@@ -47,7 +47,7 @@ namespace ams::controller {
         u8 b;
     } PACKED;
 
-    struct ProControllerColours {
+    struct SwitchControllerColours {
         RGBColour body;
         RGBColour buttons;
         RGBColour left_grip;
