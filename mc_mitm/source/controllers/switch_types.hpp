@@ -17,6 +17,7 @@
 #include <stratosphere.hpp>
 #include "switch_power_info.hpp"
 #include "switch_player_indicator.hpp"
+#include "switch_motor_status.hpp"
 #include "switch_analog_stick.hpp"
 #include "switch_rumble_handler.hpp"
 #include "switch_motion_packing.hpp"
