@@ -71,7 +71,8 @@ namespace ams::controller {
         u8 lstick_press : 1;
         u8 home         : 1;
         u8 capture      : 1;
-        u8              : 0;
+        u8              : 1;
+        u8 wired        : 1;
 
         u8 dpad_down    : 1;
         u8 dpad_up      : 1;
