@@ -86,36 +86,8 @@ namespace ams::controller {
     // } PACKED;
     } PACKED;
 
-    struct Switch6AxisCalibrationData {
-        struct {
-            s16 x;
-            s16 y;
-            s16 z;
-        } acc_bias;
-
-        struct {
-            s16 x;
-            s16 y;
-            s16 z;
-        } acc_sensitivity;
-
-        struct {
-            s16 roll;
-            s16 pitch;
-            s16 yaw;
-        } gyro_bias;
-
-        struct {
-            s16 roll;
-            s16 pitch;
-            s16 yaw;
-        } gyro_sensitivity;
     } PACKED;
 
-    struct Switch6AxisHorizontalOffset {
-        s16 x;
-        s16 y;
-        s16 z;
     } PACKED;
 
     enum class SwitchHidReportId : u8 {
