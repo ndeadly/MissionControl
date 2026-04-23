@@ -18,6 +18,7 @@
 #include "switch_power_info.hpp"
 #include "switch_player_indicator.hpp"
 #include "switch_motor_status.hpp"
+#include "switch_button_status.hpp"
 #include "switch_analog_stick.hpp"
 #include "switch_rumble_handler.hpp"
 #include "switch_motion_packing.hpp"
@@ -55,33 +56,34 @@ namespace ams::controller {
         RGBColour right_grip;
     } PACKED;
 
-    struct SwitchButtonData {
-        u8 Y            : 1;
-        u8 X            : 1;
-        u8 B            : 1;
-        u8 A            : 1;
-        u8 SR_R         : 1;
-        u8 SL_R         : 1;
-        u8 R            : 1;
-        u8 ZR           : 1;
+    // struct SwitchButtonData {
+    //     u8 Y            : 1;
+    //     u8 X            : 1;
+    //     u8 B            : 1;
+    //     u8 A            : 1;
+    //     u8 SR_R         : 1;
+    //     u8 SL_R         : 1;
+    //     u8 R            : 1;
+    //     u8 ZR           : 1;
 
-        u8 minus        : 1;
-        u8 plus         : 1;
-        u8 rstick_press : 1;
-        u8 lstick_press : 1;
-        u8 home         : 1;
-        u8 capture      : 1;
-        u8              : 1;
-        u8 wired        : 1;
+    //     u8 minus        : 1;
+    //     u8 plus         : 1;
+    //     u8 rstick_press : 1;
+    //     u8 lstick_press : 1;
+    //     u8 home         : 1;
+    //     u8 capture      : 1;
+    //     u8              : 1;
+    //     u8 wired        : 1;
 
-        u8 dpad_down    : 1;
-        u8 dpad_up      : 1;
-        u8 dpad_right   : 1;
-        u8 dpad_left    : 1;
-        u8 SR_L         : 1;
-        u8 SL_L         : 1;
-        u8 L            : 1;
-        u8 ZL           : 1;
+    //     u8 dpad_down    : 1;
+    //     u8 dpad_up      : 1;
+    //     u8 dpad_right   : 1;
+    //     u8 dpad_left    : 1;
+    //     u8 SR_L         : 1;
+    //     u8 SL_L         : 1;
+    //     u8 L            : 1;
+    //     u8 ZL           : 1;
+    // } PACKED;
     } PACKED;
 
     struct Switch6AxisCalibrationData {

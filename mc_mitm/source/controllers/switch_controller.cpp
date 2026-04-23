@@ -214,7 +214,7 @@ namespace ams::controller {
         std::memcpy(m_input_report.data, report->data, report->size);
     }
 
-    void SwitchController::ApplyButtonCombos(SwitchButtonData *buttons) {
+    void SwitchController::ApplyButtonCombos(SwitchButtonStatusType *buttons) {
         // Home combo = MINUS + DPAD_DOWN
         if (buttons->minus && buttons->dpad_down) {
             buttons->home = 1;

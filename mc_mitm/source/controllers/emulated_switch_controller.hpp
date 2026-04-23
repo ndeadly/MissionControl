@@ -78,7 +78,7 @@ namespace ams::controller {
 
             SwitchHidReportId m_input_report_mode;
 
-            SwitchButtonData m_buttons;
+            SwitchButtonStatusType m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
 

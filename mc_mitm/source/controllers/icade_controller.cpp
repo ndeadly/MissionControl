@@ -61,7 +61,7 @@ namespace ams::controller {
 
     }
 
-    void ICadeController::ApplyButtonCombos(SwitchButtonData *buttons) {
+    void ICadeController::ApplyButtonCombos(SwitchButtonStatusType *buttons) {
         // Combo for minus button
         if (buttons->ZL && buttons->ZR && buttons->L) {
             buttons->minus = 1;

@@ -62,7 +62,7 @@ namespace ams::controller {
             Result GetReport(u8 id, BtdrvBluetoothHhReportType type, bluetooth::HidReport *out_report);
 
             virtual void UpdateControllerState(const bluetooth::HidReport *report);
-            virtual void ApplyButtonCombos(SwitchButtonData *buttons);
+            virtual void ApplyButtonCombos(SwitchButtonStatusType *buttons);
 
             bluetooth::Address m_address;
             HardwareID m_id;
