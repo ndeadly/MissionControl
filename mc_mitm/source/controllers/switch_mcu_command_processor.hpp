@@ -21,22 +21,27 @@ namespace ams::controller {
 
     class SwitchMcuCommandProcessor {
         private:
+            bool m_polling_enable;
             SwitchMcuMode m_mcu_mode;
+            SwitchMcuResponse m_response;
 
         public:
-            SwitchMcuCommandProcessor() : m_mcu_mode(SwitchMcuMode::Suspended) { }
+            SwitchMcuCommandProcessor() : m_mcu_mode(SwitchMcuMode::Suspended), m_response{} { }
 
-            void McuResume(bool enable);
-            void McuConfigure(SwitchMcuMode mode);
+            void McuReset();
             void McuWrite();
-            void GetStatus(void *buffer);
+            void McuResume(u8 mode);
+            void McuPollingEnable(bool enable);
+            // void McuConfigure(SwitchMcuMode mode);
+            // void GetStatus(void *buffer);
 
-            void ProcessCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
+            void ProcessCommand(const SwitchMcuCommand *command);
+            SwitchMcuResponse GetResponse() { return m_response; }
 
         private:
-            void ProcessSetMcuModeCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
-            void ProcessGetMcuModeCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
-            void ProcessReadDeviceModeCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
+            // void ProcessSetMcuModeCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
+            // void ProcessGetMcuModeCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
+            // void ProcessReadDeviceModeCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
             // void ProcessWriteDeviceRegistersCommand(const SwitchMcuCommand *command, SwitchMcuResponse *response);
     };
 

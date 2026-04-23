@@ -48,6 +48,27 @@ namespace ams::controller {
         Busy      = 6,
     };
 
+    struct SwitchMcuDataIn {
+        u8 data[0x139];
+    };
+    static_assert(sizeof(SwitchMcuDataIn) == 0x139);
+
+    struct SwitchMcuDataOut {
+        u8 data[0x25];
+        u8 crc;
+    };
+    static_assert(sizeof(SwitchMcuDataOut) == 0x26);
+
+    struct SwitchMcuUpdateDataIn {
+        u8 data[0x23];
+    };
+    static_assert(sizeof(SwitchMcuUpdateDataIn) == 0x23);
+
+    struct SwitchMcuUpdateDataOut {
+        u8 data[0x134];
+    };
+    static_assert(sizeof(SwitchMcuUpdateDataOut) == 0x134);
+
     struct SwitchMcuCommand {
         SwitchMcuSubCommandId sub_command;
         union {

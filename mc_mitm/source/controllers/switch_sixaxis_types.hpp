@@ -18,6 +18,52 @@
 
 namespace ams::controller {
 
+    enum class SwitchImuSensorSleepMode : u8 {
+        Inactive          = 0x00,
+        Active            = 0x01,
+        ActiveDscaleMode1 = 0x02,
+        ActiveDscaleMode2 = 0x03,
+        ActiveDscaleMode3 = 0x04,
+        ActiveDscaleMode4 = 0x05,
+    };
+
+    enum class SwitchImuSensorType : u8 {
+        LSM6DS3H   = 0x01,
+        ICM20600   = 0x03,
+        LSM6DS3TRC = 0x04,
+    };
+
+    enum GyroSensitivity : u8 {
+        GyroSensitivity_250Dps  = 0,
+        GyroSensitivity_500Dps  = 1,
+        GyroSensitivity_1000Dps = 2,
+        GyroSensitivity_2000Dps = 3,
+    };
+
+    enum GyroPerformanceRate : u8 {
+        GyroPerformanceRate_833Hz = 0,
+        GyroPerformanceRate_208Hz = 1,
+    };
+
+    enum AccelSensitivity : u8 {
+        AccelSensitivity_8G  = 0,
+        AccelSensitivity_4G  = 1,
+        AccelSensitivity_2G  = 2,
+        AccelSensitivity_16G = 3,
+    };
+
+    enum AccelAntiAliasFilterBandwidth : u8 {
+        AccelAntiAliasFilterBandwidth_200Hz = 0,
+        AccelAntiAliasFilterBandwidth_100Hz = 1,
+    };
+
+    template <typename T>
+    struct Vec3d {
+        T x;
+        T y;
+        T z;
+    } PACKED;
+
     struct Switch6AxisCalibrationData {
         struct {
             s16 x;
@@ -48,42 +94,6 @@ namespace ams::controller {
         s16 x;
         s16 y;
         s16 z;
-    } PACKED;
-
-    enum class SwitchImuSensorSleepMode : u8 {
-        Inactive          = 0x00,
-        Active            = 0x01,
-        ActiveDscaleMode1 = 0x02,
-        ActiveDscaleMode2 = 0x03,
-        ActiveDscaleMode3 = 0x04,
-        ActiveDscaleMode4 = 0x05,
-    };
-
-    enum class SwitchImuSensorType : u8 {
-        LSM6DS3H   = 0x01,
-        ICM20600   = 0x03,
-        LSM6DS3TRC = 0x04
-    };
-
-    enum GyroSensitivity : u8 {
-        GyroSensitivity_250Dps  = 0,
-        GyroSensitivity_500Dps  = 1,
-        GyroSensitivity_1000Dps = 2,
-        GyroSensitivity_2000Dps = 3
-    };
-
-    enum AccelSensitivity : u8 {
-        AccelSensitivity_8G  = 0,
-        AccelSensitivity_4G  = 1,
-        AccelSensitivity_2G  = 2,
-        AccelSensitivity_16G = 3
-    };
-
-    template <typename T>
-    struct Vec3d {
-        T x;
-        T y;
-        T z;
     } PACKED;
 
     struct SwitchMotionData {

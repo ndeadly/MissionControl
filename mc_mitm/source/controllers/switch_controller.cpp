@@ -83,19 +83,47 @@ namespace ams::controller {
 
         this->UpdateControllerState(report);
 
-        auto input_report = reinterpret_cast<SwitchInputReport *>(m_input_report.data);
-        if (input_report->id == SwitchHidReportId::CommandInputReport) {
-            if (input_report->type0x21.hid_command_response.id == SwitchHidCommandId::SerialFlashRead) {
-                if (input_report->type0x21.hid_command_response.data.serial_flash_read.address == 0x6050) {
-                    if (ams::mitm::GetSystemLanguage() == 10) {
-                        u8 data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
-                        std::memcpy(input_report->type0x21.hid_command_response.data.serial_flash_read.data, data, sizeof(data));
+        auto report_id = static_cast<SwitchHidReportId>(report->data[0]);
+
+        switch (report_id) {
+            case SwitchHidReportId::CommandInputReport:
+            {
+                auto command_report = reinterpret_cast<SwitchHidCommandInputReport *>(m_input_report.data);
+                if (command_report->command_response.request_id == SwitchHidCommandId::SerialFlashRead) {
+                    if (command_report->command_response.serial_flash_read.address == 0x6050) {
+                        if (ams::mitm::GetSystemLanguage() == 10) {
+                            u8 data[] = {0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7};
+                            std::memcpy(command_report->command_response.serial_flash_read.data, data, sizeof(data));
+                        }
                     }
                 }
-            }
-        }
 
-        this->ApplyButtonCombos(&input_report->buttons); 
+                // this->ApplyButtonCombos(&input_report->buttons);
+            }
+                break;
+
+            case SwitchHidReportId::McuUpdateInputReport:
+                // this->ApplyButtonCombos(&input_report->buttons);
+                break;
+
+            case SwitchHidReportId::BasicInputReport:
+                // this->ApplyButtonCombos(&input_report->buttons);
+                break;
+
+            case SwitchHidReportId::McuInputReport:
+                // this->ApplyButtonCombos(&input_report->buttons);
+                break;
+
+            case SwitchHidReportId::AttachmentInputReport:
+                // this->ApplyButtonCombos(&input_report->buttons);
+                break;
+
+            case SwitchHidReportId::ExtGripInputReport:
+                break;
+
+            default:
+                break;
+        }
 
         R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
     }
@@ -133,7 +161,7 @@ namespace ams::controller {
         R_RETURN(btdrvWriteHidData(m_address, report));
     }
 
-    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report) {       
+    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report) {
         auto response = std::make_shared<HidResponse>(BtdrvHidEventType_Data);
         response->SetUserData(response_id);
         m_future_responses.push(response);

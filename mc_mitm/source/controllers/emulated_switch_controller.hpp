@@ -15,19 +15,31 @@
  */
 #pragma once
 #include "switch_controller.hpp"
+#include "switch_rumble_handler.hpp"
+#include "switch_motion_packing.hpp"
+#include "switch_hid_command_processor.hpp"
 #include "switch_mcu_command_processor.hpp"
+#include "switch_ext_grip_command_processor.hpp"
 #include "switch_virtual_controller_memory.hpp"
 
 namespace ams::controller {
 
+    constexpr u8 FullKeyBtFirmwareVersionMajor  = 0x04;
+    constexpr u8 FullKeyBtFirmwareVersionMinor  = 0x21;
+    constexpr u8 FullKeyMcuFirmwareVersionMajor = 0x03;
+    constexpr u8 FullKeyMcuFirmwareVersionMinor = 0x05;
+
     class EmulatedSwitchController : public SwitchController {
+        friend class SwitchHidCommandProcessor;
+        friend class SwitchMcuCommandProcessor;
+        friend class SwitchExtGripCommandProcessor;
 
         public:
             EmulatedSwitchController(bluetooth::Address address, HardwareID id);
             virtual ~EmulatedSwitchController() {};
 
             virtual Result Initialize();
-            bool IsOfficialController() { return false; }
+            virtual bool IsOfficialController() override { return false; }
 
             Result HandleOutputDataReport(const bluetooth::HidReport *report) override;
 
@@ -37,44 +49,39 @@ namespace ams::controller {
             virtual Result CancelVibration() { R_SUCCEED(); }
             virtual Result SetPlayerLed(u8 led_mask) { AMS_UNUSED(led_mask); R_SUCCEED(); }
 
+            Result BufferDataReport(const bluetooth::HidReport *report);
+
             void UpdateControllerState(const bluetooth::HidReport *report) override;
             virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
-            Result HandleRumbleData(const SwitchEncodedMotorData *enc_motor_data);
-            Result HandleHidCommand(const SwitchHidCommand *command);
-            Result HandleMcuCommand(const SwitchMcuCommand *command);
+            void FillCommandInputReport(bluetooth::HidReport *report);
+            void FillMcuUpdateInputReport(bluetooth::HidReport *report);
+            void FillBasicInputReport(bluetooth::HidReport *report);
+            void FillMcuInputReport(bluetooth::HidReport *report);
+            void FillAttachmentInputReport(bluetooth::HidReport *report);
+            void FillGenericInputReport(bluetooth::HidReport *report);
+            void FillExtGripInputReport(bluetooth::HidReport *report);
 
-            Result HandleHidCommandGetDeviceInfo(const SwitchHidCommand *command);
-            Result HandleHidCommandSetDataFormat(const SwitchHidCommand *command);
-            Result HandleHidCommandLRButtonDetection(const SwitchHidCommand *command);
-            Result HandleHidCommandClearPairingInfo(const SwitchHidCommand *command);
-            Result HandleHidCommandShipment(const SwitchHidCommand *command);
-            Result HandleHidCommandSerialFlashRead(const SwitchHidCommand *command);
-            Result HandleHidCommandSerialFlashWrite(const SwitchHidCommand *command);
-            Result HandleHidCommandSerialFlashSectorErase(const SwitchHidCommand *command);
-            Result HandleHidCommandMcuWrite(const SwitchHidCommand *command);
-            Result HandleHidCommandConfigureMcu(const SwitchHidCommand *command);
-            Result HandleHidCommandMcuResume(const SwitchHidCommand *command);
-            Result HandleHidCommandMcuPollingEnable(const SwitchHidCommand *command);
-            Result HandleHidCommandMcuPollingDisable(const SwitchHidCommand *command);
-            Result HandleHidCommandSetIndicatorLed(const SwitchHidCommand *command);
-            Result HandleHidCommandGetIndicatorLed(const SwitchHidCommand *command);
-            Result HandleHidCommandSetNotificationLed(const SwitchHidCommand *command);
-            Result HandleHidCommandSensorSleep(const SwitchHidCommand *command);
-            Result HandleHidCommandSensorConfig(const SwitchHidCommand *command);
-            Result HandleHidCommandMotorEnable(const SwitchHidCommand *command);
+            Result HandleCommandOutputReport(const bluetooth::HidReport *report);
+            Result HandleMcuUpdateOutputReport(const bluetooth::HidReport *report);
+            Result HandleBasicOutputReport(const bluetooth::HidReport *report);
+            Result HandleMcuOutputReport(const bluetooth::HidReport *report);
+            Result HandleAttachmentOutputReport(const bluetooth::HidReport *report);
+            Result HandleExtGripOutputReport(const bluetooth::HidReport *report);
 
-            Result HandleMcuCommandSetMcuMode();
-            Result HandleMcuCommandGetMcuMode();
-            Result HandleMcuCommandReadDeviceMode();
-
-            Result FakeHidCommandResponse(const SwitchHidCommandResponse *response);
-            Result FakeMcuResponse(const SwitchMcuResponse *response);
+            Result HandleMotorData(const SwitchEncodedMotorData *enc_motor_data);
+            Result HandleHidCommand(const SwitchHidCommand *hid_command);
+            Result HandleMcuUpdateData(const SwitchMcuUpdateDataOut *mcu_update_data);
+            Result HandleMcuData(const SwitchMcuDataOut *mcu_data);
+            Result HandleAttachmentData(const SwitchAttachmentDataOut *attachment_data);
+            Result HandleExtGripCommand(const SwitchExtGripCommand *ext_grip_command);
 
         protected:
             u8 m_latency_timer;
             SwitchPowerInfo m_power_info;
             SwitchPlayerIndicator m_player_indicator;
+
+            SwitchMotorStatus m_motor_status;
 
             SwitchHidReportId m_input_report_mode;
 
@@ -92,7 +99,9 @@ namespace ams::controller {
             bool m_enable_rumble;
             SwitchRumbleHandler m_rumble_handler;
 
+            SwitchHidCommandProcessor m_hid_command_processor;
             SwitchMcuCommandProcessor m_mcu_command_processor;
+            SwitchExtGripCommandProcessor m_ext_grip_command_processor;
 
             SwitchVirtualControllerMemory m_virtual_memory;
     };
