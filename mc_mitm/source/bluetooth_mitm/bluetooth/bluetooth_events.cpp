@@ -23,7 +23,7 @@ namespace ams::bluetooth::events {
 
     namespace {
 
-        constexpr s32 ThreadPriority = 9;
+        constexpr s32 ThreadPriority = -11;
         constexpr size_t ThreadStackSize = 0x2000;
         alignas(os::ThreadStackAlignment) constinit u8 g_thread_stack[ThreadStackSize];
         constinit os::ThreadType g_thread;
