@@ -12,7 +12,7 @@
 
 # Mission Control
 
-Use controllers from other consoles natively on your Nintendo Switch via Bluetooth. No dongles or other external hardware neccessary.
+Use controllers from other consoles natively on your Nintendo Switch via Bluetooth. No dongles or other external hardware necessary.
 
 ### Features
 
