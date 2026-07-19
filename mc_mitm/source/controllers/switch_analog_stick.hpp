@@ -20,6 +20,12 @@
 namespace ams::controller {
 
     template <std::integral T>
+    struct AnalogStickType {
+        T x;
+        T y;
+    };
+
+    template <std::integral T>
     struct AnalogStick {
         T x;
         T y;
