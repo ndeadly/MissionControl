@@ -122,11 +122,14 @@ namespace ams::controller {
                 m_button_state ^= buttons.Value();
             }
 
+            constexpr ALWAYS_INLINE void Assign(SwitchButton button, bool value) {
+                const u32 mask = static_cast<u32>(button);
+                m_button_state = (m_button_state & ~mask) | (value ? mask : 0);
+            }
+
             constexpr ALWAYS_INLINE void Assign(SwitchButtons buttons, bool value) {
-                if (value)
-                    Set(buttons);
-                else
-                    Clear(buttons);
+                const u32 mask = buttons.Value();
+                m_button_state = (m_button_state & ~mask) | (value ? mask : 0);
             }
 
             constexpr ALWAYS_INLINE void Reset() {
