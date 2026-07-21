@@ -55,41 +55,27 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        m_buttons.dpad_down  = (src->input0x01.buttons.dpad == MadCatzDPad_S)  ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_SE) ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_SW);
-        m_buttons.dpad_up    = (src->input0x01.buttons.dpad == MadCatzDPad_N)  ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_NE) ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_NW);
-        m_buttons.dpad_right = (src->input0x01.buttons.dpad == MadCatzDPad_E)  ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_NE) ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_SE);
-        m_buttons.dpad_left  = (src->input0x01.buttons.dpad == MadCatzDPad_W)  ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_NW) ||
-                               (src->input0x01.buttons.dpad == MadCatzDPad_SW);
-
-        m_buttons.A = src->input0x01.buttons.B;
-        m_buttons.B = src->input0x01.buttons.A;
-        m_buttons.X = src->input0x01.buttons.Y;
-        m_buttons.Y = src->input0x01.buttons.X;
-
-        m_buttons.R  = src->input0x01.buttons.R1;
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.L  = src->input0x01.buttons.L1;
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
-
-        m_buttons.minus = src->input0x01.buttons.select;
-        m_buttons.plus  = src->input0x01.buttons.start;
-
-        m_buttons.lstick_press = src->input0x01.buttons.L3;
-        m_buttons.rstick_press = src->input0x01.buttons.R3;
-
-        //m_buttons.home = src->input0x01.buttons.home;
+        m_buttons.Assign(SwitchButton::Down,   (src->input0x01.buttons.dpad == MadCatzDPad_S) || (src->input0x01.buttons.dpad == MadCatzDPad_SE) || (src->input0x01.buttons.dpad == MadCatzDPad_SW));
+        m_buttons.Assign(SwitchButton::Up,     (src->input0x01.buttons.dpad == MadCatzDPad_N) || (src->input0x01.buttons.dpad == MadCatzDPad_NE) || (src->input0x01.buttons.dpad == MadCatzDPad_NW));
+        m_buttons.Assign(SwitchButton::Right,  (src->input0x01.buttons.dpad == MadCatzDPad_E) || (src->input0x01.buttons.dpad == MadCatzDPad_NE) || (src->input0x01.buttons.dpad == MadCatzDPad_SE));
+        m_buttons.Assign(SwitchButton::Left,   (src->input0x01.buttons.dpad == MadCatzDPad_W) || (src->input0x01.buttons.dpad == MadCatzDPad_NW) || (src->input0x01.buttons.dpad == MadCatzDPad_SW));
+        m_buttons.Assign(SwitchButton::A,      src->input0x01.buttons.B);
+        m_buttons.Assign(SwitchButton::B,      src->input0x01.buttons.A);
+        m_buttons.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
+        m_buttons.Assign(SwitchButton::Y,      src->input0x01.buttons.X);
+        m_buttons.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
+        m_buttons.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
+        m_buttons.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::Minus,  src->input0x01.buttons.select);
+        m_buttons.Assign(SwitchButton::Plus,   src->input0x01.buttons.start);
+        m_buttons.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
+        m_buttons.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
+        // m_buttons.Assign(SwitchButton::Home,   src->input0x01.buttons.home);
     }
 
     void MadCatzController::MapInputReport0x02(const MadCatzReportData *src) {
-        // Media buttons
-        m_buttons.home = src->input0x02.play;
+        m_buttons.Assign(SwitchButton::Home, src->input0x02.play);
     }
 
     void MadCatzController::MapInputReport0x81(const MadCatzReportData *src) {
@@ -103,50 +89,35 @@ namespace ams::controller {
             src->input0x81.right_stick.GetYInverted()
         );
 
-        m_buttons.dpad_down  = (src->input0x81.buttons.dpad == MadCatzDPad_S)  ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_SE) ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_SW);
-        m_buttons.dpad_up    = (src->input0x81.buttons.dpad == MadCatzDPad_N)  ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_NE) ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_NW);
-        m_buttons.dpad_right = (src->input0x81.buttons.dpad == MadCatzDPad_E)  ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_NE) ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_SE);
-        m_buttons.dpad_left  = (src->input0x81.buttons.dpad == MadCatzDPad_W)  ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_NW) ||
-                               (src->input0x81.buttons.dpad == MadCatzDPad_SW);
-
-        m_buttons.A = src->input0x81.buttons.B;
-        m_buttons.B = src->input0x81.buttons.A;
-        m_buttons.X = src->input0x81.buttons.Y;
-        m_buttons.Y = src->input0x81.buttons.X;
-
-        m_buttons.R  = src->input0x81.buttons.R1;
-        m_buttons.ZR = src->input0x81.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.L  = src->input0x81.buttons.L1;
-        m_buttons.ZL = src->input0x81.left_trigger  > (m_trigger_threshold * TriggerMax);
-
-        m_buttons.minus = src->input0x81.buttons.select;
-        m_buttons.plus  = src->input0x81.buttons.start;
-
-        m_buttons.lstick_press = src->input0x81.buttons.L3;
-        m_buttons.rstick_press = src->input0x81.buttons.R3;
+        m_buttons.Assign(SwitchButton::Down,   (src->input0x81.buttons.dpad == MadCatzDPad_S) || (src->input0x81.buttons.dpad == MadCatzDPad_SE) || (src->input0x81.buttons.dpad == MadCatzDPad_SW));
+        m_buttons.Assign(SwitchButton::Up,     (src->input0x81.buttons.dpad == MadCatzDPad_N) || (src->input0x81.buttons.dpad == MadCatzDPad_NE) || (src->input0x81.buttons.dpad == MadCatzDPad_NW));
+        m_buttons.Assign(SwitchButton::Right,  (src->input0x81.buttons.dpad == MadCatzDPad_E) || (src->input0x81.buttons.dpad == MadCatzDPad_NE) || (src->input0x81.buttons.dpad == MadCatzDPad_SE));
+        m_buttons.Assign(SwitchButton::Left,   (src->input0x81.buttons.dpad == MadCatzDPad_W) || (src->input0x81.buttons.dpad == MadCatzDPad_NW) || (src->input0x81.buttons.dpad == MadCatzDPad_SW));
+        m_buttons.Assign(SwitchButton::A,      src->input0x81.buttons.B);
+        m_buttons.Assign(SwitchButton::B,      src->input0x81.buttons.A);
+        m_buttons.Assign(SwitchButton::X,      src->input0x81.buttons.Y);
+        m_buttons.Assign(SwitchButton::Y,      src->input0x81.buttons.X);
+        m_buttons.Assign(SwitchButton::R,      src->input0x81.buttons.R1);
+        m_buttons.Assign(SwitchButton::L,      src->input0x81.buttons.L1);
+        m_buttons.Assign(SwitchButton::ZR,     src->input0x81.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL,     src->input0x81.left_trigger  > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::Minus,  src->input0x81.buttons.select);
+        m_buttons.Assign(SwitchButton::Plus,   src->input0x81.buttons.start);
+        m_buttons.Assign(SwitchButton::StickL, src->input0x81.buttons.L3);
+        m_buttons.Assign(SwitchButton::StickR, src->input0x81.buttons.R3);
     }
 
     void MadCatzController::MapInputReport0x82(const MadCatzReportData *src) {
-        m_buttons.dpad_up    = (src->input0x82.buttons.dpad & 0x01) != 0;
-        m_buttons.dpad_down  = (src->input0x82.buttons.dpad & 0x02) != 0;
-        m_buttons.dpad_left  = (src->input0x82.buttons.dpad & 0x04) != 0;
-        m_buttons.dpad_right = (src->input0x82.buttons.dpad & 0x08) != 0;
-
-        m_buttons.A = src->input0x82.buttons.B;
-        m_buttons.X = src->input0x82.buttons.Y;
-        m_buttons.Y = src->input0x82.buttons.X;
-
-        m_buttons.R = src->input0x82.buttons.R1;
-        m_buttons.L = src->input0x82.buttons.L1;
-
-        m_buttons.minus = src->input0x82.buttons.select;
+        m_buttons.Assign(SwitchButton::Up,    (src->input0x82.buttons.dpad & 0x01) != 0);
+        m_buttons.Assign(SwitchButton::Down,  (src->input0x82.buttons.dpad & 0x02) != 0);
+        m_buttons.Assign(SwitchButton::Left,  (src->input0x82.buttons.dpad & 0x04) != 0);
+        m_buttons.Assign(SwitchButton::Right, (src->input0x82.buttons.dpad & 0x08) != 0);
+        m_buttons.Assign(SwitchButton::A,     src->input0x82.buttons.B);
+        m_buttons.Assign(SwitchButton::X,     src->input0x82.buttons.Y);
+        m_buttons.Assign(SwitchButton::Y,     src->input0x82.buttons.X);
+        m_buttons.Assign(SwitchButton::R,     src->input0x82.buttons.R1);
+        m_buttons.Assign(SwitchButton::L,     src->input0x82.buttons.L1);
+        m_buttons.Assign(SwitchButton::Minus, src->input0x82.buttons.select);
     }
 
     void MadCatzController::MapInputReport0x83(const MadCatzReportData *src) {
@@ -155,11 +126,10 @@ namespace ams::controller {
             std::clamp<u16>(MediaModeStickScaleFactor *  src->input0x83.left_stick.y + 0x7ff, SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue)
         );
 
-        m_buttons.ZR = src->input0x83.buttons.R2;
-        m_buttons.ZL = src->input0x83.buttons.L2;
-
-        m_buttons.lstick_press = src->input0x83.buttons.L3;
-        m_buttons.rstick_press = src->input0x83.buttons.R3;
+        m_buttons.Assign(SwitchButton::ZR,     src->input0x83.buttons.R2);
+        m_buttons.Assign(SwitchButton::ZL,     src->input0x83.buttons.L2);
+        m_buttons.Assign(SwitchButton::StickL, src->input0x83.buttons.L3);
+        m_buttons.Assign(SwitchButton::StickR, src->input0x83.buttons.R3);
     }
 
 }

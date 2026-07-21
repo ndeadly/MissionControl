@@ -242,19 +242,17 @@ namespace ams::controller {
         std::memcpy(m_input_report.data, report->data, report->size);
     }
 
-    void SwitchController::ApplyButtonCombos(SwitchButtonStatusType *buttons) {
+    void SwitchController::ApplyButtonCombos(SwitchButtons *buttons) {
         // Home combo = MINUS + DPAD_DOWN
-        if (buttons->minus && buttons->dpad_down) {
-            buttons->home = 1;
-            buttons->minus = 0;
-            buttons->dpad_down = 0;
+        if (buttons->All(SwitchButton::Minus | SwitchButton::Down)) {
+            buttons->Set(SwitchButton::Home);
+            buttons->Clear(SwitchButton::Minus | SwitchButton::Down);
         }
 
         // Capture combo = MINUS + DPAD_UP
-        if (buttons->minus && buttons->dpad_up) {
-            buttons->capture = 1;
-            buttons->minus = 0;
-            buttons->dpad_up = 0;
+        if (buttons->All(SwitchButton::Minus | SwitchButton::Up)) {
+            buttons->Set(SwitchButton::Capture);
+            buttons->Clear(SwitchButton::Minus | SwitchButton::Up);
         }
     }
 

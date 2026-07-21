@@ -21,7 +21,7 @@
 #include "switch_ext_grip_commands.hpp"
 
 #include "switch_power_info.hpp"
-#include "switch_button_status.hpp"
+#include "switch_buttons.hpp"
 #include "switch_analog_stick.hpp"
 #include "switch_motor_status.hpp"
 

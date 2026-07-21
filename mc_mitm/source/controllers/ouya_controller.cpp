@@ -53,28 +53,21 @@ namespace ams::controller {
             src->input0x07.right_stick.GetYInverted()
         );
 
-        m_buttons.dpad_down  = src->input0x07.buttons.dpad_down;
-        m_buttons.dpad_up    = src->input0x07.buttons.dpad_up;
-        m_buttons.dpad_right = src->input0x07.buttons.dpad_right;
-        m_buttons.dpad_left  = src->input0x07.buttons.dpad_left;
-        
-        m_buttons.A = src->input0x07.buttons.A;
-        m_buttons.B = src->input0x07.buttons.O;
-        m_buttons.X = src->input0x07.buttons.Y;
-        m_buttons.Y = src->input0x07.buttons.U;
-
-        m_buttons.R  = src->input0x07.buttons.RB;
-        m_buttons.ZR = src->input0x07.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.L  = src->input0x07.buttons.LB;
-        m_buttons.ZL = src->input0x07.left_trigger  > (m_trigger_threshold * TriggerMax);
-
-        m_buttons.minus = 0;
-        m_buttons.plus  = 0;
-
-        m_buttons.lstick_press = src->input0x07.buttons.LS;
-        m_buttons.rstick_press = src->input0x07.buttons.RS;
-
-        m_buttons.home = src->input0x07.buttons.center_hold;
+        m_buttons.Assign(SwitchButton::Down,   src->input0x07.buttons.dpad_down);
+        m_buttons.Assign(SwitchButton::Up,     src->input0x07.buttons.dpad_up);
+        m_buttons.Assign(SwitchButton::Right,  src->input0x07.buttons.dpad_right);
+        m_buttons.Assign(SwitchButton::Left,   src->input0x07.buttons.dpad_left);
+        m_buttons.Assign(SwitchButton::A,      src->input0x07.buttons.A);
+        m_buttons.Assign(SwitchButton::B,      src->input0x07.buttons.O);
+        m_buttons.Assign(SwitchButton::X,      src->input0x07.buttons.Y);
+        m_buttons.Assign(SwitchButton::Y,      src->input0x07.buttons.U);
+        m_buttons.Assign(SwitchButton::R,      src->input0x07.buttons.RB);
+        m_buttons.Assign(SwitchButton::L,      src->input0x07.buttons.LB);
+        m_buttons.Assign(SwitchButton::ZR,     src->input0x07.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL,     src->input0x07.left_trigger  > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::StickL, src->input0x07.buttons.LS);
+        m_buttons.Assign(SwitchButton::StickR, src->input0x07.buttons.RS);
+        m_buttons.Assign(SwitchButton::Home,   src->input0x07.buttons.center_hold);
     }
 
 }

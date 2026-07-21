@@ -45,7 +45,7 @@ namespace ams::controller {
     }
 
     void EmulatedSwitchController::ClearControllerState() {
-        std::memset(&m_buttons, 0, sizeof(m_buttons));
+        m_buttons.Reset();
         m_left_stick.Reset();
         m_right_stick.Reset();
         std::memset(&m_accel, 0, sizeof(m_accel));
@@ -84,7 +84,7 @@ namespace ams::controller {
         command_report->report_id          = SwitchHidReportId::CommandInputReport;
         command_report->latency_timer      = m_latency_timer++;
         command_report->power_info         = m_power_info.GetState();
-        command_report->buttons            = m_buttons;
+        command_report->buttons            = m_buttons.GetState();
         command_report->left_analog_stick  = m_left_stick.GetState();
         command_report->right_analog_stick = m_right_stick.GetState();
         command_report->motor_status       = m_motor_status.GetState();
@@ -99,7 +99,7 @@ namespace ams::controller {
         mcu_update_report->report_id          = SwitchHidReportId::McuUpdateInputReport;
         mcu_update_report->latency_timer      = m_latency_timer++;
         mcu_update_report->power_info         = m_power_info.GetState();
-        mcu_update_report->buttons            = m_buttons;
+        mcu_update_report->buttons            = m_buttons.GetState();
         mcu_update_report->left_analog_stick  = m_left_stick.GetState();
         mcu_update_report->right_analog_stick = m_right_stick.GetState();
         mcu_update_report->motor_status       = m_motor_status.GetState();
@@ -114,7 +114,7 @@ namespace ams::controller {
         basic_report->report_id          = SwitchHidReportId::BasicInputReport;
         basic_report->latency_timer      = m_latency_timer++;
         basic_report->power_info         = m_power_info.GetState();
-        basic_report->buttons            = m_buttons;
+        basic_report->buttons            = m_buttons.GetState();
         basic_report->left_analog_stick  = m_left_stick.GetState();
         basic_report->right_analog_stick = m_right_stick.GetState();
         basic_report->motor_status       = m_motor_status.GetState();
@@ -129,7 +129,7 @@ namespace ams::controller {
         mcu_report->report_id          = SwitchHidReportId::McuInputReport;
         mcu_report->latency_timer      = m_latency_timer++;
         mcu_report->power_info         = m_power_info.GetState();
-        mcu_report->buttons            = m_buttons;
+        mcu_report->buttons            = m_buttons.GetState();
         mcu_report->left_analog_stick  = m_left_stick.GetState();
         mcu_report->right_analog_stick = m_right_stick.GetState();
         mcu_report->motor_status       = m_motor_status.GetState();
@@ -149,7 +149,7 @@ namespace ams::controller {
         attachment_report->report_id          = SwitchHidReportId::AttachmentInputReport;
         attachment_report->latency_timer      = m_latency_timer++;
         attachment_report->power_info         = m_power_info.GetState();
-        attachment_report->buttons            = m_buttons;
+        attachment_report->buttons            = m_buttons.GetState();
         attachment_report->left_analog_stick  = m_left_stick.GetState();
         attachment_report->right_analog_stick = m_right_stick.GetState();
         attachment_report->motor_status       = m_motor_status.GetState();

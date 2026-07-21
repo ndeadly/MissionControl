@@ -48,43 +48,30 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        m_buttons.dpad_down  = (src->input0x01.buttons.dpad == AmazonDPad_S)  ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_SE) ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_SW);
-        m_buttons.dpad_up    = (src->input0x01.buttons.dpad == AmazonDPad_N)  ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_NE) ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_NW);
-        m_buttons.dpad_right = (src->input0x01.buttons.dpad == AmazonDPad_E)  ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_NE) ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_SE);
-        m_buttons.dpad_left  = (src->input0x01.buttons.dpad == AmazonDPad_W)  ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_NW) ||
-                               (src->input0x01.buttons.dpad == AmazonDPad_SW);
-
-        m_buttons.A = src->input0x01.buttons.B;
-        m_buttons.B = src->input0x01.buttons.A;
-        m_buttons.X = src->input0x01.buttons.Y;
-        m_buttons.Y = src->input0x01.buttons.X;
-
-        m_buttons.R  = src->input0x01.buttons.R1;
-        m_buttons.L  = src->input0x01.buttons.L1;
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
-
-        m_buttons.lstick_press = src->input0x01.buttons.L3;
-        m_buttons.rstick_press = src->input0x01.buttons.R3;
-
-        m_buttons.plus  = src->input0x01.buttons.menu;
-        m_buttons.minus = src->input0x01.buttons.back;
-
-        m_buttons.capture = src->input0x01.buttons.middle;
+        m_buttons.Assign(SwitchButton::Down,    (src->input0x01.buttons.dpad == AmazonDPad_S) || (src->input0x01.buttons.dpad == AmazonDPad_SE) || (src->input0x01.buttons.dpad == AmazonDPad_SW));
+        m_buttons.Assign(SwitchButton::Up,      (src->input0x01.buttons.dpad == AmazonDPad_N) || (src->input0x01.buttons.dpad == AmazonDPad_NE) || (src->input0x01.buttons.dpad == AmazonDPad_NW));
+        m_buttons.Assign(SwitchButton::Right,   (src->input0x01.buttons.dpad == AmazonDPad_E) || (src->input0x01.buttons.dpad == AmazonDPad_NE) || (src->input0x01.buttons.dpad == AmazonDPad_SE));
+        m_buttons.Assign(SwitchButton::Left,    (src->input0x01.buttons.dpad == AmazonDPad_W) || (src->input0x01.buttons.dpad == AmazonDPad_NW) || (src->input0x01.buttons.dpad == AmazonDPad_SW));
+        m_buttons.Assign(SwitchButton::A,       src->input0x01.buttons.B);
+        m_buttons.Assign(SwitchButton::B,       src->input0x01.buttons.A);
+        m_buttons.Assign(SwitchButton::X,       src->input0x01.buttons.Y);
+        m_buttons.Assign(SwitchButton::Y,       src->input0x01.buttons.X);
+        m_buttons.Assign(SwitchButton::R,       src->input0x01.buttons.R1);
+        m_buttons.Assign(SwitchButton::L,       src->input0x01.buttons.L1);
+        m_buttons.Assign(SwitchButton::ZR,      src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL,      src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::StickL,  src->input0x01.buttons.L3);
+        m_buttons.Assign(SwitchButton::StickR,  src->input0x01.buttons.R3);
+        m_buttons.Assign(SwitchButton::Plus,    src->input0x01.buttons.menu);
+        m_buttons.Assign(SwitchButton::Minus,   src->input0x01.buttons.back);
+        m_buttons.Assign(SwitchButton::Capture, src->input0x01.buttons.middle);
 
         auto battery_level = SwitchBatteryLevelConverter::ConvertPercentage(src->input0x01.battery);
         m_power_info.SetBatteryLevel(battery_level);
     }
 
     void AmazonController::MapInputReport0x02(const AmazonReportData *src) {
-        m_buttons.home = src->input0x02.home;
+        m_buttons.Assign(SwitchButton::Home, src->input0x02.home);
     }
 
 }

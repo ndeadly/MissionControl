@@ -41,75 +41,55 @@ namespace ams::controller {
             if (src->input0x01.a_button || src->input0x01.b_button || src->input0x01.c_button || src->input0x01.x_button || src->input0x01.y_button || src->input0x01.z_button) {
                 m_arcadepanel = true;
             }
+
             m_left_stick.SetValues(
                 SwitchAnalogStick::CenterValue + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
                 SwitchAnalogStick::CenterValue
             );
+
             m_right_stick.SetValues(
                 SwitchAnalogStick::CenterValue,
                 static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & SwitchAnalogStick::MaximumValue
             );
             
-            m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_SE) ||
-                                   (src->input0x01.dpad == AtGamesDPad_SW);
-            m_buttons.dpad_up    = (src->input0x01.dpad == AtGamesDPad_N)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                   (src->input0x01.dpad == AtGamesDPad_NW);
-            m_buttons.dpad_right = (src->input0x01.dpad == AtGamesDPad_E)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                   (src->input0x01.dpad == AtGamesDPad_SE);
-            m_buttons.dpad_left  = (src->input0x01.dpad == AtGamesDPad_W)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_NW) ||
-                                   (src->input0x01.dpad == AtGamesDPad_SW);
-
-            m_buttons.A = src->input0x01.play;
-            m_buttons.B = src->input0x01.rewind;
-            m_buttons.Y = src->input0x01.nudge_front;
-
-            m_buttons.R  = src->input0x01.flipper_right;
-            m_buttons.ZR = src->input0x01.flipper_right;
-            m_buttons.L  = src->input0x01.flipper_left;
-            m_buttons.ZL = src->input0x01.flipper_left; 
-
-            m_buttons.plus  = src->input0x01.home_twirl;
+            m_buttons.Assign(SwitchButton::Down,  (src->input0x01.dpad == AtGamesDPad_S) || (src->input0x01.dpad == AtGamesDPad_SE) || (src->input0x01.dpad == AtGamesDPad_SW));
+            m_buttons.Assign(SwitchButton::Up,    (src->input0x01.dpad == AtGamesDPad_N) || (src->input0x01.dpad == AtGamesDPad_NE) || (src->input0x01.dpad == AtGamesDPad_NW));
+            m_buttons.Assign(SwitchButton::Right, (src->input0x01.dpad == AtGamesDPad_E) || (src->input0x01.dpad == AtGamesDPad_NE) || (src->input0x01.dpad == AtGamesDPad_SE));
+            m_buttons.Assign(SwitchButton::Left,  (src->input0x01.dpad == AtGamesDPad_W) || (src->input0x01.dpad == AtGamesDPad_NW) || (src->input0x01.dpad == AtGamesDPad_SW));
+            m_buttons.Assign(SwitchButton::A,     src->input0x01.play);
+            m_buttons.Assign(SwitchButton::B,     src->input0x01.rewind);
+            m_buttons.Assign(SwitchButton::Y,     src->input0x01.nudge_front);
+            m_buttons.Assign(SwitchButton::R,     src->input0x01.flipper_right);
+            m_buttons.Assign(SwitchButton::L,     src->input0x01.flipper_left);
+            m_buttons.Assign(SwitchButton::ZR,    src->input0x01.flipper_right);
+            m_buttons.Assign(SwitchButton::ZL,    src->input0x01.flipper_left);
+            m_buttons.Assign(SwitchButton::Plus,  src->input0x01.home_twirl);
         } else {
             m_left_stick.SetValues(
                 SwitchAnalogStick::CenterValue + 0x7ff * (src->input0x01.nudge_left - src->input0x01.nudge_right),
                 SwitchAnalogStick::CenterValue + 0x7ff * (src->input0x01.nudge_front)
             );
+
             m_right_stick.SetValues(
                 SwitchAnalogStick::CenterValue,
                 static_cast<u16>(StickScaleFactor * (UINT8_MAX - src->input0x01.right_stick.x)) & SwitchAnalogStick::MaximumValue
             );
-            
-            m_buttons.dpad_down  = (src->input0x01.dpad == AtGamesDPad_S)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_SE) ||
-                                   (src->input0x01.dpad == AtGamesDPad_SW);
-            m_buttons.dpad_up    = (src->input0x01.dpad == AtGamesDPad_N)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                   (src->input0x01.dpad == AtGamesDPad_NW);
-            m_buttons.dpad_right = (src->input0x01.dpad == AtGamesDPad_E)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_NE) ||
-                                   (src->input0x01.dpad == AtGamesDPad_SE);
-            m_buttons.dpad_left  = (src->input0x01.dpad == AtGamesDPad_W)  ||
-                                   (src->input0x01.dpad == AtGamesDPad_NW) ||
-                                   (src->input0x01.dpad == AtGamesDPad_SW);
 
-            m_buttons.A = src->input0x01.a_button;
-            m_buttons.B = src->input0x01.b_button;
-            m_buttons.X = src->input0x01.x_button;
-            m_buttons.Y = src->input0x01.y_button;
-
-            m_buttons.R  = src->input0x01.c_button;
-            m_buttons.ZR = src->input0x01.flipper_right;
-            m_buttons.L  = src->input0x01.z_button;
-            m_buttons.ZL = src->input0x01.flipper_left; 
-
-            m_buttons.minus = src->input0x01.rewind;
-            m_buttons.plus  = src->input0x01.play;
-
-            m_buttons.home = src->input0x01.home_twirl;
+            m_buttons.Assign(SwitchButton::Down,  (src->input0x01.dpad == AtGamesDPad_S) || (src->input0x01.dpad == AtGamesDPad_SE) || (src->input0x01.dpad == AtGamesDPad_SW));
+            m_buttons.Assign(SwitchButton::Up,    (src->input0x01.dpad == AtGamesDPad_N) || (src->input0x01.dpad == AtGamesDPad_NE) || (src->input0x01.dpad == AtGamesDPad_NW));
+            m_buttons.Assign(SwitchButton::Right, (src->input0x01.dpad == AtGamesDPad_E) || (src->input0x01.dpad == AtGamesDPad_NE) || (src->input0x01.dpad == AtGamesDPad_SE));
+            m_buttons.Assign(SwitchButton::Left,  (src->input0x01.dpad == AtGamesDPad_W) || (src->input0x01.dpad == AtGamesDPad_NW) || (src->input0x01.dpad == AtGamesDPad_SW));
+            m_buttons.Assign(SwitchButton::A,     src->input0x01.a_button);
+            m_buttons.Assign(SwitchButton::B,     src->input0x01.b_button);
+            m_buttons.Assign(SwitchButton::X,     src->input0x01.x_button);
+            m_buttons.Assign(SwitchButton::Y,     src->input0x01.y_button);
+            m_buttons.Assign(SwitchButton::R,     src->input0x01.c_button);
+            m_buttons.Assign(SwitchButton::L,     src->input0x01.z_button);
+            m_buttons.Assign(SwitchButton::ZR,    src->input0x01.flipper_right);
+            m_buttons.Assign(SwitchButton::ZL,    src->input0x01.flipper_left);
+            m_buttons.Assign(SwitchButton::Minus, src->input0x01.rewind);
+            m_buttons.Assign(SwitchButton::Plus,  src->input0x01.play);
+            m_buttons.Assign(SwitchButton::Home,  src->input0x01.home_twirl);
         }
     }
 

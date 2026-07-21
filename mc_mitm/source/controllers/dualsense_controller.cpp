@@ -171,8 +171,8 @@ namespace ams::controller {
 
         this->MapButtons(&src->input0x01.buttons);
 
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
+        m_buttons.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL, src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
     }
 
     void DualsenseController::MapInputReport0x31(const DualsenseReportData *src) {
@@ -192,8 +192,8 @@ namespace ams::controller {
 
         this->MapButtons(&src->input0x31.buttons);
 
-        m_buttons.ZR = src->input0x31.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.ZL = src->input0x31.left_trigger  > (m_trigger_threshold * TriggerMax);
+        m_buttons.Assign(SwitchButton::ZR, src->input0x31.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL, src->input0x31.left_trigger  > (m_trigger_threshold * TriggerMax));
 
         if (src->input0x31.buttons.touchpad) {
             for (int i = 0; i < 2; ++i) {
@@ -204,11 +204,11 @@ namespace ams::controller {
                     u16 x = (point->x_hi << 8) | point->x_lo;
 
                     if (x < (0.15 * TouchpadWidth)) {
-                        m_buttons.minus = 1;
+                        m_buttons.Set(SwitchButton::Minus);
                     } else if (x > (0.85 * TouchpadWidth)) {
-                        m_buttons.plus = 1;
+                        m_buttons.Set(SwitchButton::Plus);
                     } else {
-                        m_buttons.capture = 1;
+                        m_buttons.Set(SwitchButton::Capture);
                     }
                 }
             }
@@ -224,35 +224,22 @@ namespace ams::controller {
     }
 
     void DualsenseController::MapButtons(const DualsenseButtonData *buttons) {
-        m_buttons.dpad_down  = (buttons->dpad == DualsenseDPad_S)  ||
-                               (buttons->dpad == DualsenseDPad_SE) ||
-                               (buttons->dpad == DualsenseDPad_SW);
-        m_buttons.dpad_up    = (buttons->dpad == DualsenseDPad_N)  ||
-                               (buttons->dpad == DualsenseDPad_NE) ||
-                               (buttons->dpad == DualsenseDPad_NW);
-        m_buttons.dpad_right = (buttons->dpad == DualsenseDPad_E)  ||
-                               (buttons->dpad == DualsenseDPad_NE) ||
-                               (buttons->dpad == DualsenseDPad_SE);
-        m_buttons.dpad_left  = (buttons->dpad == DualsenseDPad_W)  ||
-                               (buttons->dpad == DualsenseDPad_NW) ||
-                               (buttons->dpad == DualsenseDPad_SW);
-
-        m_buttons.A = buttons->circle;
-        m_buttons.B = buttons->cross;
-        m_buttons.X = buttons->triangle;
-        m_buttons.Y = buttons->square;
-
-        m_buttons.R  = buttons->R1;
-        m_buttons.L  = buttons->L1;
-
-        m_buttons.minus = buttons->share;
-        m_buttons.plus  = buttons->options;
-
-        m_buttons.lstick_press = buttons->L3;
-        m_buttons.rstick_press = buttons->R3;
-
-        m_buttons.capture = buttons->mute;
-        m_buttons.home    = buttons->ps;
+        m_buttons.Assign(SwitchButton::Down,    (buttons->dpad == DualsenseDPad_S) || (buttons->dpad == DualsenseDPad_SE) || (buttons->dpad == DualsenseDPad_SW));
+        m_buttons.Assign(SwitchButton::Up,      (buttons->dpad == DualsenseDPad_N) || (buttons->dpad == DualsenseDPad_NE) || (buttons->dpad == DualsenseDPad_NW));
+        m_buttons.Assign(SwitchButton::Right,   (buttons->dpad == DualsenseDPad_E) || (buttons->dpad == DualsenseDPad_NE) || (buttons->dpad == DualsenseDPad_SE));
+        m_buttons.Assign(SwitchButton::Left,    (buttons->dpad == DualsenseDPad_W) || (buttons->dpad == DualsenseDPad_NW) || (buttons->dpad == DualsenseDPad_SW));
+        m_buttons.Assign(SwitchButton::A,       buttons->circle);
+        m_buttons.Assign(SwitchButton::B,       buttons->cross);
+        m_buttons.Assign(SwitchButton::X,       buttons->triangle);
+        m_buttons.Assign(SwitchButton::Y,       buttons->square);
+        m_buttons.Assign(SwitchButton::R,       buttons->R1);
+        m_buttons.Assign(SwitchButton::L,       buttons->L1);
+        m_buttons.Assign(SwitchButton::Minus,   buttons->share);
+        m_buttons.Assign(SwitchButton::Plus,    buttons->options);
+        m_buttons.Assign(SwitchButton::StickL,  buttons->L3);
+        m_buttons.Assign(SwitchButton::StickR,  buttons->R3);
+        m_buttons.Assign(SwitchButton::Capture, buttons->mute);
+        m_buttons.Assign(SwitchButton::Home,    buttons->ps);
     }
 
     Result DualsenseController::GetVersionInfo(DualsenseVersionInfo *version_info) {

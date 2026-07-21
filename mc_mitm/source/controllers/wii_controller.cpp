@@ -164,39 +164,34 @@ namespace ams::controller {
                 DpadStickPositions[1 + buttons->dpad_right - buttons->dpad_left]
             );
 
-            m_buttons.A = buttons->two;
-            m_buttons.B = buttons->one;
-
-            m_buttons.R = buttons->A;
-            m_buttons.L = buttons->B;
-
-            m_buttons.minus = buttons->minus;
-            m_buttons.plus  = buttons->plus;
-
-            m_buttons.home = buttons->home;
+            m_buttons.Assign(SwitchButton::A,     buttons->two);
+            m_buttons.Assign(SwitchButton::B,     buttons->one);
+            m_buttons.Assign(SwitchButton::R,     buttons->A);
+            m_buttons.Assign(SwitchButton::L,     buttons->B);
+            m_buttons.Assign(SwitchButton::Minus, buttons->minus);
+            m_buttons.Assign(SwitchButton::Plus,  buttons->plus);
+            m_buttons.Assign(SwitchButton::Home,  buttons->home);
         } else {
-            m_buttons.dpad_down  = buttons->dpad_down;
-            m_buttons.dpad_up    = buttons->dpad_up;
-            m_buttons.dpad_right = buttons->dpad_right;
-            m_buttons.dpad_left  = buttons->dpad_left;
-
-            m_buttons.A = buttons->A;
-            m_buttons.B = buttons->B;
+            m_buttons.Assign(SwitchButton::Down,  buttons->dpad_down);
+            m_buttons.Assign(SwitchButton::Up,    buttons->dpad_up);
+            m_buttons.Assign(SwitchButton::Right, buttons->dpad_right);
+            m_buttons.Assign(SwitchButton::Left,  buttons->dpad_left);
+            m_buttons.Assign(SwitchButton::A,     buttons->A);
+            m_buttons.Assign(SwitchButton::B,     buttons->B);
 
             if ((m_extension == WiiExtensionController_ClassicPro) || (m_extension == WiiExtensionController_MotionPlusClassicControllerPassthrough)) {
                 // Allow buttons one and two to be used for L3/R3 when Classic or Classic Pro controller connected
-                m_buttons.lstick_press = buttons->one;
-                m_buttons.rstick_press = buttons->two;
+                m_buttons.Assign(SwitchButton::StickL, buttons->one);
+                m_buttons.Assign(SwitchButton::StickR, buttons->two);
             } else {
                 // Not the best mapping but at least most buttons are mapped to something when nunchuck is connected.
-                m_buttons.R  = buttons->one;
-                m_buttons.ZR = buttons->two;
+                m_buttons.Assign(SwitchButton::R,  buttons->one);
+                m_buttons.Assign(SwitchButton::ZR, buttons->two);
             }
 
-            m_buttons.minus = buttons->minus;
-            m_buttons.plus  = buttons->plus;
-
-            m_buttons.home = buttons->home;
+            m_buttons.Assign(SwitchButton::Minus, buttons->minus);
+            m_buttons.Assign(SwitchButton::Plus,  buttons->plus);
+            m_buttons.Assign(SwitchButton::Home, buttons->home);
         }
     }
 
@@ -249,8 +244,8 @@ namespace ams::controller {
             std::clamp<u16>(static_cast<u16>(NunchuckStickScaleFactor * (extension_data->stick_y - 0x80) + SwitchAnalogStick::CenterValue), SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue)
         );
 
-        m_buttons.L  = !extension_data->C;
-        m_buttons.ZL = !extension_data->Z;
+        m_buttons.Assign(SwitchButton::L,  !extension_data->C);
+        m_buttons.Assign(SwitchButton::ZL, !extension_data->Z);
     }
 
     void WiiController::MapClassicControllerExtension(const u8 ext[]) {
@@ -260,30 +255,27 @@ namespace ams::controller {
             static_cast<u16>(LeftStickScaleFactor * (extension_data->left_stick_x - 0x20) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue,
             static_cast<u16>(LeftStickScaleFactor * (extension_data->left_stick_y - 0x20) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue
         );
+
         m_right_stick.SetValues(
             static_cast<u16>(RighStickScaleFactor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue,
             static_cast<u16>(RighStickScaleFactor * (extension_data->right_stick_y - 0x10) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue
         );
 
-        m_buttons.dpad_down  |= !extension_data->buttons.dpad_down;
-        m_buttons.dpad_up    |= !extension_data->buttons.dpad_up;
-        m_buttons.dpad_right |= !extension_data->buttons.dpad_right;
-        m_buttons.dpad_left  |= !extension_data->buttons.dpad_left;
-
-        m_buttons.A |= !extension_data->buttons.A;
-        m_buttons.B |= !extension_data->buttons.B;
-        m_buttons.X  = !extension_data->buttons.X;
-        m_buttons.Y  = !extension_data->buttons.Y;
-
-        m_buttons.L  = !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > (m_trigger_threshold * 0x1f));
-        m_buttons.ZL = !extension_data->buttons.ZL;
-        m_buttons.R  = !extension_data->buttons.R | (extension_data->right_trigger > (m_trigger_threshold * 0x1f));
-        m_buttons.ZR = !extension_data->buttons.ZR;
-
-        m_buttons.minus |= !extension_data->buttons.minus;
-        m_buttons.plus  |= !extension_data->buttons.plus;
-
-        m_buttons.home |= !extension_data->buttons.home;
+        m_buttons.SetIf(SwitchButton::Down,  !extension_data->buttons.dpad_down);
+        m_buttons.SetIf(SwitchButton::Up,    !extension_data->buttons.dpad_up);
+        m_buttons.SetIf(SwitchButton::Right, !extension_data->buttons.dpad_right);
+        m_buttons.SetIf(SwitchButton::Left,  !extension_data->buttons.dpad_left);
+        m_buttons.SetIf(SwitchButton::A,     !extension_data->buttons.A);
+        m_buttons.SetIf(SwitchButton::B,     !extension_data->buttons.B);
+        m_buttons.Assign(SwitchButton::X,    !extension_data->buttons.X);
+        m_buttons.Assign(SwitchButton::Y,    !extension_data->buttons.Y);
+        m_buttons.Assign(SwitchButton::L,    !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > (m_trigger_threshold * 0x1f)));
+        m_buttons.Assign(SwitchButton::R,    !extension_data->buttons.R | (extension_data->right_trigger > (m_trigger_threshold * 0x1f)));
+        m_buttons.Assign(SwitchButton::ZL,   !extension_data->buttons.ZL);
+        m_buttons.Assign(SwitchButton::ZR,   !extension_data->buttons.ZR);
+        m_buttons.SetIf(SwitchButton::Minus, !extension_data->buttons.minus);
+        m_buttons.SetIf(SwitchButton::Plus,  !extension_data->buttons.plus);
+        m_buttons.SetIf(SwitchButton::Home,  !extension_data->buttons.home);
     }
 
     void WiiController::MapWiiUProControllerExtension(const u8 ext[]) {
@@ -293,33 +285,29 @@ namespace ams::controller {
             std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->left_stick_x - SwitchAnalogStick::CenterValue))) + SwitchAnalogStick::CenterValue, SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue),
             std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->left_stick_y - SwitchAnalogStick::CenterValue))) + SwitchAnalogStick::CenterValue, SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue)
         );
+
         m_right_stick.SetValues(
             std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->right_stick_x - SwitchAnalogStick::CenterValue))) + SwitchAnalogStick::CenterValue, SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue),
             std::clamp<u16>(((WiiUStickScaleFactor * (extension_data->right_stick_y - SwitchAnalogStick::CenterValue))) + SwitchAnalogStick::CenterValue, SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue)
         );
 
-        m_buttons.dpad_down  = !extension_data->buttons.dpad_down;
-        m_buttons.dpad_up    = !extension_data->buttons.dpad_up;
-        m_buttons.dpad_right = !extension_data->buttons.dpad_right;
-        m_buttons.dpad_left  = !extension_data->buttons.dpad_left;
-
-        m_buttons.A = !extension_data->buttons.A;
-        m_buttons.B = !extension_data->buttons.B;
-        m_buttons.X = !extension_data->buttons.X;
-        m_buttons.Y = !extension_data->buttons.Y;
-
-        m_buttons.R  = !extension_data->buttons.R;
-        m_buttons.ZR = !extension_data->buttons.ZR;
-        m_buttons.L  = !extension_data->buttons.L;
-        m_buttons.ZL = !extension_data->buttons.ZL;
-
-        m_buttons.minus = !extension_data->buttons.minus;
-        m_buttons.plus  = !extension_data->buttons.plus;
-
-        m_buttons.lstick_press = !extension_data->buttons.lstick_press;
-        m_buttons.rstick_press = !extension_data->buttons.rstick_press;
-
-        m_buttons.home = !extension_data->buttons.home;
+        m_buttons.Assign(SwitchButton::Down,   !extension_data->buttons.dpad_down);
+        m_buttons.Assign(SwitchButton::Up,     !extension_data->buttons.dpad_up);
+        m_buttons.Assign(SwitchButton::Right,  !extension_data->buttons.dpad_right);
+        m_buttons.Assign(SwitchButton::Left,   !extension_data->buttons.dpad_left);
+        m_buttons.Assign(SwitchButton::A,      !extension_data->buttons.A);
+        m_buttons.Assign(SwitchButton::B,      !extension_data->buttons.B);
+        m_buttons.Assign(SwitchButton::X,      !extension_data->buttons.X);
+        m_buttons.Assign(SwitchButton::Y,      !extension_data->buttons.Y);
+        m_buttons.Assign(SwitchButton::R,      !extension_data->buttons.R);
+        m_buttons.Assign(SwitchButton::L,      !extension_data->buttons.L);
+        m_buttons.Assign(SwitchButton::ZR,     !extension_data->buttons.ZR);
+        m_buttons.Assign(SwitchButton::ZL,     !extension_data->buttons.ZL);
+        m_buttons.Assign(SwitchButton::Minus,  !extension_data->buttons.minus);
+        m_buttons.Assign(SwitchButton::Plus,   !extension_data->buttons.plus);
+        m_buttons.Assign(SwitchButton::StickL, !extension_data->buttons.lstick_press);
+        m_buttons.Assign(SwitchButton::StickR, !extension_data->buttons.rstick_press);
+        m_buttons.Assign(SwitchButton::Home,   !extension_data->buttons.home);
 
         bool powered = !extension_data->buttons.usb_connected;
         bool charging = !extension_data->buttons.charging;
@@ -332,10 +320,10 @@ namespace ams::controller {
     void WiiController::MapTaTaConExtension(const u8 ext[]) {
         auto extension_data = reinterpret_cast<const TaTaConExtensionData *>(ext);
 
-        m_buttons.X           = !extension_data->R_rim;
-        m_buttons.Y           = !extension_data->R_center;
-        m_buttons.dpad_up    |= !extension_data->L_rim;
-        m_buttons.dpad_right |= !extension_data->L_center;
+        m_buttons.Assign(SwitchButton::X,    !extension_data->R_rim);
+        m_buttons.Assign(SwitchButton::Y,    !extension_data->R_center);
+        m_buttons.SetIf(SwitchButton::Up,    !extension_data->L_rim);
+        m_buttons.SetIf(SwitchButton::Right, !extension_data->L_center);
     }
 
     void WiiController::MapBalanceBoardExtension(const u8 ext[]) {
@@ -412,8 +400,8 @@ namespace ams::controller {
             std::clamp<u16>(static_cast<u16>(NunchuckStickScaleFactor * (extension_data->stick_y - 0x80) + SwitchAnalogStick::CenterValue), SwitchAnalogStick::MinimumValue, SwitchAnalogStick::MaximumValue)
         );
 
-        m_buttons.L  = !extension_data->C;
-        m_buttons.ZL = !extension_data->Z;
+        m_buttons.Assign(SwitchButton::L,  !extension_data->C);
+        m_buttons.Assign(SwitchButton::ZL, !extension_data->Z);
     }
 
     void WiiController::MapClassicControllerExtensionPassthroughMode(const u8 ext[]) {
@@ -423,30 +411,27 @@ namespace ams::controller {
             static_cast<u16>(LeftStickScaleFactor * ((extension_data->left_stick_x_51 << 1) - 0x20) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue,
             static_cast<u16>(LeftStickScaleFactor * ((extension_data->left_stick_y_51 << 1) - 0x20) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue
         );
+
         m_right_stick.SetValues(
             static_cast<u16>(RighStickScaleFactor * (((extension_data->right_stick_x_43 << 3) | (extension_data->right_stick_x_21 << 1) | extension_data->right_stick_x_0) - 0x10) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue,
             static_cast<u16>(RighStickScaleFactor * (extension_data->right_stick_y - 0x10) + SwitchAnalogStick::CenterValue) & SwitchAnalogStick::MaximumValue
         );
 
-        m_buttons.dpad_down  |= !extension_data->buttons.dpad_down;
-        m_buttons.dpad_up    |= !extension_data->buttons.dpad_up;
-        m_buttons.dpad_right |= !extension_data->buttons.dpad_right;
-        m_buttons.dpad_left  |= !extension_data->buttons.dpad_left;
-
-        m_buttons.A |= !extension_data->buttons.A;
-        m_buttons.B |= !extension_data->buttons.B;
-        m_buttons.X  = !extension_data->buttons.X;
-        m_buttons.Y  = !extension_data->buttons.Y;
-
-        m_buttons.L  = !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > (m_trigger_threshold * 0x1f));
-        m_buttons.ZL = !extension_data->buttons.ZL;
-        m_buttons.R  = !extension_data->buttons.R | (extension_data->right_trigger > (m_trigger_threshold * 0x1f));
-        m_buttons.ZR = !extension_data->buttons.ZR;
-
-        m_buttons.minus |= !extension_data->buttons.minus;
-        m_buttons.plus  |= !extension_data->buttons.plus;
-
-        m_buttons.home |= !extension_data->buttons.home;
+        m_buttons.SetIf(SwitchButton::Down,  !extension_data->buttons.dpad_down);
+        m_buttons.SetIf(SwitchButton::Up,    !extension_data->buttons.dpad_up);
+        m_buttons.SetIf(SwitchButton::Right, !extension_data->buttons.dpad_right);
+        m_buttons.SetIf(SwitchButton::Left,  !extension_data->buttons.dpad_left);
+        m_buttons.SetIf(SwitchButton::A,     !extension_data->buttons.A);
+        m_buttons.SetIf(SwitchButton::B,     !extension_data->buttons.B);
+        m_buttons.Assign(SwitchButton::X,    !extension_data->buttons.X);
+        m_buttons.Assign(SwitchButton::Y,    !extension_data->buttons.Y);
+        m_buttons.Assign(SwitchButton::L,    !extension_data->buttons.L | (((extension_data->left_trigger_43 << 3) | (extension_data->left_trigger_20)) > (m_trigger_threshold * 0x1f)));
+        m_buttons.Assign(SwitchButton::R,    !extension_data->buttons.R | (extension_data->right_trigger > (m_trigger_threshold * 0x1f)));
+        m_buttons.Assign(SwitchButton::ZL,   !extension_data->buttons.ZL);
+        m_buttons.Assign(SwitchButton::ZR,   !extension_data->buttons.ZR);
+        m_buttons.SetIf(SwitchButton::Minus, !extension_data->buttons.minus);
+        m_buttons.SetIf(SwitchButton::Plus,  !extension_data->buttons.plus);
+        m_buttons.SetIf(SwitchButton::Home,  !extension_data->buttons.home);
     }
 
     void WiiController::HandleStatusReport(const WiiReportData *wii_report) {

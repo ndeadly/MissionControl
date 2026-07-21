@@ -16,7 +16,7 @@
 #pragma once
 #include <stratosphere.hpp>
 #include "switch_power_info.hpp"
-#include "switch_button_status.hpp"
+#include "switch_buttons.hpp"
 #include "switch_analog_stick.hpp"
 #include "switch_motor_status.hpp"
 
@@ -105,8 +105,7 @@ namespace ams::controller {
         SwitchHidReportId report_id;
         u8 latency_timer;
         SwitchPowerInfoType power_info;
-        // SwitchButtonStatusType button_status;
-        SwitchButtonStatusType buttons;
+        SwitchButtonsType buttons;
         SwitchAnalogStickType left_analog_stick;
         SwitchAnalogStickType right_analog_stick;
         SwitchMotorStatusType motor_status;
@@ -118,8 +117,7 @@ namespace ams::controller {
         SwitchHidReportId report_id;
         u8 latency_timer;
         SwitchPowerInfoType power_info;
-        // SwitchButtonStatusType button_status;
-        SwitchButtonStatusType buttons;
+        SwitchButtonsType buttons;
         SwitchAnalogStickType left_analog_stick;
         SwitchAnalogStickType right_analog_stick;
         SwitchMotorStatusType motor_status;
@@ -131,8 +129,7 @@ namespace ams::controller {
         SwitchHidReportId report_id;
         u8 latency_timer;
         SwitchPowerInfoType power_info;
-        // SwitchButtonStatusType button_status;
-        SwitchButtonStatusType buttons;
+        SwitchButtonsType buttons;
         SwitchAnalogStickType left_analog_stick;
         SwitchAnalogStickType right_analog_stick;
         SwitchMotorStatusType motor_status;
@@ -145,8 +142,7 @@ namespace ams::controller {
         SwitchHidReportId report_id;
         u8 latency_timer;
         SwitchPowerInfoType power_info;
-        // SwitchButtonStatusType button_status;
-        SwitchButtonStatusType buttons;
+        SwitchButtonsType buttons;
         SwitchAnalogStickType left_analog_stick;
         SwitchAnalogStickType right_analog_stick;
         SwitchMotorStatusType motor_status;
@@ -160,7 +156,7 @@ namespace ams::controller {
         SwitchHidReportId report_id;
         u8 latency_timer;
         SwitchPowerInfoType power_info;
-        SwitchButtonStatusType buttons;
+        SwitchButtonsType buttons;
         SwitchAnalogStickType left_analog_stick;
         SwitchAnalogStickType right_analog_stick;
         SwitchMotorStatusType motor_status;

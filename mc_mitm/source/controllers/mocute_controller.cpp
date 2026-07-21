@@ -60,16 +60,16 @@ namespace ams::controller {
         this->MapAnalogSticks(&src->input0x01.left_stick, &src->input0x01.right_stick);
         this->MapButtons(&src->input0x01.buttons, src->id == 0x01);
 
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
+        m_buttons.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL, src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
     }
 
     void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
         this->MapAnalogSticks(&src->input0x04.left_stick, &src->input0x04.right_stick);
         this->MapButtons(&src->input0x04.buttons, 1);
 
-        m_buttons.ZR = src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.ZL = src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax);
+        m_buttons.Assign(SwitchButton::ZR, src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL, src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax));
     }
 
     void MocuteController::MapAnalogSticks(const AnalogStick<u8> *left_stick, const AnalogStick<u8> *right_stick) {
@@ -91,32 +91,20 @@ namespace ams::controller {
             dpad = (dpad == 0) ? MocuteDPad_Released : dpad - 1;
         }
 
-        m_buttons.dpad_down  = (dpad == MocuteDPad_S)  ||
-                               (dpad == MocuteDPad_SE) ||
-                               (dpad == MocuteDPad_SW);
-        m_buttons.dpad_up    = (dpad == MocuteDPad_N)  ||
-                               (dpad == MocuteDPad_NE) ||
-                               (dpad == MocuteDPad_NW);
-        m_buttons.dpad_right = (dpad == MocuteDPad_E)  ||
-                               (dpad == MocuteDPad_NE) ||
-                               (dpad == MocuteDPad_SE);
-        m_buttons.dpad_left  = (dpad == MocuteDPad_W)  ||
-                               (dpad == MocuteDPad_NW) ||
-                               (dpad == MocuteDPad_SW);
-
-        m_buttons.A = buttons->B;
-        m_buttons.B = buttons->A;
-        m_buttons.X = buttons->Y;
-        m_buttons.Y = buttons->X;
-
-        m_buttons.R  = buttons->R1;
-        m_buttons.L  = buttons->L1;
-
-        m_buttons.minus = buttons->select;
-        m_buttons.plus  = buttons->start;
-
-        m_buttons.lstick_press = buttons->L3;
-        m_buttons.rstick_press = buttons->R3;
+        m_buttons.Assign(SwitchButton::Down,   (dpad == MocuteDPad_S) || (dpad == MocuteDPad_SE) || (dpad == MocuteDPad_SW));
+        m_buttons.Assign(SwitchButton::Up,     (dpad == MocuteDPad_N) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_NW));
+        m_buttons.Assign(SwitchButton::Right,  (dpad == MocuteDPad_E) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_SE));
+        m_buttons.Assign(SwitchButton::Left,   (dpad == MocuteDPad_W) || (dpad == MocuteDPad_NW) || (dpad == MocuteDPad_SW));
+        m_buttons.Assign(SwitchButton::A,      buttons->B);
+        m_buttons.Assign(SwitchButton::B,      buttons->A);
+        m_buttons.Assign(SwitchButton::X,      buttons->Y);
+        m_buttons.Assign(SwitchButton::Y,      buttons->X);
+        m_buttons.Assign(SwitchButton::R,      buttons->R1);
+        m_buttons.Assign(SwitchButton::L,      buttons->L1);
+        m_buttons.Assign(SwitchButton::Minus,  buttons->select);
+        m_buttons.Assign(SwitchButton::Plus,   buttons->start);
+        m_buttons.Assign(SwitchButton::StickL, buttons->L3);
+        m_buttons.Assign(SwitchButton::StickR, buttons->R3);
     }
 
 }

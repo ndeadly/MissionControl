@@ -64,70 +64,45 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        m_buttons.ZR = src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax);
-        m_buttons.ZL = src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax);
+        m_buttons.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        m_buttons.Assign(SwitchButton::ZL, src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
 
         if (new_format) {
-            m_buttons.dpad_down  = (src->input0x01.buttons.dpad == XboxOneDPad_S)  ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_SE) ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_SW);
-            m_buttons.dpad_up    = (src->input0x01.buttons.dpad == XboxOneDPad_N)  ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_NE) ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_NW);
-            m_buttons.dpad_right = (src->input0x01.buttons.dpad == XboxOneDPad_E)  ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_NE) ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_SE);
-            m_buttons.dpad_left  = (src->input0x01.buttons.dpad == XboxOneDPad_W)  ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_NW) ||
-                                   (src->input0x01.buttons.dpad == XboxOneDPad_SW);
-
-            m_buttons.A = src->input0x01.buttons.B;
-            m_buttons.B = src->input0x01.buttons.A;
-            m_buttons.X = src->input0x01.buttons.Y;
-            m_buttons.Y = src->input0x01.buttons.X;
-
-            m_buttons.R = src->input0x01.buttons.RB;
-            m_buttons.L = src->input0x01.buttons.LB;
-
-            m_buttons.minus = src->input0x01.buttons.view;
-            m_buttons.plus  = src->input0x01.buttons.menu;
-
-            m_buttons.lstick_press = src->input0x01.buttons.lstick_press;
-            m_buttons.rstick_press = src->input0x01.buttons.rstick_press;
-
-            m_buttons.home = src->input0x01.buttons.guide;
+            m_buttons.Assign(SwitchButton::Down,   (src->input0x01.buttons.dpad == XboxOneDPad_S) || (src->input0x01.buttons.dpad == XboxOneDPad_SE) || (src->input0x01.buttons.dpad == XboxOneDPad_SW));
+            m_buttons.Assign(SwitchButton::Up,     (src->input0x01.buttons.dpad == XboxOneDPad_N) || (src->input0x01.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.buttons.dpad == XboxOneDPad_NW));
+            m_buttons.Assign(SwitchButton::Right,  (src->input0x01.buttons.dpad == XboxOneDPad_E) || (src->input0x01.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.buttons.dpad == XboxOneDPad_SE));
+            m_buttons.Assign(SwitchButton::Left,   (src->input0x01.buttons.dpad == XboxOneDPad_W) || (src->input0x01.buttons.dpad == XboxOneDPad_NW) || (src->input0x01.buttons.dpad == XboxOneDPad_SW));
+            m_buttons.Assign(SwitchButton::A,      src->input0x01.buttons.B);
+            m_buttons.Assign(SwitchButton::B,      src->input0x01.buttons.A);
+            m_buttons.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
+            m_buttons.Assign(SwitchButton::Y,      src->input0x01.buttons.X);
+            m_buttons.Assign(SwitchButton::R,      src->input0x01.buttons.RB);
+            m_buttons.Assign(SwitchButton::L,      src->input0x01.buttons.LB);
+            m_buttons.Assign(SwitchButton::Minus,  src->input0x01.buttons.view);
+            m_buttons.Assign(SwitchButton::Plus,   src->input0x01.buttons.menu);
+            m_buttons.Assign(SwitchButton::StickL, src->input0x01.buttons.lstick_press);
+            m_buttons.Assign(SwitchButton::StickR, src->input0x01.buttons.rstick_press);
+            m_buttons.Assign(SwitchButton::Home,   src->input0x01.buttons.guide);
         } else {
-            m_buttons.dpad_down  = (src->input0x01.old.buttons.dpad == XboxOneDPad_S)  ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SE) ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SW);
-            m_buttons.dpad_up    = (src->input0x01.old.buttons.dpad == XboxOneDPad_N)  ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NW);
-            m_buttons.dpad_right = (src->input0x01.old.buttons.dpad == XboxOneDPad_E)  ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SE);
-            m_buttons.dpad_left  = (src->input0x01.old.buttons.dpad == XboxOneDPad_W)  ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_NW) ||
-                                   (src->input0x01.old.buttons.dpad == XboxOneDPad_SW);
-
-            m_buttons.A = src->input0x01.old.buttons.B;
-            m_buttons.B = src->input0x01.old.buttons.A;
-            m_buttons.X = src->input0x01.old.buttons.Y;
-            m_buttons.Y = src->input0x01.old.buttons.X;
-
-            m_buttons.R = src->input0x01.old.buttons.RB;
-            m_buttons.L = src->input0x01.old.buttons.LB;
-
-            m_buttons.minus = src->input0x01.old.buttons.view;
-            m_buttons.plus  = src->input0x01.old.buttons.menu;
-
-            m_buttons.lstick_press = src->input0x01.old.buttons.lstick_press;
-            m_buttons.rstick_press = src->input0x01.old.buttons.rstick_press;
+            m_buttons.Assign(SwitchButton::Down,   (src->input0x01.old.buttons.dpad == XboxOneDPad_S) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SE) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SW));
+            m_buttons.Assign(SwitchButton::Up,     (src->input0x01.old.buttons.dpad == XboxOneDPad_N) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NW));
+            m_buttons.Assign(SwitchButton::Right,  (src->input0x01.old.buttons.dpad == XboxOneDPad_E) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SE));
+            m_buttons.Assign(SwitchButton::Left,   (src->input0x01.old.buttons.dpad == XboxOneDPad_W) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NW) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SW));
+            m_buttons.Assign(SwitchButton::A,      src->input0x01.old.buttons.B);
+            m_buttons.Assign(SwitchButton::B,      src->input0x01.old.buttons.A);
+            m_buttons.Assign(SwitchButton::X,      src->input0x01.old.buttons.Y);
+            m_buttons.Assign(SwitchButton::Y,      src->input0x01.old.buttons.X);
+            m_buttons.Assign(SwitchButton::R,      src->input0x01.old.buttons.RB);
+            m_buttons.Assign(SwitchButton::L,      src->input0x01.old.buttons.LB);
+            m_buttons.Assign(SwitchButton::Minus,  src->input0x01.old.buttons.view);
+            m_buttons.Assign(SwitchButton::Plus,   src->input0x01.old.buttons.menu);
+            m_buttons.Assign(SwitchButton::StickL, src->input0x01.old.buttons.lstick_press);
+            m_buttons.Assign(SwitchButton::StickR, src->input0x01.old.buttons.rstick_press);
         }
     }
 
     void XboxOneController::MapInputReport0x02(const XboxOneReportData *src) {
-        m_buttons.home = src->input0x02.guide;
+        m_buttons.Assign(SwitchButton::Home, src->input0x02.guide);
     }
 
     void XboxOneController::MapInputReport0x04(const XboxOneReportData *src) {
