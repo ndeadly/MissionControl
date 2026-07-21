@@ -30,18 +30,20 @@ namespace ams::controller {
     }
 
     void HyperkinController::MapInputReport0x3f(const HyperkinReportData *src) {
-        m_buttons.Assign(SwitchButton::Down,  (src->input0x3f.buttons.dpad == HyperkinDPad_S) || (src->input0x3f.buttons.dpad == HyperkinDPad_SE) || (src->input0x3f.buttons.dpad == HyperkinDPad_SW));
-        m_buttons.Assign(SwitchButton::Up,    (src->input0x3f.buttons.dpad == HyperkinDPad_N) || (src->input0x3f.buttons.dpad == HyperkinDPad_NE) || (src->input0x3f.buttons.dpad == HyperkinDPad_NW));
-        m_buttons.Assign(SwitchButton::Right, (src->input0x3f.buttons.dpad == HyperkinDPad_E) || (src->input0x3f.buttons.dpad == HyperkinDPad_NE) || (src->input0x3f.buttons.dpad == HyperkinDPad_SE));
-        m_buttons.Assign(SwitchButton::Left,  (src->input0x3f.buttons.dpad == HyperkinDPad_W) || (src->input0x3f.buttons.dpad == HyperkinDPad_NW) || (src->input0x3f.buttons.dpad == HyperkinDPad_SW));
-        m_buttons.Assign(SwitchButton::A,     src->input0x3f.buttons.A);
-        m_buttons.Assign(SwitchButton::B,     src->input0x3f.buttons.B);
-        m_buttons.Assign(SwitchButton::X,     src->input0x3f.buttons.X);
-        m_buttons.Assign(SwitchButton::Y,     src->input0x3f.buttons.Y);
-        m_buttons.Assign(SwitchButton::L,     src->input0x3f.buttons.L);
-        m_buttons.Assign(SwitchButton::R,     src->input0x3f.buttons.R);
-        m_buttons.Assign(SwitchButton::Minus, src->input0x3f.buttons.select);
-        m_buttons.Assign(SwitchButton::Plus,  src->input0x3f.buttons.start);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,  (src->input0x3f.buttons.dpad == HyperkinDPad_S) || (src->input0x3f.buttons.dpad == HyperkinDPad_SE) || (src->input0x3f.buttons.dpad == HyperkinDPad_SW));
+        button_state.Assign(SwitchButton::Up,    (src->input0x3f.buttons.dpad == HyperkinDPad_N) || (src->input0x3f.buttons.dpad == HyperkinDPad_NE) || (src->input0x3f.buttons.dpad == HyperkinDPad_NW));
+        button_state.Assign(SwitchButton::Right, (src->input0x3f.buttons.dpad == HyperkinDPad_E) || (src->input0x3f.buttons.dpad == HyperkinDPad_NE) || (src->input0x3f.buttons.dpad == HyperkinDPad_SE));
+        button_state.Assign(SwitchButton::Left,  (src->input0x3f.buttons.dpad == HyperkinDPad_W) || (src->input0x3f.buttons.dpad == HyperkinDPad_NW) || (src->input0x3f.buttons.dpad == HyperkinDPad_SW));
+        button_state.Assign(SwitchButton::A,     src->input0x3f.buttons.A);
+        button_state.Assign(SwitchButton::B,     src->input0x3f.buttons.B);
+        button_state.Assign(SwitchButton::X,     src->input0x3f.buttons.X);
+        button_state.Assign(SwitchButton::Y,     src->input0x3f.buttons.Y);
+        button_state.Assign(SwitchButton::L,     src->input0x3f.buttons.L);
+        button_state.Assign(SwitchButton::R,     src->input0x3f.buttons.R);
+        button_state.Assign(SwitchButton::Minus, src->input0x3f.buttons.select);
+        button_state.Assign(SwitchButton::Plus,  src->input0x3f.buttons.start);
+        m_buttons = button_state;
     }
 
 }

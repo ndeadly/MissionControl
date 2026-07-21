@@ -270,23 +270,25 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        m_buttons.Assign(SwitchButton::Down,   src->input0x01.buttons.dpad_down);
-        m_buttons.Assign(SwitchButton::Up,     src->input0x01.buttons.dpad_up);
-        m_buttons.Assign(SwitchButton::Right,  src->input0x01.buttons.dpad_right);
-        m_buttons.Assign(SwitchButton::Left,   src->input0x01.buttons.dpad_left);
-        m_buttons.Assign(SwitchButton::A,      src->input0x01.buttons.circle);
-        m_buttons.Assign(SwitchButton::B,      src->input0x01.buttons.cross);
-        m_buttons.Assign(SwitchButton::X,      src->input0x01.buttons.triangle);
-        m_buttons.Assign(SwitchButton::Y,      src->input0x01.buttons.square);
-        m_buttons.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
-        m_buttons.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
-        m_buttons.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::Minus,  src->input0x01.buttons.select);
-        m_buttons.Assign(SwitchButton::Plus,   src->input0x01.buttons.start);
-        m_buttons.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
-        m_buttons.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
-        m_buttons.Assign(SwitchButton::Home,   src->input0x01.buttons.ps);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   src->input0x01.buttons.dpad_down);
+        button_state.Assign(SwitchButton::Up,     src->input0x01.buttons.dpad_up);
+        button_state.Assign(SwitchButton::Right,  src->input0x01.buttons.dpad_right);
+        button_state.Assign(SwitchButton::Left,   src->input0x01.buttons.dpad_left);
+        button_state.Assign(SwitchButton::A,      src->input0x01.buttons.circle);
+        button_state.Assign(SwitchButton::B,      src->input0x01.buttons.cross);
+        button_state.Assign(SwitchButton::X,      src->input0x01.buttons.triangle);
+        button_state.Assign(SwitchButton::Y,      src->input0x01.buttons.square);
+        button_state.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
+        button_state.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
+        button_state.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Minus,  src->input0x01.buttons.select);
+        button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.start);
+        button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
+        button_state.Assign(SwitchButton::Home,   src->input0x01.buttons.ps);
+        m_buttons = button_state;
 
         m_accel.x = -AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y));
         m_accel.y = -AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511);

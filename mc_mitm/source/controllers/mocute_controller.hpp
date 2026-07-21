@@ -94,9 +94,6 @@ namespace ams::controller {
             void MapInputReport0x01(const MocuteReportData *src);
             void MapInputReport0x04(const MocuteReportData *src);
 
-            void MapAnalogSticks(const AnalogStick<u8> *left_stick, const AnalogStick<u8> *right_stick);
-            void MapButtons(const MocuteButtonData *buttons, u8 dpad_format);
-
             MocuteControllerVariant m_variant;
     };
 

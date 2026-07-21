@@ -133,10 +133,25 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        this->MapButtons(&src->input0x01.buttons);
-
-        m_buttons.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL, src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (src->input0x01.buttons.dpad == Dualshock4DPad_S) || (src->input0x01.buttons.dpad == Dualshock4DPad_SE) || (src->input0x01.buttons.dpad == Dualshock4DPad_SW));
+        button_state.Assign(SwitchButton::Up,     (src->input0x01.buttons.dpad == Dualshock4DPad_N) || (src->input0x01.buttons.dpad == Dualshock4DPad_NE) || (src->input0x01.buttons.dpad == Dualshock4DPad_NW));
+        button_state.Assign(SwitchButton::Right,  (src->input0x01.buttons.dpad == Dualshock4DPad_E) || (src->input0x01.buttons.dpad == Dualshock4DPad_NE) || (src->input0x01.buttons.dpad == Dualshock4DPad_SE));
+        button_state.Assign(SwitchButton::Left,   (src->input0x01.buttons.dpad == Dualshock4DPad_W) || (src->input0x01.buttons.dpad == Dualshock4DPad_NW) || (src->input0x01.buttons.dpad == Dualshock4DPad_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x01.buttons.circle);
+        button_state.Assign(SwitchButton::B,      src->input0x01.buttons.cross);
+        button_state.Assign(SwitchButton::X,      src->input0x01.buttons.triangle);
+        button_state.Assign(SwitchButton::Y,      src->input0x01.buttons.square);
+        button_state.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
+        button_state.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
+        button_state.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Minus,  src->input0x01.buttons.share);
+        button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.options);
+        button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
+        button_state.Assign(SwitchButton::Home,   src->input0x01.buttons.ps);
+        m_buttons = button_state;
     }
 
     void Dualshock4Controller::MapInputReport0x11(const Dualshock4ReportData *src) {
@@ -154,11 +169,24 @@ namespace ams::controller {
             src->input0x11.right_stick.GetYInverted()
         );
 
-        this->MapButtons(&src->input0x11.buttons);
-
-        m_buttons.Assign(SwitchButton::ZR, src->input0x11.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL, src->input0x11.left_trigger  > (m_trigger_threshold * TriggerMax));
-
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (src->input0x11.buttons.dpad == Dualshock4DPad_S) || (src->input0x11.buttons.dpad == Dualshock4DPad_SE) || (src->input0x11.buttons.dpad == Dualshock4DPad_SW));
+        button_state.Assign(SwitchButton::Up,     (src->input0x11.buttons.dpad == Dualshock4DPad_N) || (src->input0x11.buttons.dpad == Dualshock4DPad_NE) || (src->input0x11.buttons.dpad == Dualshock4DPad_NW));
+        button_state.Assign(SwitchButton::Right,  (src->input0x11.buttons.dpad == Dualshock4DPad_E) || (src->input0x11.buttons.dpad == Dualshock4DPad_NE) || (src->input0x11.buttons.dpad == Dualshock4DPad_SE));
+        button_state.Assign(SwitchButton::Left,   (src->input0x11.buttons.dpad == Dualshock4DPad_W) || (src->input0x11.buttons.dpad == Dualshock4DPad_NW) || (src->input0x11.buttons.dpad == Dualshock4DPad_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x11.buttons.circle);
+        button_state.Assign(SwitchButton::B,      src->input0x11.buttons.cross);
+        button_state.Assign(SwitchButton::X,      src->input0x11.buttons.triangle);
+        button_state.Assign(SwitchButton::Y,      src->input0x11.buttons.square);
+        button_state.Assign(SwitchButton::R,      src->input0x11.buttons.R1);
+        button_state.Assign(SwitchButton::L,      src->input0x11.buttons.L1);
+        button_state.Assign(SwitchButton::ZR,     src->input0x11.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x11.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Minus,  src->input0x11.buttons.share);
+        button_state.Assign(SwitchButton::Plus,   src->input0x11.buttons.options);
+        button_state.Assign(SwitchButton::StickL, src->input0x11.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x11.buttons.R3);
+        button_state.Assign(SwitchButton::Home,   src->input0x11.buttons.ps);
         if (src->input0x11.buttons.touchpad) {
             for (int i = 0; i < src->input0x11.num_reports; ++i) {
                 const Dualshock4TouchReport *touch_report = &src->input0x11.touch_reports[i];
@@ -170,18 +198,19 @@ namespace ams::controller {
                         u16 x = (point->x_hi << 8) | point->x_lo;
 
                         if (x < (0.15 * TouchpadWidth)) {
-                            m_buttons.Set(SwitchButton::Minus);
+                            button_state.Set(SwitchButton::Minus);
                         } else if (x > (0.85 * TouchpadWidth)) {
-                            m_buttons.Set(SwitchButton::Plus);
+                            button_state.Set(SwitchButton::Plus);
                         } else {
-                            m_buttons.Set(SwitchButton::Capture);
+                            button_state.Set(SwitchButton::Capture);
                         }
                     }
                 }
             }
         } else {
-            m_buttons.Clear(SwitchButton::Capture);
+            button_state.Clear(SwitchButton::Capture);
         }
+        m_buttons = button_state;
 
         m_accel.x = -src->input0x11.acc_z / float(m_motion_calibration.acc.z_max);
         m_accel.y = -src->input0x11.acc_x / float(m_motion_calibration.acc.x_max);
@@ -190,26 +219,6 @@ namespace ams::controller {
         m_gyro.x = -(src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max  - m_motion_calibration.gyro.roll_bias)  / m_motion_calibration.gyro.speed_max);
         m_gyro.y = -(src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max);
         m_gyro.z =  (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max   - m_motion_calibration.gyro.yaw_bias)   / m_motion_calibration.gyro.speed_max);
-    }
-
-    void Dualshock4Controller::MapButtons(const Dualshock4ButtonData *buttons) {
-        m_buttons.Assign(SwitchButton::Down,   (buttons->dpad == Dualshock4DPad_S) || (buttons->dpad == Dualshock4DPad_SE) || (buttons->dpad == Dualshock4DPad_SW));
-        m_buttons.Assign(SwitchButton::Up,     (buttons->dpad == Dualshock4DPad_N) || (buttons->dpad == Dualshock4DPad_NE) || (buttons->dpad == Dualshock4DPad_NW));
-        m_buttons.Assign(SwitchButton::Right,  (buttons->dpad == Dualshock4DPad_E) || (buttons->dpad == Dualshock4DPad_NE) || (buttons->dpad == Dualshock4DPad_SE));
-        m_buttons.Assign(SwitchButton::Left,   (buttons->dpad == Dualshock4DPad_W) || (buttons->dpad == Dualshock4DPad_NW) || (buttons->dpad == Dualshock4DPad_SW));
-        m_buttons.Assign(SwitchButton::A,      buttons->circle);
-        m_buttons.Assign(SwitchButton::B,      buttons->cross);
-        m_buttons.Assign(SwitchButton::X,      buttons->triangle);
-        m_buttons.Assign(SwitchButton::Y,      buttons->square);
-        m_buttons.Assign(SwitchButton::R,      buttons->R1);
-        m_buttons.Assign(SwitchButton::L,      buttons->L1);
-        m_buttons.Assign(SwitchButton::ZR,     buttons->R2);
-        m_buttons.Assign(SwitchButton::ZL,     buttons->L2);
-        m_buttons.Assign(SwitchButton::Minus,  buttons->share);
-        m_buttons.Assign(SwitchButton::Plus,   buttons->options);
-        m_buttons.Assign(SwitchButton::StickL, buttons->L3);
-        m_buttons.Assign(SwitchButton::StickR, buttons->R3);
-        m_buttons.Assign(SwitchButton::Home,   buttons->ps);
     }
 
     Result Dualshock4Controller::GetVersionInfo(Dualshock4VersionInfo *version_info) {

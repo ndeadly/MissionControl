@@ -57,54 +57,73 @@ namespace ams::controller {
     }
 
     void MocuteController::MapInputReport0x01(const MocuteReportData *src) {
-        this->MapAnalogSticks(&src->input0x01.left_stick, &src->input0x01.right_stick);
-        this->MapButtons(&src->input0x01.buttons, src->id == 0x01);
-
-        m_buttons.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL, src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
-    }
-
-    void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
-        this->MapAnalogSticks(&src->input0x04.left_stick, &src->input0x04.right_stick);
-        this->MapButtons(&src->input0x04.buttons, 1);
-
-        m_buttons.Assign(SwitchButton::ZR, src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL, src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax));
-    }
-
-    void MocuteController::MapAnalogSticks(const AnalogStick<u8> *left_stick, const AnalogStick<u8> *right_stick) {
         m_left_stick.SetValuesFrom(
-            left_stick->GetX(),
-            left_stick->GetYInverted()
+            src->input0x01.left_stick.GetX(),
+            src->input0x01.left_stick.GetYInverted()
         );
 
         m_right_stick.SetValuesFrom(
-            right_stick->GetX(),
-            right_stick->GetYInverted()
+            src->input0x01.right_stick.GetX(),
+            src->input0x01.right_stick.GetYInverted()
         );
-    }
 
-    void MocuteController::MapButtons(const MocuteButtonData *buttons, u8 dpad_format) {
-        // Convert dpad to always use the same format
-        u8 dpad = buttons->dpad;
-        if (dpad_format == 1) {
+        u8 dpad = src->input0x01.buttons.dpad;
+        if (src->id == 0x01) {
             dpad = (dpad == 0) ? MocuteDPad_Released : dpad - 1;
         }
 
-        m_buttons.Assign(SwitchButton::Down,   (dpad == MocuteDPad_S) || (dpad == MocuteDPad_SE) || (dpad == MocuteDPad_SW));
-        m_buttons.Assign(SwitchButton::Up,     (dpad == MocuteDPad_N) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_NW));
-        m_buttons.Assign(SwitchButton::Right,  (dpad == MocuteDPad_E) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_SE));
-        m_buttons.Assign(SwitchButton::Left,   (dpad == MocuteDPad_W) || (dpad == MocuteDPad_NW) || (dpad == MocuteDPad_SW));
-        m_buttons.Assign(SwitchButton::A,      buttons->B);
-        m_buttons.Assign(SwitchButton::B,      buttons->A);
-        m_buttons.Assign(SwitchButton::X,      buttons->Y);
-        m_buttons.Assign(SwitchButton::Y,      buttons->X);
-        m_buttons.Assign(SwitchButton::R,      buttons->R1);
-        m_buttons.Assign(SwitchButton::L,      buttons->L1);
-        m_buttons.Assign(SwitchButton::Minus,  buttons->select);
-        m_buttons.Assign(SwitchButton::Plus,   buttons->start);
-        m_buttons.Assign(SwitchButton::StickL, buttons->L3);
-        m_buttons.Assign(SwitchButton::StickR, buttons->R3);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (dpad == MocuteDPad_S) || (dpad == MocuteDPad_SE) || (dpad == MocuteDPad_SW));
+        button_state.Assign(SwitchButton::Up,     (dpad == MocuteDPad_N) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_NW));
+        button_state.Assign(SwitchButton::Right,  (dpad == MocuteDPad_E) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_SE));
+        button_state.Assign(SwitchButton::Left,   (dpad == MocuteDPad_W) || (dpad == MocuteDPad_NW) || (dpad == MocuteDPad_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x01.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0x01.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0x01.buttons.X);
+        button_state.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
+        button_state.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
+        button_state.Assign(SwitchButton::Minus,  src->input0x01.buttons.select);
+        button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.start);
+        button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
+        button_state.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        m_buttons = button_state;
+    }
+
+    void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
+        m_left_stick.SetValuesFrom(
+            src->input0x04.left_stick.GetX(),
+            src->input0x04.left_stick.GetYInverted()
+        );
+
+        m_right_stick.SetValuesFrom(
+            src->input0x04.right_stick.GetX(),
+            src->input0x04.right_stick.GetYInverted()
+        );
+
+        u8 dpad = src->input0x04.buttons.dpad;
+        dpad = (dpad == 0) ? MocuteDPad_Released : dpad - 1;
+
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (dpad == MocuteDPad_S) || (dpad == MocuteDPad_SE) || (dpad == MocuteDPad_SW));
+        button_state.Assign(SwitchButton::Up,     (dpad == MocuteDPad_N) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_NW));
+        button_state.Assign(SwitchButton::Right,  (dpad == MocuteDPad_E) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_SE));
+        button_state.Assign(SwitchButton::Left,   (dpad == MocuteDPad_W) || (dpad == MocuteDPad_NW) || (dpad == MocuteDPad_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x04.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0x04.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0x04.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0x04.buttons.X);
+        button_state.Assign(SwitchButton::R,      src->input0x04.buttons.R1);
+        button_state.Assign(SwitchButton::L,      src->input0x04.buttons.L1);
+        button_state.Assign(SwitchButton::ZR,     src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Minus,  src->input0x04.buttons.select);
+        button_state.Assign(SwitchButton::Plus,   src->input0x04.buttons.start);
+        button_state.Assign(SwitchButton::StickL, src->input0x04.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x04.buttons.R3);
+        m_buttons = button_state;
     }
 
 }

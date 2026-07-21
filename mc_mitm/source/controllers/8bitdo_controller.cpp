@@ -40,6 +40,8 @@ namespace ams::controller {
     }
 
     void EightBitDoController::MapInputReport0x01(const EightBitDoReportData *src) {
+        SwitchButtons button_state = m_buttons;
+
         if (m_controller_type == EightBitDoControllerType_Zero) {
             bool dpad_down  = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
                               (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
@@ -70,46 +72,50 @@ namespace ams::controller {
                 src->input0x01_v2.right_stick.GetYInverted()
             );
 
-            m_buttons.Assign(SwitchButton::Down,  (src->input0x01_v2.dpad == EightBitDoDPadV2_S) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SW));
-            m_buttons.Assign(SwitchButton::Up,    (src->input0x01_v2.dpad == EightBitDoDPadV2_N) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NW));
-            m_buttons.Assign(SwitchButton::Right, (src->input0x01_v2.dpad == EightBitDoDPadV2_E) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SE));
-            m_buttons.Assign(SwitchButton::Left,  (src->input0x01_v2.dpad == EightBitDoDPadV2_W) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NW) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SW));
-            m_buttons.Assign(SwitchButton::A,     src->input0x01_v2.buttons.B);
-            m_buttons.Assign(SwitchButton::B,     src->input0x01_v2.buttons.A);
-            m_buttons.Assign(SwitchButton::X,     src->input0x01_v2.buttons.Y);
-            m_buttons.Assign(SwitchButton::Y,     src->input0x01_v2.buttons.X);
-            m_buttons.Assign(SwitchButton::L,     src->input0x01_v2.buttons.L1);
-            m_buttons.Assign(SwitchButton::R,     src->input0x01_v2.buttons.R1);
-            m_buttons.Assign(SwitchButton::ZL,    src->input0x01_v2.left_trigger  > (m_trigger_threshold * TriggerMax));
-            m_buttons.Assign(SwitchButton::ZR,    src->input0x01_v2.right_trigger > (m_trigger_threshold * TriggerMax));
+            button_state.Assign(SwitchButton::Down,  (src->input0x01_v2.dpad == EightBitDoDPadV2_S) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SW));
+            button_state.Assign(SwitchButton::Up,    (src->input0x01_v2.dpad == EightBitDoDPadV2_N) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NW));
+            button_state.Assign(SwitchButton::Right, (src->input0x01_v2.dpad == EightBitDoDPadV2_E) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SE));
+            button_state.Assign(SwitchButton::Left,  (src->input0x01_v2.dpad == EightBitDoDPadV2_W) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NW) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SW));
+            button_state.Assign(SwitchButton::A,     src->input0x01_v2.buttons.B);
+            button_state.Assign(SwitchButton::B,     src->input0x01_v2.buttons.A);
+            button_state.Assign(SwitchButton::X,     src->input0x01_v2.buttons.Y);
+            button_state.Assign(SwitchButton::Y,     src->input0x01_v2.buttons.X);
+            button_state.Assign(SwitchButton::L,     src->input0x01_v2.buttons.L1);
+            button_state.Assign(SwitchButton::R,     src->input0x01_v2.buttons.R1);
+            button_state.Assign(SwitchButton::ZL,    src->input0x01_v2.left_trigger  > (m_trigger_threshold * TriggerMax));
+            button_state.Assign(SwitchButton::ZR,    src->input0x01_v2.right_trigger > (m_trigger_threshold * TriggerMax));
 
             if (m_controller_type == EightBitDoControllerType_Sn30ProXboxCloud) {
-                m_buttons.Assign(SwitchButton::Minus,  src->input0x01_v2.buttons.v1.select);
-                m_buttons.Assign(SwitchButton::Plus,   src->input0x01_v2.buttons.v1.start);
-                m_buttons.Assign(SwitchButton::StickL, src->input0x01_v2.buttons.v1.L3);
-                m_buttons.Assign(SwitchButton::StickR, src->input0x01_v2.buttons.v1.R3);
-                m_buttons.Assign(SwitchButton::Home,   src->input0x01_v2.buttons.v1.home);
+                button_state.Assign(SwitchButton::Minus,  src->input0x01_v2.buttons.v1.select);
+                button_state.Assign(SwitchButton::Plus,   src->input0x01_v2.buttons.v1.start);
+                button_state.Assign(SwitchButton::StickL, src->input0x01_v2.buttons.v1.L3);
+                button_state.Assign(SwitchButton::StickR, src->input0x01_v2.buttons.v1.R3);
+                button_state.Assign(SwitchButton::Home,   src->input0x01_v2.buttons.v1.home);
             } else {
-                m_buttons.Assign(SwitchButton::Minus,  src->input0x01_v2.buttons.v2.select);
-                m_buttons.Assign(SwitchButton::Plus,   src->input0x01_v2.buttons.v2.start);
-                m_buttons.Assign(SwitchButton::StickL, src->input0x01_v2.buttons.v2.L3);
-                m_buttons.Assign(SwitchButton::StickR, src->input0x01_v2.buttons.v2.R3);
-                m_buttons.Assign(SwitchButton::Home,   src->input0x01_v2.buttons.v2.home);
+                button_state.Assign(SwitchButton::Minus,  src->input0x01_v2.buttons.v2.select);
+                button_state.Assign(SwitchButton::Plus,   src->input0x01_v2.buttons.v2.start);
+                button_state.Assign(SwitchButton::StickL, src->input0x01_v2.buttons.v2.L3);
+                button_state.Assign(SwitchButton::StickR, src->input0x01_v2.buttons.v2.R3);
+                button_state.Assign(SwitchButton::Home,   src->input0x01_v2.buttons.v2.home);
             }
         }
+
+        m_buttons = button_state;
     }
 
     void EightBitDoController::MapInputReport0x03(const EightBitDoReportData *src, EightBitDoReportFormat fmt) {
+        SwitchButtons button_state = m_buttons;
+
         if (m_controller_type == EightBitDoControllerType_Zero) {
             if (fmt == EightBitDoReportFormat_ZeroV1) {
-                m_buttons.Assign(SwitchButton::A,     src->input0x03_v1.buttons.B);
-                m_buttons.Assign(SwitchButton::B,     src->input0x03_v1.buttons.A);
-                m_buttons.Assign(SwitchButton::X,     src->input0x03_v1.buttons.Y);
-                m_buttons.Assign(SwitchButton::Y,     src->input0x03_v1.buttons.X);
-                m_buttons.Assign(SwitchButton::R,     src->input0x03_v1.buttons.R1);
-                m_buttons.Assign(SwitchButton::L,     src->input0x03_v1.buttons.L1);
-                m_buttons.Assign(SwitchButton::Minus, src->input0x03_v1.buttons.v2.select);
-                m_buttons.Assign(SwitchButton::Plus,  src->input0x03_v1.buttons.v2.start);
+                button_state.Assign(SwitchButton::A,     src->input0x03_v1.buttons.B);
+                button_state.Assign(SwitchButton::B,     src->input0x03_v1.buttons.A);
+                button_state.Assign(SwitchButton::X,     src->input0x03_v1.buttons.Y);
+                button_state.Assign(SwitchButton::Y,     src->input0x03_v1.buttons.X);
+                button_state.Assign(SwitchButton::R,     src->input0x03_v1.buttons.R1);
+                button_state.Assign(SwitchButton::L,     src->input0x03_v1.buttons.L1);
+                button_state.Assign(SwitchButton::Minus, src->input0x03_v1.buttons.v2.select);
+                button_state.Assign(SwitchButton::Plus,  src->input0x03_v1.buttons.v2.start);
             } else if (fmt == EightBitDoReportFormat_ZeroV2) {
                 bool dpad_down  = src->input0x03_v2.left_stick.y == 0xff;
                 bool dpad_up    = src->input0x03_v2.left_stick.y == 0x00;
@@ -122,14 +128,14 @@ namespace ams::controller {
                     DpadStickPositions[1 + dpad_up - dpad_down]
                 );
 
-                m_buttons.Assign(SwitchButton::A,     src->input0x03_v2.buttons.B);
-                m_buttons.Assign(SwitchButton::B,     src->input0x03_v2.buttons.A);
-                m_buttons.Assign(SwitchButton::X,     src->input0x03_v2.buttons.Y);
-                m_buttons.Assign(SwitchButton::Y,     src->input0x03_v2.buttons.X);
-                m_buttons.Assign(SwitchButton::R,     src->input0x03_v2.buttons.R1);
-                m_buttons.Assign(SwitchButton::L,     src->input0x03_v2.buttons.L1);
-                m_buttons.Assign(SwitchButton::Minus, src->input0x03_v2.buttons.v2.select);
-                m_buttons.Assign(SwitchButton::Plus,  src->input0x03_v2.buttons.v2.start);
+                button_state.Assign(SwitchButton::A,     src->input0x03_v2.buttons.B);
+                button_state.Assign(SwitchButton::B,     src->input0x03_v2.buttons.A);
+                button_state.Assign(SwitchButton::X,     src->input0x03_v2.buttons.Y);
+                button_state.Assign(SwitchButton::Y,     src->input0x03_v2.buttons.X);
+                button_state.Assign(SwitchButton::R,     src->input0x03_v2.buttons.R1);
+                button_state.Assign(SwitchButton::L,     src->input0x03_v2.buttons.L1);
+                button_state.Assign(SwitchButton::Minus, src->input0x03_v2.buttons.v2.select);
+                button_state.Assign(SwitchButton::Plus,  src->input0x03_v2.buttons.v2.start);
             }
         } else {
             m_left_stick.SetValuesFrom(
@@ -142,28 +148,29 @@ namespace ams::controller {
                 src->input0x03_v3.right_stick.GetYInverted()
             );
 
-            m_buttons.Assign(SwitchButton::Down,  (src->input0x03_v3.dpad == EightBitDoDPadV2_S) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SW));
-            m_buttons.Assign(SwitchButton::Up,    (src->input0x03_v3.dpad == EightBitDoDPadV2_N) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NW));
-            m_buttons.Assign(SwitchButton::Right, (src->input0x03_v3.dpad == EightBitDoDPadV2_E) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SE));
-            m_buttons.Assign(SwitchButton::Left,  (src->input0x03_v3.dpad == EightBitDoDPadV2_W) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NW) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SW));
-            m_buttons.Assign(SwitchButton::A,      src->input0x03_v3.buttons.B);
-            m_buttons.Assign(SwitchButton::B,      src->input0x03_v3.buttons.A);
-            m_buttons.Assign(SwitchButton::X,      src->input0x03_v3.buttons.Y);
-            m_buttons.Assign(SwitchButton::Y,      src->input0x03_v3.buttons.X);
-            m_buttons.Assign(SwitchButton::L,      src->input0x03_v3.buttons.L1);
-            m_buttons.Assign(SwitchButton::R,      src->input0x03_v3.buttons.R1);
-            m_buttons.Assign(SwitchButton::ZL,     src->input0x03_v3.left_trigger  > (m_trigger_threshold * TriggerMax));
-            m_buttons.Assign(SwitchButton::ZR,     src->input0x03_v3.right_trigger > (m_trigger_threshold * TriggerMax));
-            m_buttons.Assign(SwitchButton::Minus,  src->input0x03_v3.buttons.v2.select);
-            m_buttons.Assign(SwitchButton::Plus,   src->input0x03_v3.buttons.v2.start);
-            m_buttons.Assign(SwitchButton::StickL, src->input0x03_v3.buttons.v2.L3);
-            m_buttons.Assign(SwitchButton::StickR, src->input0x03_v3.buttons.v2.R3);
-            m_buttons.Assign(SwitchButton::Home,   src->input0x03_v3.buttons.v2.home);
+            button_state.Assign(SwitchButton::Down,  (src->input0x03_v3.dpad == EightBitDoDPadV2_S) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SW));
+            button_state.Assign(SwitchButton::Up,    (src->input0x03_v3.dpad == EightBitDoDPadV2_N) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NW));
+            button_state.Assign(SwitchButton::Right, (src->input0x03_v3.dpad == EightBitDoDPadV2_E) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SE));
+            button_state.Assign(SwitchButton::Left,  (src->input0x03_v3.dpad == EightBitDoDPadV2_W) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NW) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SW));
+            button_state.Assign(SwitchButton::A,      src->input0x03_v3.buttons.B);
+            button_state.Assign(SwitchButton::B,      src->input0x03_v3.buttons.A);
+            button_state.Assign(SwitchButton::X,      src->input0x03_v3.buttons.Y);
+            button_state.Assign(SwitchButton::Y,      src->input0x03_v3.buttons.X);
+            button_state.Assign(SwitchButton::L,      src->input0x03_v3.buttons.L1);
+            button_state.Assign(SwitchButton::R,      src->input0x03_v3.buttons.R1);
+            button_state.Assign(SwitchButton::ZL,     src->input0x03_v3.left_trigger  > (m_trigger_threshold * TriggerMax));
+            button_state.Assign(SwitchButton::ZR,     src->input0x03_v3.right_trigger > (m_trigger_threshold * TriggerMax));
+            button_state.Assign(SwitchButton::Minus,  src->input0x03_v3.buttons.v2.select);
+            button_state.Assign(SwitchButton::Plus,   src->input0x03_v3.buttons.v2.start);
+            button_state.Assign(SwitchButton::StickL, src->input0x03_v3.buttons.v2.L3);
+            button_state.Assign(SwitchButton::StickR, src->input0x03_v3.buttons.v2.R3);
+            button_state.Assign(SwitchButton::Home,   src->input0x03_v3.buttons.v2.home);
 
             auto battery_level = SwitchBatteryLevelConverter::ConvertPercentage(src->input0x03_v3.battery);
             m_power_info.SetBatteryLevel(battery_level);
         }
 
+        m_buttons = button_state;
     }
 
 }

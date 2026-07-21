@@ -52,23 +52,25 @@ namespace ams::controller {
             src->input0x03.right_stick.GetYInverted()
         );
 
-        m_buttons.Assign(SwitchButton::Down,   (src->input0x03.dpad == GamesirDpad2_S) || (src->input0x03.dpad == GamesirDpad2_SE) || (src->input0x03.dpad == GamesirDpad2_SW));
-        m_buttons.Assign(SwitchButton::Up,     (src->input0x03.dpad == GamesirDpad2_N) || (src->input0x03.dpad == GamesirDpad2_NE) || (src->input0x03.dpad == GamesirDpad2_NW));
-        m_buttons.Assign(SwitchButton::Right,  (src->input0x03.dpad == GamesirDpad2_E) || (src->input0x03.dpad == GamesirDpad2_NE) || (src->input0x03.dpad == GamesirDpad2_SE));
-        m_buttons.Assign(SwitchButton::Left,   (src->input0x03.dpad == GamesirDpad2_W) || (src->input0x03.dpad == GamesirDpad2_NW) || (src->input0x03.dpad == GamesirDpad2_SW));
-        m_buttons.Assign(SwitchButton::A,      src->input0x03.buttons.B);
-        m_buttons.Assign(SwitchButton::B,      src->input0x03.buttons.A);
-        m_buttons.Assign(SwitchButton::X,      src->input0x03.buttons.Y);
-        m_buttons.Assign(SwitchButton::Y,      src->input0x03.buttons.X);
-        m_buttons.Assign(SwitchButton::R,      src->input0x03.buttons.RB);
-        m_buttons.Assign(SwitchButton::L,      src->input0x03.buttons.LB);
-        m_buttons.Assign(SwitchButton::ZR,     src->input0x03.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL,     src->input0x03.left_trigger  > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::Minus,  src->input0x03.buttons.select);
-        m_buttons.Assign(SwitchButton::Plus,   src->input0x03.buttons.start);
-        m_buttons.Assign(SwitchButton::StickL, src->input0x03.buttons.L3);
-        m_buttons.Assign(SwitchButton::StickR, src->input0x03.buttons.R3);
-        m_buttons.Assign(SwitchButton::Home,   src->input0x03.buttons.home);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (src->input0x03.dpad == GamesirDpad2_S) || (src->input0x03.dpad == GamesirDpad2_SE) || (src->input0x03.dpad == GamesirDpad2_SW));
+        button_state.Assign(SwitchButton::Up,     (src->input0x03.dpad == GamesirDpad2_N) || (src->input0x03.dpad == GamesirDpad2_NE) || (src->input0x03.dpad == GamesirDpad2_NW));
+        button_state.Assign(SwitchButton::Right,  (src->input0x03.dpad == GamesirDpad2_E) || (src->input0x03.dpad == GamesirDpad2_NE) || (src->input0x03.dpad == GamesirDpad2_SE));
+        button_state.Assign(SwitchButton::Left,   (src->input0x03.dpad == GamesirDpad2_W) || (src->input0x03.dpad == GamesirDpad2_NW) || (src->input0x03.dpad == GamesirDpad2_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x03.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0x03.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0x03.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0x03.buttons.X);
+        button_state.Assign(SwitchButton::R,      src->input0x03.buttons.RB);
+        button_state.Assign(SwitchButton::L,      src->input0x03.buttons.LB);
+        button_state.Assign(SwitchButton::ZR,     src->input0x03.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x03.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Minus,  src->input0x03.buttons.select);
+        button_state.Assign(SwitchButton::Plus,   src->input0x03.buttons.start);
+        button_state.Assign(SwitchButton::StickL, src->input0x03.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x03.buttons.R3);
+        button_state.Assign(SwitchButton::Home,   src->input0x03.buttons.home);
+        m_buttons = button_state;
     }
 
     void GamesirController::MapInputReport0x07(const GamesirReportData *src) {
@@ -82,23 +84,25 @@ namespace ams::controller {
             src->input0x07.right_stick.GetYInverted()
         );
 
-        m_buttons.Assign(SwitchButton::Down,   (src->input0x07.dpad == GamesirDpad2_S) || (src->input0x07.dpad == GamesirDpad2_SE) || (src->input0x07.dpad == GamesirDpad2_SW));
-        m_buttons.Assign(SwitchButton::Up,     (src->input0x07.dpad == GamesirDpad2_N) || (src->input0x07.dpad == GamesirDpad2_NE) || (src->input0x07.dpad == GamesirDpad2_NW));
-        m_buttons.Assign(SwitchButton::Right,  (src->input0x07.dpad == GamesirDpad2_E) || (src->input0x07.dpad == GamesirDpad2_NE) || (src->input0x07.dpad == GamesirDpad2_SE));
-        m_buttons.Assign(SwitchButton::Left,   (src->input0x07.dpad == GamesirDpad2_W) || (src->input0x07.dpad == GamesirDpad2_NW) || (src->input0x07.dpad == GamesirDpad2_SW));
-        m_buttons.Assign(SwitchButton::A,      src->input0x07.buttons.B);
-        m_buttons.Assign(SwitchButton::B,      src->input0x07.buttons.A);
-        m_buttons.Assign(SwitchButton::X,      src->input0x07.buttons.Y);
-        m_buttons.Assign(SwitchButton::Y,      src->input0x07.buttons.X);
-        m_buttons.Assign(SwitchButton::R,      src->input0x07.buttons.RB);
-        m_buttons.Assign(SwitchButton::L,      src->input0x07.buttons.LB);
-        m_buttons.Assign(SwitchButton::ZR,     src->input0x07.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL,     src->input0x07.left_trigger  > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::Minus,  src->input0x07.buttons.select);
-        m_buttons.Assign(SwitchButton::Plus,   src->input0x07.buttons.start);
-        m_buttons.Assign(SwitchButton::StickL, src->input0x07.buttons.L3);
-        m_buttons.Assign(SwitchButton::StickR, src->input0x07.buttons.R3);
-        m_buttons.Assign(SwitchButton::Home,   src->input0x07.buttons.home);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (src->input0x07.dpad == GamesirDpad2_S) || (src->input0x07.dpad == GamesirDpad2_SE) || (src->input0x07.dpad == GamesirDpad2_SW));
+        button_state.Assign(SwitchButton::Up,     (src->input0x07.dpad == GamesirDpad2_N) || (src->input0x07.dpad == GamesirDpad2_NE) || (src->input0x07.dpad == GamesirDpad2_NW));
+        button_state.Assign(SwitchButton::Right,  (src->input0x07.dpad == GamesirDpad2_E) || (src->input0x07.dpad == GamesirDpad2_NE) || (src->input0x07.dpad == GamesirDpad2_SE));
+        button_state.Assign(SwitchButton::Left,   (src->input0x07.dpad == GamesirDpad2_W) || (src->input0x07.dpad == GamesirDpad2_NW) || (src->input0x07.dpad == GamesirDpad2_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x07.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0x07.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0x07.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0x07.buttons.X);
+        button_state.Assign(SwitchButton::R,      src->input0x07.buttons.RB);
+        button_state.Assign(SwitchButton::L,      src->input0x07.buttons.LB);
+        button_state.Assign(SwitchButton::ZR,     src->input0x07.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x07.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Minus,  src->input0x07.buttons.select);
+        button_state.Assign(SwitchButton::Plus,   src->input0x07.buttons.start);
+        button_state.Assign(SwitchButton::StickL, src->input0x07.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x07.buttons.R3);
+        button_state.Assign(SwitchButton::Home,   src->input0x07.buttons.home);
+        m_buttons = button_state;
     }
 
     void GamesirController::MapInputReport0x12(const GamesirReportData *src) {
@@ -116,22 +120,24 @@ namespace ams::controller {
             src->input0xc4.right_stick.GetYInverted()
         );
 
-        m_buttons.Assign(SwitchButton::Down,   (src->input0xc4.dpad == GamesirDpad_S) || (src->input0xc4.dpad == GamesirDpad_SE) || (src->input0xc4.dpad == GamesirDpad_SW));
-        m_buttons.Assign(SwitchButton::Up,     (src->input0xc4.dpad == GamesirDpad_N) || (src->input0xc4.dpad == GamesirDpad_NE) || (src->input0xc4.dpad == GamesirDpad_NW));
-        m_buttons.Assign(SwitchButton::Right,  (src->input0xc4.dpad == GamesirDpad_E) || (src->input0xc4.dpad == GamesirDpad_NE) || (src->input0xc4.dpad == GamesirDpad_SE));
-        m_buttons.Assign(SwitchButton::Left,   (src->input0xc4.dpad == GamesirDpad_W) || (src->input0xc4.dpad == GamesirDpad_NW) || (src->input0xc4.dpad == GamesirDpad_SW));
-        m_buttons.Assign(SwitchButton::A,      src->input0xc4.buttons.B);
-        m_buttons.Assign(SwitchButton::B,      src->input0xc4.buttons.A);
-        m_buttons.Assign(SwitchButton::X,      src->input0xc4.buttons.Y);
-        m_buttons.Assign(SwitchButton::Y,      src->input0xc4.buttons.X);
-        m_buttons.Assign(SwitchButton::R,      src->input0xc4.buttons.RB);
-        m_buttons.Assign(SwitchButton::L,      src->input0xc4.buttons.LB);
-        m_buttons.Assign(SwitchButton::ZR,     src->input0xc4.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL,     src->input0xc4.left_trigger  > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::Minus,  src->input0xc4.buttons.select);
-        m_buttons.Assign(SwitchButton::Plus,   src->input0xc4.buttons.start);
-        m_buttons.Assign(SwitchButton::StickL, src->input0xc4.buttons.L3);
-        m_buttons.Assign(SwitchButton::StickR, src->input0xc4.buttons.R3);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (src->input0xc4.dpad == GamesirDpad_S) || (src->input0xc4.dpad == GamesirDpad_SE) || (src->input0xc4.dpad == GamesirDpad_SW));
+        button_state.Assign(SwitchButton::Up,     (src->input0xc4.dpad == GamesirDpad_N) || (src->input0xc4.dpad == GamesirDpad_NE) || (src->input0xc4.dpad == GamesirDpad_NW));
+        button_state.Assign(SwitchButton::Right,  (src->input0xc4.dpad == GamesirDpad_E) || (src->input0xc4.dpad == GamesirDpad_NE) || (src->input0xc4.dpad == GamesirDpad_SE));
+        button_state.Assign(SwitchButton::Left,   (src->input0xc4.dpad == GamesirDpad_W) || (src->input0xc4.dpad == GamesirDpad_NW) || (src->input0xc4.dpad == GamesirDpad_SW));
+        button_state.Assign(SwitchButton::A,      src->input0xc4.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0xc4.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0xc4.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0xc4.buttons.X);
+        button_state.Assign(SwitchButton::R,      src->input0xc4.buttons.RB);
+        button_state.Assign(SwitchButton::L,      src->input0xc4.buttons.LB);
+        button_state.Assign(SwitchButton::ZR,     src->input0xc4.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0xc4.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Minus,  src->input0xc4.buttons.select);
+        button_state.Assign(SwitchButton::Plus,   src->input0xc4.buttons.start);
+        button_state.Assign(SwitchButton::StickL, src->input0xc4.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0xc4.buttons.R3);
+        m_buttons = button_state;
     }
 
 }

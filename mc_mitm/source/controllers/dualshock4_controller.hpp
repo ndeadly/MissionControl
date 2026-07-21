@@ -220,8 +220,6 @@ namespace ams::controller {
         private:
             void MapInputReport0x01(const Dualshock4ReportData *src);
             void MapInputReport0x11(const Dualshock4ReportData *src);
-
-            void MapButtons(const Dualshock4ButtonData *buttons);
             
             Result GetVersionInfo(Dualshock4VersionInfo *version_info);
             Result GetCalibrationData(Dualshock4ImuCalibrationData *calibration);

@@ -48,23 +48,25 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        m_buttons.Assign(SwitchButton::Down,    (src->input0x01.buttons.dpad == AmazonDPad_S) || (src->input0x01.buttons.dpad == AmazonDPad_SE) || (src->input0x01.buttons.dpad == AmazonDPad_SW));
-        m_buttons.Assign(SwitchButton::Up,      (src->input0x01.buttons.dpad == AmazonDPad_N) || (src->input0x01.buttons.dpad == AmazonDPad_NE) || (src->input0x01.buttons.dpad == AmazonDPad_NW));
-        m_buttons.Assign(SwitchButton::Right,   (src->input0x01.buttons.dpad == AmazonDPad_E) || (src->input0x01.buttons.dpad == AmazonDPad_NE) || (src->input0x01.buttons.dpad == AmazonDPad_SE));
-        m_buttons.Assign(SwitchButton::Left,    (src->input0x01.buttons.dpad == AmazonDPad_W) || (src->input0x01.buttons.dpad == AmazonDPad_NW) || (src->input0x01.buttons.dpad == AmazonDPad_SW));
-        m_buttons.Assign(SwitchButton::A,       src->input0x01.buttons.B);
-        m_buttons.Assign(SwitchButton::B,       src->input0x01.buttons.A);
-        m_buttons.Assign(SwitchButton::X,       src->input0x01.buttons.Y);
-        m_buttons.Assign(SwitchButton::Y,       src->input0x01.buttons.X);
-        m_buttons.Assign(SwitchButton::R,       src->input0x01.buttons.R1);
-        m_buttons.Assign(SwitchButton::L,       src->input0x01.buttons.L1);
-        m_buttons.Assign(SwitchButton::ZR,      src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL,      src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::StickL,  src->input0x01.buttons.L3);
-        m_buttons.Assign(SwitchButton::StickR,  src->input0x01.buttons.R3);
-        m_buttons.Assign(SwitchButton::Plus,    src->input0x01.buttons.menu);
-        m_buttons.Assign(SwitchButton::Minus,   src->input0x01.buttons.back);
-        m_buttons.Assign(SwitchButton::Capture, src->input0x01.buttons.middle);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,    (src->input0x01.buttons.dpad == AmazonDPad_S) || (src->input0x01.buttons.dpad == AmazonDPad_SE) || (src->input0x01.buttons.dpad == AmazonDPad_SW));
+        button_state.Assign(SwitchButton::Up,      (src->input0x01.buttons.dpad == AmazonDPad_N) || (src->input0x01.buttons.dpad == AmazonDPad_NE) || (src->input0x01.buttons.dpad == AmazonDPad_NW));
+        button_state.Assign(SwitchButton::Right,   (src->input0x01.buttons.dpad == AmazonDPad_E) || (src->input0x01.buttons.dpad == AmazonDPad_NE) || (src->input0x01.buttons.dpad == AmazonDPad_SE));
+        button_state.Assign(SwitchButton::Left,    (src->input0x01.buttons.dpad == AmazonDPad_W) || (src->input0x01.buttons.dpad == AmazonDPad_NW) || (src->input0x01.buttons.dpad == AmazonDPad_SW));
+        button_state.Assign(SwitchButton::A,       src->input0x01.buttons.B);
+        button_state.Assign(SwitchButton::B,       src->input0x01.buttons.A);
+        button_state.Assign(SwitchButton::X,       src->input0x01.buttons.Y);
+        button_state.Assign(SwitchButton::Y,       src->input0x01.buttons.X);
+        button_state.Assign(SwitchButton::R,       src->input0x01.buttons.R1);
+        button_state.Assign(SwitchButton::L,       src->input0x01.buttons.L1);
+        button_state.Assign(SwitchButton::ZR,      src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,      src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::StickL,  src->input0x01.buttons.L3);
+        button_state.Assign(SwitchButton::StickR,  src->input0x01.buttons.R3);
+        button_state.Assign(SwitchButton::Plus,    src->input0x01.buttons.menu);
+        button_state.Assign(SwitchButton::Minus,   src->input0x01.buttons.back);
+        button_state.Assign(SwitchButton::Capture, src->input0x01.buttons.middle);
+        m_buttons = button_state;
 
         auto battery_level = SwitchBatteryLevelConverter::ConvertPercentage(src->input0x01.battery);
         m_power_info.SetBatteryLevel(battery_level);

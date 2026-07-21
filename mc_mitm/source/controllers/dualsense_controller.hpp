@@ -183,8 +183,6 @@ namespace ams::controller {
             void MapInputReport0x01(const DualsenseReportData *src);
             void MapInputReport0x31(const DualsenseReportData *src);
 
-            void MapButtons(const DualsenseButtonData *buttons);
-
             Result GetVersionInfo(DualsenseVersionInfo *version_info);
             Result GetCalibrationData(DualsenseImuCalibrationData *calibration);
             Result PushRumbleLedState();

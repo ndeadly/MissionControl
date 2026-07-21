@@ -48,23 +48,25 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        m_buttons.Assign(SwitchButton::Down,  (src->input0x01.buttons.dpad == AtariDPad_S) || (src->input0x01.buttons.dpad == AtariDPad_SE) || (src->input0x01.buttons.dpad == AtariDPad_SW));
-        m_buttons.Assign(SwitchButton::Up,    (src->input0x01.buttons.dpad == AtariDPad_N) || (src->input0x01.buttons.dpad == AtariDPad_NE) || (src->input0x01.buttons.dpad == AtariDPad_NW));
-        m_buttons.Assign(SwitchButton::Right, (src->input0x01.buttons.dpad == AtariDPad_E) || (src->input0x01.buttons.dpad == AtariDPad_NE) || (src->input0x01.buttons.dpad == AtariDPad_SE));
-        m_buttons.Assign(SwitchButton::Left,  (src->input0x01.buttons.dpad == AtariDPad_W) || (src->input0x01.buttons.dpad == AtariDPad_NW) || (src->input0x01.buttons.dpad == AtariDPad_SW));
-        m_buttons.Assign(SwitchButton::A,      src->input0x01.buttons.B);
-        m_buttons.Assign(SwitchButton::B,      src->input0x01.buttons.A);
-        m_buttons.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
-        m_buttons.Assign(SwitchButton::Y,      src->input0x01.buttons.X);
-        m_buttons.Assign(SwitchButton::R,      src->input0x01.buttons.RB);
-        m_buttons.Assign(SwitchButton::L,      src->input0x01.buttons.LB);
-        m_buttons.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
-        m_buttons.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
-        m_buttons.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
-        m_buttons.Assign(SwitchButton::Minus,  src->input0x01.buttons.back);
-        m_buttons.Assign(SwitchButton::Plus,   src->input0x01.buttons.menu);
-        m_buttons.Assign(SwitchButton::Home,   src->input0x01.buttons.home);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,  (src->input0x01.buttons.dpad == AtariDPad_S) || (src->input0x01.buttons.dpad == AtariDPad_SE) || (src->input0x01.buttons.dpad == AtariDPad_SW));
+        button_state.Assign(SwitchButton::Up,    (src->input0x01.buttons.dpad == AtariDPad_N) || (src->input0x01.buttons.dpad == AtariDPad_NE) || (src->input0x01.buttons.dpad == AtariDPad_NW));
+        button_state.Assign(SwitchButton::Right, (src->input0x01.buttons.dpad == AtariDPad_E) || (src->input0x01.buttons.dpad == AtariDPad_NE) || (src->input0x01.buttons.dpad == AtariDPad_SE));
+        button_state.Assign(SwitchButton::Left,  (src->input0x01.buttons.dpad == AtariDPad_W) || (src->input0x01.buttons.dpad == AtariDPad_NW) || (src->input0x01.buttons.dpad == AtariDPad_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x01.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0x01.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0x01.buttons.X);
+        button_state.Assign(SwitchButton::R,      src->input0x01.buttons.RB);
+        button_state.Assign(SwitchButton::L,      src->input0x01.buttons.LB);
+        button_state.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
+        button_state.Assign(SwitchButton::Minus,  src->input0x01.buttons.back);
+        button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.menu);
+        button_state.Assign(SwitchButton::Home,   src->input0x01.buttons.home);
+        m_buttons = button_state;
     }
 
     void AtariController::MapInputReport0x02(const AtariReportData *src) {

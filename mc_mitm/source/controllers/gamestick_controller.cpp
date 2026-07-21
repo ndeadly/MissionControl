@@ -32,8 +32,10 @@ namespace ams::controller {
     }
 
     void GamestickController::MapInputReport0x01(const GamestickReportData *src) {
-        m_buttons.Assign(SwitchButton::Minus, src->input0x01.buttons.back);
-        m_buttons.Assign(SwitchButton::Home,  src->input0x01.buttons.home);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Minus, src->input0x01.buttons.back);
+        button_state.Assign(SwitchButton::Home,  src->input0x01.buttons.home);
+        m_buttons = button_state;
     }
 
     void GamestickController::MapInputReport0x03(const GamestickReportData *src) {
@@ -47,28 +49,31 @@ namespace ams::controller {
             src->input0x03.right_stick.GetYInverted()
         );
 
-        m_buttons.Assign(SwitchButton::Down,   (src->input0x03.dpad == GamestickDPad_S) || (src->input0x03.dpad == GamestickDPad_SE) || (src->input0x03.dpad == GamestickDPad_SW));
-        m_buttons.Assign(SwitchButton::Up,     (src->input0x03.dpad == GamestickDPad_N) || (src->input0x03.dpad == GamestickDPad_NE) || (src->input0x03.dpad == GamestickDPad_NW));
-        m_buttons.Assign(SwitchButton::Right,  (src->input0x03.dpad == GamestickDPad_E) || (src->input0x03.dpad == GamestickDPad_NE) || (src->input0x03.dpad == GamestickDPad_SE));
-        m_buttons.Assign(SwitchButton::Left,   (src->input0x03.dpad == GamestickDPad_W) || (src->input0x03.dpad == GamestickDPad_NW) || (src->input0x03.dpad == GamestickDPad_SW));
-        m_buttons.Assign(SwitchButton::A,      src->input0x03.buttons.B);
-        m_buttons.Assign(SwitchButton::B,      src->input0x03.buttons.A);
-        m_buttons.Assign(SwitchButton::X,      src->input0x03.buttons.Y);
-        m_buttons.Assign(SwitchButton::Y,      src->input0x03.buttons.X);
-        m_buttons.Assign(SwitchButton::L,      src->input0x03.buttons.L);
-        m_buttons.Assign(SwitchButton::R,      src->input0x03.buttons.R);
-        m_buttons.Assign(SwitchButton::Plus,   src->input0x03.buttons.start);
-        m_buttons.Assign(SwitchButton::StickL, src->input0x03.buttons.lstick_press);
-        m_buttons.Assign(SwitchButton::StickR, src->input0x03.buttons.rstick_press);
+        SwitchButtons button_state = m_buttons;
+        button_state.Assign(SwitchButton::Down,   (src->input0x03.dpad == GamestickDPad_S) || (src->input0x03.dpad == GamestickDPad_SE) || (src->input0x03.dpad == GamestickDPad_SW));
+        button_state.Assign(SwitchButton::Up,     (src->input0x03.dpad == GamestickDPad_N) || (src->input0x03.dpad == GamestickDPad_NE) || (src->input0x03.dpad == GamestickDPad_NW));
+        button_state.Assign(SwitchButton::Right,  (src->input0x03.dpad == GamestickDPad_E) || (src->input0x03.dpad == GamestickDPad_NE) || (src->input0x03.dpad == GamestickDPad_SE));
+        button_state.Assign(SwitchButton::Left,   (src->input0x03.dpad == GamestickDPad_W) || (src->input0x03.dpad == GamestickDPad_NW) || (src->input0x03.dpad == GamestickDPad_SW));
+        button_state.Assign(SwitchButton::A,      src->input0x03.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0x03.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0x03.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0x03.buttons.X);
+        button_state.Assign(SwitchButton::L,      src->input0x03.buttons.L);
+        button_state.Assign(SwitchButton::R,      src->input0x03.buttons.R);
+        button_state.Assign(SwitchButton::Plus,   src->input0x03.buttons.start);
+        button_state.Assign(SwitchButton::StickL, src->input0x03.buttons.lstick_press);
+        button_state.Assign(SwitchButton::StickR, src->input0x03.buttons.rstick_press);
 
-        if (m_buttons.Test(SwitchButton::Down)) {
-            m_buttons.Assign(SwitchButton::ZL,   src->input0x03.buttons.L);
-            m_buttons.Assign(SwitchButton::ZR,   src->input0x03.buttons.R);
+        if (button_state.Test(SwitchButton::Down)) {
+            button_state.Assign(SwitchButton::ZL,   src->input0x03.buttons.L);
+            button_state.Assign(SwitchButton::ZR,   src->input0x03.buttons.R);
 
-            m_buttons.Assign(SwitchButton::Down, !m_buttons.Any(SwitchButton::ZL | SwitchButton::ZR));
-            m_buttons.Assign(SwitchButton::L,    !m_buttons.Test(SwitchButton::ZL));
-            m_buttons.Assign(SwitchButton::R,    !m_buttons.Test(SwitchButton::ZR));
+            button_state.Assign(SwitchButton::Down, !button_state.Any(SwitchButton::ZL | SwitchButton::ZR));
+            button_state.Assign(SwitchButton::L,    !button_state.Test(SwitchButton::ZL));
+            button_state.Assign(SwitchButton::R,    !button_state.Test(SwitchButton::ZR));
         }
+
+        m_buttons = button_state;
     }
 
 }
