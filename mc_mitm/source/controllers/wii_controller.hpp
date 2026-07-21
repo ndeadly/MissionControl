@@ -496,7 +496,9 @@ namespace ams::controller {
             , m_extension(WiiExtensionController_None)
             , m_rumble_state(0)
             , m_mp_extension_flag(false)
-            , m_mp_state_changing(false) { }
+            , m_mp_state_changing(false)
+            , m_accel{}
+            , m_gyro{} { }
 
             Result Initialize();
             Result SetVibration(const SwitchMotorData *motor_data);
@@ -558,6 +560,8 @@ namespace ams::controller {
             bool m_mp_extension_flag;
             bool m_mp_state_changing;
 
+            utils::Vec3d<float> m_accel;
+            utils::Vec3d<float> m_gyro;
             WiiAccelerometerCalibrationData m_accel_calibration;
 
             union {

@@ -264,44 +264,14 @@ namespace ams::controller {
     }
 
     void SwitchHidCommandProcessor::ProcessSensorSleep(const SwitchHidCommand* command, SwitchHidCommandResponse *response) {
-        auto config = mitm::GetGlobalConfig();
-
-        m_controller->m_enable_motion = config->general.enable_motion;
-
-        GyroSensitivity gyro_sensitivity = m_controller->m_motion_packer->GetGyroSensitivity();
-        AccelSensitivity accel_sensitivity = m_controller->m_motion_packer->GetAccelSensitivity();
-
-        if (m_controller->m_enable_motion) {
-            switch (command->sensor_sleep.mode) {
-                case SwitchImuSensorSleepMode::Active:
-                    m_controller->m_motion_packer = std::make_unique<StandardMotionPacker>();
-                    break;
-
-                case SwitchImuSensorSleepMode::ActiveDscaleMode1:
-                case SwitchImuSensorSleepMode::ActiveDscaleMode2:
-                case SwitchImuSensorSleepMode::ActiveDscaleMode3:
-                case SwitchImuSensorSleepMode::ActiveDscaleMode4:
-                    m_controller->m_motion_packer = std::make_unique<QuaternionMotionPacker>();
-                    break;
-
-                default:
-                    m_controller->m_motion_packer = std::make_unique<NullMotionPacker>();
-                    break;
-            }
-        } else {
-            m_controller->m_motion_packer = std::make_unique<NullMotionPacker>();
-        }
-
-        m_controller->m_motion_packer->SetGyroSensitivity(gyro_sensitivity);
-        m_controller->m_motion_packer->SetAccelSensitivity(accel_sensitivity);
+        m_controller->m_sixaxis_processor.SetSensorSleepMode(command->sensor_sleep.mode);
 
         response->response_id = SwitchHidCommandId::Ack;
         response->request_id  = SwitchHidCommandId::SensorSleep;
     }
 
     void SwitchHidCommandProcessor::ProcessSensorConfig(const SwitchHidCommand *command, SwitchHidCommandResponse *response) {
-        m_controller->m_motion_packer->SetGyroSensitivity(command->sensor_config.gyro_sensitivity);
-        m_controller->m_motion_packer->SetAccelSensitivity(command->sensor_config.accel_sensitivity);
+        m_controller->m_sixaxis_processor.Configure(command->sensor_config.accel_sensitivity, command->sensor_config.gyro_sensitivity);
 
         response->response_id = SwitchHidCommandId::Ack;
         response->request_id  = SwitchHidCommandId::SensorConfig;

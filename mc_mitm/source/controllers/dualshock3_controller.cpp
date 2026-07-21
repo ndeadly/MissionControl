@@ -290,9 +290,19 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Home,   src->input0x01.buttons.ps);
         m_buttons = button_state;
 
-        m_accel.x = -AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y));
-        m_accel.y = -AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511);
-        m_accel.z =  AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z));
+        utils::Vec3d<float> accel = {
+            .x = -AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_y)),
+            .y = -AccelScaleFactor * (util::SwapEndian(src->input0x01.accel_x) - 511),
+            .z =  AccelScaleFactor * (511 - util::SwapEndian(src->input0x01.accel_z))
+        };
+
+        utils::Vec3d<float> gyro = {
+            .x = 0.0f,
+            .y = 0.0f,
+            .z = 0.0f
+        };
+
+        m_sixaxis_processor.Update(accel, gyro);
     }
 
     Result Dualshock3Controller::SendEnablePayload() {

@@ -16,7 +16,7 @@
 #pragma once
 #include "switch_controller.hpp"
 #include "switch_rumble_handler.hpp"
-#include "switch_motion_packing.hpp"
+#include "switch_sixaxis_processor.hpp"
 #include "switch_hid_command_processor.hpp"
 #include "switch_mcu_command_processor.hpp"
 #include "switch_ext_grip_command_processor.hpp"
@@ -44,7 +44,7 @@ namespace ams::controller {
             Result HandleOutputDataReport(const bluetooth::HidReport *report) override;
 
         protected:
-            void ClearControllerState();
+            void Reset();
             virtual Result SetVibration(const SwitchMotorData *motor_data) { AMS_UNUSED(motor_data); R_SUCCEED(); }
             virtual Result CancelVibration() { R_SUCCEED(); }
             virtual Result SetPlayerLed(u8 led_mask) { AMS_UNUSED(led_mask); R_SUCCEED(); }
@@ -92,9 +92,7 @@ namespace ams::controller {
             float m_trigger_threshold;
 
             bool m_enable_motion;
-            Vec3d<float> m_accel;
-            Vec3d<float> m_gyro;
-            std::unique_ptr<SwitchMotionPacker> m_motion_packer = std::make_unique<NullMotionPacker>();
+            SwitchSixAxisProcessor m_sixaxis_processor;
 
             bool m_enable_rumble;
             SwitchRumbleHandler m_rumble_handler;

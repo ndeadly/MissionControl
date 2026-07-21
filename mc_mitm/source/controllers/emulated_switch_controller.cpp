@@ -24,8 +24,6 @@ namespace ams::controller {
     , m_input_report_mode(SwitchHidReportId::BasicInputReport)
     , m_hid_command_processor(this)
     , m_ext_grip_command_processor(this) {
-        this->ClearControllerState();
-
         auto config = mitm::GetGlobalConfig();
         m_enable_rumble = config->general.enable_rumble;
         m_enable_motion = config->general.enable_motion;
@@ -44,14 +42,11 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    void EmulatedSwitchController::ClearControllerState() {
+    void EmulatedSwitchController::Reset() {
         m_buttons.Reset();
         m_left_stick.Reset();
         m_right_stick.Reset();
-        std::memset(&m_accel, 0, sizeof(m_accel));
-        std::memset(&m_gyro, 0, sizeof(m_gyro));
-        m_motion_packer->SetGyroSensitivity(GyroSensitivity_2000Dps);
-        m_motion_packer->SetAccelSensitivity(AccelSensitivity_8G);
+        m_sixaxis_processor.Reset();
     }
 
     Result EmulatedSwitchController::BufferDataReport(const bluetooth::HidReport *report) {
@@ -119,7 +114,7 @@ namespace ams::controller {
         basic_report->right_analog_stick = m_right_stick.GetState();
         basic_report->motor_status       = m_motor_status.GetState();
 
-        m_motion_packer->PackData(&basic_report->motion_data, m_accel, m_gyro);
+        basic_report->motion_data = m_sixaxis_processor.GetState();
 
         report->size = sizeof(SwitchHidBasicInputReport);
     }
@@ -134,7 +129,7 @@ namespace ams::controller {
         mcu_report->right_analog_stick = m_right_stick.GetState();
         mcu_report->motor_status       = m_motor_status.GetState();
 
-        m_motion_packer->PackData(&mcu_report->motion_data, m_accel, m_gyro);
+        mcu_report->motion_data = m_sixaxis_processor.GetState();
 
         std::memset(&mcu_report->mcu_data, 0, sizeof(mcu_report->mcu_data));
         // mcu_report->mcu_data = m_mcu_command_processor.GetResponse();
@@ -154,7 +149,7 @@ namespace ams::controller {
         attachment_report->right_analog_stick = m_right_stick.GetState();
         attachment_report->motor_status       = m_motor_status.GetState();
 
-        m_motion_packer->PackData(&attachment_report->motion_data, m_accel, m_gyro);
+        attachment_report->motion_data = m_sixaxis_processor.GetState();
 
         std::memset(&attachment_report->attachment_data, 0, sizeof(attachment_report->attachment_data));
 

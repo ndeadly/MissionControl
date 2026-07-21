@@ -212,13 +212,19 @@ namespace ams::controller {
         }
         m_buttons = button_state;
 
-        m_accel.x = -src->input0x11.acc_z / float(m_motion_calibration.acc.z_max);
-        m_accel.y = -src->input0x11.acc_x / float(m_motion_calibration.acc.x_max);
-        m_accel.z =  src->input0x11.acc_y / float(m_motion_calibration.acc.y_max);
+        utils::Vec3d<float> accel = {
+            .x = -src->input0x11.acc_z / float(m_motion_calibration.acc.z_max),
+            .y = -src->input0x11.acc_x / float(m_motion_calibration.acc.x_max),
+            .z =  src->input0x11.acc_y / float(m_motion_calibration.acc.y_max)
+        };
 
-        m_gyro.x = -(src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / ((m_motion_calibration.gyro.roll_max  - m_motion_calibration.gyro.roll_bias)  / m_motion_calibration.gyro.speed_max);
-        m_gyro.y = -(src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / ((m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max);
-        m_gyro.z =  (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / ((m_motion_calibration.gyro.yaw_max   - m_motion_calibration.gyro.yaw_bias)   / m_motion_calibration.gyro.speed_max);
+        utils::Vec3d<float> gyro = {
+            .x = -(src->input0x11.vel_z - m_motion_calibration.gyro.roll_bias)  / (float(m_motion_calibration.gyro.roll_max  - m_motion_calibration.gyro.roll_bias)  / m_motion_calibration.gyro.speed_max),
+            .y = -(src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / (float(m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max),
+            .z =  (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / (float(m_motion_calibration.gyro.yaw_max   - m_motion_calibration.gyro.yaw_bias)   / m_motion_calibration.gyro.speed_max)
+        };
+       
+        m_sixaxis_processor.Update(accel, gyro);
     }
 
     Result Dualshock4Controller::GetVersionInfo(Dualshock4VersionInfo *version_info) {

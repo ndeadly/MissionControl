@@ -216,6 +216,8 @@ namespace ams::controller {
             m_accel.y = -x;
             m_accel.z =  z;
         }
+
+        m_sixaxis_processor.Update(m_accel, m_gyro);
     }
 
     void WiiController::MapExtensionBytes(const u8 ext[]) {
@@ -394,6 +396,8 @@ namespace ams::controller {
                 m_gyro.y = -pitch;
                 m_gyro.z =  yaw;
             }
+
+            m_sixaxis_processor.Update(m_accel, m_gyro);
         } else {
             if (m_extension == WiiExtensionController_MotionPlusNunchuckPassthrough) {
                 this->MapNunchuckExtensionPassthroughMode(ext);
