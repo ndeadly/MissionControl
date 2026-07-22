@@ -54,27 +54,22 @@ namespace ams::controller {
             void UpdateControllerState(const bluetooth::HidReport *report) override;
             virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
 
-            void FillCommandInputReport(bluetooth::HidReport *report);
-            void FillMcuUpdateInputReport(bluetooth::HidReport *report);
-            void FillBasicInputReport(bluetooth::HidReport *report);
-            void FillMcuInputReport(bluetooth::HidReport *report);
-            void FillAttachmentInputReport(bluetooth::HidReport *report);
-            void FillGenericInputReport(bluetooth::HidReport *report);
-            void FillExtGripInputReport(bluetooth::HidReport *report);
+            size_t FillCommandInputReport(u8 *report_buffer);
+            size_t FillMcuUpdateInputReport(u8 *report_buffer);
+            size_t FillBasicInputReport(u8 *report_buffer);
+            size_t FillMcuInputReport(u8 *report_buffer);
+            size_t FillAttachmentInputReport(u8 *report_buffer);
+            size_t FillGenericInputReport(u8 *report_buffer);
+            size_t FillExtGripInputReport(u8 *report_buffer);
 
-            Result HandleCommandOutputReport(const bluetooth::HidReport *report);
-            Result HandleMcuUpdateOutputReport(const bluetooth::HidReport *report);
-            Result HandleBasicOutputReport(const bluetooth::HidReport *report);
-            Result HandleMcuOutputReport(const bluetooth::HidReport *report);
-            Result HandleAttachmentOutputReport(const bluetooth::HidReport *report);
-            Result HandleExtGripOutputReport(const bluetooth::HidReport *report);
+            Result HandleCommandOutputReport(const u8 *report_buffer);
+            Result HandleMcuUpdateOutputReport(const u8 *report_buffer);
+            Result HandleBasicOutputReport(const u8 *report_buffer);
+            Result HandleMcuOutputReport(const u8 *report_buffer);
+            Result HandleAttachmentOutputReport(const u8 *report_buffer);
+            Result HandleExtGripOutputReport(const u8 *report_buffer);
 
             Result HandleMotorData(const SwitchEncodedMotorData *enc_motor_data);
-            Result HandleHidCommand(const SwitchHidCommand *hid_command);
-            Result HandleMcuUpdateData(const SwitchMcuUpdateDataOut *mcu_update_data);
-            Result HandleMcuData(const SwitchMcuDataOut *mcu_data);
-            Result HandleAttachmentData(const SwitchAttachmentDataOut *attachment_data);
-            Result HandleExtGripCommand(const SwitchExtGripCommand *ext_grip_command);
 
         protected:
             u8 m_latency_timer;

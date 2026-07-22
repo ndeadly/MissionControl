@@ -58,24 +58,29 @@ namespace ams::controller {
 
         switch (m_input_report_mode) {
             case SwitchHidReportId::BasicInputReport:
-                return this->FillBasicInputReport(&m_input_report);
+                m_input_report.size = this->FillBasicInputReport(m_input_report.data);
+                break;
 
             case SwitchHidReportId::McuInputReport:
-                return this->FillMcuInputReport(&m_input_report);
+                m_input_report.size = this->FillMcuInputReport(m_input_report.data);
+                break;
 
             case SwitchHidReportId::AttachmentInputReport:
-                return this->FillAttachmentInputReport(&m_input_report);
+                m_input_report.size = this->FillAttachmentInputReport(m_input_report.data);
+                break;
 
             case SwitchHidReportId::GenericInputReport:
-                return this->FillGenericInputReport(&m_input_report);
+                m_input_report.size = this->FillGenericInputReport(m_input_report.data);
+                break;
 
             default:
-                return this->FillBasicInputReport(&m_input_report);
+                m_input_report.size = this->FillBasicInputReport(m_input_report.data);
+                break;
         }
     }
 
-    void EmulatedSwitchController::FillCommandInputReport(bluetooth::HidReport *report) {
-        auto command_report = reinterpret_cast<SwitchHidCommandInputReport *>(report->data);
+    size_t EmulatedSwitchController::FillCommandInputReport(u8 *report_buffer) {
+        auto command_report = reinterpret_cast<SwitchHidCommandInputReport *>(report_buffer);
         command_report->report_id          = SwitchHidReportId::CommandInputReport;
         command_report->latency_timer      = m_latency_timer++;
         command_report->power_info         = m_power_info.GetState();
@@ -86,11 +91,11 @@ namespace ams::controller {
 
         command_report->command_response = m_hid_command_processor.GetResponse();
 
-        report->size = sizeof(SwitchHidCommandInputReport);
+        return sizeof(SwitchHidCommandInputReport);
     }
 
-    void EmulatedSwitchController::FillMcuUpdateInputReport(bluetooth::HidReport *report) {
-        auto mcu_update_report = reinterpret_cast<SwitchMcuUpdateInputReport *>(report->data);
+    size_t EmulatedSwitchController::FillMcuUpdateInputReport(u8 *report_buffer) {
+        auto mcu_update_report = reinterpret_cast<SwitchMcuUpdateInputReport *>(report_buffer);
         mcu_update_report->report_id          = SwitchHidReportId::McuUpdateInputReport;
         mcu_update_report->latency_timer      = m_latency_timer++;
         mcu_update_report->power_info         = m_power_info.GetState();
@@ -101,11 +106,11 @@ namespace ams::controller {
 
         std::memset(&mcu_update_report->mcu_updata_data, 0, sizeof(mcu_update_report->mcu_updata_data));
 
-        report->size = sizeof(SwitchMcuUpdateInputReport);
+        return sizeof(SwitchMcuUpdateInputReport);
     }
 
-    void EmulatedSwitchController::FillBasicInputReport(bluetooth::HidReport *report) {
-        auto basic_report = reinterpret_cast<SwitchHidBasicInputReport *>(report->data);
+    size_t EmulatedSwitchController::FillBasicInputReport(u8 *report_buffer) {
+        auto basic_report = reinterpret_cast<SwitchHidBasicInputReport *>(report_buffer);
         basic_report->report_id          = SwitchHidReportId::BasicInputReport;
         basic_report->latency_timer      = m_latency_timer++;
         basic_report->power_info         = m_power_info.GetState();
@@ -116,11 +121,11 @@ namespace ams::controller {
 
         basic_report->motion_data = m_sixaxis_processor.GetState();
 
-        report->size = sizeof(SwitchHidBasicInputReport);
+        return sizeof(SwitchHidBasicInputReport);
     }
 
-    void EmulatedSwitchController::FillMcuInputReport(bluetooth::HidReport *report) {
-        auto mcu_report = reinterpret_cast<SwitchHidMcuInputReport *>(report->data);
+    size_t EmulatedSwitchController::FillMcuInputReport(u8 *report_buffer) {
+        auto mcu_report = reinterpret_cast<SwitchHidMcuInputReport *>(report_buffer);
         mcu_report->report_id          = SwitchHidReportId::McuInputReport;
         mcu_report->latency_timer      = m_latency_timer++;
         mcu_report->power_info         = m_power_info.GetState();
@@ -132,15 +137,12 @@ namespace ams::controller {
         mcu_report->motion_data = m_sixaxis_processor.GetState();
 
         std::memset(&mcu_report->mcu_data, 0, sizeof(mcu_report->mcu_data));
-        // mcu_report->mcu_data = m_mcu_command_processor.GetResponse();
-        // std::memcpy(&mcu_report->mcu_response, &EmptyMcuResponse, sizeof(EmptyMcuResponse));
-        // mcu_report->crc = ComputeCrc8(&EmptyMcuResponse, sizeof(SwitchMcuResponse));
 
-        report->size = sizeof(SwitchHidMcuInputReport);
+        return sizeof(SwitchHidMcuInputReport);
     }
 
-    void EmulatedSwitchController::FillAttachmentInputReport(bluetooth::HidReport *report) {
-        auto attachment_report = reinterpret_cast<SwitchHidAttachmentInputReport *>(report->data);
+    size_t EmulatedSwitchController::FillAttachmentInputReport(u8 *report_buffer) {
+        auto attachment_report = reinterpret_cast<SwitchHidAttachmentInputReport *>(report_buffer);
         attachment_report->report_id          = SwitchHidReportId::AttachmentInputReport;
         attachment_report->latency_timer      = m_latency_timer++;
         attachment_report->power_info         = m_power_info.GetState();
@@ -153,25 +155,25 @@ namespace ams::controller {
 
         std::memset(&attachment_report->attachment_data, 0, sizeof(attachment_report->attachment_data));
 
-        report->size = sizeof(SwitchHidAttachmentInputReport);
+        return sizeof(SwitchHidAttachmentInputReport);
     }
 
-    void EmulatedSwitchController::FillGenericInputReport(bluetooth::HidReport *report) {
-        auto generic_report = reinterpret_cast<SwitchHidGenericInputReport *>(report->data);
+    size_t EmulatedSwitchController::FillGenericInputReport(u8 *report_buffer) {
+        auto generic_report = reinterpret_cast<SwitchHidGenericInputReport *>(report_buffer);
         generic_report->report_id = SwitchHidReportId::GenericInputReport;
 
         // Todo: convert pad data to generic report format
 
-        report->size = sizeof(SwitchHidGenericInputReport);
+        return sizeof(SwitchHidGenericInputReport);
     }
 
-    void EmulatedSwitchController::FillExtGripInputReport(bluetooth::HidReport *report) {
-        auto ext_grip_report = reinterpret_cast<SwitchExtGripInputReport *>(report->data);
+    size_t EmulatedSwitchController::FillExtGripInputReport(u8 *report_buffer) {
+        auto ext_grip_report = reinterpret_cast<SwitchExtGripInputReport *>(report_buffer);
         ext_grip_report->report_id = SwitchHidReportId::ExtGripInputReport;
 
         ext_grip_report->command_response = m_ext_grip_command_processor.GetResponse();
 
-        report->size = sizeof(SwitchExtGripInputReport);
+        return sizeof(SwitchExtGripInputReport);
     }
 
     Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
@@ -179,64 +181,79 @@ namespace ams::controller {
 
         switch (report_id) {
             case SwitchHidReportId::CommandOutputReport:
-                R_RETURN(this->HandleCommandOutputReport(report));
+                R_RETURN(this->HandleCommandOutputReport(report->data));
 
             case SwitchHidReportId::McuUpdateOutputReport:
-                R_RETURN(this->HandleMcuUpdateOutputReport(report));
+                R_RETURN(this->HandleMcuUpdateOutputReport(report->data));
 
             case SwitchHidReportId::BasicOutputReport:
-                R_RETURN(this->HandleBasicOutputReport(report));
+                R_RETURN(this->HandleBasicOutputReport(report->data));
 
             case SwitchHidReportId::McuOutputReport:
-                R_RETURN(this->HandleMcuOutputReport(report));
+                R_RETURN(this->HandleMcuOutputReport(report->data));
 
             case SwitchHidReportId::AttachmentOutputReport:
-                R_RETURN(this->HandleAttachmentOutputReport(report));
+                R_RETURN(this->HandleAttachmentOutputReport(report->data));
 
             case SwitchHidReportId::ExtGripOutputReport:
-                R_RETURN(this->HandleExtGripOutputReport(report));
+                R_RETURN(this->HandleExtGripOutputReport(report->data));
 
             AMS_UNREACHABLE_DEFAULT_CASE();
         }
     }
 
-    Result EmulatedSwitchController::HandleCommandOutputReport(const bluetooth::HidReport *report) {
-        auto command_report = reinterpret_cast<const SwitchHidCommandOutputReport *>(&report->data);
+    Result EmulatedSwitchController::HandleCommandOutputReport(const u8 *report_buffer) {
+        auto command_report = reinterpret_cast<const SwitchHidCommandOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&command_report->motor_data));
-        R_TRY(this->HandleHidCommand(&command_report->command));
+        m_hid_command_processor.ProcessCommand(&command_report->command);
+
+        m_input_report.size = this->FillCommandInputReport(m_input_report.data);
+        R_TRY(this->BufferDataReport(&m_input_report));
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleMcuUpdateOutputReport(const bluetooth::HidReport *report) {
-        auto mcu_update_report = reinterpret_cast<const SwitchHidMcuUpdateOutputReport *>(&report->data);
+    Result EmulatedSwitchController::HandleMcuUpdateOutputReport(const u8 *report_buffer) {
+        auto mcu_update_report = reinterpret_cast<const SwitchHidMcuUpdateOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&mcu_update_report->motor_data));
-        R_TRY(this->HandleMcuUpdateData(&mcu_update_report->mcu_update_data));
+        // Todo: process mcu update data
+
+        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data);
+        R_TRY(this->BufferDataReport(&m_input_report));
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleBasicOutputReport(const bluetooth::HidReport *report) {
-        auto basic_report = reinterpret_cast<const SwitchHidBasicOutputReport *>(&report->data);
+    Result EmulatedSwitchController::HandleBasicOutputReport(const u8 *report_buffer) {
+        auto basic_report = reinterpret_cast<const SwitchHidBasicOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&basic_report->motor_data));
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleMcuOutputReport(const bluetooth::HidReport *report) {
-        auto mcu_report = reinterpret_cast<const SwitchHidMcuOutputReport *>(&report->data);
+    Result EmulatedSwitchController::HandleMcuOutputReport(const u8 *report_buffer) {
+        auto mcu_report = reinterpret_cast<const SwitchHidMcuOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&mcu_report->motor_data));
-        R_TRY(this->HandleMcuData(&mcu_report->mcu_data));
+        // m_mcu_command_processor.ProcessCommand(command);
+
+        m_input_report.size = this->FillMcuInputReport(m_input_report.data);
+        R_TRY(this->BufferDataReport(&m_input_report));
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleAttachmentOutputReport(const bluetooth::HidReport *report) {
-        auto attachment_report = reinterpret_cast<const SwitchHidAttachmentOutputReport *>(&report->data);
+    Result EmulatedSwitchController::HandleAttachmentOutputReport(const u8 *report_buffer) {
+        auto attachment_report = reinterpret_cast<const SwitchHidAttachmentOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&attachment_report->motor_data));
-        R_TRY(this->HandleAttachmentData(&attachment_report->attachment_data));
+        // Todo: process attachment data
+
+        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data);
+        R_TRY(this->BufferDataReport(&m_input_report));
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleExtGripOutputReport(const bluetooth::HidReport *report) {
-        auto ext_grip_report = reinterpret_cast<const SwitchExtGripOutputReport *>(&report->data);
-        R_TRY(this->HandleExtGripCommand(&ext_grip_report->command));
+    Result EmulatedSwitchController::HandleExtGripOutputReport(const u8 *report_buffer) {
+        auto ext_grip_report = reinterpret_cast<const SwitchExtGripOutputReport *>(report_buffer);
+        m_ext_grip_command_processor.ProcessCommand(&ext_grip_report->command);
+
+        m_input_report.size = this->FillExtGripInputReport(m_input_report.data);
+        R_TRY(this->BufferDataReport(&m_input_report));
         R_SUCCEED();
     }
 
@@ -249,49 +266,6 @@ namespace ams::controller {
         }
 
         R_SUCCEED();
-    }
-
-    Result EmulatedSwitchController::HandleHidCommand(const SwitchHidCommand *hid_command) {
-        m_hid_command_processor.ProcessCommand(hid_command);
-
-        this->FillCommandInputReport(&m_input_report);
-
-        R_RETURN(this->BufferDataReport(&m_input_report));
-    }
-
-    Result EmulatedSwitchController::HandleMcuUpdateData(const SwitchMcuUpdateDataOut *mcu_update_data) {
-        AMS_UNUSED(mcu_update_data);
-        // Todo: process mcu update data
-
-        this->FillAttachmentInputReport(&m_input_report);
-
-        R_RETURN(this->BufferDataReport(&m_input_report));
-    }
-
-    Result EmulatedSwitchController::HandleMcuData(const SwitchMcuDataOut *mcu_data) {
-        AMS_UNUSED(mcu_data);
-        // m_mcu_command_processor.ProcessCommand(command);
-
-        this->FillMcuInputReport(&m_input_report);
-
-        R_RETURN(this->BufferDataReport(&m_input_report));
-    }
-
-    Result EmulatedSwitchController::HandleAttachmentData(const SwitchAttachmentDataOut *attachment_data) {
-        AMS_UNUSED(attachment_data);
-        // Todo: process attachment data
-
-        this->FillAttachmentInputReport(&m_input_report);
-
-        R_RETURN(this->BufferDataReport(&m_input_report));
-    }
-
-    Result EmulatedSwitchController::HandleExtGripCommand(const SwitchExtGripCommand *ext_grip_command) {
-        m_ext_grip_command_processor.ProcessCommand(ext_grip_command);
-
-        this->FillExtGripInputReport(&m_input_report);
-
-        R_RETURN(this->BufferDataReport(&m_input_report));
     }
 
 }
