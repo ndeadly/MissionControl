@@ -32,7 +32,7 @@ namespace ams::controller {
             SwitchPowerInfoType m_power_info;
 
         public:
-            constexpr SwitchPowerInfo() : m_power_info{0} { }
+            constexpr SwitchPowerInfo() : SwitchPowerInfo(false, 0, false, SwitchBatteryLevel::Full) { }
 
             constexpr SwitchPowerInfo(SwitchPowerInfoType power_info) : m_power_info(power_info) { }
 
