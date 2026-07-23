@@ -15,30 +15,27 @@
  */
 #pragma once
 #include <stratosphere.hpp>
-#include "switch_rumble_decoder.hpp"
+#include "switch_hd_rumble_decoder.hpp"
 
 namespace ams::controller {
 
-    struct SwitchEncodedMotorData {
-        SwitchEncodedVibrationSamples left_motor;
-        SwitchEncodedVibrationSamples right_motor;
-    } PACKED;
+    struct EmulatedSwitchController;
 
-    struct SwitchMotorData {
-        SwitchVibrationValues left_motor;
-        SwitchVibrationValues right_motor;
-    };
+    class SwitchVibrationProcessor {
+        private:
+            EmulatedSwitchController *m_controller;
+            SwitchHdRumbleDecoder m_decoder_left;
+            SwitchHdRumbleDecoder m_decoder_right;
+            bool m_enabled;
 
-    class SwitchRumbleHandler {
         public:
-            bool GetDecodedValues(const SwitchEncodedMotorData *encoded, SwitchMotorData *decoded);
+            constexpr SwitchVibrationProcessor(EmulatedSwitchController *controller) : m_controller(controller), m_enabled(true) { }
 
-        private:
-            bool GetNextDecodedValue(SwitchRumbleDecoder *decoder, const SwitchEncodedVibrationSamples *encoded_samples, SwitchVibrationValues *out_sample);
+        public:
+            constexpr void SetEnabled(bool enabled) { m_enabled = enabled; }
+            constexpr bool GetEnabled() const { return m_enabled; }
 
-        private:
-            SwitchRumbleDecoder m_decoder_left;
-            SwitchRumbleDecoder m_decoder_right;
+            void ProcessMotorData(const SwitchEncodedMotorData *encoded_motor_data);
     };
 
 }

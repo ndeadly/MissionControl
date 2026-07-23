@@ -24,11 +24,9 @@
 #include "switch_ext_grip_commands.hpp"
 
 #include "switch_sixaxis_types.hpp"
+#include "switch_hd_rumble_types.hpp"
 #include "switch_mcu_types.hpp"
 #include "switch_attachment_types.hpp"
-
-// Todo: move types into own header and replace that here
-#include "switch_rumble_handler.hpp"
 
 namespace ams::controller {
 

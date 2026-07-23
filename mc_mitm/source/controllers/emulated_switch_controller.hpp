@@ -15,8 +15,8 @@
  */
 #pragma once
 #include "switch_controller.hpp"
-#include "switch_rumble_handler.hpp"
 #include "switch_sixaxis_processor.hpp"
+#include "switch_vibration_processor.hpp"
 #include "switch_hid_command_processor.hpp"
 #include "switch_mcu_command_processor.hpp"
 #include "switch_ext_grip_command_processor.hpp"
@@ -30,13 +30,14 @@ namespace ams::controller {
     constexpr u8 FullKeyMcuFirmwareVersionMinor = 0x05;
 
     class EmulatedSwitchController : public SwitchController {
+        friend class SwitchVibrationProcessor;
         friend class SwitchHidCommandProcessor;
         friend class SwitchMcuCommandProcessor;
         friend class SwitchExtGripCommandProcessor;
 
         public:
             EmulatedSwitchController(bluetooth::Address address, HardwareID id);
-            virtual ~EmulatedSwitchController() {};
+            virtual ~EmulatedSwitchController() { };
 
             virtual Result Initialize();
             virtual bool IsOfficialController() override { return false; }
@@ -69,8 +70,6 @@ namespace ams::controller {
             Result HandleAttachmentOutputReport(const u8 *report_buffer, size_t size);
             Result HandleExtGripOutputReport(const u8 *report_buffer, size_t size);
 
-            Result HandleMotorData(const SwitchEncodedMotorData *enc_motor_data);
-
         protected:
             u8 m_latency_timer;
             SwitchPowerInfo m_power_info;
@@ -89,9 +88,7 @@ namespace ams::controller {
             bool m_enable_motion;
             SwitchSixAxisProcessor m_sixaxis_processor;
 
-            bool m_enable_rumble;
-            SwitchRumbleHandler m_rumble_handler;
-
+            SwitchVibrationProcessor m_vibration_processor;
             SwitchHidCommandProcessor m_hid_command_processor;
             SwitchMcuCommandProcessor m_mcu_command_processor;
             SwitchExtGripCommandProcessor m_ext_grip_command_processor;

@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "switch_rumble_decoder.hpp"
+#include "switch_hd_rumble_decoder.hpp"
 
 namespace ams::controller {
 
@@ -150,7 +150,7 @@ namespace ams::controller {
 
     }
 
-    SwitchRumbleDecoder::SwitchRumbleDecoder() {
+    SwitchHdRumbleDecoder::SwitchHdRumbleDecoder() {
         m_state = {
             .lo_amp_linear  = DefaultAmplitude,
             .lo_freq_linear = DefaultFrequency,
@@ -159,7 +159,7 @@ namespace ams::controller {
         };
     }
 
-    void SwitchRumbleDecoder::DecodeSamples(const SwitchEncodedVibrationSamples* encoded, SwitchVibrationSamples* decoded) {
+    void SwitchHdRumbleDecoder::DecodeSamples(const SwitchEncodedVibrationSamples* encoded, SwitchVibrationSamples* decoded) {
         switch (encoded->packet_type) {
             case 0:
                 decoded->count = 0;
@@ -191,7 +191,7 @@ namespace ams::controller {
         };
     }
 
-    void SwitchRumbleDecoder::DecodeOne5Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
+    void SwitchHdRumbleDecoder::DecodeOne5Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
         m_state.lo_amp_linear  = ApplyAmCommand(encoded->one5bit.amfm_5bit_lo, m_state.lo_amp_linear);
         m_state.lo_freq_linear = ApplyFmCommand(encoded->one5bit.amfm_5bit_lo, m_state.lo_freq_linear);
         m_state.hi_amp_linear  = ApplyAmCommand(encoded->one5bit.amfm_5bit_hi, m_state.hi_amp_linear);
@@ -201,7 +201,7 @@ namespace ams::controller {
         decoded->count = 1;
     }
 
-    void SwitchRumbleDecoder::DecodeOne7Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
+    void SwitchHdRumbleDecoder::DecodeOne7Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
         m_state.lo_amp_linear  = Am7BitLookup[encoded->one7bit.am_7bit_lo];
         m_state.lo_freq_linear = Fm7BitLookup[encoded->one7bit.fm_7bit_lo];
         m_state.hi_amp_linear  = Am7BitLookup[encoded->one7bit.am_7bit_hi];
@@ -211,7 +211,7 @@ namespace ams::controller {
         decoded->count = 1;
     }
 
-    void SwitchRumbleDecoder::DecodeTwo5Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
+    void SwitchHdRumbleDecoder::DecodeTwo5Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
         m_state.lo_amp_linear  = ApplyAmCommand(encoded->two5bit.amfm_5bit_lo_0, m_state.lo_amp_linear);
         m_state.lo_freq_linear = ApplyFmCommand(encoded->two5bit.amfm_5bit_lo_0, m_state.lo_freq_linear);
         m_state.hi_amp_linear  = ApplyAmCommand(encoded->two5bit.amfm_5bit_hi_0, m_state.hi_amp_linear);
@@ -227,7 +227,7 @@ namespace ams::controller {
         decoded->count = 2;
     }
 
-    void SwitchRumbleDecoder::DecodeTwo7Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
+    void SwitchHdRumbleDecoder::DecodeTwo7Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
         if (encoded->two7bit.high_select) {
             m_state.hi_amp_linear  = Am7BitLookup[encoded->two7bit.am_7bit_xx];
             m_state.hi_freq_linear = Fm7BitLookup[encoded->two7bit.fm_7bit_xx];
@@ -250,7 +250,7 @@ namespace ams::controller {
         decoded->count = 2;
     }
 
-    void SwitchRumbleDecoder::DecodeThree5Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
+    void SwitchHdRumbleDecoder::DecodeThree5Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
         m_state.lo_amp_linear  = ApplyAmCommand(encoded->three5bit.amfm_5bit_lo_0, m_state.lo_amp_linear);
         m_state.lo_freq_linear = ApplyFmCommand(encoded->three5bit.amfm_5bit_lo_0, m_state.lo_freq_linear);
         m_state.hi_amp_linear  = ApplyAmCommand(encoded->three5bit.amfm_5bit_hi_0, m_state.hi_amp_linear);
@@ -272,7 +272,7 @@ namespace ams::controller {
         decoded->count = 3;
     }
 
-    void SwitchRumbleDecoder::DecodeThree7Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
+    void SwitchHdRumbleDecoder::DecodeThree7Bit(const SwitchEncodedVibrationSamples *encoded, SwitchVibrationSamples *decoded) {
         if (encoded->three7bit.high_select) {
             if (encoded->three7bit.freq_select) {
                 m_state.hi_freq_linear = Fm7BitLookup[encoded->three7bit.xx_7bit_xx];
@@ -303,7 +303,7 @@ namespace ams::controller {
         decoded->count = 3;
     }
 
-    void SwitchRumbleDecoder::GetCurrentOutputValue(SwitchVibrationValues* output) {
+    void SwitchHdRumbleDecoder::GetCurrentOutputValue(SwitchVibrationValues* output) {
         output->low_band_amp   = ExpBase2Lookup[GetLookupIndex(m_state.lo_amp_linear)];
         output->low_band_freq  = ExpBase2Lookup[GetLookupIndex(m_state.lo_freq_linear)] * CenterFreqLow;
         output->high_band_amp  = ExpBase2Lookup[GetLookupIndex(m_state.hi_amp_linear)];

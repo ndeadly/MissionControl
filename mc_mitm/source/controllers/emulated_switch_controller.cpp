@@ -21,10 +21,11 @@ namespace ams::controller {
     EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
     , m_latency_timer(0)
     , m_input_report_mode(SwitchHidReportId::BasicInputReport)
+    , m_vibration_processor(this)
     , m_hid_command_processor(this)
     , m_ext_grip_command_processor(this) {
         auto config = mitm::GetGlobalConfig();
-        m_enable_rumble = config->general.enable_rumble;
+        m_vibration_processor.SetEnabled(config->general.enable_rumble);
         m_enable_motion = config->general.enable_motion;
         m_trigger_threshold = config->misc.analog_trigger_activation_threshold / 100.0;
     };
@@ -219,7 +220,7 @@ namespace ams::controller {
         AMS_ASSERT(size >= sizeof(SwitchHidCommandOutputReport)); AMS_UNUSED(size);
 
         auto command_report = reinterpret_cast<const SwitchHidCommandOutputReport *>(report_buffer);
-        R_TRY(this->HandleMotorData(&command_report->motor_data));
+        m_vibration_processor.ProcessMotorData(&command_report->motor_data);
         m_hid_command_processor.ProcessCommand(&command_report->command);
 
         m_input_report.size = this->FillCommandInputReport(m_input_report.data, sizeof(m_input_report.data));
@@ -232,7 +233,7 @@ namespace ams::controller {
         AMS_ASSERT(size >= sizeof(SwitchHidMcuUpdateOutputReport)); AMS_UNUSED(size);
 
         auto mcu_update_report = reinterpret_cast<const SwitchHidMcuUpdateOutputReport *>(report_buffer);
-        R_TRY(this->HandleMotorData(&mcu_update_report->motor_data));
+        m_vibration_processor.ProcessMotorData(&mcu_update_report->motor_data);
         // Todo: process mcu update data
 
         m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
@@ -245,7 +246,7 @@ namespace ams::controller {
         AMS_ASSERT(size >= sizeof(SwitchHidBasicOutputReport)); AMS_UNUSED(size);
 
         auto basic_report = reinterpret_cast<const SwitchHidBasicOutputReport *>(report_buffer);
-        R_TRY(this->HandleMotorData(&basic_report->motor_data));
+        m_vibration_processor.ProcessMotorData(&basic_report->motor_data);
 
         R_SUCCEED();
     }
@@ -254,7 +255,7 @@ namespace ams::controller {
         AMS_ASSERT(size >= sizeof(SwitchHidMcuOutputReport)); AMS_UNUSED(size);
 
         auto mcu_report = reinterpret_cast<const SwitchHidMcuOutputReport *>(report_buffer);
-        R_TRY(this->HandleMotorData(&mcu_report->motor_data));
+        m_vibration_processor.ProcessMotorData(&mcu_report->motor_data);
         // m_mcu_command_processor.ProcessCommand(command);
 
         m_input_report.size = this->FillMcuInputReport(m_input_report.data, sizeof(m_input_report.data));
@@ -267,7 +268,7 @@ namespace ams::controller {
         AMS_ASSERT(size >= sizeof(SwitchHidAttachmentOutputReport)); AMS_UNUSED(size);
 
         auto attachment_report = reinterpret_cast<const SwitchHidAttachmentOutputReport *>(report_buffer);
-        R_TRY(this->HandleMotorData(&attachment_report->motor_data));
+        m_vibration_processor.ProcessMotorData(&attachment_report->motor_data);
         // Todo: process attachment data
 
         m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
@@ -284,17 +285,6 @@ namespace ams::controller {
 
         m_input_report.size = this->FillExtGripInputReport(m_input_report.data, sizeof(m_input_report.data));
         R_TRY(this->BufferDataReport(&m_input_report));
-
-        R_SUCCEED();
-    }
-
-    Result EmulatedSwitchController::HandleMotorData(const SwitchEncodedMotorData *encoded_motor_data) {
-        if (m_enable_rumble) {
-            SwitchMotorData motor_data;
-            if (m_rumble_handler.GetDecodedValues(encoded_motor_data, &motor_data)) {
-                R_TRY(this->SetVibration(&motor_data));
-            }
-        }
 
         R_SUCCEED();
     }
