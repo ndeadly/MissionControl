@@ -53,8 +53,7 @@ namespace ams::mitm::bluetooth {
 
         public:
             static bool ShouldMitm(const sm::MitmProcessInfo &client_info) {
-                AMS_UNUSED(client_info);
-                return true;
+                return (client_info.program_id == ncm::SystemProgramId::Hid) || (client_info.program_id == ncm::SystemProgramId::Btm);
             }
 
         public:
