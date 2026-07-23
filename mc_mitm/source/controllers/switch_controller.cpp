@@ -153,12 +153,15 @@ namespace ams::controller {
         R_RETURN(bluetooth::hid::report::WriteHidGetReport(m_address, report));
     }
 
-    Result SwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
-        R_RETURN(this->WriteDataReport(report));
+    Result SwitchController::HandleOutputDataReport(const u8 *report_buffer, size_t size) {
+        R_RETURN(this->WriteDataReport(report_buffer, size));
     }
 
-    Result SwitchController::WriteDataReport(const bluetooth::HidReport *report) {
-        R_RETURN(btdrvWriteHidData(m_address, report));
+    Result SwitchController::WriteDataReport(const u8 *report_buffer, size_t size) {
+        bluetooth::HidReport report;
+        report.size = size;
+        std::memcpy(report.data, report_buffer, size);
+        R_RETURN(btdrvWriteHidData(m_address, &report));
     }
 
     Result SwitchController::WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report) {

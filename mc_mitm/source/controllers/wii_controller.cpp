@@ -726,7 +726,7 @@ namespace ams::controller {
         report_data->output0x12.rumble = m_rumble_state;
         report_data->output0x12.report_mode = mode;
 
-        R_RETURN(this->WriteDataReport(&m_output_report));
+        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }
 
     Result WiiController::QueryStatus() {
@@ -737,7 +737,7 @@ namespace ams::controller {
         report_data->id = 0x15;
         report_data->output0x15.rumble = m_rumble_state;
 
-        R_RETURN(this->WriteDataReport(&m_output_report));
+        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }
 
     Result WiiController::WriteMemory(u32 write_addr, const void *data, u8 size) {       
@@ -895,7 +895,7 @@ namespace ams::controller {
         report_data->id = 0x10;
         report_data->output0x10.rumble = m_rumble_state;
 
-        R_RETURN(this->WriteDataReport(&m_output_report));
+        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }
 
     Result WiiController::CancelVibration() {
@@ -908,7 +908,7 @@ namespace ams::controller {
         report_data->id = 0x10;
         report_data->output0x10.rumble = m_rumble_state;
 
-        R_RETURN(this->WriteDataReport(&m_output_report));
+        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }
 
     Result WiiController::SetPlayerLed(u8 led_mask) {
@@ -920,7 +920,7 @@ namespace ams::controller {
         report_data->output0x11.rumble = m_rumble_state;
         report_data->output0x11.leds = led_mask & 0xf;
 
-        R_RETURN(this->WriteDataReport(&m_output_report));
+        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }
 
 }

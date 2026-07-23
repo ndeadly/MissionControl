@@ -88,7 +88,7 @@ namespace ams::mitm::bluetooth {
         auto report = reinterpret_cast<const ams::bluetooth::HidReport *>(buffer.GetPointer());
 
         if (auto device = controller::LocateHandler(address)) {
-            R_TRY(device->HandleOutputDataReport(report));
+            R_TRY(device->HandleOutputDataReport(report->data, report->size));
         } else {
             R_TRY(btdrvWriteHidDataFwd(m_forward_service.get(), address, report));
         }
@@ -98,8 +98,7 @@ namespace ams::mitm::bluetooth {
 
     Result BtdrvMitmService::WriteHidData2(ams::bluetooth::Address address, const sf::InPointerBuffer &buffer) {
         if (auto device = controller::LocateHandler(address)) {
-            auto report = reinterpret_cast<const ams::bluetooth::HidReport *>(buffer.GetPointer());
-            R_TRY(device->HandleOutputDataReport(report));
+            R_TRY(device->HandleOutputDataReport(buffer.GetPointer(), buffer.GetSize()));
         } else {
             R_TRY(btdrvWriteHidData2Fwd(m_forward_service.get(), address, buffer.GetPointer(), buffer.GetSize()));
         }

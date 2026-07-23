@@ -305,7 +305,7 @@ namespace ams::controller {
         m_output_report.size = sizeof(report.output0x31) + sizeof(report.id);
         std::memcpy(m_output_report.data, &report, m_output_report.size);
 
-        R_RETURN(this->WriteDataReport(&m_output_report));
+        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }
 
 }

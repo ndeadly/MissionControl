@@ -35,7 +35,7 @@ namespace ams::controller {
         report->output0x03.pulse_release_10ms = 0;
         report->output0x03.loop_count         = 0;
 
-        return this->WriteDataReport(&m_output_report);
+        return this->WriteDataReport(m_output_report.data, m_output_report.size);
     }
 
     void XboxOneController::ProcessInputData(const bluetooth::HidReport *report) {

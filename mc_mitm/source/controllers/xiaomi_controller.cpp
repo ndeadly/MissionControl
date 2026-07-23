@@ -33,7 +33,7 @@ namespace ams::controller {
 
         m_output_report.size = sizeof(InitPacket);
         std::memcpy(m_output_report.data, InitPacket, sizeof(InitPacket));
-        R_TRY(this->WriteDataReport(&m_output_report));
+        R_TRY(this->WriteDataReport(m_output_report.data, m_output_report.size));
 
         R_SUCCEED();
     }

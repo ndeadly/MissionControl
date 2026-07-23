@@ -53,10 +53,11 @@ namespace ams::controller {
             virtual Result HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual Result HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual Result HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info);
-            virtual Result HandleOutputDataReport(const bluetooth::HidReport *report);
+
+            virtual Result HandleOutputDataReport(const u8 *report_buffer, size_t size);
 
         protected:
-            Result WriteDataReport(const bluetooth::HidReport *report);
+            Result WriteDataReport(const u8 *report_buffer, size_t size);
             Result WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report);
             Result SetReport(BtdrvBluetoothHhReportType type, const bluetooth::HidReport *report);
             Result GetReport(u8 id, BtdrvBluetoothHhReportType type, bluetooth::HidReport *out_report);

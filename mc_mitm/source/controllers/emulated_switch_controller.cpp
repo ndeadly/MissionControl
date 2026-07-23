@@ -57,28 +57,30 @@ namespace ams::controller {
 
         switch (m_input_report_mode) {
             case SwitchHidReportId::BasicInputReport:
-                m_input_report.size = this->FillBasicInputReport(m_input_report.data);
+                m_input_report.size = this->FillBasicInputReport(m_input_report.data, sizeof(m_input_report.data));
                 break;
 
             case SwitchHidReportId::McuInputReport:
-                m_input_report.size = this->FillMcuInputReport(m_input_report.data);
+                m_input_report.size = this->FillMcuInputReport(m_input_report.data, sizeof(m_input_report.data));
                 break;
 
             case SwitchHidReportId::AttachmentInputReport:
-                m_input_report.size = this->FillAttachmentInputReport(m_input_report.data);
+                m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
                 break;
 
             case SwitchHidReportId::GenericInputReport:
-                m_input_report.size = this->FillGenericInputReport(m_input_report.data);
+                m_input_report.size = this->FillGenericInputReport(m_input_report.data, sizeof(m_input_report.data));
                 break;
 
             default:
-                m_input_report.size = this->FillBasicInputReport(m_input_report.data);
+                m_input_report.size = this->FillBasicInputReport(m_input_report.data, sizeof(m_input_report.data));
                 break;
         }
     }
 
-    size_t EmulatedSwitchController::FillCommandInputReport(u8 *report_buffer) {
+    size_t EmulatedSwitchController::FillCommandInputReport(u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidCommandInputReport)); AMS_UNUSED(size);
+
         auto command_report = reinterpret_cast<SwitchHidCommandInputReport *>(report_buffer);
         command_report->report_id          = SwitchHidReportId::CommandInputReport;
         command_report->latency_timer      = m_latency_timer++;
@@ -93,7 +95,9 @@ namespace ams::controller {
         return sizeof(SwitchHidCommandInputReport);
     }
 
-    size_t EmulatedSwitchController::FillMcuUpdateInputReport(u8 *report_buffer) {
+    size_t EmulatedSwitchController::FillMcuUpdateInputReport(u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchMcuUpdateInputReport)); AMS_UNUSED(size);
+
         auto mcu_update_report = reinterpret_cast<SwitchMcuUpdateInputReport *>(report_buffer);
         mcu_update_report->report_id          = SwitchHidReportId::McuUpdateInputReport;
         mcu_update_report->latency_timer      = m_latency_timer++;
@@ -108,7 +112,9 @@ namespace ams::controller {
         return sizeof(SwitchMcuUpdateInputReport);
     }
 
-    size_t EmulatedSwitchController::FillBasicInputReport(u8 *report_buffer) {
+    size_t EmulatedSwitchController::FillBasicInputReport(u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidBasicInputReport)); AMS_UNUSED(size);
+
         auto basic_report = reinterpret_cast<SwitchHidBasicInputReport *>(report_buffer);
         basic_report->report_id          = SwitchHidReportId::BasicInputReport;
         basic_report->latency_timer      = m_latency_timer++;
@@ -123,7 +129,9 @@ namespace ams::controller {
         return sizeof(SwitchHidBasicInputReport);
     }
 
-    size_t EmulatedSwitchController::FillMcuInputReport(u8 *report_buffer) {
+    size_t EmulatedSwitchController::FillMcuInputReport(u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidMcuInputReport)); AMS_UNUSED(size);
+
         auto mcu_report = reinterpret_cast<SwitchHidMcuInputReport *>(report_buffer);
         mcu_report->report_id          = SwitchHidReportId::McuInputReport;
         mcu_report->latency_timer      = m_latency_timer++;
@@ -140,7 +148,9 @@ namespace ams::controller {
         return sizeof(SwitchHidMcuInputReport);
     }
 
-    size_t EmulatedSwitchController::FillAttachmentInputReport(u8 *report_buffer) {
+    size_t EmulatedSwitchController::FillAttachmentInputReport(u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidAttachmentInputReport)); AMS_UNUSED(size);
+
         auto attachment_report = reinterpret_cast<SwitchHidAttachmentInputReport *>(report_buffer);
         attachment_report->report_id          = SwitchHidReportId::AttachmentInputReport;
         attachment_report->latency_timer      = m_latency_timer++;
@@ -157,7 +167,9 @@ namespace ams::controller {
         return sizeof(SwitchHidAttachmentInputReport);
     }
 
-    size_t EmulatedSwitchController::FillGenericInputReport(u8 *report_buffer) {
+    size_t EmulatedSwitchController::FillGenericInputReport(u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidGenericInputReport)); AMS_UNUSED(size);
+
         auto generic_report = reinterpret_cast<SwitchHidGenericInputReport *>(report_buffer);
         generic_report->report_id = SwitchHidReportId::GenericInputReport;
 
@@ -166,7 +178,9 @@ namespace ams::controller {
         return sizeof(SwitchHidGenericInputReport);
     }
 
-    size_t EmulatedSwitchController::FillExtGripInputReport(u8 *report_buffer) {
+    size_t EmulatedSwitchController::FillExtGripInputReport(u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchExtGripInputReport)); AMS_UNUSED(size);
+
         auto ext_grip_report = reinterpret_cast<SwitchExtGripInputReport *>(report_buffer);
         ext_grip_report->report_id = SwitchHidReportId::ExtGripInputReport;
 
@@ -175,84 +189,102 @@ namespace ams::controller {
         return sizeof(SwitchExtGripInputReport);
     }
 
-    Result EmulatedSwitchController::HandleOutputDataReport(const bluetooth::HidReport *report) {
-        auto report_id = static_cast<SwitchHidReportId>(report->data[0]);
+    Result EmulatedSwitchController::HandleOutputDataReport(const u8 *report_buffer, size_t size) {
+        auto report_id = static_cast<SwitchHidReportId>(report_buffer[0]);
 
         switch (report_id) {
             case SwitchHidReportId::CommandOutputReport:
-                R_RETURN(this->HandleCommandOutputReport(report->data));
+                R_RETURN(this->HandleCommandOutputReport(report_buffer, size));
 
             case SwitchHidReportId::McuUpdateOutputReport:
-                R_RETURN(this->HandleMcuUpdateOutputReport(report->data));
+                R_RETURN(this->HandleMcuUpdateOutputReport(report_buffer, size));
 
             case SwitchHidReportId::BasicOutputReport:
-                R_RETURN(this->HandleBasicOutputReport(report->data));
+                R_RETURN(this->HandleBasicOutputReport(report_buffer, size));
 
             case SwitchHidReportId::McuOutputReport:
-                R_RETURN(this->HandleMcuOutputReport(report->data));
+                R_RETURN(this->HandleMcuOutputReport(report_buffer, size));
 
             case SwitchHidReportId::AttachmentOutputReport:
-                R_RETURN(this->HandleAttachmentOutputReport(report->data));
+                R_RETURN(this->HandleAttachmentOutputReport(report_buffer, size));
 
             case SwitchHidReportId::ExtGripOutputReport:
-                R_RETURN(this->HandleExtGripOutputReport(report->data));
+                R_RETURN(this->HandleExtGripOutputReport(report_buffer, size));
 
             AMS_UNREACHABLE_DEFAULT_CASE();
         }
     }
 
-    Result EmulatedSwitchController::HandleCommandOutputReport(const u8 *report_buffer) {
+    Result EmulatedSwitchController::HandleCommandOutputReport(const u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidCommandOutputReport)); AMS_UNUSED(size);
+
         auto command_report = reinterpret_cast<const SwitchHidCommandOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&command_report->motor_data));
         m_hid_command_processor.ProcessCommand(&command_report->command);
 
-        m_input_report.size = this->FillCommandInputReport(m_input_report.data);
+        m_input_report.size = this->FillCommandInputReport(m_input_report.data, sizeof(m_input_report.data));
         R_TRY(this->BufferDataReport(&m_input_report));
+
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleMcuUpdateOutputReport(const u8 *report_buffer) {
+    Result EmulatedSwitchController::HandleMcuUpdateOutputReport(const u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidMcuUpdateOutputReport)); AMS_UNUSED(size);
+
         auto mcu_update_report = reinterpret_cast<const SwitchHidMcuUpdateOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&mcu_update_report->motor_data));
         // Todo: process mcu update data
 
-        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data);
+        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
         R_TRY(this->BufferDataReport(&m_input_report));
+
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleBasicOutputReport(const u8 *report_buffer) {
+    Result EmulatedSwitchController::HandleBasicOutputReport(const u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidBasicOutputReport)); AMS_UNUSED(size);
+
         auto basic_report = reinterpret_cast<const SwitchHidBasicOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&basic_report->motor_data));
+
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleMcuOutputReport(const u8 *report_buffer) {
+    Result EmulatedSwitchController::HandleMcuOutputReport(const u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidMcuOutputReport)); AMS_UNUSED(size);
+
         auto mcu_report = reinterpret_cast<const SwitchHidMcuOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&mcu_report->motor_data));
         // m_mcu_command_processor.ProcessCommand(command);
 
-        m_input_report.size = this->FillMcuInputReport(m_input_report.data);
+        m_input_report.size = this->FillMcuInputReport(m_input_report.data, sizeof(m_input_report.data));
         R_TRY(this->BufferDataReport(&m_input_report));
+
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleAttachmentOutputReport(const u8 *report_buffer) {
+    Result EmulatedSwitchController::HandleAttachmentOutputReport(const u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchHidAttachmentOutputReport)); AMS_UNUSED(size);
+
         auto attachment_report = reinterpret_cast<const SwitchHidAttachmentOutputReport *>(report_buffer);
         R_TRY(this->HandleMotorData(&attachment_report->motor_data));
         // Todo: process attachment data
 
-        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data);
+        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
         R_TRY(this->BufferDataReport(&m_input_report));
+
         R_SUCCEED();
     }
 
-    Result EmulatedSwitchController::HandleExtGripOutputReport(const u8 *report_buffer) {
+    Result EmulatedSwitchController::HandleExtGripOutputReport(const u8 *report_buffer, size_t size) {
+        AMS_ASSERT(size >= sizeof(SwitchExtGripOutputReport)); AMS_UNUSED(size);
+
         auto ext_grip_report = reinterpret_cast<const SwitchExtGripOutputReport *>(report_buffer);
         m_ext_grip_command_processor.ProcessCommand(&ext_grip_report->command);
 
-        m_input_report.size = this->FillExtGripInputReport(m_input_report.data);
+        m_input_report.size = this->FillExtGripInputReport(m_input_report.data, sizeof(m_input_report.data));
         R_TRY(this->BufferDataReport(&m_input_report));
+
         R_SUCCEED();
     }
 
