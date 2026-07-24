@@ -253,7 +253,7 @@ namespace ams::controller {
         u8 device_type;
         u8 unk;
         bluetooth::Address address;
-        SwitchImuSensorType sensor_type;
+        u8 sensor_type;
         u8 format_version;
     } PACKED;
 

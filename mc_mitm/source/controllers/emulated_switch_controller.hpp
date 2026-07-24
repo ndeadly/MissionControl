@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "switch_controller.hpp"
+#include "switch_device_info.hpp"
 #include "switch_sixaxis_processor.hpp"
 #include "switch_vibration_processor.hpp"
 #include "switch_hid_command_processor.hpp"
@@ -23,11 +24,6 @@
 #include "switch_virtual_controller_memory.hpp"
 
 namespace ams::controller {
-
-    constexpr u8 FullKeyBtFirmwareVersionMajor  = 0x04;
-    constexpr u8 FullKeyBtFirmwareVersionMinor  = 0x21;
-    constexpr u8 FullKeyMcuFirmwareVersionMajor = 0x03;
-    constexpr u8 FullKeyMcuFirmwareVersionMinor = 0x05;
 
     class EmulatedSwitchController : public SwitchController {
         friend class SwitchVibrationProcessor;
@@ -39,10 +35,11 @@ namespace ams::controller {
             EmulatedSwitchController(bluetooth::Address address, HardwareID id);
             virtual ~EmulatedSwitchController() { };
 
-            virtual Result Initialize();
+        public:
+            virtual Result Initialize() override;
             virtual bool IsOfficialController() override { return false; }
 
-            Result HandleOutputDataReport(const u8 *report_buffer, size_t size) override;
+            virtual Result HandleOutputDataReport(const u8 *report_buffer, size_t size) override;
 
         protected:
             void Reset();
@@ -71,6 +68,8 @@ namespace ams::controller {
             Result HandleExtGripOutputReport(const u8 *report_buffer, size_t size);
 
         protected:
+            SwitchDeviceInfo m_device_info;
+
             u8 m_latency_timer;
             SwitchPowerInfo m_power_info;
             SwitchPlayerIndicator m_player_indicator;

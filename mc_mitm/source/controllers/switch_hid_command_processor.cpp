@@ -60,7 +60,7 @@ namespace ams::controller {
         switch (command->pairing.stage) {
             case 0x01:
                 response->pairing.stage = 0x01;
-                std::strcpy(response->pairing.stage1.name, "Pro Controller");
+                std::strcpy(response->pairing.stage1.name, m_controller->m_device_info.device_name);
                 response->pairing.stage1.address = utils::BluetoothAddressReverse(m_controller->m_address);
                 response->pairing.stage1.device_class = { 0x00, 0x25, 0x08 };
                 response->pairing.stage1.services = 0x68;
@@ -82,16 +82,18 @@ namespace ams::controller {
     void SwitchHidCommandProcessor::ProcessGetDeviceInfo(const SwitchHidCommand *command, SwitchHidCommandResponse *response) {
         AMS_UNUSED(command);
 
+        auto device_info = &m_controller->m_device_info;
+
         response->response_id = SwitchHidCommandId::DeviceInfo;
         response->request_id  = SwitchHidCommandId::GetDeviceInfo;
         response->get_device_info = {
-            .firmware_version_major = FullKeyBtFirmwareVersionMajor,
-            .firmware_version_minor = FullKeyBtFirmwareVersionMinor,
-            .device_type = HidDeviceType_FullKey6, // HidDeviceType_FullKey3,
-            .unk = 0x02,
-            .address = m_controller->m_address,
-            .sensor_type = SwitchImuSensorType::LSM6DS3H,
-            .format_version = 0x02
+            .firmware_version_major = device_info->bt_firmware.major,
+            .firmware_version_minor = device_info->bt_firmware.minor,
+            .device_type            = device_info->device_type,
+            .unk                    = device_info->unk,
+            .address                = m_controller->m_address,
+            .sensor_type            = device_info->sensor_type,
+            .format_version         = device_info->format_version
         };
     }
 
@@ -223,12 +225,14 @@ namespace ams::controller {
 
         m_controller->m_mcu_command_processor.McuWrite();
 
+        auto device_info = &m_controller->m_device_info;
+
         response->response_id = SwitchHidCommandId::McuData;
         response->request_id  = SwitchHidCommandId::McuWrite;
         response->mcu_write = {
-            .data = { 0x01, 0x00, 0xff, 0x00, 0x03, 0x00, 0x05, 0x01 }
+            .data = { 0x01, 0x00, 0xff, 0x00, device_info->mcu_firmware.major, 0x00, device_info->mcu_firmware.minor, 0x01 }
         };
-        response->mcu_write.crc = 0x5C;
+        response->mcu_write.crc = utils::Crc8<7>::Calculate(response->mcu_write.data, 0x21);
     }
 
     void SwitchHidCommandProcessor::ProcessMcuResume(const SwitchHidCommand *command, SwitchHidCommandResponse *response) {

@@ -42,8 +42,8 @@ namespace ams::controller {
     void SwitchExtGripCommandProcessor::ProcessInquiry(SwitchExtGripCommandResponse *response) {
         response->command_id = SwitchExtGripCommandId::Inquiry;
         response->inquiry = {
-            .device_type = HidDeviceType_FullKey6, // HidDeviceType_FullKey3,
-            .address = m_controller->m_address
+            .device_type = m_controller->m_device_info.device_type,
+            .address     = m_controller->m_address
         };
     }
 

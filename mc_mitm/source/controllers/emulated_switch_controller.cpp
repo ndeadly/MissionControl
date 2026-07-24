@@ -19,6 +19,7 @@
 namespace ams::controller {
 
     EmulatedSwitchController::EmulatedSwitchController(bluetooth::Address address, HardwareID id) : SwitchController(address, id)
+    , m_device_info(SwitchDevices::ProController)
     , m_latency_timer(0)
     , m_input_report_mode(SwitchHidReportId::BasicInputReport)
     , m_vibration_processor(this)
