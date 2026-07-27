@@ -93,8 +93,17 @@ namespace ams::controller {
         // Request motion calibration data from DualSense
         R_TRY(this->GetCalibrationData(&m_motion_calibration));
 
+        m_feature_flags0 = 0x03;
+        m_feature_flags1 = 0x54;
+
         auto config = mitm::GetGlobalConfig();
         m_lightbar_brightness = config->misc.dualsense_lightbar_brightness;
+        m_rumble_intensity    = 0x08 - config->misc.dualsense_vibration_intensity; // User setting is inverse of how the controller sets intensity
+        if (config->misc.dualsense_adaptive_trigger_travel > 0) {
+            m_feature_flags0 = 0x0F;
+            m_adaptive_trigger_travel = static_cast<u8>(UINT8_MAX * config->misc.dualsense_adaptive_trigger_travel / 100.0f);
+            m_trigger_threshold       = (config->misc.analog_trigger_activation_threshold / 100.0f) * (config->misc.dualsense_adaptive_trigger_travel / 100.0f);
+        }
 
         R_SUCCEED();
     }
@@ -281,18 +290,22 @@ namespace ams::controller {
     }
 
     Result DualsenseController::PushRumbleLedState() {
-        auto config = mitm::GetGlobalConfig();
-
         std::scoped_lock lk(m_output_mutex);
 
         DualsenseReportData report = {};
         report.id = 0x31;
-        report.output0x31.data[0] = 0x02;
-        report.output0x31.data[1] = 0x03;
-        report.output0x31.data[2] = 0x54;
-        report.output0x31.data[3] = m_rumble_state.amp_motor_right;
-        report.output0x31.data[4] = m_rumble_state.amp_motor_left;
-        report.output0x31.data[37] = 0x08 - config->misc.dualsense_vibration_intensity;  // User setting is inverse of how the controller sets intensity
+        report.output0x31.data[0]  = 0x02;
+        report.output0x31.data[1]  = m_feature_flags0;
+        report.output0x31.data[2]  = m_feature_flags1;
+        report.output0x31.data[3]  = m_rumble_state.amp_motor_right;
+        report.output0x31.data[4]  = m_rumble_state.amp_motor_left;
+        report.output0x31.data[11] = 0x01;
+        report.output0x31.data[12] = m_adaptive_trigger_travel;
+        report.output0x31.data[13] = 0xFF;
+        report.output0x31.data[22] = 0x01;
+        report.output0x31.data[23] = m_adaptive_trigger_travel;
+        report.output0x31.data[24] = 0xFF;
+        report.output0x31.data[37] = m_rumble_intensity;
         report.output0x31.data[39] = 0x02 | 0x01;
         report.output0x31.data[42] = 0x02;
         report.output0x31.data[43] = 0x02;

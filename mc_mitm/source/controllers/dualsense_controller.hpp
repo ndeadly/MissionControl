@@ -187,9 +187,14 @@ namespace ams::controller {
             Result GetCalibrationData(DualsenseImuCalibrationData *calibration);
             Result PushRumbleLedState();
 
+            u8 m_feature_flags0;
+            u8 m_feature_flags1;
             u8 m_led_flags;
             RGBColour m_lightbar_colour;
             u8 m_lightbar_brightness;
+            u8 m_rumble_intensity;
+            u8 m_adaptive_trigger_travel;
+
             DualsenseRumbleData m_rumble_state;
 
             DualsenseVersionInfo m_version_info;
