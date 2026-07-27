@@ -109,14 +109,15 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    void Dualshock4Controller::ProcessInputData(const bluetooth::HidReport *report) {
-        auto ds4_report = reinterpret_cast<const Dualshock4ReportData *>(&report->data);
+    void Dualshock4Controller::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const Dualshock4ReportData *>(report_buffer);
 
-        switch(ds4_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(ds4_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x11:
-                this->MapInputReport0x11(ds4_report); break;
+                this->MapInputReport0x11(report); break;
             default:
                 break;
         }

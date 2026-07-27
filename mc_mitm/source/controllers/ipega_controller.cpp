@@ -24,14 +24,15 @@ namespace ams::controller {
 
     }
 
-    void IpegaController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto ipega_report = reinterpret_cast<const IpegaReportData *>(&report->data);
+    void IpegaController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const IpegaReportData *>(report_buffer);
 
-        switch(ipega_report->id) {
+        switch(report->id) {
             case 0x02:
-                this->MapInputReport0x02(ipega_report); break;
+                this->MapInputReport0x02(report); break;
             case 0x07:
-                this->MapInputReport0x07(ipega_report); break;
+                this->MapInputReport0x07(report); break;
             default:
                 break;
         }

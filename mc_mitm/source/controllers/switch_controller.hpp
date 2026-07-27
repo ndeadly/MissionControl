@@ -46,7 +46,7 @@ namespace ams::controller {
 
             const bluetooth::Address& Address() const { return m_address; }
 
-            virtual bool IsOfficialController() { return true; }
+            virtual constexpr bool IsOfficialController() const { return true; }
 
             virtual Result Initialize();
 
@@ -62,7 +62,7 @@ namespace ams::controller {
             Result SetReport(BtdrvBluetoothHhReportType type, const bluetooth::HidReport *report);
             Result GetReport(u8 id, BtdrvBluetoothHhReportType type, bluetooth::HidReport *out_report);
 
-            virtual void UpdateControllerState(const bluetooth::HidReport *report);
+            virtual void UpdateControllerState(const u8 *report_buffer, size_t size);
             virtual void ApplyButtonCombos(SwitchButtons *buttons);
 
             bluetooth::Address m_address;

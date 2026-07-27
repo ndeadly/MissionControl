@@ -154,14 +154,15 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    void DualsenseController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto dualsense_report = reinterpret_cast<const DualsenseReportData *>(&report->data);
+    void DualsenseController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const DualsenseReportData *>(report_buffer);
 
-        switch(dualsense_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(dualsense_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x31:
-                this->MapInputReport0x31(dualsense_report); break;
+                this->MapInputReport0x31(report); break;
             default:
                 break;
         }

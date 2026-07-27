@@ -24,14 +24,15 @@ namespace ams::controller {
 
     }
 
-    void OuyaController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto ouya_report = reinterpret_cast<const OuyaReportData *>(&report->data);
+    void OuyaController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const OuyaReportData *>(report_buffer);
 
-        switch(ouya_report->id) {
+        switch(report->id) {
             case 0x03:
-                this->MapInputReport0x03(ouya_report); break;
+                this->MapInputReport0x03(report); break;
             case 0x07:
-                this->MapInputReport0x07(ouya_report); break;
+                this->MapInputReport0x07(report); break;
             default:
                 break;
         }

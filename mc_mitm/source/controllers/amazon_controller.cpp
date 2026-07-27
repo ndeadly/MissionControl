@@ -24,14 +24,15 @@ namespace ams::controller {
 
     }
 
-    void AmazonController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto amazon_report = reinterpret_cast<const AmazonReportData *>(&report->data);
+    void AmazonController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const AmazonReportData *>(report_buffer);
 
-        switch(amazon_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(amazon_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x02:
-                this->MapInputReport0x02(amazon_report); break;
+                this->MapInputReport0x02(report); break;
             default:
                 break;
         }

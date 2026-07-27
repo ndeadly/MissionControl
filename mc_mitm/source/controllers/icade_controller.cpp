@@ -18,13 +18,14 @@
 
 namespace ams::controller {
 
-    void ICadeController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto icade_report = reinterpret_cast<const ICadeReportData *>(&report->data);
+    void ICadeController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const ICadeReportData *>(report_buffer);
 
         SwitchButtons button_state = m_buttons;
-        if (icade_report->id == 0x01) {
-            for (unsigned int i = 0; i < sizeof(icade_report->input0x01.keys); ++i) {
-                switch (icade_report->input0x01.keys[i]) {
+        if (report->id == 0x01) {
+            for (unsigned int i = 0; i < sizeof(report->input0x01.keys); ++i) {
+                switch (report->input0x01.keys[i]) {
                     case 0x1a: button_state.Set(SwitchButton::Up);      break; // w (joystick up pressed)
                     case 0x08: button_state.Clear(SwitchButton::Up);    break; // e (joystick up released)
                     case 0x07: button_state.Set(SwitchButton::Right);   break; // d (joystick right pressed)

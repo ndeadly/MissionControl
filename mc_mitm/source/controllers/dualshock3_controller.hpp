@@ -109,7 +109,7 @@ namespace ams::controller {
             Result CancelVibration();
             Result SetPlayerLed(u8 led_mask);
 
-            void ProcessInputData(const bluetooth::HidReport *report) override;
+            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 
         private:
             void MapInputReport0x01(const Dualshock3ReportData *src);

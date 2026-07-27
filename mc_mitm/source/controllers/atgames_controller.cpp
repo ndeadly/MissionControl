@@ -24,12 +24,13 @@ namespace ams::controller {
 
     }
 
-    void AtGamesController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto atgames_report = reinterpret_cast<const AtGamesReportData *>(&report->data);
+    void AtGamesController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const AtGamesReportData *>(report_buffer);
 
-        switch(atgames_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(atgames_report); break;
+                this->MapInputReport0x01(report); break;
             default:
                 break;
         }

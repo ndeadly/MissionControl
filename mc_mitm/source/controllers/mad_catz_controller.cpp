@@ -25,20 +25,21 @@ namespace ams::controller {
 
     }
 
-    void MadCatzController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto madcatz_report = reinterpret_cast<const MadCatzReportData *>(&report->data);
+    void MadCatzController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const MadCatzReportData *>(report_buffer);
 
-        switch(madcatz_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(madcatz_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x02:
-                this->MapInputReport0x02(madcatz_report); break;
+                this->MapInputReport0x02(report); break;
             case 0x81:
-                this->MapInputReport0x81(madcatz_report); break;
+                this->MapInputReport0x81(report); break;
             case 0x82:
-                this->MapInputReport0x82(madcatz_report); break;
+                this->MapInputReport0x82(report); break;
             case 0x83:
-                this->MapInputReport0x83(madcatz_report); break;
+                this->MapInputReport0x83(report); break;
             default:
                 break;
         }

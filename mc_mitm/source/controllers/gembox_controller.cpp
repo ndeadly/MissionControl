@@ -24,14 +24,15 @@ namespace ams::controller {
 
     }
 
-    void GemboxController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto gembox_report = reinterpret_cast<const GemboxReportData *>(&report->data);
+    void GemboxController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const GemboxReportData *>(report_buffer);
 
-        switch(gembox_report->id) {
+        switch(report->id) {
             case 0x02:
-                this->MapInputReport0x02(gembox_report); break;
+                this->MapInputReport0x02(report); break;
             case 0x07:
-                this->MapInputReport0x07(gembox_report); break;
+                this->MapInputReport0x07(report); break;
             default:
                 break;
         }

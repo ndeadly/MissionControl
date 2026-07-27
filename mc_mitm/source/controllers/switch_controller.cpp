@@ -81,7 +81,7 @@ namespace ams::controller {
 
         std::scoped_lock lk(m_input_mutex);
 
-        this->UpdateControllerState(report);
+        this->UpdateControllerState(report->data, report->size);
 
         auto report_id = static_cast<SwitchHidReportId>(report->data[0]);
 
@@ -240,9 +240,9 @@ namespace ams::controller {
         return result;
     }
 
-    void SwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
-        m_input_report.size = report->size;
-        std::memcpy(m_input_report.data, report->data, report->size);
+    void SwitchController::UpdateControllerState(const u8 *report_buffer, size_t size) {
+        m_input_report.size = size;
+        std::memcpy(m_input_report.data, report_buffer, size);
     }
 
     void SwitchController::ApplyButtonCombos(SwitchButtons *buttons) {

@@ -167,7 +167,7 @@ namespace ams::controller {
                     m_controller_type = EightBitDoControllerType_Other;
             }
 
-            void ProcessInputData(const bluetooth::HidReport *report) override;
+            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 
         private:
             void MapInputReport0x01(const EightBitDoReportData *src);

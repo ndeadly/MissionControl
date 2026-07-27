@@ -37,9 +37,10 @@ namespace ams::controller {
 
         public:
             virtual Result Initialize() override;
-            virtual bool IsOfficialController() override { return false; }
+            virtual constexpr bool IsOfficialController() const override { return false; }
 
             virtual Result HandleOutputDataReport(const u8 *report_buffer, size_t size) override;
+            virtual Result InjectInputReport(const u8 *report_buffer, size_t size);
 
         protected:
             void Reset();
@@ -47,10 +48,8 @@ namespace ams::controller {
             virtual Result CancelVibration() { R_SUCCEED(); }
             virtual Result SetPlayerLed(u8 led_mask) { AMS_UNUSED(led_mask); R_SUCCEED(); }
 
-            Result BufferDataReport(const bluetooth::HidReport *report);
-
-            void UpdateControllerState(const bluetooth::HidReport *report) override;
-            virtual void ProcessInputData(const bluetooth::HidReport *report) { AMS_UNUSED(report); }
+            virtual void UpdateControllerState(const u8 *report_buffer, size_t size) override;
+            virtual void ProcessInputData(const u8 *report_buffer, size_t size) { AMS_UNUSED(report_buffer, size); }
 
             size_t FillCommandInputReport(u8 *report_buffer, size_t size);
             size_t FillMcuUpdateInputReport(u8 *report_buffer, size_t size);

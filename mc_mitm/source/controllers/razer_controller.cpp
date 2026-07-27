@@ -24,12 +24,13 @@ namespace ams::controller {
 
     }
 
-    void RazerController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto razer_report = reinterpret_cast<const RazerReportData *>(&report->data);
+    void RazerController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const RazerReportData *>(report_buffer);
 
-        switch(razer_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(razer_report); break;
+                this->MapInputReport0x01(report); break;
             default:
                 break;
         }

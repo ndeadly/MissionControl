@@ -24,14 +24,15 @@ namespace ams::controller {
 
     }
 
-    void NvidiaShieldController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto nvidia_report = reinterpret_cast<const NvidiaShieldReportData *>(&report->data);
+    void NvidiaShieldController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const NvidiaShieldReportData *>(report_buffer);
 
-        switch(nvidia_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(nvidia_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x03:
-                this->MapInputReport0x03(nvidia_report); break;
+                this->MapInputReport0x03(report); break;
             default:
                 break;
         }

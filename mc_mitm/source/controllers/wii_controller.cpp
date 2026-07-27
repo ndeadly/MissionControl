@@ -68,30 +68,31 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    void WiiController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto wii_report = reinterpret_cast<const WiiReportData *>(&report->data);
+    void WiiController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const WiiReportData *>(report_buffer);
 
-        switch(wii_report->id) {
+        switch(report->id) {
             case 0x20:
-                this->MapInputReport0x20(wii_report);
-                this->HandleStatusReport(wii_report);
+                this->MapInputReport0x20(report);
+                this->HandleStatusReport(report);
                 break;
             case 0x21:
-                this->MapInputReport0x21(wii_report); break;
+                this->MapInputReport0x21(report); break;
             case 0x22:
-                this->MapInputReport0x22(wii_report); break;
+                this->MapInputReport0x22(report); break;
             case 0x30:
-                this->MapInputReport0x30(wii_report); break;
+                this->MapInputReport0x30(report); break;
             case 0x31:
-                this->MapInputReport0x31(wii_report); break;
+                this->MapInputReport0x31(report); break;
             case 0x32:
-                this->MapInputReport0x32(wii_report); break;
+                this->MapInputReport0x32(report); break;
             case 0x34:
-                this->MapInputReport0x34(wii_report); break;
+                this->MapInputReport0x34(report); break;
             case 0x35:
-                this->MapInputReport0x35(wii_report); break;
-            case 0x3d:
-                this->MapInputReport0x3d(wii_report); break;
+                this->MapInputReport0x35(report); break;
+            case 0x3D:
+                this->MapInputReport0x3D(report); break;
             default:
                 break;
         }
@@ -147,8 +148,8 @@ namespace ams::controller {
         this->MapExtensionBytes(src->input0x35.extension);
     }
 
-    void WiiController::MapInputReport0x3d(const WiiReportData *src) {
-        this->MapExtensionBytes(src->input0x3d.extension);
+    void WiiController::MapInputReport0x3D(const WiiReportData *src) {
+        this->MapExtensionBytes(src->input0x3D.extension);
     }
 
     void WiiController::MapCoreButtons(const WiiButtonData *buttons) {

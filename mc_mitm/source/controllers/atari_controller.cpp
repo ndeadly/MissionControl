@@ -24,14 +24,15 @@ namespace ams::controller {
 
     }
 
-    void AtariController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto atari_report = reinterpret_cast<const AtariReportData *>(&report->data);
+    void AtariController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const AtariReportData *>(report_buffer);
 
-        switch(atari_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(atari_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x02:
-                this->MapInputReport0x02(atari_report); break;
+                this->MapInputReport0x02(report); break;
             default:
                 break;
         }

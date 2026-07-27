@@ -232,12 +232,13 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    void Dualshock3Controller::ProcessInputData(const bluetooth::HidReport *report) {
-        auto ds3_report = reinterpret_cast<const Dualshock3ReportData *>(&report->data);
+    void Dualshock3Controller::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const Dualshock3ReportData *>(report_buffer);
 
-        switch(ds3_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(ds3_report); break;
+                this->MapInputReport0x01(report); break;
             default:
                 break;
         }

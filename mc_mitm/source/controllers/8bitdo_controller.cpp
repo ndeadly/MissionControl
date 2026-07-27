@@ -26,14 +26,14 @@ namespace ams::controller {
 
     }
 
-    void EightBitDoController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto eightbitdo_report = reinterpret_cast<const EightBitDoReportData *>(&report->data);
+    void EightBitDoController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        auto report = reinterpret_cast<const EightBitDoReportData *>(report_buffer);
 
-        switch(eightbitdo_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(eightbitdo_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x03:
-                this->MapInputReport0x03(eightbitdo_report, report->size == 11 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_ZeroV2); break;
+                this->MapInputReport0x03(report, size == 11 ? EightBitDoReportFormat_ZeroV1 : EightBitDoReportFormat_ZeroV2); break;
             default:
                 break;
         }

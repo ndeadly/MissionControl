@@ -33,22 +33,23 @@ namespace ams::controller {
         }
     }
 
-    void MocuteController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto mocute_report = reinterpret_cast<const MocuteReportData *>(&report->data);
+    void MocuteController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const MocuteReportData *>(report_buffer);
 
         if (m_variant == MocuteControllerVariant_050) {
-            switch(mocute_report->id) {
+            switch(report->id) {
                 case 0x01:
                 case 0x04:
                 case 0x06:
-                    this->MapInputReport0x01(mocute_report); break;
+                    this->MapInputReport0x01(report); break;
                 default:
                     break;
             }
         } else {
-            switch(mocute_report->id) {
+            switch(report->id) {
                 case 0x04:
-                    this->MapInputReport0x04(mocute_report); break;
+                    this->MapInputReport0x04(report); break;
                 default:
                     break;
             }

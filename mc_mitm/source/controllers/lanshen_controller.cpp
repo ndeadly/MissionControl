@@ -18,12 +18,13 @@
 
 namespace ams::controller {
 
-    void LanShenController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto LanShen_report = reinterpret_cast<const LanShenReportData *>(&report->data);
+    void LanShenController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const LanShenReportData *>(report_buffer);
 
-        switch(LanShen_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(LanShen_report); break;
+                this->MapInputReport0x01(report); break;
             default:
                 break;
         }

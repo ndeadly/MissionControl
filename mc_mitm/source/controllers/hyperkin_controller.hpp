@@ -46,7 +46,7 @@ namespace ams::controller {
         u8 dpad;
     } PACKED;
 
-    struct HyperkinInputReport0x3f{
+    struct HyperkinInputReport0x3F{
         HyperkinButtonData buttons;
         AnalogStick<u16> left_stick;
         AnalogStick<u16> right_stick;
@@ -56,7 +56,7 @@ namespace ams::controller {
     struct HyperkinReportData{
         u8 id;
         union {
-            HyperkinInputReport0x3f input0x3f;
+            HyperkinInputReport0x3F input0x3F;
         };
     } PACKED;
 
@@ -69,10 +69,10 @@ namespace ams::controller {
 
             HyperkinController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
-            void ProcessInputData(const bluetooth::HidReport *report) override;
+            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 
         private:
-            void MapInputReport0x3f(const HyperkinReportData *src);
+            void MapInputReport0x3F(const HyperkinReportData *src);
 
     };
 

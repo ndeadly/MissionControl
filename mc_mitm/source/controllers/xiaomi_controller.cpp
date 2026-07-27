@@ -38,12 +38,13 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    void XiaomiController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto xiaomi_report = reinterpret_cast<const XiaomiReportData *>(&report->data);
+    void XiaomiController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const XiaomiReportData *>(report_buffer);
 
-        switch(xiaomi_report->id) {
+        switch(report->id) {
             case 0x04:
-                this->MapInputReport0x04(xiaomi_report); break;
+                this->MapInputReport0x04(report); break;
             default:
                 break;
         }

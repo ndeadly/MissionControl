@@ -18,31 +18,32 @@
 
 namespace ams::controller {
 
-    void HyperkinController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto hyperkin_report = reinterpret_cast<const HyperkinReportData *>(&report->data);
+    void HyperkinController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const HyperkinReportData *>(report_buffer);
 
-        switch(hyperkin_report->id) {
-            case 0x3f:
-                this->MapInputReport0x3f(hyperkin_report); break;
+        switch(report->id) {
+            case 0x3F:
+                this->MapInputReport0x3F(report); break;
             default:
                 break;
         }
     }
 
-    void HyperkinController::MapInputReport0x3f(const HyperkinReportData *src) {
+    void HyperkinController::MapInputReport0x3F(const HyperkinReportData *src) {
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,  (src->input0x3f.buttons.dpad == HyperkinDPad_S) || (src->input0x3f.buttons.dpad == HyperkinDPad_SE) || (src->input0x3f.buttons.dpad == HyperkinDPad_SW));
-        button_state.Assign(SwitchButton::Up,    (src->input0x3f.buttons.dpad == HyperkinDPad_N) || (src->input0x3f.buttons.dpad == HyperkinDPad_NE) || (src->input0x3f.buttons.dpad == HyperkinDPad_NW));
-        button_state.Assign(SwitchButton::Right, (src->input0x3f.buttons.dpad == HyperkinDPad_E) || (src->input0x3f.buttons.dpad == HyperkinDPad_NE) || (src->input0x3f.buttons.dpad == HyperkinDPad_SE));
-        button_state.Assign(SwitchButton::Left,  (src->input0x3f.buttons.dpad == HyperkinDPad_W) || (src->input0x3f.buttons.dpad == HyperkinDPad_NW) || (src->input0x3f.buttons.dpad == HyperkinDPad_SW));
-        button_state.Assign(SwitchButton::A,     src->input0x3f.buttons.A);
-        button_state.Assign(SwitchButton::B,     src->input0x3f.buttons.B);
-        button_state.Assign(SwitchButton::X,     src->input0x3f.buttons.X);
-        button_state.Assign(SwitchButton::Y,     src->input0x3f.buttons.Y);
-        button_state.Assign(SwitchButton::L,     src->input0x3f.buttons.L);
-        button_state.Assign(SwitchButton::R,     src->input0x3f.buttons.R);
-        button_state.Assign(SwitchButton::Minus, src->input0x3f.buttons.select);
-        button_state.Assign(SwitchButton::Plus,  src->input0x3f.buttons.start);
+        button_state.Assign(SwitchButton::Down,  (src->input0x3F.buttons.dpad == HyperkinDPad_S) || (src->input0x3F.buttons.dpad == HyperkinDPad_SE) || (src->input0x3F.buttons.dpad == HyperkinDPad_SW));
+        button_state.Assign(SwitchButton::Up,    (src->input0x3F.buttons.dpad == HyperkinDPad_N) || (src->input0x3F.buttons.dpad == HyperkinDPad_NE) || (src->input0x3F.buttons.dpad == HyperkinDPad_NW));
+        button_state.Assign(SwitchButton::Right, (src->input0x3F.buttons.dpad == HyperkinDPad_E) || (src->input0x3F.buttons.dpad == HyperkinDPad_NE) || (src->input0x3F.buttons.dpad == HyperkinDPad_SE));
+        button_state.Assign(SwitchButton::Left,  (src->input0x3F.buttons.dpad == HyperkinDPad_W) || (src->input0x3F.buttons.dpad == HyperkinDPad_NW) || (src->input0x3F.buttons.dpad == HyperkinDPad_SW));
+        button_state.Assign(SwitchButton::A,     src->input0x3F.buttons.A);
+        button_state.Assign(SwitchButton::B,     src->input0x3F.buttons.B);
+        button_state.Assign(SwitchButton::X,     src->input0x3F.buttons.X);
+        button_state.Assign(SwitchButton::Y,     src->input0x3F.buttons.Y);
+        button_state.Assign(SwitchButton::L,     src->input0x3F.buttons.L);
+        button_state.Assign(SwitchButton::R,     src->input0x3F.buttons.R);
+        button_state.Assign(SwitchButton::Minus, src->input0x3F.buttons.select);
+        button_state.Assign(SwitchButton::Plus,  src->input0x3F.buttons.start);
         m_buttons = button_state;
     }
 

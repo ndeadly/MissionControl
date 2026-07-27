@@ -18,14 +18,15 @@
 
 namespace ams::controller {
 
-    void GamestickController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto gamestick_report = reinterpret_cast<const GamestickReportData *>(&report->data);
+    void GamestickController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const GamestickReportData *>(report_buffer);
 
-        switch(gamestick_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(gamestick_report); break;
+                this->MapInputReport0x01(report); break;
             case 0x03:
-                this->MapInputReport0x03(gamestick_report); break;
+                this->MapInputReport0x03(report); break;
             default:
                 break;
         }

@@ -18,12 +18,13 @@
 
 namespace ams::controller {
 
-    void PowerAController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto powera_report = reinterpret_cast<const PowerAReportData *>(&report->data);
+    void PowerAController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        AMS_UNUSED(size);
+        auto report = reinterpret_cast<const PowerAReportData *>(report_buffer);
 
-        switch(powera_report->id) {
+        switch(report->id) {
             case 0x03:
-                this->MapInputReport0x03(powera_report); break;
+                this->MapInputReport0x03(report); break;
             default:
                 break;
         }

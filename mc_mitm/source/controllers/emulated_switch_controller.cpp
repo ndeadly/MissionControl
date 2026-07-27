@@ -50,12 +50,15 @@ namespace ams::controller {
         m_sixaxis_processor.Reset();
     }
 
-    Result EmulatedSwitchController::BufferDataReport(const bluetooth::HidReport *report) {
-        R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, report));
+    Result EmulatedSwitchController::InjectInputReport(const u8 *report_buffer, size_t size) {
+        bluetooth::HidReport report;
+        report.size = size;
+        std::memcpy(report.data, report_buffer, size);
+        R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &report));
     }
 
-    void EmulatedSwitchController::UpdateControllerState(const bluetooth::HidReport *report) {
-        this->ProcessInputData(report);
+    void EmulatedSwitchController::UpdateControllerState(const u8 *report_buffer, size_t size) {
+        this->ProcessInputData(report_buffer, size);
 
         switch (m_input_report_mode) {
             case SwitchHidReportId::BasicInputReport:
@@ -218,27 +221,29 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleCommandOutputReport(const u8 *report_buffer, size_t size) {
-        AMS_ASSERT(size >= sizeof(SwitchHidCommandOutputReport)); AMS_UNUSED(size);
+        AMS_ASSERT(size >= sizeof(SwitchHidCommandOutputReport));
 
         auto command_report = reinterpret_cast<const SwitchHidCommandOutputReport *>(report_buffer);
         m_vibration_processor.ProcessMotorData(&command_report->motor_data);
         m_hid_command_processor.ProcessCommand(&command_report->command);
 
-        m_input_report.size = this->FillCommandInputReport(m_input_report.data, sizeof(m_input_report.data));
-        R_TRY(this->BufferDataReport(&m_input_report));
+        u8 input_report[sizeof(SwitchHidCommandInputReport)];
+        size = this->FillCommandInputReport(input_report, sizeof(input_report));
+        R_TRY(this->InjectInputReport(input_report, size));
 
         R_SUCCEED();
     }
 
     Result EmulatedSwitchController::HandleMcuUpdateOutputReport(const u8 *report_buffer, size_t size) {
-        AMS_ASSERT(size >= sizeof(SwitchHidMcuUpdateOutputReport)); AMS_UNUSED(size);
+        AMS_ASSERT(size >= sizeof(SwitchHidMcuUpdateOutputReport));
 
         auto mcu_update_report = reinterpret_cast<const SwitchHidMcuUpdateOutputReport *>(report_buffer);
         m_vibration_processor.ProcessMotorData(&mcu_update_report->motor_data);
         // Todo: process mcu update data
 
-        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
-        R_TRY(this->BufferDataReport(&m_input_report));
+        u8 input_report[sizeof(SwitchMcuUpdateInputReport)];
+        size = this->FillAttachmentInputReport(input_report, sizeof(input_report));
+        R_TRY(this->InjectInputReport(input_report, size));
 
         R_SUCCEED();
     }
@@ -253,39 +258,42 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::HandleMcuOutputReport(const u8 *report_buffer, size_t size) {
-        AMS_ASSERT(size >= sizeof(SwitchHidMcuOutputReport)); AMS_UNUSED(size);
+        AMS_ASSERT(size >= sizeof(SwitchHidMcuOutputReport));
 
         auto mcu_report = reinterpret_cast<const SwitchHidMcuOutputReport *>(report_buffer);
         m_vibration_processor.ProcessMotorData(&mcu_report->motor_data);
         // m_mcu_command_processor.ProcessCommand(command);
 
-        m_input_report.size = this->FillMcuInputReport(m_input_report.data, sizeof(m_input_report.data));
-        R_TRY(this->BufferDataReport(&m_input_report));
+        u8 input_report[sizeof(SwitchHidMcuInputReport)];
+        size = this->FillMcuInputReport(input_report, sizeof(input_report));
+        R_TRY(this->InjectInputReport(input_report, size));
 
         R_SUCCEED();
     }
 
     Result EmulatedSwitchController::HandleAttachmentOutputReport(const u8 *report_buffer, size_t size) {
-        AMS_ASSERT(size >= sizeof(SwitchHidAttachmentOutputReport)); AMS_UNUSED(size);
+        AMS_ASSERT(size >= sizeof(SwitchHidAttachmentOutputReport));
 
         auto attachment_report = reinterpret_cast<const SwitchHidAttachmentOutputReport *>(report_buffer);
         m_vibration_processor.ProcessMotorData(&attachment_report->motor_data);
         // Todo: process attachment data
 
-        m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
-        R_TRY(this->BufferDataReport(&m_input_report));
+        u8 input_report[sizeof(SwitchHidAttachmentInputReport)];
+        size = this->FillAttachmentInputReport(input_report, sizeof(input_report));
+        R_TRY(this->InjectInputReport(input_report, size));
 
         R_SUCCEED();
     }
 
     Result EmulatedSwitchController::HandleExtGripOutputReport(const u8 *report_buffer, size_t size) {
-        AMS_ASSERT(size >= sizeof(SwitchExtGripOutputReport)); AMS_UNUSED(size);
+        AMS_ASSERT(size >= sizeof(SwitchExtGripOutputReport));
 
         auto ext_grip_report = reinterpret_cast<const SwitchExtGripOutputReport *>(report_buffer);
         m_ext_grip_command_processor.ProcessCommand(&ext_grip_report->command);
 
-        m_input_report.size = this->FillExtGripInputReport(m_input_report.data, sizeof(m_input_report.data));
-        R_TRY(this->BufferDataReport(&m_input_report));
+        u8 input_report[sizeof(SwitchExtGripInputReport)];
+        size = this->FillExtGripInputReport(input_report, sizeof(input_report));
+        R_TRY(this->InjectInputReport(input_report, size));
 
         R_SUCCEED();
     }

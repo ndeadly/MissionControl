@@ -38,16 +38,16 @@ namespace ams::controller {
         return this->WriteDataReport(m_output_report.data, m_output_report.size);
     }
 
-    void XboxOneController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto xbox_report = reinterpret_cast<const XboxOneReportData *>(&report->data);
+    void XboxOneController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        auto report = reinterpret_cast<const XboxOneReportData *>(report_buffer);
 
-        switch(xbox_report->id) {
+        switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(xbox_report, report->size >= sizeof(XboxOneInputReport0x01) + 1); break;
+                this->MapInputReport0x01(report, size >= sizeof(XboxOneInputReport0x01) + 1); break;
             case 0x02:
-                this->MapInputReport0x02(xbox_report); break;
+                this->MapInputReport0x02(report); break;
             case 0x04:
-                this->MapInputReport0x04(xbox_report); break;
+                this->MapInputReport0x04(report); break;
             default:
                 break;
         }

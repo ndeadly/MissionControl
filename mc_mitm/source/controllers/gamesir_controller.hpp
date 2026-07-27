@@ -90,7 +90,7 @@ namespace ams::controller {
         u8 _unk[2];
     } PACKED;
 
-    struct GamesirReport0xc4 {
+    struct GamesirReport0xC4 {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 left_trigger;
@@ -106,7 +106,7 @@ namespace ams::controller {
             GamesirReport0x03 input0x03;
             GamesirReport0x07 input0x07;
             GamesirReport0x12 input0x12;
-            GamesirReport0xc4 input0xc4;
+            GamesirReport0xC4 input0xC4;
         };
     } PACKED;
 
@@ -124,13 +124,13 @@ namespace ams::controller {
 
             GamesirController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
-            void ProcessInputData(const bluetooth::HidReport *report) override;
+            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 
         private:
             void MapInputReport0x03(const GamesirReportData *src);
             void MapInputReport0x07(const GamesirReportData *src);
             void MapInputReport0x12(const GamesirReportData *src);
-            void MapInputReport0xc4(const GamesirReportData *src);
+            void MapInputReport0xC4(const GamesirReportData *src);
 
     };
 

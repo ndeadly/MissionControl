@@ -438,7 +438,7 @@ namespace ams::controller {
         u8 extension[6];
     } PACKED;
 
-    struct WiiInputReport0x3d {
+    struct WiiInputReport0x3D {
         u8 extension[21];
     } PACKED;
 
@@ -477,7 +477,7 @@ namespace ams::controller {
             WiiInputReport0x35 input0x35;
             WiiInputReport0x36 input0x36;
             WiiInputReport0x37 input0x37;
-            WiiInputReport0x3d input0x3d;
+            WiiInputReport0x3D input0x3D;
             WiiInputReport0x3e input0x3e;
             WiiInputReport0x3f input0x3f;
         };
@@ -504,7 +504,7 @@ namespace ams::controller {
             Result SetVibration(const SwitchMotorData *motor_data);
             Result CancelVibration();
             Result SetPlayerLed(u8 led_mask);
-            void ProcessInputData(const bluetooth::HidReport *report) override;
+            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 
         protected:
             void MapInputReport0x20(const WiiReportData *src);
@@ -515,7 +515,7 @@ namespace ams::controller {
             void MapInputReport0x32(const WiiReportData *src);
             void MapInputReport0x34(const WiiReportData *src);
             void MapInputReport0x35(const WiiReportData *src);
-            void MapInputReport0x3d(const WiiReportData *src);
+            void MapInputReport0x3D(const WiiReportData *src);
 
             void MapCoreButtons(const WiiButtonData *buttons);
             void MapAccelerometerData(const WiiAccelerometerData *accel, const WiiButtonData *buttons);

@@ -25,26 +25,26 @@ namespace ams::controller {
 
     }
 
-    void SteelseriesController::ProcessInputData(const bluetooth::HidReport *report) {
-        auto steelseries_report = reinterpret_cast<const SteelseriesReportData *>(&report->data);
+    void SteelseriesController::ProcessInputData(const u8 *report_buffer, size_t size) {
+        auto report = reinterpret_cast<const SteelseriesReportData *>(report_buffer);
 
-        switch(steelseries_report->id) {
+        switch(report->id) {
             case 0x01:
-                if (report->size == sizeof(SteelseriesInputReport0x01_v2) + 1) {
-                    this->MapInputReport0x01_v2(steelseries_report);
+                if (size == sizeof(SteelseriesInputReport0x01_v2) + 1) {
+                    this->MapInputReport0x01_v2(report);
                 } else {
-                    this->MapInputReport0x01(steelseries_report);
+                    this->MapInputReport0x01(report);
                 }
                 break;
             case 0x02:
-                this->MapInputReport0x02(steelseries_report); break;
+                this->MapInputReport0x02(report); break;
             case 0x12:
-                this->MapInputReport0x12(steelseries_report); break;
-            case 0xc4:
-                this->MapInputReport0xc4(steelseries_report); break;
+                this->MapInputReport0x12(report); break;
+            case 0xC4:
+                this->MapInputReport0xC4(report); break;
             default:
                 // Todo: handle this properly
-                this->MapMfiInputReport(steelseries_report);
+                this->MapMfiInputReport(report);
                 break;
         }
     }
@@ -117,34 +117,34 @@ namespace ams::controller {
         m_buttons.Assign(SwitchButton::Home, src->input0x12.home);
     }
 
-    void SteelseriesController::MapInputReport0xc4(const SteelseriesReportData *src) {
+    void SteelseriesController::MapInputReport0xC4(const SteelseriesReportData *src) {
         m_left_stick.SetValuesFrom(
-            src->input0xc4.left_stick.GetX(),
-            src->input0xc4.left_stick.GetYInverted()
+            src->input0xC4.left_stick.GetX(),
+            src->input0xC4.left_stick.GetYInverted()
         );
 
         m_right_stick.SetValuesFrom(
-            src->input0xc4.right_stick.GetX(),
-            src->input0xc4.right_stick.GetYInverted()
+            src->input0xC4.right_stick.GetX(),
+            src->input0xC4.right_stick.GetYInverted()
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0xc4.dpad == SteelseriesDPad2_S) || (src->input0xc4.dpad == SteelseriesDPad2_SE) || (src->input0xc4.dpad == SteelseriesDPad2_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0xc4.dpad == SteelseriesDPad2_N) || (src->input0xc4.dpad == SteelseriesDPad2_NE) || (src->input0xc4.dpad == SteelseriesDPad2_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0xc4.dpad == SteelseriesDPad2_E) || (src->input0xc4.dpad == SteelseriesDPad2_NE) || (src->input0xc4.dpad == SteelseriesDPad2_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0xc4.dpad == SteelseriesDPad2_W) || (src->input0xc4.dpad == SteelseriesDPad2_NW) || (src->input0xc4.dpad == SteelseriesDPad2_SW));
-        button_state.Assign(SwitchButton::A,      src->input0xc4.buttons.B);
-        button_state.Assign(SwitchButton::B,      src->input0xc4.buttons.A);
-        button_state.Assign(SwitchButton::X,      src->input0xc4.buttons.Y);
-        button_state.Assign(SwitchButton::Y,      src->input0xc4.buttons.X);
-        button_state.Assign(SwitchButton::R,      src->input0xc4.buttons.R1);
-        button_state.Assign(SwitchButton::L,      src->input0xc4.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     src->input0xc4.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0xc4.left_trigger  > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::StickL, src->input0xc4.buttons.L3);
-        button_state.Assign(SwitchButton::StickR, src->input0xc4.buttons.R3);
-        button_state.Assign(SwitchButton::Minus,  src->input0xc4.buttons.select);
-        button_state.Assign(SwitchButton::Plus,   src->input0xc4.buttons.start);
+        button_state.Assign(SwitchButton::Down,   (src->input0xC4.dpad == SteelseriesDPad2_S) || (src->input0xC4.dpad == SteelseriesDPad2_SE) || (src->input0xC4.dpad == SteelseriesDPad2_SW));
+        button_state.Assign(SwitchButton::Up,     (src->input0xC4.dpad == SteelseriesDPad2_N) || (src->input0xC4.dpad == SteelseriesDPad2_NE) || (src->input0xC4.dpad == SteelseriesDPad2_NW));
+        button_state.Assign(SwitchButton::Right,  (src->input0xC4.dpad == SteelseriesDPad2_E) || (src->input0xC4.dpad == SteelseriesDPad2_NE) || (src->input0xC4.dpad == SteelseriesDPad2_SE));
+        button_state.Assign(SwitchButton::Left,   (src->input0xC4.dpad == SteelseriesDPad2_W) || (src->input0xC4.dpad == SteelseriesDPad2_NW) || (src->input0xC4.dpad == SteelseriesDPad2_SW));
+        button_state.Assign(SwitchButton::A,      src->input0xC4.buttons.B);
+        button_state.Assign(SwitchButton::B,      src->input0xC4.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0xC4.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0xC4.buttons.X);
+        button_state.Assign(SwitchButton::R,      src->input0xC4.buttons.R1);
+        button_state.Assign(SwitchButton::L,      src->input0xC4.buttons.L1);
+        button_state.Assign(SwitchButton::ZR,     src->input0xC4.right_trigger > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZL,     src->input0xC4.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::StickL, src->input0xC4.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0xC4.buttons.R3);
+        button_state.Assign(SwitchButton::Minus,  src->input0xC4.buttons.select);
+        button_state.Assign(SwitchButton::Plus,   src->input0xC4.buttons.start);
         m_buttons = button_state;
     }
 

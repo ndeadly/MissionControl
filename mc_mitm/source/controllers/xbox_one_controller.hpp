@@ -140,7 +140,7 @@ namespace ams::controller {
             XboxOneController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
             Result SetVibration(const SwitchMotorData *motor_data);
-            void ProcessInputData(const bluetooth::HidReport *report) override;
+            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 
         private:
             void MapInputReport0x01(const XboxOneReportData *src, bool new_format);
