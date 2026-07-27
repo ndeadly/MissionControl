@@ -85,7 +85,7 @@ namespace ams::controller {
 
             XiaomiController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
-            Result Initialize();
+            virtual Result Initialize() override;
 
             virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 

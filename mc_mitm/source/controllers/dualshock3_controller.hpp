@@ -104,10 +104,10 @@ namespace ams::controller {
         public:
             Dualshock3Controller(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
-            Result Initialize(void);
-            Result SetVibration(const SwitchMotorData *motor_data);
-            Result CancelVibration();
-            Result SetPlayerLed(u8 led_mask);
+            virtual Result Initialize(void) override;
+            virtual Result SetVibration(const SwitchMotorData *motor_data) override;
+            virtual Result CancelVibration() override;
+            virtual Result SetPlayerLed(u8 led_mask) override;
 
             virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 

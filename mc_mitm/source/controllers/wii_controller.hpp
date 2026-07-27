@@ -500,10 +500,10 @@ namespace ams::controller {
             , m_accel{}
             , m_gyro{} { }
 
-            Result Initialize();
-            Result SetVibration(const SwitchMotorData *motor_data);
-            Result CancelVibration();
-            Result SetPlayerLed(u8 led_mask);
+            virtual Result Initialize() override;
+            virtual Result SetVibration(const SwitchMotorData *motor_data) override;
+            virtual Result CancelVibration() override;
+            virtual Result SetPlayerLed(u8 led_mask) override;
             virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
 
         protected:
