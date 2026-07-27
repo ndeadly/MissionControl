@@ -112,7 +112,7 @@ namespace ams::controller {
             .device_type    = 0x0D,
             .device_name    = "MD/Gen Control Pad",
             .vendor_id      = 0x057E,
-            .product_id     = 0x2017,
+            .product_id     = 0x201A,
             .unk            = 0x02,
             .format_version = 0x02
         };
