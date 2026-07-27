@@ -44,7 +44,7 @@ namespace ams::controller {
 
             virtual ~SwitchController() { };
 
-            const bluetooth::Address& Address() const { return m_address; }
+            constexpr bluetooth::Address Address() const { return m_address; }
 
             virtual constexpr bool IsOfficialController() const { return true; }
 
