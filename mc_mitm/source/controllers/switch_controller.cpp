@@ -63,7 +63,7 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    Result SwitchController::HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) {
+    void SwitchController::HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) {
         const bluetooth::HidReport *report;
         if (hos::GetVersion() >= hos::Version_9_0_0) {
             report = &event_info->data_report.v9.report;
@@ -125,32 +125,28 @@ namespace ams::controller {
                 break;
         }
 
-        R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &m_input_report));
+        bluetooth::hid::report::WriteHidDataReport(m_address, m_input_report.data, m_input_report.size);
     }
 
-    Result SwitchController::HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
+    void SwitchController::HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
         if (!m_future_responses.empty()) {
             if (m_future_responses.front()->GetType() == BtdrvHidEventType_SetReport) {
                 m_future_responses.front()->SetData(*event_info);
             }
-
-            R_SUCCEED();
         }
 
-        R_RETURN(bluetooth::hid::report::WriteHidSetReport(m_address, event_info->set_report.res));
+        bluetooth::hid::report::WriteHidSetReport(m_address, event_info->set_report.res);
     }
 
-    Result SwitchController::HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
+    void SwitchController::HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info) {
         if (!m_future_responses.empty()) {
             if (m_future_responses.front()->GetType() == BtdrvHidEventType_GetReport) {
                 m_future_responses.front()->SetData(*event_info);
             }
-
-            R_SUCCEED();
         }
 
         auto report = hos::GetVersion() >= hos::Version_9_0_0 ? &event_info->get_report.v9.report : reinterpret_cast<const bluetooth::HidReport *>(&event_info->get_report.v1.report);
-        R_RETURN(bluetooth::hid::report::WriteHidGetReport(m_address, report));
+        bluetooth::hid::report::WriteHidGetReport(m_address, report->data, report->size);
     }
 
     Result SwitchController::HandleOutputDataReport(const u8 *report_buffer, size_t size) {

@@ -148,48 +148,44 @@ namespace ams::bluetooth::hid::report {
         R_SUCCEED();
     }
 
-    Result WriteHidDataReport(const bluetooth::Address address, const bluetooth::HidReport *report) {
+    void WriteHidDataReport(bluetooth::Address address, const u8 *report_buffer, size_t size) {
         if (hos::GetVersion() >= hos::Version_9_0_0) {
             g_fake_report_event_info.data_report.v9.addr = address;
-            std::memcpy(&g_fake_report_event_info.data_report.v9.report, report, report->size + sizeof(report->size));
+            g_fake_report_event_info.data_report.v9.report.size = size;
+            std::memcpy(g_fake_report_event_info.data_report.v9.report.data, report_buffer, size);
         } else {
-            // Todo: check this may still be necessary
-            //g_fake_report_event_info.data_report.v7.size = g_fake_report_event_info.data_report.v7.report.size + 0x11;
             g_fake_report_event_info.data_report.v7.addr = address;
-            std::memcpy(&g_fake_report_event_info.data_report.v7.report, report, report->size + sizeof(report->size));
+            g_fake_report_event_info.data_report.v7.report.size = size;
+            std::memcpy(g_fake_report_event_info.data_report.v7.report.data, report_buffer, size);
         }
 
-        g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_Data : BtdrvHidEventTypeOld_Data, &g_fake_report_event_info, report->size + 0x11);
+        g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_Data : BtdrvHidEventTypeOld_Data, &g_fake_report_event_info, size + 0x11);
         g_system_event_fwd.Signal();
-
-        R_SUCCEED();
     }
 
-    Result WriteHidSetReport(const bluetooth::Address address, u32 status) {
+    void WriteHidSetReport(bluetooth::Address address, u32 status) {
         g_fake_report_event_info.set_report.addr = address;
         g_fake_report_event_info.set_report.res = status;
 
         g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_Data : BtdrvHidEventTypeOld_Data, &g_fake_report_event_info, sizeof(g_fake_report_event_info.set_report));
         g_system_event_fwd.Signal();
-
-        R_SUCCEED();
     }
 
-    Result WriteHidGetReport(const bluetooth::Address address, const bluetooth::HidReport *report) {
+    void WriteHidGetReport(bluetooth::Address address, const u8 *report_buffer, size_t size) {
         if (hos::GetVersion() >= hos::Version_9_0_0) {
             g_fake_report_event_info.get_report.v9.addr = address;
             g_fake_report_event_info.get_report.v9.res = 0;
-            std::memcpy(&g_fake_report_event_info.get_report.v9.report, report, report->size + sizeof(report->size));
+            g_fake_report_event_info.get_report.v9.report.size = size;
+            std::memcpy(g_fake_report_event_info.get_report.v9.report.data, report_buffer, size);
         } else {
             g_fake_report_event_info.get_report.v1.addr = address;
             g_fake_report_event_info.get_report.v1.res = 0;
-            std::memcpy(&g_fake_report_event_info.get_report.v1.report, report, report->size + sizeof(report->size));
+            g_fake_report_event_info.get_report.v1.report.size = size;
+            std::memcpy(g_fake_report_event_info.get_report.v1.report.data, report_buffer, size);
         }
 
-        g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_GetReport : BtdrvHidEventTypeOld_GetReport, &g_fake_report_event_info, report->size + 0x11);
+        g_fake_buffer->Write(hos::GetVersion() >= hos::Version_12_0_0 ? BtdrvHidEventType_GetReport : BtdrvHidEventTypeOld_GetReport, &g_fake_report_event_info, size + 0x11);
         g_system_event_fwd.Signal();
-
-        R_SUCCEED();
     }
 
     /* Only used for < 7.0.0. Newer firmwares read straight from shared memory */

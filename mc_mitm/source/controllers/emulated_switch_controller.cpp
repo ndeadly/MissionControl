@@ -51,10 +51,8 @@ namespace ams::controller {
     }
 
     Result EmulatedSwitchController::InjectInputReport(const u8 *report_buffer, size_t size) {
-        bluetooth::HidReport report;
-        report.size = size;
-        std::memcpy(report.data, report_buffer, size);
-        R_RETURN(bluetooth::hid::report::WriteHidDataReport(m_address, &report));
+        bluetooth::hid::report::WriteHidDataReport(m_address, report_buffer, size);
+        R_SUCCEED();
     }
 
     void EmulatedSwitchController::UpdateControllerState(const u8 *report_buffer, size_t size) {

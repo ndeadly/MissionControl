@@ -50,9 +50,9 @@ namespace ams::controller {
 
             virtual Result Initialize();
 
-            virtual Result HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info);
-            virtual Result HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info);
-            virtual Result HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info);
+            virtual void HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info);
+            virtual void HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info);
+            virtual void HandleGetReportEvent(const bluetooth::HidReportEventInfo *event_info);
 
             virtual Result HandleOutputDataReport(const u8 *report_buffer, size_t size);
 
