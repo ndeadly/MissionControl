@@ -28,6 +28,7 @@ namespace ams::controller {
         constexpr u16 TouchpadHeight = 942;
 
         constexpr RGBColour PlayerLedBaseColours[] = {
+            {0x00, 0x00, 0x00}, // off
             // Same colours used by PS4
             {0x00, 0x00, 0x04}, // blue
             {0x04, 0x00, 0x00}, // red
@@ -89,17 +90,14 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    Result Dualshock4Controller::SetPlayerLed(u8 led_mask) {
-        SwitchPlayerNumber player_number = LedMaskToPlayerNumber(led_mask);
+    Result Dualshock4Controller::SetPlayerLed(SwitchPlayerNumber player_number) {
+        u8 player_index = static_cast<u8>(player_number);
 
-        RGBColour colour  = { 0, 0, 0 };
-        if (player_number != SwitchPlayerNumber_Unknown) {
-            colour = PlayerLedBaseColours[player_number];
-            u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
-            colour.r *= multiplier;
-            colour.g *= multiplier;
-            colour.b *= multiplier;
-        }
+        RGBColour colour = PlayerLedBaseColours[player_index];
+        u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
+        colour.r *= multiplier;
+        colour.g *= multiplier;
+        colour.b *= multiplier;
 
         R_RETURN(this->SetLightbarColour(colour));
     }

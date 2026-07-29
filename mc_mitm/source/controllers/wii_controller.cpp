@@ -24,6 +24,8 @@ namespace ams::controller {
         constinit const u8 InitData1[] = { 0x55 };
         constinit const u8 InitData2[] = { 0x00 };
 
+        constexpr u8 PlayerLedPatterns[] = { 0b0000, 0b0001, 0b0011, 0b0111, 0b1111, 0b1001, 0b1010, 0b1011, 0b0110 };
+
         constexpr float NunchuckStickScaleFactor = float(SwitchAnalogStick::MaximumValue) / 0xb8;
         constexpr float WiiUStickScaleFactor     = 2.0;
         constexpr float LeftStickScaleFactor     = float(SwitchAnalogStick::MaximumValue) / 0x3f;
@@ -912,14 +914,16 @@ namespace ams::controller {
         R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }
 
-    Result WiiController::SetPlayerLed(u8 led_mask) {
+    Result WiiController::SetPlayerLed(SwitchPlayerNumber player_number) {
+        u8 player_index = static_cast<u8>(player_number);
+
         std::scoped_lock lk(m_output_mutex);
 
         m_output_report.size = sizeof(WiiOutputReport0x11) + 1;
         auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
         report_data->id = 0x11;
         report_data->output0x11.rumble = m_rumble_state;
-        report_data->output0x11.leds = led_mask & 0xf;
+        report_data->output0x11.leds = PlayerLedPatterns[player_index];
 
         R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
     }

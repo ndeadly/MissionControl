@@ -31,18 +31,6 @@
 
 namespace ams::controller {
 
-     enum SwitchPlayerNumber : u8 {
-        SwitchPlayerNumber_One,
-        SwitchPlayerNumber_Two,
-        SwitchPlayerNumber_Three,
-        SwitchPlayerNumber_Four,
-        SwitchPlayerNumber_Five,
-        SwitchPlayerNumber_Six,
-        SwitchPlayerNumber_Seven,
-        SwitchPlayerNumber_Eight,
-        SwitchPlayerNumber_Unknown = 0xf
-    };
-
     struct HardwareID {
         u16 vid;
         u16 pid;

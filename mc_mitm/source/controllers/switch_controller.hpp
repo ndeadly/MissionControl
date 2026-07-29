@@ -24,8 +24,6 @@ namespace ams::controller {
 
     using HidResponse = FutureResponse<bluetooth::HidEventType, bluetooth::HidReportEventInfo, u8>;
 
-    SwitchPlayerNumber LedMaskToPlayerNumber(u8 led_mask);
-
     std::string GetControllerDirectory(bluetooth::Address address);
 
     class SwitchController {

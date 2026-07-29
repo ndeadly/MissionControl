@@ -20,41 +20,40 @@ namespace ams::controller {
 
     using SwitchPlayerIndicatorType = util::BitPack8;
 
-    class SwitchPlayerIndicator {
-        public:
-            enum class PlayerNumber: u8 {
-                Invalid,
-                One,
-                Two,
-                Three,
-                Four,
-                Five,
-                Six,
-                Seven,
-                Eight
-            };
+    enum class SwitchPlayerNumber: u8 {
+        Invalid,
+        One,
+        Two,
+        Three,
+        Four,
+        Five,
+        Six,
+        Seven,
+        Eight,
+    };
 
+    class SwitchPlayerIndicator {
         private:
             using LedPattern      = util::BitPack8::Field<0, 4, u8>;
             using LedFlashPattern = util::BitPack8::Field<4, 4, u8>;
 
-            static constexpr PlayerNumber LedPlayerLookup[] = {
-                PlayerNumber::Invalid, // 0000
-                PlayerNumber::One,     // 0001
-                PlayerNumber::Invalid, // 0010
-                PlayerNumber::Two,     // 0011
-                PlayerNumber::Invalid, // 0100
-                PlayerNumber::Six,     // 0101
-                PlayerNumber::Eight,   // 0110
-                PlayerNumber::Three,   // 0111
-                PlayerNumber::One,     // 1000
-                PlayerNumber::Five,    // 1001
-                PlayerNumber::Six,     // 1010
-                PlayerNumber::Seven,   // 1011
-                PlayerNumber::Two,     // 1100
-                PlayerNumber::Seven,   // 1101
-                PlayerNumber::Three,   // 1110
-                PlayerNumber::Four,    // 1111
+            static constexpr SwitchPlayerNumber LedPlayerLookup[] = {
+                SwitchPlayerNumber::Invalid, // 0000
+                SwitchPlayerNumber::One,     // 0001
+                SwitchPlayerNumber::Invalid, // 0010
+                SwitchPlayerNumber::Two,     // 0011
+                SwitchPlayerNumber::Invalid, // 0100
+                SwitchPlayerNumber::Six,     // 0101
+                SwitchPlayerNumber::Eight,   // 0110
+                SwitchPlayerNumber::Three,   // 0111
+                SwitchPlayerNumber::One,     // 1000
+                SwitchPlayerNumber::Five,    // 1001
+                SwitchPlayerNumber::Six,     // 1010
+                SwitchPlayerNumber::Seven,   // 1011
+                SwitchPlayerNumber::Two,     // 1100
+                SwitchPlayerNumber::Seven,   // 1101
+                SwitchPlayerNumber::Three,   // 1110
+                SwitchPlayerNumber::Four,    // 1111
             };
 
         private:
@@ -83,7 +82,7 @@ namespace ams::controller {
                 m_player_indicator.Set<LedFlashPattern>(pattern & 0xF);
             }
 
-            constexpr PlayerNumber GetPlayerNumber() const {
+            constexpr SwitchPlayerNumber GetPlayerNumber() const {
                 return LedPlayerLookup[GetLedPattern()];
             }
 

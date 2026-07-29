@@ -46,8 +46,11 @@ namespace ams::controller {
         constexpr float AccelScaleFactor = 1 / 113.0f;
 
         constexpr u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
-        constexpr u8 LedConfig[] = { 0xff, 0x27, 0x10, 0x00, 0x32 };
-        constexpr u8 PlayerLedPatterns[] = { 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
+        constexpr u8 LedConfig[]     = { 0xff, 0x27, 0x10, 0x00, 0x32 };
+
+        constexpr u8 SwitchPlayerLedPatterns[] = { 0b0000, 0b1000, 0b1100, 0b1110, 0b1111, 0b1001, 0b0101, 0b1101, 0b0110 };
+        constexpr u8 Ps3PlayerLedPatterns[]    = { 0b0000, 0b0001, 0b0010, 0b0100, 0b1000, 0b1110, 0b1101, 0b1011, 0b0111 };
+        constexpr u8 HybridPlayerLedPatterns[] = { 0b0000, 0b0001, 0b0011, 0b0111, 0b1111, 0b1001, 0b1010, 0b1011, 0b0110 };
 
         alignas(os::MemoryPageSize) constinit u8 g_usb_buffer[0x1000];
 
@@ -211,19 +214,19 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    Result Dualshock3Controller::SetPlayerLed(u8 led_mask) {
-        SwitchPlayerNumber player_number = LedMaskToPlayerNumber(led_mask); 
+    Result Dualshock3Controller::SetPlayerLed(SwitchPlayerNumber player_number) {
+        u8 player_index = static_cast<u8>(player_number);
 
         auto config = mitm::GetGlobalConfig();
         switch(config->misc.dualshock3_led_mode) {
             case Dualshock3LedMode_Switch:
-                m_led_mask = (player_number != SwitchPlayerNumber_Unknown) ? PlayerLedPatterns[player_number] : 0;
+                m_led_mask = SwitchPlayerLedPatterns[player_index];
                 break;
             case Dualshock3LedMode_Ps3:
-                m_led_mask = (player_number != SwitchPlayerNumber_Unknown) ? player_number < 4 ? 1 << player_number : ~(1 << player_number) & 0x0f : 0;
+                m_led_mask = Ps3PlayerLedPatterns[player_index];
                 break;
             case Dualshock3LedMode_Hybrid:
-                m_led_mask = led_mask;
+                m_led_mask = HybridPlayerLedPatterns[player_index];;
                 break;
             default:
                 break;

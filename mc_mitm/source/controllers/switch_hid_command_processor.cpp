@@ -244,7 +244,7 @@ namespace ams::controller {
 
     void SwitchHidCommandProcessor::ProcessSetIndicatorLed(const SwitchHidCommand *command, SwitchHidCommandResponse *response) {
         m_controller->m_player_indicator.SetState(command->set_indicator_led.led_state);
-        R_DISCARD(m_controller->SetPlayerLed(m_controller->m_player_indicator.GetLedPattern()));
+        R_DISCARD(m_controller->SetPlayerLed(m_controller->m_player_indicator.GetPlayerNumber()));
 
         response->response_id = SwitchHidCommandId::Ack;
         response->request_id  = SwitchHidCommandId::SetIndicatorLed;

@@ -19,33 +19,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        constexpr SwitchPlayerNumber LedPlayerMappings[] = {
-            SwitchPlayerNumber_Unknown, //0000
-            SwitchPlayerNumber_One,     //0001
-            SwitchPlayerNumber_Unknown, //0010
-            SwitchPlayerNumber_Two,     //0011
-            SwitchPlayerNumber_Unknown, //0100
-            SwitchPlayerNumber_Six,     //0101
-            SwitchPlayerNumber_Eight,   //0110
-            SwitchPlayerNumber_Three,   //0111
-            SwitchPlayerNumber_One,     //1000
-            SwitchPlayerNumber_Five,    //1001
-            SwitchPlayerNumber_Six,     //1010
-            SwitchPlayerNumber_Seven,   //1011
-            SwitchPlayerNumber_Two,     //1100
-            SwitchPlayerNumber_Seven,   //1101
-            SwitchPlayerNumber_Three,   //1110
-            SwitchPlayerNumber_Four,    //1111
-        };
-
-    }
-
-    SwitchPlayerNumber LedMaskToPlayerNumber(u8 led_mask) {
-        return LedPlayerMappings[(led_mask & 0xf) | (led_mask >> 4)];
-    }
-
     std::string GetControllerDirectory(bluetooth::Address address) {
         char path[0x100];
         util::SNPrintf(path, sizeof(path), "sdmc:/config/MissionControl/controllers/%02x%02x%02x%02x%02x%02x",
@@ -57,10 +30,6 @@ namespace ams::controller {
             address.address[5]
         );
         return path;
-    }
-
-    Result SwitchController::Initialize() {
-        R_SUCCEED();
     }
 
     void SwitchController::HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) {

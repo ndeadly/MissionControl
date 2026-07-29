@@ -50,6 +50,7 @@ namespace ams::controller {
         };
 
         constexpr RGBColour PlayerLedBaseColours[] = {
+            {0x00, 0x00, 0x00}, // off
             // Same colours used by PS4
             {0x00, 0x00, 0x04}, // blue
             {0x04, 0x00, 0x00}, // red
@@ -120,31 +121,27 @@ namespace ams::controller {
         return this->PushRumbleLedState();
     }
 
-    Result DualsenseController::SetPlayerLed(u8 led_mask) {
-        SwitchPlayerNumber player_number = LedMaskToPlayerNumber(led_mask);
-
+    Result DualsenseController::SetPlayerLed(SwitchPlayerNumber player_number) {
+        u8 player_index = static_cast<u8>(player_number);
         u16 fw_version = *reinterpret_cast<u16 *>(&m_version_info.data[43]);
 
         auto config = mitm::GetGlobalConfig();
-        if (!config->misc.dualsense_enable_player_leds || (player_number == SwitchPlayerNumber_Unknown)) {
+        if (!config->misc.dualsense_enable_player_leds || (player_number == SwitchPlayerNumber::Invalid)) {
             m_led_flags = 0x00;
         } else if (fw_version < 0x0282) {
-            m_led_flags = PlayerLedFlags[player_number];
+            m_led_flags = PlayerLedFlags[player_index];
         } else {
-            m_led_flags = NewPlayerLedFlags[player_number];
+            m_led_flags = NewPlayerLedFlags[player_index];
         }
 
         // Disable LED fade-in
         m_led_flags |= 0x20;
 
-        RGBColour colour  = { 0, 0, 0 };
-        if (player_number != SwitchPlayerNumber_Unknown) {
-            colour = PlayerLedBaseColours[player_number];
-            u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
-            colour.r *= multiplier;
-            colour.g *= multiplier;
-            colour.b *= multiplier;
-        }
+        RGBColour colour = PlayerLedBaseColours[player_index];
+        u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
+        colour.r *= multiplier;
+        colour.g *= multiplier;
+        colour.b *= multiplier;
 
         R_RETURN(this->SetLightbarColour(colour));
     }

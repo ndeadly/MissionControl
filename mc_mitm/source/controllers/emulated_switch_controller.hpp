@@ -46,7 +46,7 @@ namespace ams::controller {
             void Reset();
             virtual Result SetVibration(const SwitchMotorData *motor_data) { AMS_UNUSED(motor_data); R_SUCCEED(); }
             virtual Result CancelVibration() { R_SUCCEED(); }
-            virtual Result SetPlayerLed(u8 led_mask) { AMS_UNUSED(led_mask); R_SUCCEED(); }
+            virtual Result SetPlayerLed(SwitchPlayerNumber player_number) { AMS_UNUSED(player_number); R_SUCCEED(); }
 
             virtual void UpdateControllerState(const u8 *report_buffer, size_t size) override;
             virtual void ProcessInputData(const u8 *report_buffer, size_t size) { AMS_UNUSED(report_buffer, size); }
