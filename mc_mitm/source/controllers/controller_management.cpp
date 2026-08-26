@@ -159,6 +159,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : MadCatz32266Controller::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_MadCatz_32266;
+            }
+        }
+
         for (auto hwId : MocuteController::hardware_ids) {
             if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
                 return ControllerType_Mocute;
@@ -289,6 +295,9 @@ namespace ams::controller {
                 break;
             case ControllerType_MadCatz:
                 controller = std::make_shared<MadCatzController>(address, id);
+                break;
+            case ControllerType_MadCatz_32266:
+                controller = std::make_shared<MadCatz32266Controller>(address, id);
                 break;
             case ControllerType_Mocute:
                 controller = std::make_shared<MocuteController>(address, id);

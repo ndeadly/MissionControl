@@ -156,7 +156,7 @@ namespace ams::controller {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
-                {0x0738, 0x5266},   // Mad Catz C.T.R.L.R
+                // {0x0738, 0x5266},   // Mad Catz C.T.R.L.R now supported in mad_catz_32266_controller.cpp
                 {0x0738, 0x5250},   // Mad Catz C.T.R.L.R for Samsung
                 {0x0738, 0x5269}    // Mad Catz L.Y.N.X. 3
             };
