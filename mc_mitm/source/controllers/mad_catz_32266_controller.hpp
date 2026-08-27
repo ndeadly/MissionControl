@@ -58,6 +58,18 @@ namespace ams::controller {
     // which means the Switch won't react to them fast enough,
     // so we cannot use them in this project.
 
+    enum MadCatz32266DPadDirection {
+        MadCatz32266DPad_Released = 0,
+        MadCatz32266DPad_N,
+        MadCatz32266DPad_NE,
+        MadCatz32266DPad_E,
+        MadCatz32266DPad_SE,
+        MadCatz32266DPad_S,
+        MadCatz32266DPad_SW,
+        MadCatz32266DPad_W,
+        MadCatz32266DPad_NW
+    };
+
     struct MadCatz32266ButtonData {
         u8 X      : 1;
         u8 A      : 1;

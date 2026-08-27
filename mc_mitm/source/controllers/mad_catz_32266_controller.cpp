@@ -32,36 +32,24 @@ namespace ams::controller {
     }
 
     void MadCatz32266Controller::MapInputReport0x01(const MadCatz32266ReportData *src, u16 report_size) {
-        enum DPadDirection {
-            DPad_Released = 0,
-            DPad_N,
-            DPad_NE,
-            DPad_E,
-            DPad_SE,
-            DPad_S,
-            DPad_SW,
-            DPad_W,
-            DPad_NW
-        };
-
         // The 0x01 Input Report has varying sizes based on the firmware
         // version of the C.T.R.L. R used.
         // The longer 16 byte report is the old firmware. ('Stock firmware')
         // The shorter 10 byte report is the new 125 firmware. ('XInput compatible')
         // Buttons and dpad in Input Report 0x01 are common to both firmware versions.
         // The 0x02 Input Report is unchanged between the two revisions.
-        m_buttons.dpad_down  = (src->input0x01stock.buttons.dpad == DPad_S)  ||
-                               (src->input0x01stock.buttons.dpad == DPad_SE) ||
-                               (src->input0x01stock.buttons.dpad == DPad_SW);
-        m_buttons.dpad_up    = (src->input0x01stock.buttons.dpad == DPad_N)  ||
-                               (src->input0x01stock.buttons.dpad == DPad_NE) ||
-                               (src->input0x01stock.buttons.dpad == DPad_NW);
-        m_buttons.dpad_right = (src->input0x01stock.buttons.dpad == DPad_E)  ||
-                               (src->input0x01stock.buttons.dpad == DPad_NE) ||
-                               (src->input0x01stock.buttons.dpad == DPad_SE);
-        m_buttons.dpad_left  = (src->input0x01stock.buttons.dpad == DPad_W)  ||
-                               (src->input0x01stock.buttons.dpad == DPad_NW) ||
-                               (src->input0x01stock.buttons.dpad == DPad_SW);
+        m_buttons.dpad_down  = (src->input0x01stock.buttons.dpad == MadCatz32266DPad_S)  ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_SE) ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_SW);
+        m_buttons.dpad_up    = (src->input0x01stock.buttons.dpad == MadCatz32266DPad_N)  ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_NE) ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_NW);
+        m_buttons.dpad_right = (src->input0x01stock.buttons.dpad == MadCatz32266DPad_E)  ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_NE) ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_SE);
+        m_buttons.dpad_left  = (src->input0x01stock.buttons.dpad == MadCatz32266DPad_W)  ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_NW) ||
+                               (src->input0x01stock.buttons.dpad == MadCatz32266DPad_SW);
 
         m_buttons.A  = src->input0x01stock.buttons.B; // C.T.R.L. R has an Xbox One printed layout.
         m_buttons.B  = src->input0x01stock.buttons.A;
