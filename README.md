@@ -64,7 +64,8 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __PowerA Moga Hero__
 * __PowerA Moga Pro__
 * __PowerA Moga Pro 2__
-* __Mad-Catz C.T.R.L.R__
+* __Mad-Catz C.T.R.L. R__
+* __Mad-Catz Micro C.T.R.L. R__
 * __Mad-Catz L.Y.N.X 3__
 * __Razer Raiju Tournament__
 * __Razer Raiju Ultimate__
@@ -90,7 +91,7 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 
 Download the [latest release](https://github.com/ndeadly/MissionControl/releases) .zip and extract to the root of your SD card, allowing the folders to merge and overwriting any existing files. Reboot your console to activate the module and you're done!
 
-***IMPORTANT: 
+***IMPORTANT:
 Atmosphère >= 1.11.2 is required to run the latest release of Mission Control on firmware 22.5.0+. Using an older Atmosphère version will cause Mission Control to crash or freeze the system on boot.***
 
 ### Usage
@@ -128,6 +129,13 @@ Press and hold the `guide`(`X`) button until the LED starts blinking. Then press
 
 *Note: controller firmware versions 5.xx.xxxx.x and upward use Bluetooth Low Energy and are not currently supported. Please refer to the [FAQ](#frequently-asked-questions) for instructions on downgrading to a compatible firmware*
 
+***Mad Catz C.T.R.L. R and Micro C.T.R.L. R controllers***
+Press and hold the `Emblem` (`⊜`) button to turn the controller on. Then press and hold the `Rewind` + `Fast Forward` (`⏪` + `⏩`) media buttons on the controller for three seconds until the `Emblem` flashes magenta once (this clears the Bluetooth pairing), the `Emblem` will now cycle red/blue (controller is now in pairing mode).
+
+The `Volume down` (`🔈`) button on the controller is mapped to `Capture`, and `Volume up` (`🔊`) is mapped to `Home`.
+
+Ensure the mode slider on the underside of the controller is set to the far right (`Desktop` (`💻`) icon) position, otherwise the button and trigger assignments will be wrong.
+
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it into sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
 
@@ -138,7 +146,7 @@ Controllers that successfully pair but haven't been officially supported yet wil
 A template for the config .ini file will be installed to `/config/MissionControl/missioncontrol.ini.template`. To modify the default module settings, copy the template to `/config/MissionControl/missioncontrol.ini` and uncomment (remove the leading `;`) and modify any settings you want to change. The file is only parsed on startup, so any changes you make will require a reboot to take effect. Settings entries that can't be parsed/validated correctly are ignored. Currently there is only a small set of configuration settings, but this will be expanded upon in future releases.
 
 - `[general]`
-These are general settings for mission control features. 
+These are general settings for mission control features.
     - `enable_rumble` Enable/disable rumble support for unofficial controllers.
     - `enable_motion` Enable/disable motion controls support.
 
@@ -246,7 +254,7 @@ Mission Control is primarily a background process. There are no visual changes t
     - You haven't followed the install instructions correctly and have either excluded files or placed them in the wrong place.
     - SD card corruption. You may need to format or replace your SD card.
 - Check that the controller you're trying to use is in the list of supported controllers. In particular, if you have an Xbox controller, make sure you're using a compatible model and that you're not updated to the newer Bluetooth LE firmware. Controllers using Bluetooth LE are not currently supported.
-- Make sure your controller isn't an unofficial clone. This is particularly common with Dualshock 3 and 4 controllers. Many clones will work, but there are some that just refuse. 
+- Make sure your controller isn't an unofficial clone. This is particularly common with Dualshock 3 and 4 controllers. Many clones will work, but there are some that just refuse.
 - Make sure your controller battery is sufficiently charged. Sometimes controllers will have enough charge to start pairing, but will keep switching off halfway through (before they can report their battery level to the console).
 - If you've tried all of the above and nothing works, seek help on my [Discord server](https://discord.gg/gegfNZ5Ucz).
 
