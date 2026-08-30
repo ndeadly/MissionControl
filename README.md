@@ -130,9 +130,9 @@ Press and hold the `guide`(`X`) button until the LED starts blinking. Then press
 *Note: controller firmware versions 5.xx.xxxx.x and upward use Bluetooth Low Energy and are not currently supported. Please refer to the [FAQ](#frequently-asked-questions) for instructions on downgrading to a compatible firmware*
 
 ***Mad Catz C.T.R.L. R and Micro C.T.R.L. R controllers***
-Press and hold the `Emblem` (`⊜`) button to turn the controller on. Then press and hold `Rewind` (`⏪`) and `Fast Forward` (`⏩`) on the controller for three seconds until the `Emblem` flashes magenta once (this clears the Bluetooth pairing), the `Emblem` will now cycle red/blue (controller is now in pairing mode).
+Press and hold the `Emblem` (`⊜`) button to turn the controller on. Then press and hold the `Rewind` + `Fast Forward` (`⏪` + `⏩`) media buttons on the controller for three seconds until the `Emblem` flashes magenta once (this clears the Bluetooth pairing), the `Emblem` will now cycle red/blue (controller is now in pairing mode).
 
-Slide the mode switch on the underside of the controller to the far right ('Desktop' icon) position.
+Slide the mode switch on the underside of the controller to the far right (`Desktop` (`💻`) icon) position.
 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it into sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
