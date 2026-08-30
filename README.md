@@ -64,7 +64,8 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __PowerA Moga Hero__
 * __PowerA Moga Pro__
 * __PowerA Moga Pro 2__
-* __Mad-Catz C.T.R.L.R__
+* __Mad-Catz C.T.R.L. R__
+* __Mad-Catz Micro C.T.R.L. R__
 * __Mad-Catz L.Y.N.X 3__
 * __Razer Raiju Tournament__
 * __Razer Raiju Ultimate__
@@ -128,8 +129,8 @@ Press and hold the `guide`(`X`) button until the LED starts blinking. Then press
 
 *Note: controller firmware versions 5.xx.xxxx.x and upward use Bluetooth Low Energy and are not currently supported. Please refer to the [FAQ](#frequently-asked-questions) for instructions on downgrading to a compatible firmware*
 
-***Mad Catz C.T.R.L. R and Mad Catz Micro C.T.R.L. R controllers***
-Press and hold the Emblem button to turn the controller on. Then press and hold Rewind and Fast Forward on the controller for three seconds until the Emblem flashes magenta once (this clears the Bluetooth pairing), it will now cycle red/blue (controller is now in pairing mode).
+***Mad Catz C.T.R.L. R and Micro C.T.R.L. R controllers***
+Press and hold the `Emblem` (`⊜`) button to turn the controller on. Then press and hold `Rewind` (`⏪`) and `Fast Forward` (`⏩`) on the controller for three seconds until the `Emblem` flashes magenta once (this clears the Bluetooth pairing), the `Emblem` will now cycle red/blue (controller is now in pairing mode).
 
 Slide the mode switch on the underside of the controller to the far right ('Desktop' icon) position.
 
