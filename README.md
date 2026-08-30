@@ -132,7 +132,9 @@ Press and hold the `guide`(`X`) button until the LED starts blinking. Then press
 ***Mad Catz C.T.R.L. R and Micro C.T.R.L. R controllers***
 Press and hold the `Emblem` (`⊜`) button to turn the controller on. Then press and hold the `Rewind` + `Fast Forward` (`⏪` + `⏩`) media buttons on the controller for three seconds until the `Emblem` flashes magenta once (this clears the Bluetooth pairing), the `Emblem` will now cycle red/blue (controller is now in pairing mode).
 
-Slide the mode switch on the underside of the controller to the far right (`Desktop` (`💻`) icon) position.
+The `Volume down` (`🔈`) button on the controller is mapped to `Capture`, and `Volume up` (`🔊`) is mapped to `Home`.
+
+Ensure the mode slider on the underside of the controller is set to the far right (`Desktop` (`💻`) icon) position, otherwise the button and trigger assignments will be wrong.
 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it into sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
