@@ -424,7 +424,7 @@ namespace ams::controller {
             virtual Result HandleOutputDataReport(const bluetooth::HidReport *report);
 
         protected:
-            Result WriteDataReport(const bluetooth::HidReport *report);
+            virtual Result WriteDataReport(const bluetooth::HidReport *report);
             Result WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report);
             Result SetReport(BtdrvBluetoothHhReportType type, const bluetooth::HidReport *report);
             Result GetReport(u8 id, BtdrvBluetoothHhReportType type, bluetooth::HidReport *out_report);

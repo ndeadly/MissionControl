@@ -126,7 +126,7 @@ namespace ams::controller {
         };
     } PACKED;
 
-    class XboxOneController final : public EmulatedSwitchController {
+    class XboxOneController : public EmulatedSwitchController {
 
         public:
             static constexpr const HardwareID hardware_ids[] = {
@@ -139,7 +139,7 @@ namespace ams::controller {
 
             XboxOneController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
-            Result SetVibration(const SwitchMotorData *motor_data);
+            Result SetVibration(const SwitchMotorData *motor_data) override;
             void ProcessInputData(const bluetooth::HidReport *report) override;
 
         private:
