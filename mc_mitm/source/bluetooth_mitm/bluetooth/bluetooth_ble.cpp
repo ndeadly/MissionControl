@@ -15,6 +15,7 @@
  */
 #include "bluetooth_ble.hpp"
 #include "../btdrv_mitm_flags.hpp"
+#include "../../ble/ble_events.hpp"
 
 namespace ams::bluetooth::ble {
 
@@ -69,9 +70,17 @@ namespace ams::bluetooth::ble {
     }
 
     void HandleEvent() {
+        bool consumed;
         {
             std::scoped_lock lk(g_event_data_lock);
             R_ABORT_UNLESS(btdrvGetBleManagedEventInfo(&g_event_info, sizeof(bluetooth::BleEventInfo), &g_current_event_type));
+
+            // Offer the event to the BLE HID host. Events caused by its own GATT client activity are not passed on to btm.
+            consumed = ams::ble::events::OnBleEvent(g_current_event_type, &g_event_info);
+        }
+
+        if (consumed) {
+            return;
         }
 
         if (!g_redirect_ble_events) {

@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "../mcmitm_config.hpp"
 #include "btdrv_mitm_service.hpp"
 #include "btdrv_mitm_flags.hpp"
 #include "btdrv_shim.h"
@@ -21,6 +22,9 @@
 #include "bluetooth/bluetooth_ble.hpp"
 #include "../mcmitm_initialization.hpp"
 #include "../controllers/controller_management.hpp"
+#include "../ble/ble_events.hpp"
+#include "../ble/ble_hid_host.hpp"
+#include "../ble/ble_log.hpp"
 #include <switch.h>
 
 namespace ams::mitm::bluetooth {
@@ -167,8 +171,42 @@ namespace ams::mitm::bluetooth {
         R_SUCCEED();
     }
 
+    // btm searches for new controllers only while the Controllers screen asks it to; the BLE host pairs new
+    // controllers in the same window
+    Result BtdrvMitmService::StartInquiry(u32 services, s64 duration) {
+        ams::ble::events::SetInquiryActive(true);
+        ams::ble::log::Write("btm started an inquiry, duration=%ld", duration);
+        R_RETURN(btdrvStartInquiryFwd(m_forward_service.get(), services, duration));
+    }
+
+    Result BtdrvMitmService::StopInquiry() {
+        ams::ble::events::SetInquiryActive(false);
+        ams::ble::log::Write("btm stopped its inquiry");
+        R_RETURN(btdrvStopInquiryFwd(m_forward_service.get()));
+    }
+
     Result BtdrvMitmService::GetBleManagedEventInfo(sf::Out<ams::bluetooth::BleEventType> out_type, const sf::OutPointerBuffer &out_buffer) {
         R_RETURN(ams::bluetooth::ble::GetEventInfo(out_type.GetPointer(), out_buffer.GetPointer(), out_buffer.GetSize()));
+    }
+
+    namespace {
+
+        // Handed to system processes in place of the LE HID event while the BLE host is enabled. Never signalled.
+        os::SystemEvent g_le_hid_placeholder_event(os::EventClearMode_AutoClear, true);
+
+    }
+
+    Result BtdrvMitmService::RegisterBleHidEvent(sf::OutCopyHandle out_handle) {
+        // hid consumes the LE HID event stream itself, and since the event info is a single slot that resets on
+        // read, it wins most of the notifications from a controller we present to it and drops them as garbage.
+        // While the BLE host is enabled, give system processes an event that never fires so the reports only
+        // reach the host, which translates them.
+        if (!ams::ble::IsEnabled()) {
+            R_THROW(sm::mitm::ResultShouldForwardToSession());
+        }
+
+        out_handle.SetValue(g_le_hid_placeholder_event.GetReadableHandle(), false);
+        R_SUCCEED();
     }
 
     /* Deprecated */

@@ -16,6 +16,7 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 #include "mcmitm_initialization.hpp"
+#include "ble/ble_events.hpp"
 #include "mcmitm_config.hpp"
 #include "mcmitm_process_monitor.hpp"
 
@@ -129,7 +130,11 @@ namespace ams {
                                 shutdown = true;
                                 [[fallthrough]];
                             case psc::PmState_SleepReady:
-                                /* Run sleep/shutdown code */
+                                // Any BLE radio activity from here on would wake the console straight back up
+                                ams::ble::events::SetRadioEnabled(false);
+                                break;
+                            case psc::PmState_FullAwake:
+                                ams::ble::events::SetRadioEnabled(true);
                                 break;
                             default:
                                 break;
