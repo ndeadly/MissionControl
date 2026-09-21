@@ -15,6 +15,7 @@
  */
 #include "btm_mitm_service.hpp"
 #include "btm_shim.h"
+#include "btm_device_condition.hpp"
 #include "../controllers/controller_management.hpp"
 
 namespace ams::mitm::btm {
@@ -32,6 +33,28 @@ namespace ams::mitm::btm {
 
     }
 
+    Result BtmMitmService::AcquireDeviceConditionEvent(sf::OutCopyHandle out_handle) {
+        if (!condition::IsInitialized()) {
+            // Forward to the real function to obtain the system event handle
+            os::NativeHandle handle = os::InvalidNativeHandle;
+            R_TRY(btmAcquireDeviceConditionEventFwd(m_forward_service.get(), &handle));
+
+            // Attach the real system event handle to our own event
+            condition::GetSystemEvent()->AttachReadableHandle(handle, false, os::EventClearMode_AutoClear);
+
+            // Return our forwarder event handle to the caller instead
+            out_handle.SetValue(condition::GetForwardEvent()->GetReadableHandle(), false);
+
+            condition::SignalInitialized();
+        } else {
+            // hid is the only client, so it gets the event it already has rather than a second one nothing
+            // would signal
+            out_handle.SetValue(condition::GetForwardEvent()->GetReadableHandle(), false);
+        }
+
+        R_SUCCEED();
+    }
+
     Result BtmMitmService::GetDeviceCondition(ams::btm::Profile profile, const sf::OutArray<ams::btm::ConnectedDevice> &out, sf::Out<s32> total_out) {
         auto device_condition = reinterpret_cast<BtmConnectedDeviceV13 *>(out.GetPointer());
         R_TRY(btmGetDeviceConditionFwd(m_forward_service.get(), profile, device_condition, out.GetSize(), total_out.GetPointer()));
@@ -41,6 +64,28 @@ namespace ams::mitm::btm {
             if (!controller::IsOfficialSwitchControllerName(device->name)) {
                 std::strncpy(device->name, controller::LicensedProControllerName, sizeof(device->name) - 1);
             }
+        }
+
+        // Append controllers btm doesn't know about (Bluetooth LE). Where a real entry exists it serves as a
+        // template for the fields whose meaning isn't known.
+        if ((profile == BtmProfile_Hid) || (profile == BtmProfile_None)) {
+            bluetooth::Address virtual_devices[4];
+            size_t virtual_count = controller::GetVirtualDevices(virtual_devices, util::size(virtual_devices));
+
+            s32 total = total_out.GetValue();
+            for (size_t i = 0; (i < virtual_count) && (static_cast<size_t>(total) < out.GetSize()); ++i, ++total) {
+                auto device = &device_condition[total];
+                if (total_out.GetValue() > 0) {
+                    *device = device_condition[0];
+                } else {
+                    std::memset(device, 0, sizeof(*device));
+                }
+
+                device->address = virtual_devices[i];
+                device->profile = BtmProfile_Hid;
+                std::strncpy(device->name, controller::ProControllerName, sizeof(device->name) - 1);
+            }
+            total_out.SetValue(total);
         }
 
         R_SUCCEED();

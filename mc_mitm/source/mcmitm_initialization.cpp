@@ -28,6 +28,7 @@
 #include "bluetooth_mitm/bluetooth/bluetooth_hid_report.hpp"
 #include "bluetooth_mitm/bluetooth/bluetooth_ble.hpp"
 #include "usb/mc_usb_handler.hpp"
+#include "ble/ble_hid_host.hpp"
 
 namespace ams::mitm {
 
@@ -127,6 +128,7 @@ namespace ams::mitm {
 
         // Launch additional modules
         ams::usb::Launch();
+        ams::ble::Launch();
 
         // Wait for initialisation thread to terminate
         os::WaitThread(&init_thread);
@@ -134,6 +136,7 @@ namespace ams::mitm {
     }
 
     void WaitModules() {
+        ams::ble::WaitFinished();
         ams::usb::WaitFinished();
         ams::mc::WaitFinished();
         ams::mitm::btm::WaitFinished();

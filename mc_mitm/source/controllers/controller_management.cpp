@@ -16,6 +16,7 @@
 #include "controller_management.hpp"
 #include <stratosphere.hpp>
 #include "../utils.hpp"
+#include "../btm_mitm/btm_device_condition.hpp"
 
 namespace ams::controller {
 
@@ -42,6 +43,7 @@ namespace ams::controller {
 
         constinit os::SdkMutex g_controller_lock;
         std::vector<std::shared_ptr<SwitchController>> g_controllers;
+        std::vector<bluetooth::Address> g_virtual_devices;
 
     }
 
@@ -357,6 +359,47 @@ namespace ams::controller {
         }
 
         return nullptr;
+    }
+
+    void AttachVirtualController(std::shared_ptr<SwitchController> controller) {
+        {
+            std::scoped_lock lk(g_controller_lock);
+            g_controllers.push_back(controller);
+            g_virtual_devices.push_back(controller->Address());
+        }
+
+        // Failure here only affects the per-controller settings storage, the controller still works
+        static_cast<void>(controller->Initialize());
+
+        // Let hid know there is a new device to pick up
+        mitm::btm::condition::Signal();
+    }
+
+    void DetachVirtualController(bluetooth::Address address) {
+        RemoveHandler(address);
+
+        {
+            std::scoped_lock lk(g_controller_lock);
+            for (auto it = g_virtual_devices.begin(); it < g_virtual_devices.end(); ++it) {
+                if (utils::BluetoothAddressCompare(*it, address)) {
+                    g_virtual_devices.erase(it);
+                    break;
+                }
+            }
+        }
+
+        mitm::btm::condition::Signal();
+    }
+
+    size_t GetVirtualDevices(bluetooth::Address *out, size_t max) {
+        std::scoped_lock lk(g_controller_lock);
+
+        size_t count = std::min(max, g_virtual_devices.size());
+        for (size_t i = 0; i < count; ++i) {
+            out[i] = g_virtual_devices[i];
+        }
+
+        return count;
     }
 
 }

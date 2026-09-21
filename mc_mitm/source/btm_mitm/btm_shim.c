@@ -16,6 +16,13 @@
 #include "btm_shim.h"
 #include <stratosphere/sf/sf_mitm_dispatch.h>
 
+Result btmAcquireDeviceConditionEventFwd(Service* s, Handle *out_handle) {
+    return serviceMitmDispatch(s, 2,
+        .out_handle_attrs = { SfOutHandleAttr_HipcCopy },
+        .out_handles = out_handle,
+    );
+}
+
 Result btmGetDeviceConditionFwd(Service* s, BtmProfile profile, BtmConnectedDeviceV13 *condition, size_t count, s32 *total_out) {
     return serviceMitmDispatchInOut(s, 3, profile, *total_out,
         .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },

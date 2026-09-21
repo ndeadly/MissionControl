@@ -18,6 +18,7 @@
 #include "../btdrv_mitm_flags.hpp"
 #include "../../controllers/controller_management.hpp"
 #include "../../utils.hpp"
+#include "../../ble/ble_events.hpp"
 
 namespace ams::bluetooth::core {
 
@@ -188,9 +189,17 @@ namespace ams::bluetooth::core {
     }
 
     void HandleEvent() {
+        bool consumed;
         {
             std::scoped_lock lk(g_event_info_lock);
             R_ABORT_UNLESS(btdrvGetEventInfo(&g_event_info, sizeof(bluetooth::EventInfo), &g_current_event_type));
+
+            // The BLE HID host answers pairing requests for the controller it is bonding with itself
+            consumed = ams::ble::events::OnCoreEvent(g_current_event_type, &g_event_info);
+        }
+
+        if (consumed) {
+            return;
         }
 
         // Process custom event and return

@@ -96,4 +96,10 @@ namespace ams::controller {
     void RemoveHandler(bluetooth::Address address);
     std::shared_ptr<SwitchController> LocateHandler(bluetooth::Address address);
 
+    /* Controllers that don't arrive through a Bluetooth HID connection managed by btm (Bluetooth LE). These are
+       tracked separately so the btm mitm can report them to hid as connected devices. */
+    void AttachVirtualController(std::shared_ptr<SwitchController> controller);
+    void DetachVirtualController(bluetooth::Address address);
+    size_t GetVirtualDevices(bluetooth::Address *out, size_t max);
+
 }

@@ -28,6 +28,8 @@ Result btdrvWriteHidData2Fwd(Service* srv, BtdrvAddress address, const void *dat
 Result btdrvRegisterHidReportEventFwd(Service* srv, Handle *out_handle);
 Result btdrvGetHidReportEventInfoFwd(Service* srv, Handle *out_handle);
 Result btdrvInitializeBleFwd(Service* srv, Handle *out_handle);
+Result btdrvStartInquiryFwd(Service* srv, u32 services, s64 duration);
+Result btdrvStopInquiryFwd(Service* srv);
 
 #ifdef __cplusplus
 }
