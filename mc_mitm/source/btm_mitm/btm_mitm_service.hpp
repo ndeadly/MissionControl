@@ -18,6 +18,7 @@
 #include "btm/btm_types.hpp"
 
 #define AMS_BTM_MITM_INTERFACE_INFO(C, H)                                                                                                                                                                                                           \
+    AMS_SF_METHOD_INFO(C, H, 2, Result, AcquireDeviceConditionEvent,   (sf::OutCopyHandle out_handle),                                                                              (out_handle))                                              \
     AMS_SF_METHOD_INFO(C, H, 3, Result, GetDeviceCondition,            (ams::btm::Profile profile, const sf::OutArray<ams::btm::ConnectedDevice> &out, sf::Out<s32> total_out), (profile, out, total_out), hos::Version_13_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 9, Result, GetDeviceInfo,                 (ams::btm::Profile profile, const sf::OutArray<ams::btm::DeviceInfo> &out, sf::Out<s32> total_out),      (profile, out, total_out), hos::Version_13_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 3, Result, GetDeviceConditionDeprecated1, (sf::Out<ams::btm::DeviceConditionV100> out),                                                            (out),                     hos::Version_1_0_0, hos::Version_5_0_2)  \
@@ -41,6 +42,7 @@ namespace ams::mitm::btm {
             }
 
         public:
+            Result AcquireDeviceConditionEvent(sf::OutCopyHandle out_handle);
             Result GetDeviceCondition(ams::btm::Profile profile, const sf::OutArray<ams::btm::ConnectedDevice> &out, sf::Out<s32> total_out);
             Result GetDeviceInfo(ams::btm::Profile profile, const sf::OutArray<ams::btm::DeviceInfo> &out, sf::Out<s32> total_out);
 
