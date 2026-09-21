@@ -38,8 +38,10 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __Sony DualShock4 (Playstation 4) Controller__
 * __Sony Dualsense (Playstation 5) Controller__
 * __Sony Dualsense Edge Controller__
-* __Microsoft Xbox One S/X Controller (not to be confused with Series S/X controllers - these use Bluetooth LE, which isn't currently supported)__*
+* __Microsoft Xbox One S/X Controller__*
 * __Microsoft Xbox Elite Wireless Controller Series 2__
+* __Microsoft Xbox Series X|S Controller__ (Bluetooth LE, see below)
+* __Microsoft Xbox Adaptive Controller__ (Bluetooth LE, see below)
 * __NVidia Shield Controller (2017 Model)__
 * __Ouya Controller__
 * __Gamestick Controller__
@@ -99,6 +101,17 @@ Mission Control is primarily a sysmodule (background process) that gets loaded b
 
 Controllers must first be paired with the console (see below) before they can be used. Once paired, controllers will seek out and reconnect to the console automatically when woken up. There is no need to re-pair them every time. Note that unofficial controllers cannot be used to wake the console.
 
+#### Bluetooth LE controllers (experimental)
+
+Xbox controllers on firmware 5.x or newer, including all Series X|S and Adaptive controllers, use Bluetooth Low Energy instead of classic Bluetooth. Support for these is disabled by default. To enable it, set `enable=true` in the `[ble]` section of `/config/MissionControl/missioncontrol.ini` and reboot. Mission Control then brings the console's BLE radio up about 20 seconds after boot (this briefly cycles Bluetooth, so any classic controller connected at that moment reconnects a couple of seconds later) and looks for a controller.
+
+To pair, open *Controllers → Change Grip/Order* and hold the controller's sync button until its logo flashes rapidly, the same way as for a Pro Controller. The controller shows up after about 15 seconds. Two limitations come from the console's Bluetooth stack:
+
+* The controller does not remember the console, and only one controller can be paired per console restart. Once a controller has been switched off, pairing it again is refused until the console is restarted. The console's stack only supports LE legacy pairing, and these controllers keep a bond only from LE Secure Connections pairing; no Secure Connections support was found in the console's Bluetooth module, so this cannot be changed from Mission Control.
+* Switch the controller off before putting the console to sleep. A controller left switched on wakes the console up again a few seconds later.
+
+The `[ble]` section also offers a `log` option that writes what the BLE host is doing to `/config/MissionControl/ble.log`, which is useful when reporting problems.
+
 Once connected, your controller's buttons are mapped as closely as possible to the physical layout of a Switch Pro Controller. This means that A/B and X/Y buttons will be swapped for controllers that use an Xbox style button layout rather than using what is printed on the button. The button combos `MINUS + DPAD_UP` and `MINUS + DPAD_DOWN` are provided for all controllers to function as an alternative for `CAPTURE` and `HOME` buttons in cases where there are not enough face buttons available. Button mappings can be changed from the official system menu at `System Settings->Controllers and Sensors->Change Button Mapping`.
 
 Most other native features *should* just work (with the exception of things like firmware update). If you find something that's broken please open a support issue on this github page.
@@ -126,7 +139,7 @@ If you have difficulty getting the controller to pair to the console, press and 
 ***Microsoft Xbox One/Elite 2 Controllers***
 Press and hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
 
-*Note: controller firmware versions 5.xx.xxxx.x and upward use Bluetooth Low Energy and are not currently supported. Please refer to the [FAQ](#frequently-asked-questions) for instructions on downgrading to a compatible firmware*
+*Note: controller firmware versions 5.xx.xxxx.x and upward use Bluetooth Low Energy; see [Bluetooth LE controllers](#bluetooth-le-controllers-experimental) for the experimental support and its limitations, or the [FAQ](#frequently-asked-questions) for instructions on downgrading to a compatible firmware*
 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it into sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
@@ -245,7 +258,7 @@ Mission Control is primarily a background process. There are no visual changes t
     - Software you are using hasn't copied the files over correctly. I have seen FTP clients that don't copy empty files at all, and archive software that doesn't unzip directly to SD correctly. Try extracting the .zip archive to your PC first before transferring, and use a reputable transfer method such as Hekate UMS/Haze (Atmosphere's included USB transfer tool) or a decent FTP client (I use WinSCP on Windows).
     - You haven't followed the install instructions correctly and have either excluded files or placed them in the wrong place.
     - SD card corruption. You may need to format or replace your SD card.
-- Check that the controller you're trying to use is in the list of supported controllers. In particular, if you have an Xbox controller, make sure you're using a compatible model and that you're not updated to the newer Bluetooth LE firmware. Controllers using Bluetooth LE are not currently supported.
+- Check that the controller you're trying to use is in the list of supported controllers. In particular, if you have an Xbox controller, make sure you're using a compatible model, and that Bluetooth LE support is enabled in the config if the controller is on a Bluetooth LE firmware (5.xx.xxxx.x and above) or a Series X|S model.
 - Make sure your controller isn't an unofficial clone. This is particularly common with Dualshock 3 and 4 controllers. Many clones will work, but there are some that just refuse. 
 - Make sure your controller battery is sufficiently charged. Sometimes controllers will have enough charge to start pairing, but will keep switching off halfway through (before they can report their battery level to the console).
 - If you've tried all of the above and nothing works, seek help on my [Discord server](https://discord.gg/gegfNZ5Ucz).
@@ -263,12 +276,12 @@ Your controller has successfully paired with the console but is being disconnect
 - Your controller's virtual memory file or the directory tree containing it has been corrupted. Try deleting the controller's config entry (`/config/MissionControl/controllers/<xxxxxxxxxxxx>/`, where `<xxxxxxxxxxxx>` is the 12-character hex representation of your controllers Bluetooth MAC address) and letting Mission Control create a new one. It may be necessary to delete the entire `controllers` directory in some cases. Note: you will lose any stored controller specific data such as user analog stick or motion calibrations when deleting these files. As this is the most destructive measure, you should attempt it last, after exhausting the suggestions above.
 
 ***My Xbox controller won't connect, I thought you said they were supported?***
-Although they may look similar, not all Xbox controllers are created equal. There are actually several hardware revisions/models available (7 at the time of writing) with varying wireless capabilites. On Xbox consoles (or PC with the wireless USB adapter) all controllers use a proprietary Microsoft wireless protocol known as GIP. Bluetooth connectivity, however, is _not_ the same thing and varies between controller models. Some support bluetooth, and some don't. Of those that do, some are using the newer (currently unsupported) Bluetooth Low Energy (LE) standard or will switch to it after a firmware update. **The only supported models are the 1708 (Xbox One S) and 1797 (Xbox Elite V2) revisions. If these have been updated to a Bluetooth LE firmware (5.xx.xxxx.x and above), you will need to downgrade the firmware to the legacy version (see below).**. Controller model numbers can be found on the inside of the battery compartment, or the back of the controller in controllers with an internal battery.
+Although they may look similar, not all Xbox controllers are created equal. There are actually several hardware revisions/models available (7 at the time of writing) with varying wireless capabilites. On Xbox consoles (or PC with the wireless USB adapter) all controllers use a proprietary Microsoft wireless protocol known as GIP. Bluetooth connectivity, however, is _not_ the same thing and varies between controller models. Some support bluetooth, and some don't. Of those that do, some use the newer Bluetooth Low Energy (LE) standard or switch to it after a firmware update. **The 1708 (Xbox One S) and 1797 (Xbox Elite V2) revisions work over classic Bluetooth on their legacy firmware, and over Bluetooth LE on firmware 5.xx.xxxx.x and above once the experimental `[ble]` support is enabled (see Usage). Series X|S (1914) and Adaptive controllers are Bluetooth LE only.** Controller model numbers can be found on the inside of the battery compartment, or the back of the controller in controllers with an internal battery.
 
 For more details on the various controller revisions (with images), see [here](https://en.wikipedia.org/wiki/Xbox_Wireless_Controller#Summary).
 
 ***My Xbox One/Elite V2 controller used to connect and now it doesn't, what gives?***
-As of late 2021, Microsoft introduced a new controller firmware that aims to bring Xbox One/Elite 2 controllers in line with the newer Series X|S controllers. Updating to this firmware switches the controller over to using Bluetooth Low Energy (LE), a newer bluetooth standard focused on low power consumption, which is not currently supported by Mission Control. If your controller firmware is version 5.xx.xxxx.x or above, you have the new LE firmware and will need to downgrade to the legacy one (see https://support.xbox.com/en-US/help/hardware-network/accessories/controller-firmware-reversion)
+As of late 2021, Microsoft introduced a new controller firmware that aims to bring Xbox One/Elite 2 controllers in line with the newer Series X|S controllers. Updating to this firmware switches the controller over to using Bluetooth Low Energy (LE), a newer bluetooth standard focused on low power consumption. If your controller firmware is version 5.xx.xxxx.x or above, either enable the experimental Bluetooth LE support in the config (see Usage) or downgrade to the legacy firmware (see https://support.xbox.com/en-US/help/hardware-network/accessories/controller-firmware-reversion)
 
 ***Can you add support for Xbox 360 controllers?***
 No, not currently. These don't use Bluetooth. Try sys-con with a wireless USB adapter.
