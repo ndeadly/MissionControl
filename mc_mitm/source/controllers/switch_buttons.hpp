@@ -132,6 +132,13 @@ namespace ams::controller {
                 m_button_state = (m_button_state & ~mask) | (value ? mask : 0);
             }
 
+            constexpr ALWAYS_INLINE void ApplyCombo(SwitchButton button, SwitchButtons combo) {
+                if (All(combo)) {
+                    Clear(combo);
+                    Set(button);
+                }
+            }
+
             constexpr ALWAYS_INLINE void Reset() {
                 m_button_state = 0;
             }
