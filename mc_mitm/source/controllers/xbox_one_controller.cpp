@@ -54,6 +54,8 @@ namespace ams::controller {
     }
 
     void XboxOneController::MapInputReport0x01(const XboxOneReportData *src, bool new_format) {
+        auto dpad = DirectionalPad(src->input0x01.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -67,12 +69,12 @@ namespace ams::controller {
         SwitchButtons button_state = m_buttons;
         button_state.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
         button_state.Assign(SwitchButton::ZL, src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
 
         if (new_format) {
-            button_state.Assign(SwitchButton::Down,   (src->input0x01.buttons.dpad == XboxOneDPad_S) || (src->input0x01.buttons.dpad == XboxOneDPad_SE) || (src->input0x01.buttons.dpad == XboxOneDPad_SW));
-            button_state.Assign(SwitchButton::Up,     (src->input0x01.buttons.dpad == XboxOneDPad_N) || (src->input0x01.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.buttons.dpad == XboxOneDPad_NW));
-            button_state.Assign(SwitchButton::Right,  (src->input0x01.buttons.dpad == XboxOneDPad_E) || (src->input0x01.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.buttons.dpad == XboxOneDPad_SE));
-            button_state.Assign(SwitchButton::Left,   (src->input0x01.buttons.dpad == XboxOneDPad_W) || (src->input0x01.buttons.dpad == XboxOneDPad_NW) || (src->input0x01.buttons.dpad == XboxOneDPad_SW));
             button_state.Assign(SwitchButton::A,      src->input0x01.buttons.B);
             button_state.Assign(SwitchButton::B,      src->input0x01.buttons.A);
             button_state.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
@@ -85,10 +87,6 @@ namespace ams::controller {
             button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.rstick_press);
             button_state.Assign(SwitchButton::Home,   src->input0x01.buttons.guide);
         } else {
-            button_state.Assign(SwitchButton::Down,   (src->input0x01.old.buttons.dpad == XboxOneDPad_S) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SE) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SW));
-            button_state.Assign(SwitchButton::Up,     (src->input0x01.old.buttons.dpad == XboxOneDPad_N) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NW));
-            button_state.Assign(SwitchButton::Right,  (src->input0x01.old.buttons.dpad == XboxOneDPad_E) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NE) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SE));
-            button_state.Assign(SwitchButton::Left,   (src->input0x01.old.buttons.dpad == XboxOneDPad_W) || (src->input0x01.old.buttons.dpad == XboxOneDPad_NW) || (src->input0x01.old.buttons.dpad == XboxOneDPad_SW));
             button_state.Assign(SwitchButton::A,      src->input0x01.old.buttons.B);
             button_state.Assign(SwitchButton::B,      src->input0x01.old.buttons.A);
             button_state.Assign(SwitchButton::X,      src->input0x01.old.buttons.Y);

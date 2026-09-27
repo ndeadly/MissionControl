@@ -23,18 +23,6 @@ namespace ams::controller {
         MocuteControllerVariant_053,
     };
 
-    enum MocuteDPadDirection {
-        MocuteDPad_N,
-        MocuteDPad_NE,
-        MocuteDPad_E,
-        MocuteDPad_SE,
-        MocuteDPad_S,
-        MocuteDPad_SW,
-        MocuteDPad_W,
-        MocuteDPad_NW,
-        MocuteDPad_Released = 0x0f
-    };
-
     struct MocuteButtonData {
         u8 dpad   : 4;
         u8 A      : 1;

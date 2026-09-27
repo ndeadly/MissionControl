@@ -50,6 +50,8 @@ namespace ams::controller {
     }
 
     void SteelseriesController::MapInputReport0x01(const SteelseriesReportData *src) {
+        auto dpad = DirectionalPad(src->input0x01.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -61,10 +63,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,  (src->input0x01.dpad == SteelseriesDPad_S) || (src->input0x01.dpad == SteelseriesDPad_SE) || (src->input0x01.dpad == SteelseriesDPad_SW));
-        button_state.Assign(SwitchButton::Up,    (src->input0x01.dpad == SteelseriesDPad_N) || (src->input0x01.dpad == SteelseriesDPad_NE) || (src->input0x01.dpad == SteelseriesDPad_NW));
-        button_state.Assign(SwitchButton::Right, (src->input0x01.dpad == SteelseriesDPad_E) || (src->input0x01.dpad == SteelseriesDPad_NE) || (src->input0x01.dpad == SteelseriesDPad_SE));
-        button_state.Assign(SwitchButton::Left,  (src->input0x01.dpad == SteelseriesDPad_W) || (src->input0x01.dpad == SteelseriesDPad_NW) || (src->input0x01.dpad == SteelseriesDPad_SW));
+        button_state.Assign(SwitchButton::Down,  dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,    dpad.IsUp());
+        button_state.Assign(SwitchButton::Right, dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,  dpad.IsLeft());
         button_state.Assign(SwitchButton::A,     src->input0x01.buttons.B);
         button_state.Assign(SwitchButton::B,     src->input0x01.buttons.A);
         button_state.Assign(SwitchButton::X,     src->input0x01.buttons.Y);
@@ -77,6 +79,8 @@ namespace ams::controller {
     }
 
     void SteelseriesController::MapInputReport0x01_v2(const SteelseriesReportData *src) {
+        auto dpad = DirectionalPad(src->input0x01_v2.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x01_v2.left_stick.GetX(),
             src->input0x01_v2.left_stick.GetYInverted()
@@ -88,10 +92,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x01_v2.dpad == SteelseriesDPad_S) || (src->input0x01_v2.dpad == SteelseriesDPad_SE) || (src->input0x01_v2.dpad == SteelseriesDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x01_v2.dpad == SteelseriesDPad_N) || (src->input0x01_v2.dpad == SteelseriesDPad_NE) || (src->input0x01_v2.dpad == SteelseriesDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x01_v2.dpad == SteelseriesDPad_E) || (src->input0x01_v2.dpad == SteelseriesDPad_NE) || (src->input0x01_v2.dpad == SteelseriesDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x01_v2.dpad == SteelseriesDPad_W) || (src->input0x01_v2.dpad == SteelseriesDPad_NW) || (src->input0x01_v2.dpad == SteelseriesDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x01_v2.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x01_v2.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x01_v2.buttons.Y);
@@ -118,6 +122,8 @@ namespace ams::controller {
     }
 
     void SteelseriesController::MapInputReport0xC4(const SteelseriesReportData *src) {
+        auto dpad = DirectionalPad(src->input0xC4.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0xC4.left_stick.GetX(),
             src->input0xC4.left_stick.GetYInverted()
@@ -129,10 +135,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0xC4.dpad == SteelseriesDPad2_S) || (src->input0xC4.dpad == SteelseriesDPad2_SE) || (src->input0xC4.dpad == SteelseriesDPad2_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0xC4.dpad == SteelseriesDPad2_N) || (src->input0xC4.dpad == SteelseriesDPad2_NE) || (src->input0xC4.dpad == SteelseriesDPad2_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0xC4.dpad == SteelseriesDPad2_E) || (src->input0xC4.dpad == SteelseriesDPad2_NE) || (src->input0xC4.dpad == SteelseriesDPad2_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0xC4.dpad == SteelseriesDPad2_W) || (src->input0xC4.dpad == SteelseriesDPad2_NW) || (src->input0xC4.dpad == SteelseriesDPad2_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0xC4.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0xC4.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0xC4.buttons.Y);

@@ -18,30 +18,6 @@
 
 namespace ams::controller {
 
-    enum GamesirDpadDirection {
-        GamesirDpad_Released,
-        GamesirDpad_N,
-        GamesirDpad_NE,
-        GamesirDpad_E,
-        GamesirDpad_SE,
-        GamesirDpad_S,
-        GamesirDpad_SW,
-        GamesirDpad_W,
-        GamesirDpad_NW,
-    };
-
-    enum GamesirDpadDirection2 {
-        GamesirDpad2_N,
-        GamesirDpad2_NE,
-        GamesirDpad2_E,
-        GamesirDpad2_SE,
-        GamesirDpad2_S,
-        GamesirDpad2_SW,
-        GamesirDpad2_W,
-        GamesirDpad2_NW,
-        GamesirDpad2_Released = 0x0f,
-    };
-
     struct GamesirButtonData {
         u8 A      : 1;
         u8 B      : 1;
@@ -64,7 +40,7 @@ namespace ams::controller {
 
     struct GamesirReport0x03 {
         GamesirButtonData buttons;
-        u8 dpad;
+        DirectionalPadType<0, 0xF> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 left_trigger;
@@ -75,7 +51,7 @@ namespace ams::controller {
     struct GamesirReport0x07 {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 dpad;
+        DirectionalPadType<0, 0xF> dpad;
         GamesirButtonData buttons;
         u8 right_trigger;
         u8 left_trigger;
@@ -96,7 +72,7 @@ namespace ams::controller {
         u8 left_trigger;
         u8 right_trigger;
         GamesirButtonData buttons;
-        u8 dpad;
+        DirectionalPadType<1, 0> dpad;
         u8 _unk;
     } PACKED;
 

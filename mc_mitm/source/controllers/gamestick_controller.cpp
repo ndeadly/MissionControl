@@ -40,6 +40,8 @@ namespace ams::controller {
     }
 
     void GamestickController::MapInputReport0x03(const GamestickReportData *src) {
+        auto dpad = DirectionalPad(src->input0x03.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x03.left_stick.GetX(),
             src->input0x03.left_stick.GetYInverted()
@@ -51,10 +53,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x03.dpad == GamestickDPad_S) || (src->input0x03.dpad == GamestickDPad_SE) || (src->input0x03.dpad == GamestickDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x03.dpad == GamestickDPad_N) || (src->input0x03.dpad == GamestickDPad_NE) || (src->input0x03.dpad == GamestickDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x03.dpad == GamestickDPad_E) || (src->input0x03.dpad == GamestickDPad_NE) || (src->input0x03.dpad == GamestickDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x03.dpad == GamestickDPad_W) || (src->input0x03.dpad == GamestickDPad_NW) || (src->input0x03.dpad == GamestickDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x03.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x03.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x03.buttons.Y);

@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum PowerADPadDirection {
-        PowerADPad_N,
-        PowerADPad_NE,
-        PowerADPad_E,
-        PowerADPad_SE,
-        PowerADPad_S,
-        PowerADPad_SW,
-        PowerADPad_W,
-        PowerADPad_NW,
-        PowerADPad_Released = 0x0f
-    };
-
     struct PowerAButtonData {
         u8 dpad   : 4;
         u8 A      : 1;

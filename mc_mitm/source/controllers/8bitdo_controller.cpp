@@ -43,18 +43,30 @@ namespace ams::controller {
         SwitchButtons button_state = m_buttons;
 
         if (m_controller_type == EightBitDoControllerType_Zero) {
-            bool dpad_down  = (src->input0x01_v1.dpad == EightBitDoDPadV1_S)  ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SE) ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
-            bool dpad_up    = (src->input0x01_v1.dpad == EightBitDoDPadV1_N)  ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NW);
-            bool dpad_right = (src->input0x01_v1.dpad == EightBitDoDPadV1_E)  ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NE) ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SE);
-            bool dpad_left  = (src->input0x01_v1.dpad == EightBitDoDPadV1_W)  ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_NW) ||
-                              (src->input0x01_v1.dpad == EightBitDoDPadV1_SW);
+            enum EightBitDoZeroDPad : u16 {
+                EightBitDoZeroDpad_Released = 0x0000,
+                EightBitDoZeroDpad_N        = 0x0052,
+                EightBitDoZeroDpad_NE       = 0x524f,
+                EightBitDoZeroDpad_E        = 0x004f,
+                EightBitDoZeroDpad_SE       = 0x4f51,
+                EightBitDoZeroDpad_S        = 0x0051,
+                EightBitDoZeroDpad_SW       = 0x5150,
+                EightBitDoZeroDpad_W        = 0x0050,
+                EightBitDoZeroDpad_NW       = 0x5250,
+            };
+
+            bool dpad_down  = (src->input0x01_v1.dpad == EightBitDoZeroDpad_S)  ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_SE) ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_SW);
+            bool dpad_up    = (src->input0x01_v1.dpad == EightBitDoZeroDpad_N)  ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_NE) ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_NW);
+            bool dpad_right = (src->input0x01_v1.dpad == EightBitDoZeroDpad_E)  ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_NE) ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_SE);
+            bool dpad_left  = (src->input0x01_v1.dpad == EightBitDoZeroDpad_W)  ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_NW) ||
+                              (src->input0x01_v1.dpad == EightBitDoZeroDpad_SW);
 
             // Map dpad as left stick
             m_left_stick.SetValues(
@@ -62,6 +74,8 @@ namespace ams::controller {
                 DpadStickPositions[1 + dpad_up - dpad_down]
             );
         } else {
+            auto dpad = DirectionalPad(src->input0x01_v2.dpad);
+
             m_left_stick.SetValuesFrom(
                 src->input0x01_v2.left_stick.GetX(),
                 src->input0x01_v2.left_stick.GetYInverted()
@@ -72,10 +86,10 @@ namespace ams::controller {
                 src->input0x01_v2.right_stick.GetYInverted()
             );
 
-            button_state.Assign(SwitchButton::Down,  (src->input0x01_v2.dpad == EightBitDoDPadV2_S) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SW));
-            button_state.Assign(SwitchButton::Up,    (src->input0x01_v2.dpad == EightBitDoDPadV2_N) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NW));
-            button_state.Assign(SwitchButton::Right, (src->input0x01_v2.dpad == EightBitDoDPadV2_E) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NE) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SE));
-            button_state.Assign(SwitchButton::Left,  (src->input0x01_v2.dpad == EightBitDoDPadV2_W) || (src->input0x01_v2.dpad == EightBitDoDPadV2_NW) || (src->input0x01_v2.dpad == EightBitDoDPadV2_SW));
+            button_state.Assign(SwitchButton::Down,  dpad.IsDown());
+            button_state.Assign(SwitchButton::Up,    dpad.IsUp());
+            button_state.Assign(SwitchButton::Right, dpad.IsRight());
+            button_state.Assign(SwitchButton::Left,  dpad.IsLeft());
             button_state.Assign(SwitchButton::A,     src->input0x01_v2.buttons.B);
             button_state.Assign(SwitchButton::B,     src->input0x01_v2.buttons.A);
             button_state.Assign(SwitchButton::X,     src->input0x01_v2.buttons.Y);
@@ -138,6 +152,8 @@ namespace ams::controller {
                 button_state.Assign(SwitchButton::Plus,  src->input0x03_v2.buttons.v2.start);
             }
         } else {
+            auto dpad = DirectionalPad(src->input0x03_v3.dpad);
+
             m_left_stick.SetValuesFrom(
                 src->input0x03_v3.left_stick.GetX(),
                 src->input0x03_v3.left_stick.GetYInverted()
@@ -148,10 +164,10 @@ namespace ams::controller {
                 src->input0x03_v3.right_stick.GetYInverted()
             );
 
-            button_state.Assign(SwitchButton::Down,  (src->input0x03_v3.dpad == EightBitDoDPadV2_S) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SW));
-            button_state.Assign(SwitchButton::Up,    (src->input0x03_v3.dpad == EightBitDoDPadV2_N) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NW));
-            button_state.Assign(SwitchButton::Right, (src->input0x03_v3.dpad == EightBitDoDPadV2_E) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NE) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SE));
-            button_state.Assign(SwitchButton::Left,  (src->input0x03_v3.dpad == EightBitDoDPadV2_W) || (src->input0x03_v3.dpad == EightBitDoDPadV2_NW) || (src->input0x03_v3.dpad == EightBitDoDPadV2_SW));
+            button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+            button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+            button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+            button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
             button_state.Assign(SwitchButton::A,      src->input0x03_v3.buttons.B);
             button_state.Assign(SwitchButton::B,      src->input0x03_v3.buttons.A);
             button_state.Assign(SwitchButton::X,      src->input0x03_v3.buttons.Y);

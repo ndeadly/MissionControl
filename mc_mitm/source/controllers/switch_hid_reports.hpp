@@ -18,6 +18,7 @@
 #include "switch_power_info.hpp"
 #include "switch_buttons.hpp"
 #include "switch_analog_stick.hpp"
+#include "switch_directional_pad.hpp"
 #include "switch_motor_status.hpp"
 
 #include "switch_hid_commands.hpp"
@@ -167,10 +168,9 @@ namespace ams::controller {
     struct SwitchHidGenericInputReport {
         SwitchHidReportId report_id;
     //     ButtonsType<2> button_status;
-    //     DirectionalPadType<0, 8> stick_hat_data;
         // u16 button_status;
         u8 button_status[2];
-        u8 stick_hat_data;
+        DirectionalPadType<0, 8> stick_hat_data;
         AnalogStickType<u16> left_analog_stick;
         AnalogStickType<u16> right_analog_stick;
     };

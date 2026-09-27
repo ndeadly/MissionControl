@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum DualsenseDPadDirection {
-        DualsenseDPad_N,
-        DualsenseDPad_NE,
-        DualsenseDPad_E,
-        DualsenseDPad_SE,
-        DualsenseDPad_S,
-        DualsenseDPad_SW,
-        DualsenseDPad_W,
-        DualsenseDPad_NW,
-        DualsenseDPad_Released
-    };
-
     struct DualsenseButtonData {
         u8 dpad     : 4;
         u8 square   : 1;

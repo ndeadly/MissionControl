@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum MadCatzDPadDirection {
-        MadCatzDPad_Released,
-        MadCatzDPad_N,
-        MadCatzDPad_NE,
-        MadCatzDPad_E,
-        MadCatzDPad_SE,
-        MadCatzDPad_S,
-        MadCatzDPad_SW,
-        MadCatzDPad_W,
-        MadCatzDPad_NW
-    };
-
     struct MadCatzButtonData {
         u8 X      : 1;
         u8 A      : 1;
@@ -46,12 +34,11 @@ namespace ams::controller {
         u8 R3     : 1;
         u8 home   : 1;
         u8        : 0;
-
-        u8 dpad;
     } PACKED;
 
     struct MadCatzInputReport0x01 {
         MadCatzButtonData buttons;
+        DirectionalPadType<1, 0> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 left_trigger;
@@ -104,9 +91,8 @@ namespace ams::controller {
                     u8       : 0;
                 } xinput;
             };
-
-            u8 dpad;
         } buttons;
+        DirectionalPadType<1, 0> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 left_trigger;
@@ -116,15 +102,19 @@ namespace ams::controller {
 
     struct MadCatzInputReport0x82 {
         struct {
-            u8        : 2;
-            u8 R1     : 1;
-            u8 L1     : 1;
-            u8 Y      : 1;
-            u8 B      : 1;
-            u8 X      : 1;
-            u8 select : 1;
+            u8            : 2;
+            u8 R1         : 1;
+            u8 L1         : 1;
+            u8 Y          : 1;
+            u8 B          : 1;
+            u8 X          : 1;
+            u8 select     : 1;
 
-            u8 dpad;
+            u8 dpad_up    : 1;
+            u8 dpad_down  : 1;
+            u8 dpad_left  : 1;
+            u8 dpad_right : 1;
+            u8            : 4;
         } buttons;
         u8 reserved;
     } PACKED;

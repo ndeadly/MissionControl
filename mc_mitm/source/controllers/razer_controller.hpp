@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum RazerDPadDirection {
-        RazerDPad_N,
-        RazerDPad_NE,
-        RazerDPad_E,
-        RazerDPad_SE,
-        RazerDPad_S,
-        RazerDPad_SW,
-        RazerDPad_W,
-        RazerDPad_NW,
-        RazerDPad_Released
-    };
-
     struct RazerButtonData {
         u8 dpad   : 4;
         u8 A      : 1;

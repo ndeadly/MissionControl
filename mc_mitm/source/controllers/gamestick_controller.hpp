@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum GamestickDPadDirection {
-        GamestickDPad_N,
-        GamestickDPad_NE,
-        GamestickDPad_E,
-        GamestickDPad_SE,
-        GamestickDPad_S,
-        GamestickDPad_SW,
-        GamestickDPad_W,
-        GamestickDPad_NW,
-        GamestickDPad_Released = 0x0f
-    };
-
     struct GamestickInputReport0x01 {
         u8 _unk0;
 
@@ -44,7 +32,7 @@ namespace ams::controller {
     } PACKED;
 
     struct GamestickInputReport0x03 {
-        u8 dpad;
+        DirectionalPadType<0, 0xF> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 _unk0[2];

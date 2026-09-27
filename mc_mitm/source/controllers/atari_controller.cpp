@@ -39,6 +39,8 @@ namespace ams::controller {
     }
 
     void AtariController::MapInputReport0x01(const AtariReportData *src) {
+        auto dpad = DirectionalPad(static_cast<DirectionalPadType<1, 0>>(src->input0x01.buttons.dpad));
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -50,10 +52,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,  (src->input0x01.buttons.dpad == AtariDPad_S) || (src->input0x01.buttons.dpad == AtariDPad_SE) || (src->input0x01.buttons.dpad == AtariDPad_SW));
-        button_state.Assign(SwitchButton::Up,    (src->input0x01.buttons.dpad == AtariDPad_N) || (src->input0x01.buttons.dpad == AtariDPad_NE) || (src->input0x01.buttons.dpad == AtariDPad_NW));
-        button_state.Assign(SwitchButton::Right, (src->input0x01.buttons.dpad == AtariDPad_E) || (src->input0x01.buttons.dpad == AtariDPad_NE) || (src->input0x01.buttons.dpad == AtariDPad_SE));
-        button_state.Assign(SwitchButton::Left,  (src->input0x01.buttons.dpad == AtariDPad_W) || (src->input0x01.buttons.dpad == AtariDPad_NW) || (src->input0x01.buttons.dpad == AtariDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x01.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x01.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x01.buttons.Y);

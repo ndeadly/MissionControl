@@ -43,6 +43,8 @@ namespace ams::controller {
     }
 
     void GemboxController::MapInputReport0x07(const GemboxReportData *src) {
+        auto dpad = DirectionalPad(src->input0x07.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x07.left_stick.GetX(),
             src->input0x07.left_stick.GetYInverted()
@@ -54,10 +56,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x07.dpad == GemboxDPad_S) || (src->input0x07.dpad == GemboxDPad_SE) || (src->input0x07.dpad == GemboxDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x07.dpad == GemboxDPad_N) || (src->input0x07.dpad == GemboxDPad_NE) || (src->input0x07.dpad == GemboxDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x07.dpad == GemboxDPad_E) || (src->input0x07.dpad == GemboxDPad_NE) || (src->input0x07.dpad == GemboxDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x07.dpad == GemboxDPad_W) || (src->input0x07.dpad == GemboxDPad_NW) || (src->input0x07.dpad == GemboxDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x07.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x07.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x07.buttons.Y);

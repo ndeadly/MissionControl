@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum AtariDPadDirection {
-        AtariDPad_Released,
-        AtariDPad_N,
-        AtariDPad_NE,
-        AtariDPad_E,
-        AtariDPad_SE,
-        AtariDPad_S,
-        AtariDPad_SW,
-        AtariDPad_W,
-        AtariDPad_NW,
-    };
-
     struct AtariButtonData {
         u8 A    : 1;
         u8 B    : 1;

@@ -46,6 +46,8 @@ namespace ams::controller {
     }
 
     void MadCatzController::MapInputReport0x01(const MadCatzReportData *src) {
+        auto dpad = DirectionalPad(src->input0x01.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -57,10 +59,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x01.buttons.dpad == MadCatzDPad_S) || (src->input0x01.buttons.dpad == MadCatzDPad_SE) || (src->input0x01.buttons.dpad == MadCatzDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x01.buttons.dpad == MadCatzDPad_N) || (src->input0x01.buttons.dpad == MadCatzDPad_NE) || (src->input0x01.buttons.dpad == MadCatzDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x01.buttons.dpad == MadCatzDPad_E) || (src->input0x01.buttons.dpad == MadCatzDPad_NE) || (src->input0x01.buttons.dpad == MadCatzDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x01.buttons.dpad == MadCatzDPad_W) || (src->input0x01.buttons.dpad == MadCatzDPad_NW) || (src->input0x01.buttons.dpad == MadCatzDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x01.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x01.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
@@ -82,6 +84,8 @@ namespace ams::controller {
     }
 
     void MadCatzController::MapInputReport0x81(const MadCatzReportData *src) {
+        auto dpad = DirectionalPad(src->input0x81.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x81.left_stick.GetX(),
             src->input0x81.left_stick.GetYInverted()
@@ -93,10 +97,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x81.buttons.dpad == MadCatzDPad_S) || (src->input0x81.buttons.dpad == MadCatzDPad_SE) || (src->input0x81.buttons.dpad == MadCatzDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x81.buttons.dpad == MadCatzDPad_N) || (src->input0x81.buttons.dpad == MadCatzDPad_NE) || (src->input0x81.buttons.dpad == MadCatzDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x81.buttons.dpad == MadCatzDPad_E) || (src->input0x81.buttons.dpad == MadCatzDPad_NE) || (src->input0x81.buttons.dpad == MadCatzDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x81.buttons.dpad == MadCatzDPad_W) || (src->input0x81.buttons.dpad == MadCatzDPad_NW) || (src->input0x81.buttons.dpad == MadCatzDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x81.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x81.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x81.buttons.Y);
@@ -114,10 +118,10 @@ namespace ams::controller {
 
     void MadCatzController::MapInputReport0x82(const MadCatzReportData *src) {
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Up,    (src->input0x82.buttons.dpad & 0x01) != 0);
-        button_state.Assign(SwitchButton::Down,  (src->input0x82.buttons.dpad & 0x02) != 0);
-        button_state.Assign(SwitchButton::Left,  (src->input0x82.buttons.dpad & 0x04) != 0);
-        button_state.Assign(SwitchButton::Right, (src->input0x82.buttons.dpad & 0x08) != 0);
+        button_state.Assign(SwitchButton::Up,    src->input0x82.buttons.dpad_up);
+        button_state.Assign(SwitchButton::Down,  src->input0x82.buttons.dpad_down);
+        button_state.Assign(SwitchButton::Left,  src->input0x82.buttons.dpad_left);
+        button_state.Assign(SwitchButton::Right, src->input0x82.buttons.dpad_right);
         button_state.Assign(SwitchButton::A,     src->input0x82.buttons.B);
         button_state.Assign(SwitchButton::X,     src->input0x82.buttons.Y);
         button_state.Assign(SwitchButton::Y,     src->input0x82.buttons.X);

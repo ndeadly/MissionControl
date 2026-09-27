@@ -166,6 +166,8 @@ namespace ams::controller {
     }
 
     void DualsenseController::MapInputReport0x01(const DualsenseReportData *src) {
+        auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x01.buttons.dpad));
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -177,10 +179,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,    (src->input0x01.buttons.dpad == DualsenseDPad_S) || (src->input0x01.buttons.dpad == DualsenseDPad_SE) || (src->input0x01.buttons.dpad == DualsenseDPad_SW));
-        button_state.Assign(SwitchButton::Up,      (src->input0x01.buttons.dpad == DualsenseDPad_N) || (src->input0x01.buttons.dpad == DualsenseDPad_NE) || (src->input0x01.buttons.dpad == DualsenseDPad_NW));
-        button_state.Assign(SwitchButton::Right,   (src->input0x01.buttons.dpad == DualsenseDPad_E) || (src->input0x01.buttons.dpad == DualsenseDPad_NE) || (src->input0x01.buttons.dpad == DualsenseDPad_SE));
-        button_state.Assign(SwitchButton::Left,    (src->input0x01.buttons.dpad == DualsenseDPad_W) || (src->input0x01.buttons.dpad == DualsenseDPad_NW) || (src->input0x01.buttons.dpad == DualsenseDPad_SW));
+        button_state.Assign(SwitchButton::Down,    dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,      dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,   dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,    dpad.IsLeft());
         button_state.Assign(SwitchButton::A,       src->input0x01.buttons.circle);
         button_state.Assign(SwitchButton::B,       src->input0x01.buttons.cross);
         button_state.Assign(SwitchButton::X,       src->input0x01.buttons.triangle);
@@ -203,6 +205,8 @@ namespace ams::controller {
         m_power_info.SetCharging(src->input0x31.powered && !src->input0x31.charge_complete);
         m_power_info.SetBatteryLevel(BatteryLookup[std::clamp<u8>(src->input0x31.battery_level, 0, sizeof(BatteryLookup) - 1)]);
 
+        auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x31.buttons.dpad));
+
         m_left_stick.SetValuesFrom(
             src->input0x31.left_stick.GetX(),
             src->input0x31.left_stick.GetYInverted()
@@ -214,10 +218,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,    (src->input0x31.buttons.dpad == DualsenseDPad_S) || (src->input0x31.buttons.dpad == DualsenseDPad_SE) || (src->input0x31.buttons.dpad == DualsenseDPad_SW));
-        button_state.Assign(SwitchButton::Up,      (src->input0x31.buttons.dpad == DualsenseDPad_N) || (src->input0x31.buttons.dpad == DualsenseDPad_NE) || (src->input0x31.buttons.dpad == DualsenseDPad_NW));
-        button_state.Assign(SwitchButton::Right,   (src->input0x31.buttons.dpad == DualsenseDPad_E) || (src->input0x31.buttons.dpad == DualsenseDPad_NE) || (src->input0x31.buttons.dpad == DualsenseDPad_SE));
-        button_state.Assign(SwitchButton::Left,    (src->input0x31.buttons.dpad == DualsenseDPad_W) || (src->input0x31.buttons.dpad == DualsenseDPad_NW) || (src->input0x31.buttons.dpad == DualsenseDPad_SW));
+        button_state.Assign(SwitchButton::Down,    dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,      dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,   dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,    dpad.IsLeft());
         button_state.Assign(SwitchButton::A,       src->input0x31.buttons.circle);
         button_state.Assign(SwitchButton::B,       src->input0x31.buttons.cross);
         button_state.Assign(SwitchButton::X,       src->input0x31.buttons.triangle);

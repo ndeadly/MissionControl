@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum NvidiaShieldDPadDirection {
-        NvidiaShieldDPad_N,
-        NvidiaShieldDPad_NE,
-        NvidiaShieldDPad_E,
-        NvidiaShieldDPad_SE,
-        NvidiaShieldDPad_S,
-        NvidiaShieldDPad_SW,
-        NvidiaShieldDPad_W,
-        NvidiaShieldDPad_NW,
-        NvidiaShieldDPad_Released = 0x80
-    };
-
     struct NvidiaShieldButtonData {
         u8 A     : 1;
         u8 B     : 1;
@@ -46,7 +34,7 @@ namespace ams::controller {
 
     struct NvidiaShieldInputReport0x01 {
         u8 _unk0;  // maybe a counter?
-        u8 dpad;
+        DirectionalPadType<0, 0x80> dpad;
         NvidiaShieldButtonData buttons;
         u16 left_trigger;
         u16 right_trigger;

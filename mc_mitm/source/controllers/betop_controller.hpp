@@ -18,21 +18,7 @@
 
 namespace ams::controller {
 
-    enum BetopDPadDirection {
-        BetopDPad_N,
-        BetopDPad_NE,
-        BetopDPad_E,
-        BetopDPad_SE,
-        BetopDPad_S,
-        BetopDPad_SW,
-        BetopDPad_W,
-        BetopDPad_NW,
-        BetopDPad_Released = 0x0f
-    };
-
     struct BetopButtonData {
-        u8 dpad;
-
         u8 A      : 1;
         u8 B      : 1;
         u8        : 1;
@@ -54,6 +40,7 @@ namespace ams::controller {
 
     struct BetopInputReport0x03 {
         u8 unk0;
+        DirectionalPadType<0, 0xF> dpad;
         BetopButtonData buttons;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;

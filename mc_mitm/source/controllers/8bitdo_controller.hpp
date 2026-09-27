@@ -32,30 +32,6 @@ namespace ams::controller {
         EightBitDoReportFormat_Other
     };
 
-    enum EightBitDoDPadDirectionV1 : u16 {
-        EightBitDoDPadV1_Released = 0x0000,
-        EightBitDoDPadV1_N        = 0x0052,
-        EightBitDoDPadV1_NE       = 0x524f,
-        EightBitDoDPadV1_E        = 0x004f,
-        EightBitDoDPadV1_SE       = 0x4f51,
-        EightBitDoDPadV1_S        = 0x0051,
-        EightBitDoDPadV1_SW       = 0x5150,
-        EightBitDoDPadV1_W        = 0x0050,
-        EightBitDoDPadV1_NW       = 0x5250,
-    };
-
-    enum EightBitDoDPadDirectionV2 {
-        EightBitDoDPadV2_N,
-        EightBitDoDPadV2_NE,
-        EightBitDoDPadV2_E,
-        EightBitDoDPadV2_SE,
-        EightBitDoDPadV2_S,
-        EightBitDoDPadV2_SW,
-        EightBitDoDPadV2_W,
-        EightBitDoDPadV2_NW,
-        EightBitDoDPadV2_Released
-    };
-
     struct EightBitDoButtonData {
         u8 A              : 1;
         u8 B              : 1;
@@ -98,7 +74,7 @@ namespace ams::controller {
 
     struct EightBitDoInputReport0x01V2 {
         EightBitDoButtonData buttons;
-        u8 dpad;
+        DirectionalPadType<0, 8> dpad;
         AnalogStick<u16> left_stick;
         AnalogStick<u16> right_stick;
         u8 right_trigger;
@@ -107,7 +83,7 @@ namespace ams::controller {
     } PACKED;
 
     struct EightBitDoInputReport0x03V1 {
-        u8 dpad;
+        DirectionalPadType<0, 8> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 _unk[3];
@@ -115,7 +91,7 @@ namespace ams::controller {
     } PACKED;
 
     struct EightBitDoInputReport0x03V2 {
-        u8 dpad;
+        DirectionalPadType<0, 8> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 _unk[2];
@@ -123,7 +99,7 @@ namespace ams::controller {
     } PACKED;
 
     struct EightBitDoInputReport0x03V3 {
-        u8 dpad;
+        DirectionalPadType<0, 8> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 right_trigger;

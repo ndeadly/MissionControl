@@ -24,8 +24,7 @@ namespace ams::controller {
 
     }
 
-    MocuteController::MocuteController(bluetooth::Address address, HardwareID id)
-    : EmulatedSwitchController(address, id) {
+    MocuteController::MocuteController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) {
         if (id.vid == 0x0000 && id.pid == 0x0000) {
             m_variant = MocuteControllerVariant_053;
         } else {
@@ -68,16 +67,20 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
-        u8 dpad = src->input0x01.buttons.dpad;
-        if (src->id == 0x01) {
-            dpad = (dpad == 0) ? MocuteDPad_Released : dpad - 1;
-        }
-
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (dpad == MocuteDPad_S) || (dpad == MocuteDPad_SE) || (dpad == MocuteDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (dpad == MocuteDPad_N) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (dpad == MocuteDPad_E) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (dpad == MocuteDPad_W) || (dpad == MocuteDPad_NW) || (dpad == MocuteDPad_SW));
+        if (src->id == 0x01) {
+            auto dpad = DirectionalPad(static_cast<DirectionalPadType<1, 0>>(src->input0x04.buttons.dpad));
+            button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+            button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+            button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+            button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
+        } else {
+            auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 0xF>>(src->input0x04.buttons.dpad));
+            button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+            button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+            button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+            button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
+        }
         button_state.Assign(SwitchButton::A,      src->input0x01.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x01.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
@@ -94,6 +97,8 @@ namespace ams::controller {
     }
 
     void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
+        auto dpad = DirectionalPad(static_cast<DirectionalPadType<1, 0>>(src->input0x04.buttons.dpad));
+
         m_left_stick.SetValuesFrom(
             src->input0x04.left_stick.GetX(),
             src->input0x04.left_stick.GetYInverted()
@@ -104,14 +109,11 @@ namespace ams::controller {
             src->input0x04.right_stick.GetYInverted()
         );
 
-        u8 dpad = src->input0x04.buttons.dpad;
-        dpad = (dpad == 0) ? MocuteDPad_Released : dpad - 1;
-
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (dpad == MocuteDPad_S) || (dpad == MocuteDPad_SE) || (dpad == MocuteDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (dpad == MocuteDPad_N) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (dpad == MocuteDPad_E) || (dpad == MocuteDPad_NE) || (dpad == MocuteDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (dpad == MocuteDPad_W) || (dpad == MocuteDPad_NW) || (dpad == MocuteDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x04.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x04.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x04.buttons.Y);

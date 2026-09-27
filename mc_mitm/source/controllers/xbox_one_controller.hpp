@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum XboxOneDPadDirection {
-        XboxOneDPad_Released,
-        XboxOneDPad_N,
-        XboxOneDPad_NE,
-        XboxOneDPad_E,
-        XboxOneDPad_SE,
-        XboxOneDPad_S,
-        XboxOneDPad_SW,
-        XboxOneDPad_W,
-        XboxOneDPad_NW
-    };
-
     enum XboxOnePowerMode {
         XboxOnePowerMode_USB         = 0,
         XboxOnePowerMode_Battery     = 1,
@@ -38,8 +26,6 @@ namespace ams::controller {
 
     // Used on older firmware
     struct XboxOneButtonDataOld {
-        u8      dpad;
-
         u8 A            : 1;
         u8 B            : 1;
         u8 X            : 1;
@@ -56,8 +42,6 @@ namespace ams::controller {
 
     // Used on latest firmwares
     struct XboxOneButtonData {
-        u8      dpad;
-
         u8 A            : 1;
         u8 B            : 1;
         u8              : 1;
@@ -94,6 +78,7 @@ namespace ams::controller {
         AnalogStick<u16> right_stick;
         u16 left_trigger;
         u16 right_trigger;
+        DirectionalPadType<1, 0> dpad;
         union {
             XboxOneButtonData buttons;
 

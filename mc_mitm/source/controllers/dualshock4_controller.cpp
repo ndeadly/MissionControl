@@ -122,6 +122,8 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::MapInputReport0x01(const Dualshock4ReportData *src) {
+        auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x01.buttons.dpad));
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -133,10 +135,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x01.buttons.dpad == Dualshock4DPad_S) || (src->input0x01.buttons.dpad == Dualshock4DPad_SE) || (src->input0x01.buttons.dpad == Dualshock4DPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x01.buttons.dpad == Dualshock4DPad_N) || (src->input0x01.buttons.dpad == Dualshock4DPad_NE) || (src->input0x01.buttons.dpad == Dualshock4DPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x01.buttons.dpad == Dualshock4DPad_E) || (src->input0x01.buttons.dpad == Dualshock4DPad_NE) || (src->input0x01.buttons.dpad == Dualshock4DPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x01.buttons.dpad == Dualshock4DPad_W) || (src->input0x01.buttons.dpad == Dualshock4DPad_NW) || (src->input0x01.buttons.dpad == Dualshock4DPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x01.buttons.circle);
         button_state.Assign(SwitchButton::B,      src->input0x01.buttons.cross);
         button_state.Assign(SwitchButton::X,      src->input0x01.buttons.triangle);
@@ -158,6 +160,8 @@ namespace ams::controller {
         m_power_info.SetCharging(src->input0x11.powered && !(src->input0x11.battery_level > 10));
         m_power_info.SetBatteryLevel(BatteryLookup[std::clamp<u8>(src->input0x11.battery_level, 0, sizeof(BatteryLookup) - 1)]);
 
+        auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x11.buttons.dpad));
+
         m_left_stick.SetValuesFrom(
             src->input0x11.left_stick.GetX(),
             src->input0x11.left_stick.GetYInverted()
@@ -169,10 +173,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x11.buttons.dpad == Dualshock4DPad_S) || (src->input0x11.buttons.dpad == Dualshock4DPad_SE) || (src->input0x11.buttons.dpad == Dualshock4DPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x11.buttons.dpad == Dualshock4DPad_N) || (src->input0x11.buttons.dpad == Dualshock4DPad_NE) || (src->input0x11.buttons.dpad == Dualshock4DPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x11.buttons.dpad == Dualshock4DPad_E) || (src->input0x11.buttons.dpad == Dualshock4DPad_NE) || (src->input0x11.buttons.dpad == Dualshock4DPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x11.buttons.dpad == Dualshock4DPad_W) || (src->input0x11.buttons.dpad == Dualshock4DPad_NW) || (src->input0x11.buttons.dpad == Dualshock4DPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x11.buttons.circle);
         button_state.Assign(SwitchButton::B,      src->input0x11.buttons.cross);
         button_state.Assign(SwitchButton::X,      src->input0x11.buttons.triangle);
@@ -222,7 +226,7 @@ namespace ams::controller {
             .y = -(src->input0x11.vel_x - m_motion_calibration.gyro.pitch_bias) / (float(m_motion_calibration.gyro.pitch_max - m_motion_calibration.gyro.pitch_bias) / m_motion_calibration.gyro.speed_max),
             .z =  (src->input0x11.vel_y - m_motion_calibration.gyro.yaw_bias)   / (float(m_motion_calibration.gyro.yaw_max   - m_motion_calibration.gyro.yaw_bias)   / m_motion_calibration.gyro.speed_max)
         };
-       
+
         m_sixaxis_processor.Update(accel, gyro);
     }
 

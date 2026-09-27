@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum XiaomiDPadDirection {
-        XiaomiDPad_N,
-        XiaomiDPad_NE,
-        XiaomiDPad_E,
-        XiaomiDPad_SE,
-        XiaomiDPad_S,
-        XiaomiDPad_SW,
-        XiaomiDPad_W,
-        XiaomiDPad_NW,
-        XiaomiDPad_Released = 0x0f
-    };
-
     struct XiaomiButtonData {
         u8 A            : 1;
         u8 B            : 1;
@@ -50,12 +38,11 @@ namespace ams::controller {
         u8              : 0;
 
         u8 _unk;
-
-        u8 dpad;
     } PACKED;
 
     struct XiaomiInputReport0x04 {
         XiaomiButtonData buttons;
+        DirectionalPadType<0, 0xF> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 _unk0[2];

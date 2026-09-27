@@ -31,11 +31,13 @@ namespace ams::controller {
     }
 
     void HyperkinController::MapInputReport0x3F(const HyperkinReportData *src) {
+        auto dpad = DirectionalPad(src->input0x3F.dpad);
+
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,  (src->input0x3F.buttons.dpad == HyperkinDPad_S) || (src->input0x3F.buttons.dpad == HyperkinDPad_SE) || (src->input0x3F.buttons.dpad == HyperkinDPad_SW));
-        button_state.Assign(SwitchButton::Up,    (src->input0x3F.buttons.dpad == HyperkinDPad_N) || (src->input0x3F.buttons.dpad == HyperkinDPad_NE) || (src->input0x3F.buttons.dpad == HyperkinDPad_NW));
-        button_state.Assign(SwitchButton::Right, (src->input0x3F.buttons.dpad == HyperkinDPad_E) || (src->input0x3F.buttons.dpad == HyperkinDPad_NE) || (src->input0x3F.buttons.dpad == HyperkinDPad_SE));
-        button_state.Assign(SwitchButton::Left,  (src->input0x3F.buttons.dpad == HyperkinDPad_W) || (src->input0x3F.buttons.dpad == HyperkinDPad_NW) || (src->input0x3F.buttons.dpad == HyperkinDPad_SW));
+        button_state.Assign(SwitchButton::Down,  dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,    dpad.IsUp());
+        button_state.Assign(SwitchButton::Right, dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,  dpad.IsLeft());
         button_state.Assign(SwitchButton::A,     src->input0x3F.buttons.A);
         button_state.Assign(SwitchButton::B,     src->input0x3F.buttons.B);
         button_state.Assign(SwitchButton::X,     src->input0x3F.buttons.X);

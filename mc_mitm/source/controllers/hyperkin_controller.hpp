@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum HyperkinDPadDirection {
-        HyperkinDPad_Released,
-        HyperkinDPad_N,
-        HyperkinDPad_NE,
-        HyperkinDPad_E,
-        HyperkinDPad_SE,
-        HyperkinDPad_S,
-        HyperkinDPad_SW,
-        HyperkinDPad_W,
-        HyperkinDPad_NW
-    };
-
     struct HyperkinButtonData {
         u8 B      : 1;
         u8 A      : 1;
@@ -42,12 +30,11 @@ namespace ams::controller {
         u8 select : 1;
         u8 start  : 1;
         u8        : 0;
-
-        u8 dpad;
     } PACKED;
 
     struct HyperkinInputReport0x3F{
         HyperkinButtonData buttons;
+        DirectionalPadType<1, 0> dpad;
         AnalogStick<u16> left_stick;
         AnalogStick<u16> right_stick;
         u8 unk;

@@ -18,30 +18,6 @@
 
 namespace ams::controller {
 
-    enum SteelseriesDPadDirection {
-        SteelseriesDPad_N,
-        SteelseriesDPad_NE,
-        SteelseriesDPad_E,
-        SteelseriesDPad_SE,
-        SteelseriesDPad_S,
-        SteelseriesDPad_SW,
-        SteelseriesDPad_W,
-        SteelseriesDPad_NW,
-        SteelseriesDPad_Released = 0x0f,
-    };
-
-    enum SteelseriesDPadDirection2 {
-        SteelseriesDPad2_Released = 0x0,
-        SteelseriesDPad2_N,
-        SteelseriesDPad2_NE,
-        SteelseriesDPad2_E,
-        SteelseriesDPad2_SE,
-        SteelseriesDPad2_S,
-        SteelseriesDPad2_SW,
-        SteelseriesDPad2_W,
-        SteelseriesDPad2_NW,
-    };
-
     struct SteelseriesButtonData {
         u8 A      : 1;
         u8 B      : 1;
@@ -87,14 +63,14 @@ namespace ams::controller {
     } PACKED;
 
     struct SteelseriesInputReport0x01 {
-        u8 dpad;
+        DirectionalPadType<0, 0xF> dpad;
         AnalogStick<s8> left_stick;
         AnalogStick<s8> right_stick;
         SteelseriesButtonData buttons;
     } PACKED;
 
     struct SteelseriesInputReport0x01_v2 {
-        u8 dpad;
+        DirectionalPadType<0, 0xF> dpad;
         SteelseriesButtonData buttons;
         AnalogStick<s16> left_stick;
         AnalogStick<s16> right_stick;
@@ -125,7 +101,7 @@ namespace ams::controller {
         u8 left_trigger;
         u8 right_trigger;
         SteelseriesButtonData buttons;
-        u8 dpad;
+        DirectionalPadType<1, 0> dpad;
         u8 _unk[2];
     } PACKED;
 

@@ -43,6 +43,8 @@ namespace ams::controller {
     }
 
     void IpegaController::MapInputReport0x07(const IpegaReportData *src) {
+        auto dpad = DirectionalPad(src->input0x07.dpad);
+
         m_left_stick.SetValuesFrom(
             src->input0x07.left_stick.GetX(),
             src->input0x07.left_stick.GetYInverted()
@@ -54,10 +56,10 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   (src->input0x07.buttons.dpad == IpegaDPad_S) || (src->input0x07.buttons.dpad == IpegaDPad_SE) || (src->input0x07.buttons.dpad == IpegaDPad_SW));
-        button_state.Assign(SwitchButton::Up,     (src->input0x07.buttons.dpad == IpegaDPad_N) || (src->input0x07.buttons.dpad == IpegaDPad_NE) || (src->input0x07.buttons.dpad == IpegaDPad_NW));
-        button_state.Assign(SwitchButton::Right,  (src->input0x07.buttons.dpad == IpegaDPad_E) || (src->input0x07.buttons.dpad == IpegaDPad_NE) || (src->input0x07.buttons.dpad == IpegaDPad_SE));
-        button_state.Assign(SwitchButton::Left,   (src->input0x07.buttons.dpad == IpegaDPad_W) || (src->input0x07.buttons.dpad == IpegaDPad_NW) || (src->input0x07.buttons.dpad == IpegaDPad_SW));
+        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
+        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
+        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
+        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
         button_state.Assign(SwitchButton::A,      src->input0x07.buttons.B);
         button_state.Assign(SwitchButton::B,      src->input0x07.buttons.A);
         button_state.Assign(SwitchButton::X,      src->input0x07.buttons.Y);

@@ -38,18 +38,6 @@ namespace ams::controller {
         Dualshock4ReportRate_62Hz   = 16
     };
 
-    enum Dualshock4DPadDirection {
-        Dualshock4DPad_N,
-        Dualshock4DPad_NE,
-        Dualshock4DPad_E,
-        Dualshock4DPad_SE,
-        Dualshock4DPad_S,
-        Dualshock4DPad_SW,
-        Dualshock4DPad_W,
-        Dualshock4DPad_NW,
-        Dualshock4DPad_Released
-    };
-
     struct Dualshock4ButtonData {
         u8 dpad     : 4;
         u8 square   : 1;
