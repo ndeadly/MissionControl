@@ -90,6 +90,11 @@ namespace ams::controller {
 
             constexpr SwitchAnalogStick(SwitchAnalogStickType analog_stick) : m_analog_stick(analog_stick) { }
 
+            template <std::integral T>
+            constexpr SwitchAnalogStick(AnalogStickType<T> analog_stick) {
+                this->SetValuesFrom(analog_stick.x, analog_stick.y);
+            }
+
             constexpr SwitchAnalogStick(u16 x, u16 y) {
                 this->SetValues(x, y);
             }
