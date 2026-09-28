@@ -154,13 +154,6 @@ namespace ams::controller {
             .size = read_size
         };
         std::memcpy(response->serial_flash_read.data, read_buffer, read_size);
-
-        if (read_addr == 0x6050) {
-            if (ams::mitm::GetSystemLanguage() == 10) {
-                const u8 data[] = { 0xff, 0xd7, 0x00, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7, 0x00, 0x57, 0xb7 };
-                std::memcpy(response->serial_flash_read.data, data, sizeof(data));
-            }
-        }
     }
 
     void SwitchHidCommandProcessor::ProcessSerialFlashWrite(const SwitchHidCommand *command, SwitchHidCommandResponse *response) {

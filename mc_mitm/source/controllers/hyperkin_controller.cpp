@@ -18,7 +18,7 @@
 
 namespace ams::controller {
 
-    void HyperkinController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void HyperkinController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const HyperkinReportData *>(report_buffer);
 

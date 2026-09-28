@@ -38,15 +38,18 @@ namespace ams::controller {
                 {0x057e, 0x201a}    // Official Genesis/Megadrive Online Controller
             };
 
-            SwitchController(bluetooth::Address address, HardwareID id) : m_address(address), m_id(id) { }
+            static constexpr SwitchButtons DefaultHomeButtonCombo    = SwitchButton::Minus | SwitchButton::Down;
+            static constexpr SwitchButtons DefaultCaptureButtonCombo = SwitchButton::Minus | SwitchButton::Up;
 
+        public:
+            SwitchController(bluetooth::Address address, HardwareID id) : m_address(address), m_id(id) { }
             virtual ~SwitchController() { };
 
+        public:
             constexpr bluetooth::Address Address() const { return m_address; }
 
+            virtual Result Initialize() { R_SUCCEED(); };
             virtual constexpr bool IsOfficialController() const { return true; }
-
-            virtual Result Initialize();
 
             virtual void HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info);
             virtual void HandleSetReportEvent(const bluetooth::HidReportEventInfo *event_info);
@@ -55,22 +58,37 @@ namespace ams::controller {
             virtual Result HandleOutputDataReport(const u8 *report_buffer, size_t size);
 
         protected:
-            Result WriteDataReport(const u8 *report_buffer, size_t size);
-            Result WriteDataReport(const bluetooth::HidReport *report, u8 response_id, bluetooth::HidReport *out_report);
-            Result SetReport(BtdrvBluetoothHhReportType type, const bluetooth::HidReport *report);
+            Result WriteDataReport(const void *report_buffer, size_t size);
+            Result WriteDataReport(const void *report_buffer, size_t size, u8 response_id, bluetooth::HidReport *out_report);
+            Result SetReport(BtdrvBluetoothHhReportType type, const void *report_buffer, size_t size);
             Result GetReport(u8 id, BtdrvBluetoothHhReportType type, bluetooth::HidReport *out_report);
 
-            virtual void UpdateControllerState(const u8 *report_buffer, size_t size);
-            virtual void ApplyButtonCombos(SwitchButtons *buttons);
+            virtual void ParseInputReport(const u8 *report_buffer, size_t size);
+            virtual size_t FillInputReport(u8 *report_buffer, size_t size) { AMS_UNUSED(report_buffer, size); return 0; }
+            void ModifyInputReport(u8 *report_buffer, size_t size);
 
+        private:
+            void ParseHidCommandInputReport(const SwitchHidCommandInputReport *report);
+            void ParseMcuUpdateInputReport(const SwitchMcuUpdateInputReport *report);
+            void ParseHidBasicInputReport(const SwitchHidBasicInputReport *report);
+            void ParseHidMcuInputReport(const SwitchHidMcuInputReport *report);
+            void ParseHidAttachmentInputReport(const SwitchHidAttachmentInputReport *report);
+            void ParseHidGenericInputReport(const SwitchHidGenericInputReport *report);
+
+            void ModifyHidCommandInputReport(SwitchHidCommandInputReport *report, SwitchButtons buttons, SwitchAnalogStick left_stick, SwitchAnalogStick right_stick);
+            void ModifyMcuUpdateInputReport(SwitchMcuUpdateInputReport *report, SwitchButtons buttons, SwitchAnalogStick left_stick, SwitchAnalogStick right_stick);
+            void ModifyHidBasicInputReport(SwitchHidBasicInputReport *report, SwitchButtons buttons, SwitchAnalogStick left_stick, SwitchAnalogStick right_stick);
+            void ModifyHidMcuInputReport(SwitchHidMcuInputReport *report, SwitchButtons buttons, SwitchAnalogStick left_stick, SwitchAnalogStick right_stick);
+            void ModifyHidAttachmentInputReport(SwitchHidAttachmentInputReport *report, SwitchButtons buttons, SwitchAnalogStick left_stick, SwitchAnalogStick right_stick);
+            void ModifyHidGenericInputReport(SwitchHidGenericInputReport *report, SwitchButtons buttons, SwitchAnalogStick left_stick, SwitchAnalogStick right_stick);
+
+        protected:
             bluetooth::Address m_address;
             HardwareID m_id;
 
-            os::SdkMutex m_input_mutex;
-            bluetooth::HidReport m_input_report;
-
-            os::SdkMutex m_output_mutex;
-            bluetooth::HidReport m_output_report;
+            SwitchButtons m_buttons;
+            SwitchAnalogStick m_left_stick;
+            SwitchAnalogStick m_right_stick;
 
             std::queue<std::shared_ptr<HidResponse>> m_future_responses;
     };

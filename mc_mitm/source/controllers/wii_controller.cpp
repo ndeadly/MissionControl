@@ -70,7 +70,7 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    void WiiController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void WiiController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const WiiReportData *>(report_buffer);
 
@@ -721,47 +721,39 @@ namespace ams::controller {
     }
 
     Result WiiController::SetReportMode(u8 mode) {
-        std::scoped_lock lk(m_output_mutex);
+        WiiReportData report;
+        report.id = 0x12;
+        report.output0x12.rumble      = m_rumble_state;
+        report.output0x12.report_mode = mode;
 
-        m_output_report.size = sizeof(WiiOutputReport0x12) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
-        report_data->id = 0x12;
-        report_data->output0x12.rumble = m_rumble_state;
-        report_data->output0x12.report_mode = mode;
-
-        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_RETURN(this->WriteDataReport(&report, sizeof(WiiOutputReport0x12) + 1));
     }
 
     Result WiiController::QueryStatus() {
-        std::scoped_lock lk(m_output_mutex);
+        WiiReportData report;
+        report.id = 0x15;
+        report.output0x15.rumble = m_rumble_state;
 
-        m_output_report.size = sizeof(WiiOutputReport0x15) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
-        report_data->id = 0x15;
-        report_data->output0x15.rumble = m_rumble_state;
-
-        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_RETURN(this->WriteDataReport(&report, sizeof(WiiOutputReport0x15) + 1));
     }
 
-    Result WiiController::WriteMemory(u32 write_addr, const void *data, u8 size) {       
+    Result WiiController::WriteMemory(u32 write_addr, const void *data, u8 size) {
         os::SleepThread(ams::TimeSpan::FromMilliSeconds(30));
 
         Result result;
-        auto output = std::make_unique<bluetooth::HidReport>();
-
-        std::scoped_lock lk(m_output_mutex);
 
         int attempts = 0;
         do {
-            m_output_report.size = sizeof(WiiOutputReport0x16) + 1;
-            auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
-            report_data->id = 0x16;
-            report_data->output0x16.address = ams::util::SwapEndian(write_addr);
-            report_data->output0x16.size = size;
-            std::memcpy(&report_data->output0x16.data, data, size);
+            WiiReportData report;
+            report.id = 0x16;
+            report.output0x16.address = ams::util::SwapEndian(write_addr);
+            report.output0x16.size    = size;
+            std::memcpy(report.output0x16.data, data, size);
 
-            R_TRY(this->WriteDataReport(&m_output_report, 0x22, output.get()));
-            report_data = reinterpret_cast<WiiReportData *>(&output->data);
+            bluetooth::HidReport response;
+            R_TRY(this->WriteDataReport(&report, sizeof(WiiOutputReport0x16) + 1, 0x22, &response));
+
+            auto report_data = reinterpret_cast<WiiReportData *>(response.data);
             result = report_data->input0x22.error;
         } while (!(R_SUCCEEDED(result) || (++attempts >= 2)));
 
@@ -772,20 +764,18 @@ namespace ams::controller {
         os::SleepThread(ams::TimeSpan::FromMilliSeconds(30));
 
         Result result;
-        auto output = std::make_unique<bluetooth::HidReport>();
-
-        std::scoped_lock lk(m_output_mutex);
 
         int attempts = 0;
         do {
-            m_output_report.size = sizeof(WiiOutputReport0x17) + 1;
-            auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
-            report_data->id = 0x17;
-            report_data->output0x17.address = ams::util::SwapEndian(read_addr);
-            report_data->output0x17.size = ams::util::SwapEndian(size);
+            WiiReportData report;
+            report.id = 0x17;
+            report.output0x17.address = ams::util::SwapEndian(read_addr);
+            report.output0x17.size    = ams::util::SwapEndian(size);
 
-            R_TRY(this->WriteDataReport(&m_output_report, 0x21, output.get()));
-            report_data = reinterpret_cast<WiiReportData *>(&output->data);
+            bluetooth::HidReport response;
+            R_TRY(this->WriteDataReport(&report, sizeof(WiiOutputReport0x17) + 1, 0x21, &response));
+
+            auto report_data = reinterpret_cast<WiiReportData *>(response.data);
             result = report_data->input0x21.error;
 
             if (R_SUCCEEDED(result)) {
@@ -891,41 +881,32 @@ namespace ams::controller {
                          motor_data->right_motor.low_band_amp  > 0 ||
                          motor_data->right_motor.high_band_amp > 0;
 
-        std::scoped_lock lk(m_output_mutex);
+        WiiReportData report;
+        report.id = 0x10;
+        report.output0x10.rumble = m_rumble_state;
 
-        m_output_report.size = sizeof(WiiOutputReport0x10) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
-        report_data->id = 0x10;
-        report_data->output0x10.rumble = m_rumble_state;
-
-        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_RETURN(this->WriteDataReport(&report, sizeof(WiiOutputReport0x10) + 1));
     }
 
     Result WiiController::CancelVibration() {
         m_rumble_state = 0;
 
-        std::scoped_lock lk(m_output_mutex);
+        WiiReportData report;
+        report.id = 0x10;
+        report.output0x10.rumble = m_rumble_state;
 
-        m_output_report.size = sizeof(WiiOutputReport0x10) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
-        report_data->id = 0x10;
-        report_data->output0x10.rumble = m_rumble_state;
-
-        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_RETURN(this->WriteDataReport(&report, sizeof(WiiOutputReport0x10) + 1));
     }
 
     Result WiiController::SetPlayerLed(SwitchPlayerNumber player_number) {
         u8 player_index = static_cast<u8>(player_number);
 
-        std::scoped_lock lk(m_output_mutex);
+        WiiReportData report;
+        report.id = 0x11;
+        report.output0x11.rumble = m_rumble_state;
+        report.output0x11.leds   = PlayerLedPatterns[player_index];
 
-        m_output_report.size = sizeof(WiiOutputReport0x11) + 1;
-        auto report_data = reinterpret_cast<WiiReportData *>(m_output_report.data);
-        report_data->id = 0x11;
-        report_data->output0x11.rumble = m_rumble_state;
-        report_data->output0x11.leds = PlayerLedPatterns[player_index];
-
-        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_RETURN(this->WriteDataReport(&report, sizeof(WiiOutputReport0x11) + 1));
     }
 
 }

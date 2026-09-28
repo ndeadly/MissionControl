@@ -24,7 +24,7 @@ namespace ams::controller {
 
     }
 
-    void NvidiaShieldController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void NvidiaShieldController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const NvidiaShieldReportData *>(report_buffer);
 

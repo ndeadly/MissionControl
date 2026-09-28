@@ -48,8 +48,7 @@ namespace ams::controller {
             virtual Result CancelVibration() { R_SUCCEED(); }
             virtual Result SetPlayerLed(SwitchPlayerNumber player_number) { AMS_UNUSED(player_number); R_SUCCEED(); }
 
-            virtual void UpdateControllerState(const u8 *report_buffer, size_t size) override;
-            virtual void ProcessInputData(const u8 *report_buffer, size_t size) { AMS_UNUSED(report_buffer, size); }
+            virtual size_t FillInputReport(u8 *report_buffer, size_t size) override;
 
             size_t FillCommandInputReport(u8 *report_buffer, size_t size);
             size_t FillMcuUpdateInputReport(u8 *report_buffer, size_t size);
@@ -72,14 +71,8 @@ namespace ams::controller {
             u8 m_latency_timer;
             SwitchPowerInfo m_power_info;
             SwitchPlayerIndicator m_player_indicator;
-
             SwitchMotorStatus m_motor_status;
-
             SwitchHidReportId m_input_report_mode;
-
-            SwitchButtons m_buttons;
-            SwitchAnalogStick m_left_stick;
-            SwitchAnalogStick m_right_stick;
 
             float m_trigger_threshold;
 

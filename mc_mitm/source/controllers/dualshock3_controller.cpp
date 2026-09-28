@@ -235,7 +235,7 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    void Dualshock3Controller::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void Dualshock3Controller::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const Dualshock3ReportData *>(report_buffer);
 
@@ -310,15 +310,10 @@ namespace ams::controller {
     }
 
     Result Dualshock3Controller::SendEnablePayload() {
-        m_output_report.size = sizeof(EnablePayload);
-        std::memcpy(m_output_report.data, EnablePayload, m_output_report.size);
-
-        R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Feature, &m_output_report));
+        R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Feature, &EnablePayload, sizeof(EnablePayload)));
     }
 
     Result Dualshock3Controller::PushRumbleLedState() {
-        std::scoped_lock lk(m_output_mutex);
-
         Dualshock3ReportData report = {};
         report.id = 0x01;
         report.output0x01.data[1] = 10;
@@ -331,10 +326,7 @@ namespace ams::controller {
         std::memcpy(&report.output0x01.data[20], LedConfig, sizeof(LedConfig));
         std::memcpy(&report.output0x01.data[25], LedConfig, sizeof(LedConfig));
 
-        m_output_report.size = sizeof(report.output0x01) + sizeof(report.id);
-        std::memcpy(m_output_report.data, &report, m_output_report.size);
-
-        R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Output, &m_output_report));
+        R_RETURN(this->SetReport(BtdrvBluetoothHhReportType_Output, &report, sizeof(report.output0x01) + sizeof(report.id)));
     }
 
 }

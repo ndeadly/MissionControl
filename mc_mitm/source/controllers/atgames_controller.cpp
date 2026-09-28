@@ -24,7 +24,7 @@ namespace ams::controller {
 
     }
 
-    void AtGamesController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void AtGamesController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const AtGamesReportData *>(report_buffer);
 

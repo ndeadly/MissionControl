@@ -18,7 +18,7 @@
 
 namespace ams::controller {
 
-    void PowerAController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void PowerAController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const PowerAReportData *>(report_buffer);
 

@@ -25,7 +25,7 @@ namespace ams::controller {
 
     }
 
-    void MadCatzController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void MadCatzController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const MadCatzReportData *>(report_buffer);
 

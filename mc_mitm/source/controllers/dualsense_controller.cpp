@@ -151,7 +151,7 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    void DualsenseController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void DualsenseController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const DualsenseReportData *>(report_buffer);
 
@@ -292,8 +292,6 @@ namespace ams::controller {
     }
 
     Result DualsenseController::PushRumbleLedState() {
-        std::scoped_lock lk(m_output_mutex);
-
         DualsenseReportData report = {};
         report.id = 0x31;
         report.output0x31.data[0]  = 0x02;
@@ -317,10 +315,7 @@ namespace ams::controller {
         report.output0x31.data[47] = m_lightbar_colour.b;
         report.output0x31.crc = crc32CalculateWithSeed(CrcSeed, report.output0x31.data, sizeof(report.output0x31.data));
 
-        m_output_report.size = sizeof(report.output0x31) + sizeof(report.id);
-        std::memcpy(m_output_report.data, &report, m_output_report.size);
-
-        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_RETURN(this->WriteDataReport(&report, sizeof(report.output0x31) + sizeof(report.id)));
     }
 
 }

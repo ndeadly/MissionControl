@@ -32,7 +32,7 @@ namespace ams::controller {
         }
     }
 
-    void MocuteController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void MocuteController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const MocuteReportData *>(report_buffer);
 

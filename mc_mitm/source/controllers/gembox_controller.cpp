@@ -24,7 +24,7 @@ namespace ams::controller {
 
     }
 
-    void GemboxController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void GemboxController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const GemboxReportData *>(report_buffer);
 

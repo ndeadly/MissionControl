@@ -29,16 +29,12 @@ namespace ams::controller {
     Result XiaomiController::Initialize() {
         R_TRY(EmulatedSwitchController::Initialize());
 
-        std::scoped_lock lk(m_output_mutex);
-
-        m_output_report.size = sizeof(InitPacket);
-        std::memcpy(m_output_report.data, InitPacket, sizeof(InitPacket));
-        R_TRY(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_TRY(this->WriteDataReport(InitPacket, sizeof(InitPacket)));
 
         R_SUCCEED();
     }
 
-    void XiaomiController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void XiaomiController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const XiaomiReportData *>(report_buffer);
 

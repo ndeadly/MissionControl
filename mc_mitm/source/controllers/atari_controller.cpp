@@ -24,7 +24,7 @@ namespace ams::controller {
 
     }
 
-    void AtariController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void AtariController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const AtariReportData *>(report_buffer);
 

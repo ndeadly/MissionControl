@@ -76,7 +76,7 @@ namespace ams::controller {
 
             MocuteController(bluetooth::Address address, HardwareID id);
 
-            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
+            virtual void ParseInputReport(const u8 *report_buffer, size_t size) override;
 
         private:
             void MapInputReport0x01(const MocuteReportData *src);

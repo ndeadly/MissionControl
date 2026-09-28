@@ -74,7 +74,7 @@ namespace ams::controller {
 
             GemboxController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
 
-            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
+            virtual void ParseInputReport(const u8 *report_buffer, size_t size) override;
 
         private:
             void MapInputReport0x02(const GemboxReportData *src);

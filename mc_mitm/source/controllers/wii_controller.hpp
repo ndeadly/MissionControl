@@ -504,7 +504,7 @@ namespace ams::controller {
             virtual Result SetVibration(const SwitchMotorData *motor_data) override;
             virtual Result CancelVibration() override;
             virtual Result SetPlayerLed(SwitchPlayerNumber player_number) override;
-            virtual void ProcessInputData(const u8 *report_buffer, size_t size) override;
+            virtual void ParseInputReport(const u8 *report_buffer, size_t size) override;
 
         protected:
             void MapInputReport0x20(const WiiReportData *src);

@@ -55,29 +55,18 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
-    void EmulatedSwitchController::UpdateControllerState(const u8 *report_buffer, size_t size) {
-        this->ProcessInputData(report_buffer, size);
-
+    size_t EmulatedSwitchController::FillInputReport(u8 *report_buffer, size_t size) {
         switch (m_input_report_mode) {
             case SwitchHidReportId::BasicInputReport:
-                m_input_report.size = this->FillBasicInputReport(m_input_report.data, sizeof(m_input_report.data));
-                break;
-
+                return this->FillBasicInputReport(report_buffer, size);
             case SwitchHidReportId::McuInputReport:
-                m_input_report.size = this->FillMcuInputReport(m_input_report.data, sizeof(m_input_report.data));
-                break;
-
+                return this->FillMcuInputReport(report_buffer, size);
             case SwitchHidReportId::AttachmentInputReport:
-                m_input_report.size = this->FillAttachmentInputReport(m_input_report.data, sizeof(m_input_report.data));
-                break;
-
+                return this->FillAttachmentInputReport(report_buffer, size);
             case SwitchHidReportId::GenericInputReport:
-                m_input_report.size = this->FillGenericInputReport(m_input_report.data, sizeof(m_input_report.data));
-                break;
-
+                return this->FillGenericInputReport(report_buffer, size);
             default:
-                m_input_report.size = this->FillBasicInputReport(m_input_report.data, sizeof(m_input_report.data));
-                break;
+                return this->FillBasicInputReport(report_buffer, size);
         }
     }
 

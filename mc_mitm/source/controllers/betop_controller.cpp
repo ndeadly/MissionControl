@@ -18,7 +18,7 @@
 
 namespace ams::controller {
 
-    void BetopController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void BetopController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const BetopReportData *>(report_buffer);
 

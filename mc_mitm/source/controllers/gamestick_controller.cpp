@@ -18,7 +18,7 @@
 
 namespace ams::controller {
 
-    void GamestickController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void GamestickController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const GamestickReportData *>(report_buffer);
 

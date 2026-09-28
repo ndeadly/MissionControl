@@ -25,20 +25,19 @@ namespace ams::controller {
     }
 
     Result XboxOneController::SetVibration(const SwitchMotorData *motor_data) {
-        auto report = reinterpret_cast<XboxOneReportData *>(m_output_report.data);
-        m_output_report.size = sizeof(XboxOneOutputReport0x03) + 1;
-        report->id = 0x03;
-        report->output0x03.enable             = 0x3;
-        report->output0x03.magnitude_strong   = static_cast<u8>(100 * std::max(motor_data->left_motor.low_band_amp, motor_data->right_motor.low_band_amp));
-        report->output0x03.magnitude_weak     = static_cast<u8>(100 * std::max(motor_data->left_motor.high_band_amp, motor_data->right_motor.high_band_amp));
-        report->output0x03.pulse_sustain_10ms = 1;
-        report->output0x03.pulse_release_10ms = 0;
-        report->output0x03.loop_count         = 0;
+        XboxOneReportData report;
+        report.id = 0x03;
+        report.output0x03.enable             = 0x3;
+        report.output0x03.magnitude_strong   = static_cast<u8>(100 * std::max(motor_data->left_motor.low_band_amp, motor_data->right_motor.low_band_amp));
+        report.output0x03.magnitude_weak     = static_cast<u8>(100 * std::max(motor_data->left_motor.high_band_amp, motor_data->right_motor.high_band_amp));
+        report.output0x03.pulse_sustain_10ms = 1;
+        report.output0x03.pulse_release_10ms = 0;
+        report.output0x03.loop_count         = 0;
 
-        return this->WriteDataReport(m_output_report.data, m_output_report.size);
+        return this->WriteDataReport(&report, sizeof(XboxOneOutputReport0x03) + 1);
     }
 
-    void XboxOneController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void XboxOneController::ParseInputReport(const u8 *report_buffer, size_t size) {
         auto report = reinterpret_cast<const XboxOneReportData *>(report_buffer);
 
         switch(report->id) {

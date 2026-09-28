@@ -18,7 +18,7 @@
 
 namespace ams::controller {
 
-    void ICadeController::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void ICadeController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const ICadeReportData *>(report_buffer);
 
@@ -58,23 +58,10 @@ namespace ams::controller {
             }
         }
 
+        button_state.ApplyCombo(SwitchButton::Minus, SwitchButton::ZL | SwitchButton::ZR | SwitchButton::L);
+        button_state.ApplyCombo(SwitchButton::Plus,  SwitchButton::ZL | SwitchButton::ZR | SwitchButton::R);
+
         m_buttons = button_state;
-    }
-
-    void ICadeController::ApplyButtonCombos(SwitchButtons *buttons) {
-        // Combo for minus button
-        if (buttons->All(SwitchButton::ZL | SwitchButton::ZR | SwitchButton::L)) {
-            buttons->Set(SwitchButton::Minus);
-            buttons->Clear(SwitchButton::ZL | SwitchButton::ZR | SwitchButton::L);
-        }
-
-        // Combo for plus button
-        if (buttons->All(SwitchButton::ZL | SwitchButton::ZR | SwitchButton::R)) {
-            buttons->Set(SwitchButton::Plus);
-            buttons->Clear(SwitchButton::ZL | SwitchButton::ZR | SwitchButton::R);
-        }
-
-        EmulatedSwitchController::ApplyButtonCombos(buttons);
     }
 
 }

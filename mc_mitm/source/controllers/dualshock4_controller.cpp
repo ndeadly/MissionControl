@@ -107,7 +107,7 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
-    void Dualshock4Controller::ProcessInputData(const u8 *report_buffer, size_t size) {
+    void Dualshock4Controller::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const Dualshock4ReportData *>(report_buffer);
 
@@ -251,8 +251,6 @@ namespace ams::controller {
     }
 
     Result Dualshock4Controller::PushRumbleLedState() {
-        std::scoped_lock lk(m_output_mutex);
-
         Dualshock4ReportData report = {};
         report.id = 0x11;
         report.output0x11.data[0] = static_cast<u8>(0xc0 | (m_report_rate & 0xff));
@@ -266,10 +264,7 @@ namespace ams::controller {
         report.output0x11.data[9] = m_lightbar_colour.b;
         report.output0x11.crc = crc32CalculateWithSeed(CrcSeed, report.output0x11.data, sizeof(report.output0x11.data));
 
-        m_output_report.size = sizeof(report.output0x11) + sizeof(report.id);
-        std::memcpy(m_output_report.data, &report, m_output_report.size);
-
-        R_RETURN(this->WriteDataReport(m_output_report.data, m_output_report.size));
+        R_RETURN(this->WriteDataReport(&report, sizeof(report.output0x11) + sizeof(report.id)));
     }
 
 }
