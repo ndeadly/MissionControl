@@ -20,6 +20,8 @@
 #define AMS_BTM_MITM_INTERFACE_INFO(C, H)                                                                                                                                                                                                                      \
     AMS_SF_METHOD_INFO(C, H, 3,   Result, GetDeviceCondition,            (ams::btm::Profile profile, const sf::OutArray<ams::btm::DeviceCondition> &out, sf::Out<s32> total_out),          (profile, out, total_out), hos::Version_13_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 9,   Result, GetDeviceInfo,                 (ams::btm::Profile profile, const sf::OutArray<ams::btm::DeviceInfo> &out, sf::Out<s32> total_out),               (profile, out, total_out), hos::Version_13_0_0)                     \
+    AMS_SF_METHOD_INFO(C, H, 110, Result, GetShortenedDeviceInfo,        (ams::btm::Profile profile, const sf::OutArray<ams::btm::ShortenedDeviceInfo> &out, sf::Out<s32> total_out),      (profile, out, total_out), hos::Version_13_0_0)                     \
+    AMS_SF_METHOD_INFO(C, H, 115, Result, GetShortenedDeviceCondition,   (ams::btm::Profile profile, const sf::OutArray<ams::btm::ShortenedDeviceCondition> &out, sf::Out<s32> total_out), (profile, out, total_out), hos::Version_14_0_0)                     \
     AMS_SF_METHOD_INFO(C, H, 3,   Result, GetDeviceConditionDeprecated1, (sf::Out<ams::btm::DeviceConditionListV100> out),                                                                 (out),                     hos::Version_1_0_0, hos::Version_5_0_2)  \
     AMS_SF_METHOD_INFO(C, H, 3,   Result, GetDeviceConditionDeprecated2, (sf::Out<ams::btm::DeviceConditionListV510> out),                                                                 (out),                     hos::Version_5_1_0, hos::Version_7_0_1)  \
     AMS_SF_METHOD_INFO(C, H, 3,   Result, GetDeviceConditionDeprecated3, (sf::Out<ams::btm::DeviceConditionListV800> out),                                                                 (out),                     hos::Version_8_0_0, hos::Version_8_1_1)  \
@@ -43,6 +45,8 @@ namespace ams::mitm::btm {
         public:
             Result GetDeviceCondition(ams::btm::Profile profile, const sf::OutArray<ams::btm::DeviceCondition> &out, sf::Out<s32> total_out);
             Result GetDeviceInfo(ams::btm::Profile profile, const sf::OutArray<ams::btm::DeviceInfo> &out, sf::Out<s32> total_out);
+            Result GetShortenedDeviceInfo(ams::btm::Profile profile, const sf::OutArray<ams::btm::ShortenedDeviceInfo> &out, sf::Out<s32> total_out);
+            Result GetShortenedDeviceCondition(ams::btm::Profile profile, const sf::OutArray<ams::btm::ShortenedDeviceCondition> &out, sf::Out<s32> total_out);
 
             /* Deprecated */
             Result GetDeviceConditionDeprecated1(sf::Out<ams::btm::DeviceConditionListV100> out);

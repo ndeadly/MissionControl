@@ -41,8 +41,16 @@ namespace ams::btm {
         BtmDeviceCondition device_condition;
     };
 
+    struct ShortenedDeviceCondition : public sf::LargeData {
+        BtmShortenedDeviceCondition device_condition;
+    };
+
     struct DeviceInfo : public sf::LargeData {
         BtmDeviceInfo device_info;
+    };
+
+    struct ShortenedDeviceInfo : public sf::LargeData {
+        BtmShortenedDeviceInfo device_info;
     };
 
     struct DeviceInfoList : public sf::LargeData {

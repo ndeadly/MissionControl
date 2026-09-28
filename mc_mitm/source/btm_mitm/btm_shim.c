@@ -30,6 +30,20 @@ Result btmGetDeviceInfoFwd(Service* s, BtmProfile profile, BtmDeviceInfo *device
     );
 }
 
+Result btmGetShortenedDeviceInfoFwd(Service* s, BtmProfile profile, BtmShortenedDeviceInfo *device_info, size_t count, s32 *total_out) {
+    return serviceMitmDispatchInOut(s, 110, profile, *total_out,
+        .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {device_info, sizeof(BtmShortenedDeviceInfo)*count} },
+    );
+}
+
+Result btmGetShortenedDeviceConditionFwd(Service* s, BtmProfile profile, BtmShortenedDeviceCondition *device_condition, size_t count, s32 *total_out) {
+        return serviceMitmDispatchInOut(s, 115, profile, *total_out,
+        .buffer_attrs = { SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+        .buffers = { {device_condition, sizeof(BtmShortenedDeviceCondition)*count} },
+    );
+}
+
 /* Deprecated */
 
 Result btmGetDeviceConditionDeprecated1Fwd(Service* s, BtmDeviceConditionListV100 *condition) {

@@ -60,6 +60,34 @@ namespace ams::mitm::btm {
         R_SUCCEED();
     }
 
+    Result BtmMitmService::GetShortenedDeviceInfo(ams::btm::Profile profile, const sf::OutArray<ams::btm::ShortenedDeviceInfo> &out, sf::Out<s32> total_out) {
+        auto device_info = reinterpret_cast<BtmShortenedDeviceInfo *>(out.GetPointer());
+        R_TRY(btmGetShortenedDeviceInfoFwd(m_forward_service.get(), profile, device_info, out.GetSize(), total_out.GetPointer()));
+
+        for (int i = 0; i < total_out.GetValue(); ++i) {
+            auto device = &device_info[i];
+            if ((device->profile == BtmProfile_Hid) && !controller::IsOfficialSwitchControllerName(device->name)) {
+                std::strncpy(device->name, controller::LicensedProControllerName, sizeof(device->name) - 1);
+            }
+        }
+        
+        R_SUCCEED();
+    }
+
+    Result BtmMitmService::GetShortenedDeviceCondition(ams::btm::Profile profile, const sf::OutArray<ams::btm::ShortenedDeviceCondition> &out, sf::Out<s32> total_out) {
+        auto device_condition = reinterpret_cast<BtmShortenedDeviceCondition *>(out.GetPointer());
+        R_TRY(btmGetShortenedDeviceConditionFwd(m_forward_service.get(), profile, device_condition, out.GetSize(), total_out.GetPointer()));
+
+        for (int i = 0; i < total_out.GetValue(); ++i) {
+            auto device = &device_condition[i];
+            if ((device->profile == BtmProfile_Hid) && !controller::IsOfficialSwitchControllerName(device->name)) {
+                std::strncpy(device->name, controller::LicensedProControllerName, sizeof(device->name) - 1);
+            }
+        }
+
+        R_SUCCEED();
+    }
+
     /* Deprecated */
 
     /* 1.0.0 - 5.0.2 */
