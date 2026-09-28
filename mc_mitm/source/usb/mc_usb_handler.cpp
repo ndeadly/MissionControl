@@ -24,7 +24,7 @@ namespace ams::usb {
         Result GetOldestPairedDeviceAddress(bluetooth::Address *out_address) {
             if (hos::GetVersion() >= hos::Version_13_0_0) {
                 s32 total_out;
-                BtmDeviceInfoV13 device_info[10];
+                BtmDeviceInfo device_info[10];
                 R_TRY(btmGetDeviceInfo(BtmProfile_Hid, device_info, 10, &total_out));
 
                 *out_address = device_info[0].addr;

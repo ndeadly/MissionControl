@@ -21,32 +21,32 @@ namespace ams::btm {
 
     using Profile = ::BtmProfile;
 
-    struct DeviceConditionV100 : public sf::LargeData {
-        BtmDeviceConditionV100 condition;
+    struct DeviceConditionListV100 : public sf::LargeData {
+        BtmDeviceConditionListV100 condition_list;
     };
 
-    struct DeviceConditionV510 : public sf::LargeData {
-        BtmDeviceConditionV510 condition;
+    struct DeviceConditionListV510 : public sf::LargeData {
+        BtmDeviceConditionListV510 condition_list;
     };
 
-    struct DeviceConditionV800 : public sf::LargeData {
-        BtmDeviceConditionV800 condition;
+    struct DeviceConditionListV800 : public sf::LargeData {
+        BtmDeviceConditionListV800 condition_list;
     };
 
-    struct DeviceConditionV900 : public sf::LargeData {
-        BtmDeviceConditionV900 condition;
+    struct DeviceConditionListV900 : public sf::LargeData {
+        BtmDeviceConditionListV900 condition_list;
     };
 
-    struct ConnectedDevice : public sf::LargeData {
-        BtmConnectedDeviceV13 condition;
+    struct DeviceCondition : public sf::LargeData {
+        BtmDeviceCondition device_condition;
     };
 
     struct DeviceInfo : public sf::LargeData {
-        BtmDeviceInfoV13 info;
+        BtmDeviceInfo device_info;
     };
 
     struct DeviceInfoList : public sf::LargeData {
-        BtmDeviceInfoList info;
+        BtmDeviceInfoList info_list;
     };
 
 }
