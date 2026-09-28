@@ -12,7 +12,8 @@ body:
       label: Switch Firmware Version
       description: Which Nintendo Switch firmware (HOS) version are you running?
       options:
-        - 22.5.0 (Latest)
+        - 23.0.0 (Latest)
+        - 22.5.0
         - 22.1.0
         - 22.0.0
         - 21.2.0
@@ -38,7 +39,8 @@ body:
       label: Atmosphère Version
       description: Which version of Atmosphère are you using?
       options:
-        - 1.11.2 (Latest)
+        - 1.12.0 (Latest)
+        - 1.11.2
         - 1.11.1
         - 1.11.0
         - 1.10.2
@@ -60,7 +62,8 @@ body:
       label: Mission Control Version
       description: Which version of Mission Control are you using?
       options:
-        - 0.15.2 (Latest)
+        - 0.16.0 (Latest)
+        - 0.15.2
         - 0.15.1
         - 0.15.0
         - 0.14.2
