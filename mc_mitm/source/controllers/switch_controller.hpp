@@ -42,7 +42,7 @@ namespace ams::controller {
             static constexpr SwitchButtons DefaultCaptureButtonCombo = SwitchButton::Minus | SwitchButton::Up;
 
         public:
-            SwitchController(bluetooth::Address address, HardwareID id) : m_address(address), m_id(id) { }
+            SwitchController(bluetooth::Address address, HardwareID id);
             virtual ~SwitchController() { };
 
         public:
@@ -89,6 +89,8 @@ namespace ams::controller {
             SwitchButtons m_buttons;
             SwitchAnalogStick m_left_stick;
             SwitchAnalogStick m_right_stick;
+
+            bool m_enable_button_combos;
 
             std::queue<std::shared_ptr<HidResponse>> m_future_responses;
     };

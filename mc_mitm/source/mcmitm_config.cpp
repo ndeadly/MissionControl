@@ -27,7 +27,8 @@ namespace ams::mitm {
         constinit MissionControlConfig g_global_config = {
             .general = {
                 .enable_rumble = true,
-                .enable_motion = true
+                .enable_motion = true,
+                .enable_button_combos = true
             },
             .misc = {
                 .analog_trigger_activation_threshold = 50,
@@ -87,6 +88,8 @@ namespace ams::mitm {
                     ParseBoolean(value, &config->general.enable_rumble);
                 } else if (strcasecmp(name, "enable_motion") == 0) {
                     ParseBoolean(value, &config->general.enable_motion);
+                } else if (strcasecmp(name, "enable_button_combos") == 0) {
+                    ParseBoolean(value, &config->general.enable_button_combos);
                 }
             } else if (strcasecmp(section, "bluetooth") == 0) {
                 if (strcasecmp(name, "host_name") == 0) {

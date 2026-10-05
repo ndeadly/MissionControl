@@ -32,6 +32,11 @@ namespace ams::controller {
         return path;
     }
 
+    SwitchController::SwitchController(bluetooth::Address address, HardwareID id) : m_address(address), m_id(id) {
+        auto config = mitm::GetGlobalConfig();
+        m_enable_button_combos = config->general.enable_button_combos;
+    }
+
     void SwitchController::HandleDataReportEvent(const bluetooth::HidReportEventInfo *event_info) {
         size_t report_size;
         const u8 *report_data;
@@ -221,8 +226,10 @@ namespace ams::controller {
         SwitchAnalogStick left_stick = m_left_stick;
         SwitchAnalogStick right_stick = m_right_stick;
 
-        buttons.ApplyCombo(SwitchButton::Home,    DefaultHomeButtonCombo);
-        buttons.ApplyCombo(SwitchButton::Capture, DefaultCaptureButtonCombo);
+        if (m_enable_button_combos) {
+            buttons.ApplyCombo(SwitchButton::Home,    DefaultHomeButtonCombo);
+            buttons.ApplyCombo(SwitchButton::Capture, DefaultCaptureButtonCombo);
+        }
 
         /* Overwrite report components we wish to modify. */
         auto report_id = static_cast<SwitchHidReportId>(report_buffer[0]);
