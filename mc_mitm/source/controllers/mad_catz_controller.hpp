@@ -41,8 +41,8 @@ namespace ams::controller {
         DirectionalPadType<1, 0> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
     } PACKED;
 
     struct MadCatzInputReport0x02 {
@@ -95,8 +95,8 @@ namespace ams::controller {
         DirectionalPadType<1, 0> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         u8 reserved;
     } PACKED;
 

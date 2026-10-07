@@ -38,8 +38,8 @@ namespace ams::controller {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         PowerAButtonData buttons;
-        u8 L2;
-        u8 R2;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         u8 battery;
         u8 _unk;
     } PACKED;

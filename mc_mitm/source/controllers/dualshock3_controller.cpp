@@ -42,7 +42,6 @@ namespace ams::controller {
         constexpr u16 Ds3VendorId = 0x054c;
         constexpr u16 Ds3ProductId = 0x0268;
 
-        constexpr u8 TriggerMax = UINT8_MAX;
         constexpr float AccelScaleFactor = 1 / 113.0f;
 
         constexpr u8 EnablePayload[] = { 0xf4, 0x42, 0x03, 0x00, 0x00 };
@@ -264,6 +263,9 @@ namespace ams::controller {
         m_power_info.SetCharging(charging);
         m_power_info.SetBatteryLevel(battery_level);
 
+        auto left_trigger  = AnalogTrigger(src->input0x01.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x01.right_trigger);
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -285,8 +287,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,      src->input0x01.buttons.square);
         button_state.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
         button_state.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,  src->input0x01.buttons.select);
         button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.start);
         button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);

@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        constexpr u8 TriggerMax = UINT8_MAX;
-
-    }
-
     void RazerController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const RazerReportData *>(report_buffer);
@@ -38,6 +32,8 @@ namespace ams::controller {
 
     void RazerController::MapInputReport0x01(const RazerReportData *src) {
         auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x01.buttons.dpad));
+        auto left_trigger  = AnalogTrigger(src->input0x01.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x01.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
@@ -60,8 +56,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,       src->input0x01.buttons.X);
         button_state.Assign(SwitchButton::R,       src->input0x01.buttons.R1);
         button_state.Assign(SwitchButton::L,       src->input0x01.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,      src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,      src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,      right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,      left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,   src->input0x01.buttons.select);
         button_state.Assign(SwitchButton::Plus,    src->input0x01.buttons.start);
         button_state.Assign(SwitchButton::StickL,  src->input0x01.buttons.L3);

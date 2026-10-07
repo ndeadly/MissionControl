@@ -46,8 +46,8 @@ namespace ams::controller {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         u8 _unk0[2];
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         u16 accel_x;
         u16 accel_y;
         u16 accel_z;

@@ -74,8 +74,8 @@ namespace ams::controller {
         SteelseriesButtonData buttons;
         AnalogStick<s16> left_stick;
         AnalogStick<s16> right_stick;
-        u16 right_trigger;
-        u16 left_trigger;
+        AnalogTriggerType<u16> right_trigger;
+        AnalogTriggerType<u16> left_trigger;
     } PACKED;
 
     struct SteelseriesInputReport0x02 {
@@ -98,8 +98,8 @@ namespace ams::controller {
     struct SteelseriesInputReport0xC4 {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         SteelseriesButtonData buttons;
         DirectionalPadType<1, 0> dpad;
         u8 _unk[2];

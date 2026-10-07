@@ -36,8 +36,8 @@ namespace ams::controller {
         u8 _unk0;  // maybe a counter?
         DirectionalPadType<0, 0x80> dpad;
         NvidiaShieldButtonData buttons;
-        u16 left_trigger;
-        u16 right_trigger;
+        AnalogTriggerType<u16> left_trigger;
+        AnalogTriggerType<u16> right_trigger;
         AnalogStick<u16> left_stick;
         AnalogStick<u16> right_stick;
         u8 home : 1;

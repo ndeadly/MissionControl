@@ -44,8 +44,8 @@ namespace ams::controller {
         BetopButtonData buttons;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         u8 unk1;
     } PACKED;
 

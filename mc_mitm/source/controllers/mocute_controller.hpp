@@ -44,16 +44,16 @@ namespace ams::controller {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         MocuteButtonData buttons;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
     } PACKED;
 
     // This only applies for mocute 053. 050 sends reports 0x04 and 0x06 in the same format as 0x01
     struct MocuteInputReport0x04 {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         MocuteButtonData buttons;
     } PACKED;
 

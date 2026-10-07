@@ -21,8 +21,6 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr u8 TriggerMax = UINT8_MAX;
-
         constexpr u16 TouchpadWidth = 1920;
         constexpr u16 TouchpadHeight = 1080;
 
@@ -167,6 +165,8 @@ namespace ams::controller {
 
     void DualsenseController::MapInputReport0x01(const DualsenseReportData *src) {
         auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x01.buttons.dpad));
+        auto left_trigger  = AnalogTrigger(src->input0x01.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x01.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
@@ -189,8 +189,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,       src->input0x01.buttons.square);
         button_state.Assign(SwitchButton::R,       src->input0x01.buttons.R1);
         button_state.Assign(SwitchButton::L,       src->input0x01.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,      src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,      src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,      right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,      left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,   src->input0x01.buttons.share);
         button_state.Assign(SwitchButton::Plus,    src->input0x01.buttons.options);
         button_state.Assign(SwitchButton::StickL,  src->input0x01.buttons.L3);
@@ -206,6 +206,8 @@ namespace ams::controller {
         m_power_info.SetBatteryLevel(BatteryLookup[std::clamp<u8>(src->input0x31.battery_level, 0, sizeof(BatteryLookup) - 1)]);
 
         auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x31.buttons.dpad));
+        auto left_trigger  = AnalogTrigger(src->input0x31.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x31.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x31.left_stick.GetX(),
@@ -228,8 +230,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,       src->input0x31.buttons.square);
         button_state.Assign(SwitchButton::R,       src->input0x31.buttons.R1);
         button_state.Assign(SwitchButton::L,       src->input0x31.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,      src->input0x31.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,      src->input0x31.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,      right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,      left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,   src->input0x31.buttons.share);
         button_state.Assign(SwitchButton::Plus,    src->input0x31.buttons.options);
         button_state.Assign(SwitchButton::StickL,  src->input0x31.buttons.L3);

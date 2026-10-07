@@ -20,8 +20,6 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr u8 TriggerMax = UINT8_MAX;
-
         constexpr u16 DpadStickPositions[] = { SwitchAnalogStick::MinimumValue, SwitchAnalogStick::CenterValue, SwitchAnalogStick::MaximumValue };
 
     }
@@ -75,6 +73,8 @@ namespace ams::controller {
             );
         } else {
             auto dpad = DirectionalPad(src->input0x01_v2.dpad);
+            auto left_trigger  = AnalogTrigger(src->input0x01_v2.left_trigger);
+            auto right_trigger = AnalogTrigger(src->input0x01_v2.right_trigger);
 
             m_left_stick.SetValuesFrom(
                 src->input0x01_v2.left_stick.GetX(),
@@ -96,8 +96,8 @@ namespace ams::controller {
             button_state.Assign(SwitchButton::Y,     src->input0x01_v2.buttons.X);
             button_state.Assign(SwitchButton::L,     src->input0x01_v2.buttons.L1);
             button_state.Assign(SwitchButton::R,     src->input0x01_v2.buttons.R1);
-            button_state.Assign(SwitchButton::ZL,    src->input0x01_v2.left_trigger  > (m_trigger_threshold * TriggerMax));
-            button_state.Assign(SwitchButton::ZR,    src->input0x01_v2.right_trigger > (m_trigger_threshold * TriggerMax));
+            button_state.Assign(SwitchButton::ZL,    left_trigger.GetNormalizedValue()  > m_trigger_threshold);
+            button_state.Assign(SwitchButton::ZR,    right_trigger.GetNormalizedValue() > m_trigger_threshold);
 
             if (m_controller_type == EightBitDoControllerType_Sn30ProXboxCloud) {
                 button_state.Assign(SwitchButton::Minus,  src->input0x01_v2.buttons.v1.select);
@@ -153,6 +153,8 @@ namespace ams::controller {
             }
         } else {
             auto dpad = DirectionalPad(src->input0x03_v3.dpad);
+            auto left_trigger  = AnalogTrigger(src->input0x03_v3.left_trigger);
+            auto right_trigger = AnalogTrigger(src->input0x03_v3.right_trigger);
 
             m_left_stick.SetValuesFrom(
                 src->input0x03_v3.left_stick.GetX(),
@@ -174,8 +176,8 @@ namespace ams::controller {
             button_state.Assign(SwitchButton::Y,      src->input0x03_v3.buttons.X);
             button_state.Assign(SwitchButton::L,      src->input0x03_v3.buttons.L1);
             button_state.Assign(SwitchButton::R,      src->input0x03_v3.buttons.R1);
-            button_state.Assign(SwitchButton::ZL,     src->input0x03_v3.left_trigger  > (m_trigger_threshold * TriggerMax));
-            button_state.Assign(SwitchButton::ZR,     src->input0x03_v3.right_trigger > (m_trigger_threshold * TriggerMax));
+            button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
+            button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
             button_state.Assign(SwitchButton::Minus,  src->input0x03_v3.buttons.v2.select);
             button_state.Assign(SwitchButton::Plus,   src->input0x03_v3.buttons.v2.start);
             button_state.Assign(SwitchButton::StickL, src->input0x03_v3.buttons.v2.L3);

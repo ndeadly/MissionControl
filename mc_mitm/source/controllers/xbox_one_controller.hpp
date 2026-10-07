@@ -76,8 +76,8 @@ namespace ams::controller {
     struct XboxOneInputReport0x01 {
         AnalogStick<u16> left_stick;
         AnalogStick<u16> right_stick;
-        u16 left_trigger;
-        u16 right_trigger;
+        AnalogTriggerType<u16, 0x3FF> left_trigger;
+        AnalogTriggerType<u16, 0x3FF> right_trigger;
         DirectionalPadType<1, 0> dpad;
         union {
             XboxOneButtonData buttons;

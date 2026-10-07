@@ -43,8 +43,8 @@ namespace ams::controller {
         DirectionalPadType<0, 0xF> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         u8 _unk[2];
     } PACKED;
 
@@ -53,8 +53,8 @@ namespace ams::controller {
         AnalogStick<u8> right_stick;
         DirectionalPadType<0, 0xF> dpad;
         GamesirButtonData buttons;
-        u8 right_trigger;
-        u8 left_trigger;
+        AnalogTriggerType<u8> right_trigger;
+        AnalogTriggerType<u8> left_trigger;
         u8 _unk[2];
     } PACKED;
 
@@ -69,8 +69,8 @@ namespace ams::controller {
     struct GamesirReport0xC4 {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         GamesirButtonData buttons;
         DirectionalPadType<1, 0> dpad;
         u8 _unk;

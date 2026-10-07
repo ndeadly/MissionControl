@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        constexpr u8 TriggerMax = UINT8_MAX;
-
-    }
-
     MocuteController::MocuteController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) {
         if (id.vid == 0x0000 && id.pid == 0x0000) {
             m_variant = MocuteControllerVariant_053;
@@ -57,6 +51,9 @@ namespace ams::controller {
     }
 
     void MocuteController::MapInputReport0x01(const MocuteReportData *src) {
+        auto left_trigger  = AnalogTrigger(src->input0x01.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x01.right_trigger);
+
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -91,13 +88,15 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.start);
         button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
         button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
-        button_state.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         m_buttons = button_state;
     }
 
     void MocuteController::MapInputReport0x04(const MocuteReportData *src) {
         auto dpad = DirectionalPad(static_cast<DirectionalPadType<1, 0>>(src->input0x04.buttons.dpad));
+        auto left_trigger  = AnalogTrigger(src->input0x04.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x04.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x04.left_stick.GetX(),
@@ -120,8 +119,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,      src->input0x04.buttons.X);
         button_state.Assign(SwitchButton::R,      src->input0x04.buttons.R1);
         button_state.Assign(SwitchButton::L,      src->input0x04.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,  src->input0x04.buttons.select);
         button_state.Assign(SwitchButton::Plus,   src->input0x04.buttons.start);
         button_state.Assign(SwitchButton::StickL, src->input0x04.buttons.L3);

@@ -104,16 +104,16 @@ namespace ams::controller {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         DualsenseButtonData buttons;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
     } PACKED;
 
     struct DualsenseInputReport0x31 {
         u8 _unk0;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         u8 counter;
         DualsenseButtonData buttons;
         u32 _unk1;

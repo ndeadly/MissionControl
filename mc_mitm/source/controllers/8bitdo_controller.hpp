@@ -77,8 +77,8 @@ namespace ams::controller {
         DirectionalPadType<0, 8> dpad;
         AnalogStick<u16> left_stick;
         AnalogStick<u16> right_stick;
-        u8 right_trigger;
-        u8 left_trigger;
+        AnalogTriggerType<u8> right_trigger;
+        AnalogTriggerType<u8> left_trigger;
         u8 _unk0;
     } PACKED;
 
@@ -102,8 +102,8 @@ namespace ams::controller {
         DirectionalPadType<0, 8> dpad;
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
-        u8 right_trigger;
-        u8 left_trigger;
+        AnalogTriggerType<u8> right_trigger;
+        AnalogTriggerType<u8> left_trigger;
         EightBitDoButtonData buttons;
         u8 battery;
         u8 _unk0;

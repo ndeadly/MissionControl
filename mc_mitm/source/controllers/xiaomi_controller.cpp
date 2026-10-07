@@ -20,8 +20,6 @@ namespace ams::controller {
 
     namespace {
 
-        constexpr u8 TriggerMax = UINT8_MAX;
-
         constexpr u8 InitPacket[] = { 0x20, 0x00, 0x00 };  // packet to init vibration apparently
 
     }
@@ -51,6 +49,8 @@ namespace ams::controller {
         m_power_info.SetBatteryLevel(battery_level);
 
         auto dpad = DirectionalPad(src->input0x04.dpad);
+        auto left_trigger  = AnalogTrigger(src->input0x04.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x04.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x04.left_stick.GetX(),
@@ -73,8 +73,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,      src->input0x04.buttons.X);
         button_state.Assign(SwitchButton::R,      src->input0x04.buttons.R1);
         button_state.Assign(SwitchButton::L,      src->input0x04.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     src->input0x04.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x04.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,  src->input0x04.buttons.back);
         button_state.Assign(SwitchButton::Plus,   src->input0x04.buttons.menu);
         button_state.Assign(SwitchButton::StickL, src->input0x04.buttons.lstick_press);

@@ -32,6 +32,8 @@ namespace ams::controller {
 
     void BetopController::MapInputReport0x03(const BetopReportData *src) {
         auto dpad = DirectionalPad(src->input0x03.dpad);
+        auto left_trigger  = AnalogTrigger(src->input0x03.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x03.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x03.left_stick.GetX(),
@@ -54,8 +56,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,      src->input0x03.buttons.X);
         button_state.Assign(SwitchButton::R,      src->input0x03.buttons.R1);
         button_state.Assign(SwitchButton::L,      src->input0x03.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     src->input0x03.buttons.R2);
-        button_state.Assign(SwitchButton::ZL,     src->input0x03.buttons.L2);
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::StickL, src->input0x03.buttons.L3);
         button_state.Assign(SwitchButton::StickR, src->input0x03.buttons.R3);
         button_state.Assign(SwitchButton::Minus,  src->input0x03.buttons.select);

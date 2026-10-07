@@ -58,8 +58,8 @@ namespace ams::controller {
         u8 pressure_dpad_right;
         u8 pressure_dpad_down;
         u8 pressure_dpad_left;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         u8 unk3[2];
         u8 pressure_triangle;
         u8 pressure_circle;

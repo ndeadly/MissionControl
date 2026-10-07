@@ -52,8 +52,8 @@ namespace ams::controller {
         DirectionalPadType<0, 0xF> dpad;
         AnalogStick<s8> left_stick;
         AnalogStick<s8> right_stick;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
         GemboxButtonData buttons;
     } PACKED;
 

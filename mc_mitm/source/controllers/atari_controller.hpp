@@ -39,8 +39,8 @@ namespace ams::controller {
         AtariButtonData buttons;
         AnalogStick<s16> left_stick;
         AnalogStick<s16> right_stick;
-        u16 left_trigger;
-        u16 right_trigger;
+        AnalogTriggerType<u16, 0x3FF> left_trigger;
+        AnalogTriggerType<u16, 0x3FF> right_trigger;
     } PACKED;
 
     struct AtariInputReport0x02 {

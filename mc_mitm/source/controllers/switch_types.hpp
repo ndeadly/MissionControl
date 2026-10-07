@@ -22,7 +22,9 @@
 
 #include "switch_power_info.hpp"
 #include "switch_buttons.hpp"
+#include "switch_directional_pad.hpp"
 #include "switch_analog_stick.hpp"
+#include "switch_analog_trigger.hpp"
 #include "switch_motor_status.hpp"
 
 #include "switch_sixaxis_types.hpp"

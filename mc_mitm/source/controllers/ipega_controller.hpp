@@ -18,18 +18,6 @@
 
 namespace ams::controller {
 
-    enum IpegaDPadDirection {
-        IpegaDPad_N,
-        IpegaDPad_NE,
-        IpegaDPad_E,
-        IpegaDPad_SE,
-        IpegaDPad_S,
-        IpegaDPad_SW,
-        IpegaDPad_W,
-        IpegaDPad_NW,
-        IpegaDPad_Released = 0x88
-    };
-
     struct IpegaButtonData {
         u8 A            : 1;
         u8 B            : 1;
@@ -60,8 +48,8 @@ namespace ams::controller {
         AnalogStick<u8> right_stick;
         DirectionalPadType<0, 0x88> dpad;
         IpegaButtonData buttons;
-        u8 right_trigger;
-        u8 left_trigger;
+        AnalogTriggerType<u8> right_trigger;
+        AnalogTriggerType<u8> left_trigger;
     } PACKED;
 
     struct IpegaReportData {

@@ -42,8 +42,8 @@ namespace ams::controller {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         RazerButtonData buttons;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
     } PACKED;
 
     struct RazerReportData{

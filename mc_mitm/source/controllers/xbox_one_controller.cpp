@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        constexpr u16 TriggerMax = 0x3ff;
-
-    }
-
     Result XboxOneController::SetVibration(const SwitchMotorData *motor_data) {
         XboxOneReportData report;
         report.id = 0x03;
@@ -54,6 +48,8 @@ namespace ams::controller {
 
     void XboxOneController::MapInputReport0x01(const XboxOneReportData *src, bool new_format) {
         auto dpad = DirectionalPad(src->input0x01.dpad);
+        auto left_trigger  = AnalogTrigger(src->input0x01.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x01.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
@@ -66,8 +62,8 @@ namespace ams::controller {
         );
 
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL, src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Down,   dpad.IsDown());
         button_state.Assign(SwitchButton::Up,     dpad.IsUp());
         button_state.Assign(SwitchButton::Right,  dpad.IsRight());

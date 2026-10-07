@@ -18,12 +18,6 @@
 
 namespace ams::controller {
 
-    namespace {
-
-        constexpr u8 TriggerMax = UINT8_MAX;
-
-    }
-
     void GamesirController::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
         auto report = reinterpret_cast<const GamesirReportData *>(report_buffer);
@@ -44,6 +38,8 @@ namespace ams::controller {
 
     void GamesirController::MapInputReport0x03(const GamesirReportData *src) {
         auto dpad = DirectionalPad(src->input0x03.dpad);
+        auto left_trigger  = AnalogTrigger(src->input0x03.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x03.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x03.left_stick.GetX(),
@@ -66,8 +62,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,      src->input0x03.buttons.X);
         button_state.Assign(SwitchButton::R,      src->input0x03.buttons.RB);
         button_state.Assign(SwitchButton::L,      src->input0x03.buttons.LB);
-        button_state.Assign(SwitchButton::ZR,     src->input0x03.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x03.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,  src->input0x03.buttons.select);
         button_state.Assign(SwitchButton::Plus,   src->input0x03.buttons.start);
         button_state.Assign(SwitchButton::StickL, src->input0x03.buttons.L3);
@@ -78,6 +74,8 @@ namespace ams::controller {
 
     void GamesirController::MapInputReport0x07(const GamesirReportData *src) {
         auto dpad = DirectionalPad(src->input0x07.dpad);
+        auto left_trigger  = AnalogTrigger(src->input0x07.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0x07.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0x07.left_stick.GetX(),
@@ -100,8 +98,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,      src->input0x07.buttons.X);
         button_state.Assign(SwitchButton::R,      src->input0x07.buttons.RB);
         button_state.Assign(SwitchButton::L,      src->input0x07.buttons.LB);
-        button_state.Assign(SwitchButton::ZR,     src->input0x07.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x07.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,  src->input0x07.buttons.select);
         button_state.Assign(SwitchButton::Plus,   src->input0x07.buttons.start);
         button_state.Assign(SwitchButton::StickL, src->input0x07.buttons.L3);
@@ -116,6 +114,8 @@ namespace ams::controller {
 
     void GamesirController::MapInputReport0xC4(const GamesirReportData *src) {
         auto dpad = DirectionalPad(src->input0xC4.dpad);
+        auto left_trigger  = AnalogTrigger(src->input0xC4.left_trigger);
+        auto right_trigger = AnalogTrigger(src->input0xC4.right_trigger);
 
         m_left_stick.SetValuesFrom(
             src->input0xC4.left_stick.GetX(),
@@ -138,8 +138,8 @@ namespace ams::controller {
         button_state.Assign(SwitchButton::Y,      src->input0xC4.buttons.X);
         button_state.Assign(SwitchButton::R,      src->input0xC4.buttons.RB);
         button_state.Assign(SwitchButton::L,      src->input0xC4.buttons.LB);
-        button_state.Assign(SwitchButton::ZR,     src->input0xC4.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0xC4.left_trigger  > (m_trigger_threshold * TriggerMax));
+        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
+        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
         button_state.Assign(SwitchButton::Minus,  src->input0xC4.buttons.select);
         button_state.Assign(SwitchButton::Plus,   src->input0xC4.buttons.start);
         button_state.Assign(SwitchButton::StickL, src->input0xC4.buttons.L3);

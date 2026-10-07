@@ -131,8 +131,8 @@ namespace ams::controller {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         Dualshock4ButtonData buttons;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
     } PACKED;
 
     struct Dualshock4InputReport0x11 {
@@ -140,8 +140,8 @@ namespace ams::controller {
         AnalogStick<u8> left_stick;
         AnalogStick<u8> right_stick;
         Dualshock4ButtonData buttons;
-        u8 left_trigger;
-        u8 right_trigger;
+        AnalogTriggerType<u8> left_trigger;
+        AnalogTriggerType<u8> right_trigger;
 
         u16 timestamp;
         u8 temperature;

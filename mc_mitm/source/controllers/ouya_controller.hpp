@@ -46,8 +46,8 @@ namespace ams::controller {
     struct OuyaInputReport0x07 {
         AnalogStick<u16> left_stick;
         AnalogStick<u16> right_stick;
-        u16 left_trigger;
-        u16 right_trigger;
+        AnalogTriggerType<u16> left_trigger;
+        AnalogTriggerType<u16> right_trigger;
         OuyaButtonData buttons;
     } PACKED;
 
