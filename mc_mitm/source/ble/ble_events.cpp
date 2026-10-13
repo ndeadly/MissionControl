@@ -260,7 +260,7 @@ namespace ams::ble::events {
 
     controller::XboxOneBleController *GetActiveController(u32 conn_id) noexcept {
         if (conn_id < MaxConnIdRange) {
-            return g_active_controllers[conn_id].load(std::memory_order_relaxed);
+            return g_active_controllers[conn_id].load(std::memory_order_acquire);
         }
         return nullptr;
     }

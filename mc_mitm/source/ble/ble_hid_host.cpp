@@ -179,7 +179,7 @@ namespace ams::ble {
                 if ((notify.type == GattNotifyType_Notification) && IsUuid16(notify.char_uuid, GattCharReport)) {
                     // Lock-free O(1) routing via direct atomic pointer lookup table
                     if (notify.conn_id < MaxConnIdRange) {
-                        if (auto *controller = events::g_active_controllers[notify.conn_id].load(std::memory_order_relaxed)) {
+                        if (auto *controller = events::g_active_controllers[notify.conn_id].load(std::memory_order_acquire)) {
                             const u64 start_tick = profile::RecordReportStart();
                             static_cast<void>(controller->HandleInputReport(notify.data, std::min<size_t>(notify.size, sizeof(notify.data))));
                             profile::RecordReportEnd(start_tick);

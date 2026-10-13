@@ -50,6 +50,7 @@ namespace ams::bluetooth::hid::report {
         bluetooth::CircularBuffer *g_fake_buffer;
 
         constinit bluetooth::HidReportEventInfo g_fake_report_event_info;
+        constinit os::SdkMutex g_fake_report_lock;
 
         void EventThreadFunc(void *) {
 
@@ -149,6 +150,7 @@ namespace ams::bluetooth::hid::report {
     }
 
     void WriteHidDataReport(bluetooth::Address address, const u8 *report_buffer, size_t size) {
+        std::scoped_lock lk(g_fake_report_lock);
         if (hos::GetVersion() >= hos::Version_9_0_0) {
             g_fake_report_event_info.data_report.v9.addr = address;
             g_fake_report_event_info.data_report.v9.report.size = size;
@@ -164,6 +166,7 @@ namespace ams::bluetooth::hid::report {
     }
 
     void WriteHidSetReport(bluetooth::Address address, u32 status) {
+        std::scoped_lock lk(g_fake_report_lock);
         g_fake_report_event_info.set_report.addr = address;
         g_fake_report_event_info.set_report.res = status;
 
@@ -172,6 +175,7 @@ namespace ams::bluetooth::hid::report {
     }
 
     void WriteHidGetReport(bluetooth::Address address, const u8 *report_buffer, size_t size) {
+        std::scoped_lock lk(g_fake_report_lock);
         if (hos::GetVersion() >= hos::Version_9_0_0) {
             g_fake_report_event_info.get_report.v9.addr = address;
             g_fake_report_event_info.get_report.v9.res = 0;
