@@ -26,21 +26,33 @@ namespace ams::controller {
     }
 
     Result XboxOneBleController::HandleInputReport(const u8 *data, size_t size) {
-        // Only the 9.0.0+ event layout is filled in; controllers only started using BLE in 2021
-        R_UNLESS(hos::GetVersion() >= hos::Version_9_0_0, sf::ResultNotSupported());
+        constexpr size_t MaxReportPayload = sizeof(XboxOneInputReport0x01);
+        constexpr size_t MaxFramedSize = MaxReportPayload + 1;
+        R_UNLESS(size <= MaxReportPayload, svc::ResultInvalidSize());
 
-        auto &event = m_event_info.data_report.v9;
-        R_UNLESS(size + 1 <= sizeof(event.report.data), svc::ResultInvalidSize());
+        u8 framed_report[MaxFramedSize];
+        framed_report[0] = InputReportId;
+        std::memcpy(&framed_report[1], data, size);
 
-        event.res = 0;
-        event.proto_mode = 0;
-        event.addr = m_address;
-        event.pad = 0;
-        event.report.size = size + 1;
-        event.report.data[0] = InputReportId;
-        std::memcpy(&event.report.data[1], data, size);
+        const size_t framed_size = size + 1;
 
-        XboxOneController::HandleDataReportEvent(&m_event_info);
+        /* Parse input report */
+        this->ParseInputReport(framed_report, framed_size);
+
+        /* Generate Switch Pro Controller input report */
+        u8 report_buffer[0x200];
+        size_t new_size = this->FillInputReport(report_buffer, sizeof(report_buffer));
+        if (!new_size) {
+            new_size = framed_size;
+            std::memcpy(report_buffer, framed_report, framed_size);
+        }
+
+        /* Apply button combos and modifications */
+        this->ModifyInputReport(report_buffer, new_size);
+
+        /* Write into shared memory and signal hid */
+        bluetooth::hid::report::WriteHidDataReport(m_address, report_buffer, new_size);
+
         R_SUCCEED();
     }
 

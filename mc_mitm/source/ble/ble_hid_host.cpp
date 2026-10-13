@@ -30,12 +30,12 @@ namespace ams::ble {
     namespace {
 
         constexpr s32 ThreadPriority = 9;
-        constexpr size_t ThreadStackSize = 0x4000;
+        constexpr size_t ThreadStackSize = 0x2000;
         alignas(os::ThreadStackAlignment) constinit u8 g_thread_stack[ThreadStackSize];
         constinit os::ThreadType g_thread;
         constinit bool g_launched = false;
 
-        constexpr size_t LeHidThreadStackSize = 0x2000;
+        constexpr size_t LeHidThreadStackSize = 0x1000;
         alignas(os::ThreadStackAlignment) constinit u8 g_le_hid_thread_stack[LeHidThreadStackSize];
         constinit os::ThreadType g_le_hid_thread;
         constinit EventRecord g_le_hid_record;
@@ -56,6 +56,7 @@ namespace ams::ble {
         /* The controller currently presented to the system */
         constinit os::SdkMutex g_controller_lock;
         std::shared_ptr<controller::XboxOneBleController> g_controller;
+        constinit std::atomic<controller::XboxOneBleController *> g_active_controller = nullptr;
 
         /* Advertisement parsing */
 
@@ -128,12 +129,7 @@ namespace ams::ble {
                 }
 
                 if ((notify.type == GattNotifyType_Notification) && IsUuid16(notify.char_uuid, GattCharReport)) {
-                    std::shared_ptr<controller::XboxOneBleController> controller;
-                    {
-                        std::scoped_lock lk(g_controller_lock);
-                        controller = g_controller;
-                    }
-                    if (controller) {
+                    if (auto *controller = g_active_controller.load(std::memory_order_relaxed)) {
                         const u64 start_tick = profile::RecordReportStart();
                         static_cast<void>(controller->HandleInputReport(notify.data, std::min<size_t>(notify.size, sizeof(notify.data))));
                         profile::RecordReportEnd(start_tick);
@@ -392,6 +388,7 @@ namespace ams::ble {
             {
                 std::scoped_lock lk(g_controller_lock);
                 g_controller = controller;
+                g_active_controller.store(controller.get(), std::memory_order_release);
             }
             controller::AttachVirtualController(controller);
             g_pairing_failed_tick = 0;
@@ -410,6 +407,7 @@ namespace ams::ble {
             std::shared_ptr<controller::XboxOneBleController> controller;
             {
                 std::scoped_lock lk(g_controller_lock);
+                g_active_controller.store(nullptr, std::memory_order_release);
                 controller = std::move(g_controller);
                 g_controller = nullptr;
             }
