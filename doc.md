@@ -92,11 +92,11 @@ $$\text{Connection Interval (ms)} = \text{Interval Value} \times 1.25\text{ ms}$
 The optimizations are controlled by configuration toggles in `/config/MissionControl/missioncontrol.ini`:
 
 ### `[ble] low_latency=true`
-1. **Default Connection Parameters**: Calls `btdrvSetBleDefaultConnectionParameter()` during initialization with $7.5\text{ ms}$ – $11.25\text{ ms}$ ($6$ – $9$ units) and $0$ slave latency.
-2. **Active Link Update**: Calls `btdrvSetBleConnectionParameter()` immediately upon controller pairing and connection.
-3. **Preferred Parameter Handling**: Intercepts `BtdrvBleEventType_PreferredConnectionParameters` from the controller and acknowledges it by setting low-latency parameters with slave latency clamped to 0.
-4. **Thread Priority Boost**: Increases `g_le_hid_thread` priority from `9` to `-11`, matching `bluetooth.nso` real-time scheduling.
-5. **Lock-Free Fast Path**: Caches `conn_id` in an atomic variable (`std::atomic<u32>`) so `LeHidThreadFunc` avoids acquiring `g_lock` on every report.
+1. **Active Link Update**: Calls `btdrvSetBleConnectionParameter()` immediately upon controller pairing and presentation (`events::RequestLowLatencyConnectionParameters(address)`), requesting $7.5\text{ ms}$ – $11.25\text{ ms}$ ($6$ – $9$ units) and $0$ slave latency without disturbing initial link-layer discovery and bonding.
+2. **Preferred Parameter Handling**: Intercepts `BtdrvBleEventType_PreferredConnectionParameters` from the controller and acknowledges it by setting low-latency parameters with slave latency clamped to 0.
+3. **Thread Priority Boost**: Increases `g_le_hid_thread` priority from `9` to `-11`, matching `bluetooth.nso` real-time scheduling.
+4. **Lock-Free Fast Path**: Caches `conn_id` in an atomic variable (`std::atomic<u32>`) so `LeHidThreadFunc` avoids acquiring `g_lock` on every report.
+5. **Lock-Free Controller Routing**: Uses `g_active_controller` atomic pointer so incoming reports avoid `g_controller_lock` and atomic `std::shared_ptr` refcounting.
 
 ### `[ble] profile=true`
 * Runs a zero-overhead, in-memory profiler using hardware system ticks (`os::GetSystemTick()`).
@@ -108,19 +108,7 @@ The optimizations are controlled by configuration toggles in `/config/MissionCon
 
 ---
 
-## 5. Memory & CPU Footprint Optimizations
-
-### Memory Reductions (~63 KB Saved from `.bss` & Heap)
-
-| Component | Before | After | Savings | Details |
-|---|---|---|---|---|
-| `g_ring` (`ble_events.cpp`) | 64 entries (~66 KB) | 16 entries (~16.5 KB) | **~49.5 KB** | Ring buffer capacity reduced to 16. Events are popped immediately by the host loop so queue depth never exceeds 2–4 items. |
-| `g_thread_stack` (`ble_hid_host.cpp`) | `0x4000` (16 KB) | `0x2000` (8 KB) | **8 KB** | Host coordinator thread stack right-sized; actual peak stack depth is < 2 KB. |
-| `g_le_hid_thread_stack` (`ble_hid_host.cpp`) | `0x2000` (8 KB) | `0x1000` (4 KB) | **4 KB** | LE HID report thread stack right-sized; stack holds only small local variables and frames. |
-| `m_event_info` (`XboxOneBleController`) | ~1.1 KB struct | Completely removed | **~1.1 KB** | Eliminated redundant `bluetooth::HidReportEventInfo` member. Input frames directly on a stack buffer. |
-| **Total Memory Savings** | | | **~62.6 KB** | |
-
-### CPU & Fast Path Optimizations
+## 5. CPU Fast-Path & Safety Optimizations
 
 1. **Lock-Free Active Controller Routing**:
    * Previously, `LeHidThreadFunc` acquired `g_controller_lock` and cloned a `std::shared_ptr<XboxOneBleController>` on **every single 8 ms report**, triggering atomic increment/decrement instructions (`__atomic_add_fetch` / `__atomic_sub_fetch`).
@@ -131,9 +119,8 @@ The optimizations are controlled by configuration toggles in `/config/MissionCon
    * Previously, `notify.conn_id != events::GetConnection()` acquired the global coordinator mutex `g_lock` on every report.
    * Replaced with `events::GetConnectionFast()`, which reads an atomic `g_conn_id_fast` in 0 ns without locking.
 
-3. **Bypassed Event Wrapper Overhead in `HandleInputReport`**:
-   * Previously, `HandleInputReport` synthesized a full `HidReportEventInfo` structure, passed it to `HandleDataReportEvent`, which evaluated runtime OS version checks and response queue checks, and unpacked it again.
-   * Directly frames the 16-byte payload on a 17-byte stack buffer and routes through `ParseInputReport` $\rightarrow$ `FillInputReport` $\rightarrow$ `WriteHidDataReport`, removing runtime branching and redundant copies.
+3. **Safe Link Parameter Sequencing**:
+   * `btdrvSetBleDefaultConnectionParameter` was removed from boot/bring-up. Forcing 7.5 ms interval globally before connection breaks initial SMP bonding and GATT attribute enumeration. Low-latency parameters are now requested strictly on the active link after pairing succeeds.
 
 4. **Zero Polling / Zero CPU Idle State**:
    * Both `HostThreadFunc` and `LeHidThreadFunc` block on native Horizon OS kernel events (`system_event.Wait()` and `g_ring_event.TimedWait()`). When idle or when no controller is connected, the BLE subsystem consumes **0.0% CPU**.

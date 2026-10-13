@@ -30,12 +30,12 @@ namespace ams::ble {
     namespace {
 
         constexpr s32 ThreadPriority = 9;
-        constexpr size_t ThreadStackSize = 0x2000;
+        constexpr size_t ThreadStackSize = 0x4000;
         alignas(os::ThreadStackAlignment) constinit u8 g_thread_stack[ThreadStackSize];
         constinit os::ThreadType g_thread;
         constinit bool g_launched = false;
 
-        constexpr size_t LeHidThreadStackSize = 0x1000;
+        constexpr size_t LeHidThreadStackSize = 0x2000;
         alignas(os::ThreadStackAlignment) constinit u8 g_le_hid_thread_stack[LeHidThreadStackSize];
         constinit os::ThreadType g_le_hid_thread;
         constinit EventRecord g_le_hid_record;
@@ -186,19 +186,6 @@ namespace ams::ble {
             Result rc = btdrvEnableBle();
             log::Write("btdrvEnableBle rc=0x%x", rc.GetValue());
             events::Pump(TimeSpan::FromSeconds(6));
-
-            if (mitm::GetGlobalConfig()->ble.low_latency) {
-                BtdrvBleConnectionParameter default_param = {
-                    .min_conn_interval = 6,   // 7.5 ms
-                    .max_conn_interval = 9,   // 11.25 ms
-                    .min_ce_length     = 0,
-                    .max_ce_length     = 0,
-                    .slave_latency     = 0,
-                    .supervision_tout  = 300, // 3000 ms
-                };
-                rc = btdrvSetBleDefaultConnectionParameter(&default_param);
-                log::Write("btdrvSetBleDefaultConnectionParameter rc=0x%x", rc.GetValue());
-            }
 
             // btm's registrations take most of the stack's client slots; borrow the last one rather than risk
             // finding none free

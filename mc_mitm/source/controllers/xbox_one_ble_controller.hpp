@@ -51,6 +51,8 @@ namespace ams::controller {
 
             u8 m_last_rumble_strong = 0;
             u8 m_last_rumble_weak = 0;
+
+            bluetooth::HidReportEventInfo m_event_info;
     };
 
 }

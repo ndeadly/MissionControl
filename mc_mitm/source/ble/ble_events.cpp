@@ -30,7 +30,7 @@ namespace ams::ble::events {
         // a CreateBond that succeeded, and at once when pairing failed and the stack drops the link.
         constexpr u32 CoreConnectionType_Suspended = 3;
 
-        constexpr size_t RingSize = 16;
+        constexpr size_t RingSize = 64;
         constinit EventRecord g_ring[RingSize];
         constinit size_t g_ring_read = 0;
         constinit size_t g_ring_write = 0;
