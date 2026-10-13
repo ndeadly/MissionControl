@@ -127,7 +127,35 @@ The optimizations are controlled by configuration toggles in `/config/MissionCon
 
 ---
 
-## 6. Sources & Documentation
+## 6. Multi-Device Bluetooth Low Energy Architecture & Specialist Audits
+
+### 6.1 Multi-Slot Architecture (Up to 4 Concurrent Gamepads)
+* **Slot Management (`BleDeviceSlot g_slots[4]`)**:
+  * Tracks up to 4 concurrent BLE controllers (`MaxBleControllers = 4`).
+  * Maintains state per slot: connection ID (`conn_id`), Bluetooth address, GATT HID service descriptors, and `XboxOneBleController` instances.
+* **Per-Slot GATT Tables (`AttributeTable g_tables[4]`)**:
+  * Decouples GATT discovery caches per slot index and `conn_id` to prevent attribute table cross-contamination during discovery.
+* **Non-Blocking Coordinator State Machine**:
+  * Replaced the single-controller blocking `RunConnected()` loop with a continuous coordinator loop.
+  * While *Change Grip/Order* is active (`events::IsPairingWindowOpen()`), the coordinator can discover, connect, pair, and present additional controllers into free slots without interrupting active streams.
+* **O(1) Lock-Free Atomic Report Router (`g_active_controllers[32]`)**:
+  * Real-time priority `-11` thread (`LeHidThreadFunc`) demultiplexes incoming reports by `notify.conn_id` using direct indexed pointer lookup (`load(std::memory_order_acquire)`).
+  * 0 ns lookup, zero mutex locks, zero refcount atomics.
+
+### 6.2 Specialist Reviewer Audit Findings & Applied Fixes
+1. **Classic Bluetooth & BLE Coexistence Data Tearing Fix (Reviewer 2)**:
+   * Discovered that `bluetooth::hid::report::WriteHidDataReport()` accessed an un-synchronized static buffer `g_fake_report_event_info`.
+   * Concurrent calls between `mc::HidReportThread` (Classic Bluetooth) and `mc::BleHidEventThread` (BLE) on separate CPU cores caused data tearing and corrupt report injection.
+   * Fixed by synchronizing `WriteHidDataReport`, `WriteHidSetReport`, and `WriteHidGetReport` with `g_fake_report_lock`.
+2. **ARM64 Memory Consistency Enforcement (Reviewer 2)**:
+   * Replaced `relaxed` atomic loads in report demultiplexing with `acquire` semantics (`std::memory_order_acquire`), guaranteeing coherent cache visibility of newly constructed controller instances across CPU cores.
+3. **Serialized SMP Pairing & Harmonic TDMA Scheduling (Reviewer 1)**:
+   * Guaranteed that `btdrvCreateBond` and GATT discovery execute serially on `HostThreadFunc`, preventing Broadcom BSA 1.6 SMP state machine lockup.
+   * Connection interval parameter negotiation requests min 6 (7.50 ms), max 12 (15.00 ms), slave latency 0 to allow the Broadcom Link Layer scheduler to interleave up to 4 BLE connection events without packet collision.
+
+---
+
+## 7. Sources & Documentation
 
 1. **Switchbrew - Bluetooth Driver Services (`btdrv`)**:
    https://switchbrew.org/wiki/Bluetooth_Driver_services
