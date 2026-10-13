@@ -53,8 +53,10 @@ namespace ams::controller {
         auto xbox_report = reinterpret_cast<const XboxOneReportData *>(report_buffer);
         if ((xbox_report->id == InputReportId) && (size >= sizeof(XboxOneInputReport0x01) + 1)) {
             const u8 *buttons = reinterpret_cast<const u8 *>(&xbox_report->input0x01.buttons);
-            m_buttons.Assign(SwitchButton::Minus,   (buttons[2] & 0x04) != 0);
-            m_buttons.Assign(SwitchButton::Capture, (buttons[3] & 0x01) != 0);
+            m_buttons.Assign(SwitchButton::Minus, (buttons[2] & 0x04) != 0);
+            if (size >= sizeof(XboxOneInputReport0x01) + 2) {
+                m_buttons.Assign(SwitchButton::Capture, (buttons[3] & 0x01) != 0);
+            }
         }
     }
 

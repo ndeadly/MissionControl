@@ -97,9 +97,12 @@ namespace ams::ble {
             return -1;
         }
 
-        bool IsAddressConnected(const bluetooth::Address &address) {
+        bool IsAddressConnected(const bluetooth::Address &address, u32 exclude_slot = InvalidSlot) {
             std::scoped_lock lk(g_slots_lock);
             for (size_t i = 0; i < MaxBleControllers; ++i) {
+                if (i == exclude_slot) {
+                    continue;
+                }
                 if ((g_host_slots[i].state != BleDeviceSlot::State::Vacant) && AddressEqual(g_host_slots[i].address, address)) {
                     return true;
                 }
@@ -479,6 +482,13 @@ namespace ams::ble {
                 slot.conn_id = InvalidConnId;
             }
 
+            if (conn_id < MaxConnIdRange) {
+                events::UnregisterActiveController(conn_id);
+            }
+
+            // Brief pause to allow in-flight LeHidThreadFunc execution on another core to finish
+            os::SleepThread(TimeSpan::FromMilliSeconds(20));
+
             gatt::ResetSlot(slot_index);
             events::ClearSlot(slot_index);
 
@@ -534,7 +544,7 @@ namespace ams::ble {
                 if (Adopt(&address, &conn_id)) {
                     connected = true;
                 } else if (R_SUCCEEDED(rc)) {
-                    if (IsAddressConnected(address)) {
+                    if (IsAddressConnected(address, slot)) {
                         return;
                     }
                     g_host_slots[slot].state = BleDeviceSlot::State::Connecting;
@@ -549,7 +559,8 @@ namespace ams::ble {
                 }
             }
 
-            if (IsAddressConnected(address)) {
+            if (IsAddressConnected(address, slot)) {
+                DismissSlot(slot);
                 return;
             }
 
