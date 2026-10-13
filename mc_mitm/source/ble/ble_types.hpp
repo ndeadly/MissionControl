@@ -20,6 +20,10 @@
 
 namespace ams::ble {
 
+    constexpr size_t MaxBleControllers = 4;
+    constexpr u32 MaxConnIdRange       = 32;
+    constexpr u32 InvalidSlot          = 0xFFFFFFFF;
+
     constexpr u32 InvalidConnId   = 0xFFFFFFFF;
     constexpr u8  InvalidClientIf = 0xFF;
 

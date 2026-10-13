@@ -20,8 +20,8 @@ namespace ams::ble::gatt {
 
     /*
      * The stack reports a connected device's attributes (ClientCacheSave events) when it discovers them, and
-     * serves them from its own cache without reporting on later connections. The table is therefore kept for
-     * the device across connections and only replaced when the stack reports a fresh discovery.
+     * serves them from its own cache without reporting on later connections. Attribute tables are therefore kept
+     * per slot across connections and only replaced when the stack reports a fresh discovery.
      */
 
     constexpr size_t MaxAttributes = 64;
@@ -42,14 +42,17 @@ namespace ams::ble::gatt {
     // Event sink, see events::SetSink
     void OnEvent(const EventRecord &record);
 
-    // Waits for the stack to report the device's attributes, reusing the table held for it if none arrive
-    void Discover(u32 conn_id, const bluetooth::Address &address);
+    // Waits for the stack to report the device's attributes for the given slot, reusing the table held for it if none arrive
+    void Discover(u32 slot_index, u32 conn_id, const bluetooth::Address &address);
 
     // Set when a cache report arrived after discovery completed, i.e. the stack re-discovered the services
-    bool TakeRediscovered();
+    bool TakeRediscovered(u32 slot_index);
 
     // Enables notifications on the HID input Report characteristic(s). Fails with InsufficientAuthentication
     // when the link isn't encrypted; returns NotFound if the table holds no HID service.
-    Result Subscribe(u32 conn_id, HidService *out);
+    Result Subscribe(u32 slot_index, u32 conn_id, HidService *out);
+
+    // Resets slot connection state while retaining cached attributes for the address
+    void ResetSlot(u32 slot_index);
 
 }

@@ -17,9 +17,12 @@
 #include "ble_log.hpp"
 #include "ble_profile.hpp"
 #include "../mcmitm_config.hpp"
+#include "../controllers/xbox_one_ble_controller.hpp"
 #include <atomic>
 
 namespace ams::ble::events {
+
+    constinit std::atomic<controller::XboxOneBleController *> g_active_controllers[MaxConnIdRange] = {};
 
     namespace {
 
@@ -46,6 +49,19 @@ namespace ams::ble::events {
         constinit bool g_scanning = false;
         constinit u32 g_expected_filter_events = 0;
         constinit u8 g_spare_client_if = InvalidClientIf;
+
+        struct EventSlot {
+            bool active = false;
+            bluetooth::Address address = {};
+            u32 conn_id = InvalidConnId;
+            bool connecting = false;
+            bool claimed = false;
+            bool disconnected = false;
+            u16 disconnect_reason = 0;
+            bool bond_complete = false;
+        };
+
+        constinit EventSlot g_slots[MaxBleControllers] = {};
 
         constinit bool g_have_target = false;
         constinit bluetooth::Address g_target = {};
@@ -96,6 +112,157 @@ namespace ams::ble::events {
             }
         }
 
+        u32 FindSlotByConnIdInternal(u32 conn_id) {
+            if (conn_id == InvalidConnId) {
+                return InvalidSlot;
+            }
+            for (size_t i = 0; i < MaxBleControllers; ++i) {
+                if (g_slots[i].active && (g_slots[i].conn_id == conn_id)) {
+                    return static_cast<u32>(i);
+                }
+            }
+            return InvalidSlot;
+        }
+
+        u32 FindSlotByAddressInternal(const bluetooth::Address &address) {
+            for (size_t i = 0; i < MaxBleControllers; ++i) {
+                if (g_slots[i].active && AddressEqual(g_slots[i].address, address)) {
+                    return static_cast<u32>(i);
+                }
+            }
+            return InvalidSlot;
+        }
+
+    }
+
+    u32 FindSlotByConnId(u32 conn_id) {
+        std::scoped_lock lk(g_lock);
+        return FindSlotByConnIdInternal(conn_id);
+    }
+
+    u32 FindSlotByAddress(const bluetooth::Address &address) {
+        std::scoped_lock lk(g_lock);
+        return FindSlotByAddressInternal(address);
+    }
+
+    bool IsAddressActive(const bluetooth::Address &address) {
+        std::scoped_lock lk(g_lock);
+        return FindSlotByAddressInternal(address) != InvalidSlot;
+    }
+
+    size_t GetActiveConnectionCount() {
+        std::scoped_lock lk(g_lock);
+        size_t count = 0;
+        for (size_t i = 0; i < MaxBleControllers; ++i) {
+            if (g_slots[i].active && (g_slots[i].conn_id != InvalidConnId) && !g_slots[i].disconnected) {
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    void SetSlotConnecting(u32 slot, const bluetooth::Address &address) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers) {
+            return;
+        }
+        g_slots[slot].active = true;
+        g_slots[slot].address = address;
+        g_slots[slot].conn_id = InvalidConnId;
+        g_slots[slot].connecting = true;
+        g_slots[slot].claimed = false;
+        g_slots[slot].disconnected = false;
+        g_slots[slot].disconnect_reason = 0;
+        g_slots[slot].bond_complete = false;
+
+        g_target = address;
+        g_have_target = true;
+        g_attempted = address;
+        g_have_attempted = true;
+        g_disconnected = false;
+        g_bond_complete = false;
+    }
+
+    void SetSlotConnection(u32 slot, u32 conn_id) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers) {
+            return;
+        }
+        g_slots[slot].conn_id = conn_id;
+        g_slots[slot].connecting = false;
+        g_slots[slot].disconnected = false;
+
+        g_conn_id = conn_id;
+        g_conn_id_fast.store(conn_id, std::memory_order_relaxed);
+        g_disconnected = false;
+    }
+
+    void SetSlotClaimed(u32 slot, bool claimed) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers) {
+            return;
+        }
+        g_slots[slot].claimed = claimed;
+        if (claimed) {
+            g_claimed = g_slots[slot].address;
+            g_have_claimed = true;
+        }
+    }
+
+    void ClearSlot(u32 slot) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers) {
+            return;
+        }
+        if (g_slots[slot].conn_id < MaxConnIdRange) {
+            g_active_controllers[g_slots[slot].conn_id].store(nullptr, std::memory_order_release);
+        }
+        g_slots[slot] = {};
+    }
+
+    bool IsSlotDisconnected(u32 slot) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers) {
+            return true;
+        }
+        return g_slots[slot].disconnected;
+    }
+
+    u16 GetSlotDisconnectReason(u32 slot) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers) {
+            return 0;
+        }
+        return g_slots[slot].disconnect_reason;
+    }
+
+    bool TakeSlotBondComplete(u32 slot) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers) {
+            return false;
+        }
+        const bool complete = g_slots[slot].bond_complete;
+        g_slots[slot].bond_complete = false;
+        return complete;
+    }
+
+    void RegisterActiveController(u32 conn_id, controller::XboxOneBleController *ctrl) {
+        if (conn_id < MaxConnIdRange) {
+            g_active_controllers[conn_id].store(ctrl, std::memory_order_release);
+        }
+    }
+
+    void UnregisterActiveController(u32 conn_id) {
+        if (conn_id < MaxConnIdRange) {
+            g_active_controllers[conn_id].store(nullptr, std::memory_order_release);
+        }
+    }
+
+    controller::XboxOneBleController *GetActiveController(u32 conn_id) noexcept {
+        if (conn_id < MaxConnIdRange) {
+            return g_active_controllers[conn_id].load(std::memory_order_relaxed);
+        }
+        return nullptr;
     }
 
     bool OnBleEvent(bluetooth::BleEventType type, const bluetooth::BleEventInfo *info) {
@@ -105,10 +272,6 @@ namespace ams::ble::events {
             return false;
         }
 
-        // btm registers its own GATT clients and installs scan filters whenever BLE comes up and aborts if those
-        // results never arrive, so registrations and filter events we didn't ask for always go through. Scan
-        // results are ours while we scan. Connection-family events are all ours, including the trailing ones of
-        // a link already torn down: btm aborts on any it can't match to a connection of its own.
         bool ours = false;
         if (g_owns_ble) {
             switch (type) {
@@ -138,12 +301,30 @@ namespace ams::ble::events {
             auto &connection = info->client_connection;
             const bool connected = (connection.result == 0) && (connection.status == BleConnectionStatus_Connected);
 
+            u32 slot = FindSlotByAddressInternal(connection.address);
+            if (slot == InvalidSlot && connection.conn_id < MaxConnIdRange) {
+                slot = FindSlotByConnIdInternal(connection.conn_id);
+            }
+
+            if (slot != InvalidSlot) {
+                if (!connected) {
+                    g_slots[slot].disconnected = true;
+                    g_slots[slot].disconnect_reason = connection.reason;
+                    if (g_slots[slot].conn_id < MaxConnIdRange) {
+                        g_active_controllers[g_slots[slot].conn_id].store(nullptr, std::memory_order_release);
+                    }
+                } else {
+                    g_slots[slot].conn_id = connection.conn_id;
+                    g_slots[slot].disconnected = false;
+                }
+            }
+
             if (g_have_target && AddressEqual(connection.address, g_target) && !connected) {
                 g_disconnected = true;
                 g_disconnect_reason = connection.reason;
             }
 
-            if (ours && connected && !g_have_target && g_have_attempted && AddressEqual(connection.address, g_attempted)) {
+            if (ours && connected && (slot == InvalidSlot) && g_have_attempted && AddressEqual(connection.address, g_attempted)) {
                 g_adopted = true;
                 g_adopted_address = connection.address;
                 g_adopted_conn_id = connection.conn_id;
@@ -157,17 +338,38 @@ namespace ams::ble::events {
                 pref.max_conn_interval, pref.max_conn_interval * 1.25f,
                 pref.slave_latency, static_cast<u32>(pref.supervision_tout * 10));
 
-            if (mitm::GetGlobalConfig()->ble.low_latency && g_have_target) {
-                BtdrvBleConnectionParameter param = {
-                    .min_conn_interval = std::max<u16>(6, pref.min_conn_interval),
-                    .max_conn_interval = std::max<u16>(pref.min_conn_interval, std::min<u16>(9, pref.max_conn_interval)),
-                    .min_ce_length     = 0,
-                    .max_ce_length     = 0,
-                    .slave_latency     = 0,
-                    .supervision_tout  = pref.supervision_tout ? pref.supervision_tout : static_cast<u16>(300),
-                };
-                Result rc = btdrvSetBleConnectionParameter(g_target, &param, false);
-                log::Write("btdrvSetBleConnectionParameter(preferred) rc=0x%x", rc.GetValue());
+            if (mitm::GetGlobalConfig()->ble.low_latency) {
+                u32 slot = FindSlotByConnIdInternal(pref.conn_id);
+                bluetooth::Address target_address = {};
+                bool have_address = false;
+                if (slot != InvalidSlot && g_slots[slot].active) {
+                    target_address = g_slots[slot].address;
+                    have_address = true;
+                } else if (g_have_target) {
+                    target_address = g_target;
+                    have_address = true;
+                }
+
+                if (have_address) {
+                    size_t active_count = 0;
+                    for (size_t s = 0; s < MaxBleControllers; ++s) {
+                        if (g_slots[s].active && (g_slots[s].conn_id != InvalidConnId) && !g_slots[s].disconnected) {
+                            ++active_count;
+                        }
+                    }
+                    const u16 max_interval = (active_count > 1) ? 12 : 9;
+
+                    BtdrvBleConnectionParameter param = {
+                        .min_conn_interval = std::max<u16>(6, pref.min_conn_interval),
+                        .max_conn_interval = std::max<u16>(pref.min_conn_interval, std::min<u16>(max_interval, pref.max_conn_interval)),
+                        .min_ce_length     = 0,
+                        .max_ce_length     = 0,
+                        .slave_latency     = 0,
+                        .supervision_tout  = pref.supervision_tout ? pref.supervision_tout : static_cast<u16>(300),
+                    };
+                    Result rc = btdrvSetBleConnectionParameter(target_address, &param, false);
+                    log::Write("btdrvSetBleConnectionParameter(preferred, active=%zu, max=%u) rc=0x%x", active_count, max_interval, rc.GetValue());
+                }
             }
         }
 
@@ -191,50 +393,63 @@ namespace ams::ble::events {
     }
 
     bool OnCoreEvent(u32 type, const bluetooth::EventInfo *info) {
-        bool have_target, have_claimed;
-        bluetooth::Address target, claimed;
+        if (hos::GetVersion() < hos::Version_12_0_0) {
+            return false;
+        }
+
+        bool is_ours = false;
+        u32 matched_slot = InvalidSlot;
+
         {
             std::scoped_lock lk(g_lock);
             if (!g_owns_ble) {
                 return false;
             }
-            have_target = g_have_target;
-            target = g_target;
-            have_claimed = g_have_claimed;
-            claimed = g_claimed;
+
+            const auto check_match = [&](const bluetooth::Address &addr) -> bool {
+                for (size_t s = 0; s < MaxBleControllers; ++s) {
+                    if (g_slots[s].active && (g_slots[s].connecting || g_slots[s].claimed) && AddressEqual(addr, g_slots[s].address)) {
+                        matched_slot = static_cast<u32>(s);
+                        return true;
+                    }
+                }
+                if ((g_have_target && AddressEqual(addr, g_target)) || (g_have_claimed && AddressEqual(addr, g_claimed)) || (g_have_attempted && AddressEqual(addr, g_attempted))) {
+                    return true;
+                }
+                return false;
+            };
+
+            if (type == BtdrvEventType_SspRequest) {
+                if (check_match(info->ssp_request.v12.addr)) {
+                    is_ours = true;
+                }
+            } else if (type == BtdrvEventType_Connection) {
+                if (check_match(info->connection.v12.addr)) {
+                    is_ours = true;
+                }
+            }
         }
 
-        if (hos::GetVersion() < hos::Version_12_0_0) {
+        if (!is_ours) {
             return false;
         }
 
-        const auto is_ours = [&](const bluetooth::Address &address) {
-            return (have_target && AddressEqual(address, target)) || (have_claimed && AddressEqual(address, claimed));
-        };
-
-        // btm knows nothing about the controller, so its pairing traffic is answered here (Just Works)
         if (type == BtdrvEventType_SspRequest) {
             auto &request = info->ssp_request.v12;
-            if (is_ours(request.addr)) {
-                Result rc = btdrvRespondToSspRequest(request.addr, SspVariant_PasskeyConfirmation, true, request.passkey);
-                log::Write("btdrvRespondToSspRequest(accept) rc=0x%x", rc.GetValue());
-                return true;
-            }
-            return false;
+            Result rc = btdrvRespondToSspRequest(request.addr, SspVariant_PasskeyConfirmation, true, request.passkey);
+            log::Write("btdrvRespondToSspRequest(accept) rc=0x%x", rc.GetValue());
+            return true;
         }
 
         if (type == BtdrvEventType_Connection) {
             auto &connection = info->connection.v12;
-            if (!is_ours(connection.addr)) {
-                // btm's own events run through here under the core event lock; writing the log there would put
-                // an SD card access in front of every classic Bluetooth connection
-                return false;
-            }
-
-            log::Write("core evt Connection type=%u for the controller", connection.type);
+            log::Write("core evt Connection type=%u for controller", connection.type);
             LogAddress("  address", connection.addr);
             if (connection.type == CoreConnectionType_Suspended) {
                 std::scoped_lock lk(g_lock);
+                if (matched_slot != InvalidSlot) {
+                    g_slots[matched_slot].bond_complete = true;
+                }
                 g_bond_complete = true;
             }
             return true;
@@ -322,15 +537,19 @@ namespace ams::ble::events {
         return g_gatt_results;
     }
 
-    bool WaitForGattResult(u32 count_before, TimeSpan timeout) {
+    bool WaitForGattResult(u32 slot_index, u32 count_before, TimeSpan timeout) {
         const auto deadline = os::GetSystemTick().ToTimeSpan() + timeout;
         while (os::GetSystemTick().ToTimeSpan() < deadline) {
-            if ((GetGattResultCount() != count_before) || IsDisconnected()) {
+            if ((GetGattResultCount() != count_before) || IsSlotDisconnected(slot_index)) {
                 return true;
             }
             Pump(TimeSpan::FromMilliSeconds(50));
         }
         return false;
+    }
+
+    bool WaitForGattResult(u32 count_before, TimeSpan timeout) {
+        return WaitForGattResult(0, count_before, timeout);
     }
 
     u32 GetConnection() {
@@ -390,8 +609,6 @@ namespace ams::ble::events {
         g_inquiry_started_tick = active ? os::GetSystemTick().GetInt64Value() : 0;
     }
 
-    // Open for as long as btm is searching for a controller, which is what the Controllers screen has it do:
-    // one inquiry covers the whole time the screen is open, and btm ends it when the screen is left
     bool IsPairingWindowOpen() {
         std::scoped_lock lk(g_lock);
         return g_inquiry_started_tick != 0;
@@ -543,22 +760,28 @@ namespace ams::ble::events {
         }
     }
 
-    void RequestLowLatencyConnectionParameters(const bluetooth::Address &address) {
+    void RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count) {
         if (!mitm::GetGlobalConfig()->ble.low_latency) {
             return;
         }
 
+        if (active_count == 0) {
+            active_count = std::max<size_t>(1, GetActiveConnectionCount());
+        }
+
+        const u16 max_interval = (active_count > 1) ? 12 : 9;
+
         BtdrvBleConnectionParameter param = {
-            .min_conn_interval = 6,   // 7.5 ms
-            .max_conn_interval = 9,   // 11.25 ms
+            .min_conn_interval = 6,            // 7.5 ms
+            .max_conn_interval = max_interval, // 9 (11.25 ms) for 1 pad, 12 (15.0 ms) for 2-4 pads
             .min_ce_length     = 0,
             .max_ce_length     = 0,
-            .slave_latency     = 0,   // no skipped polling intervals
-            .supervision_tout  = 300, // 3000 ms
+            .slave_latency     = 0,            // no skipped polling intervals
+            .supervision_tout  = 300,          // 3000 ms
         };
 
         Result rc = btdrvSetBleConnectionParameter(address, &param, false);
-        log::Write("btdrvSetBleConnectionParameter(low_latency) rc=0x%x", rc.GetValue());
+        log::Write("btdrvSetBleConnectionParameter(low_latency, active=%zu, max=%u) rc=0x%x", active_count, max_interval, rc.GetValue());
     }
 
 }

@@ -15,6 +15,11 @@
  */
 #pragma once
 #include "ble_types.hpp"
+#include <atomic>
+
+namespace ams::controller {
+    class XboxOneBleController;
+}
 
 namespace ams::ble::events {
 
@@ -37,6 +42,28 @@ namespace ams::ble::events {
     void SetScanning(bool scanning);
     void ExpectFilterEvent();
 
+    /* Multi-slot tracking */
+    u32 FindSlotByConnId(u32 conn_id);
+    u32 FindSlotByAddress(const bluetooth::Address &address);
+    bool IsAddressActive(const bluetooth::Address &address);
+    size_t GetActiveConnectionCount();
+
+    void SetSlotConnecting(u32 slot, const bluetooth::Address &address);
+    void SetSlotConnection(u32 slot, u32 conn_id);
+    void SetSlotClaimed(u32 slot, bool claimed);
+    void ClearSlot(u32 slot);
+
+    bool IsSlotDisconnected(u32 slot);
+    u16 GetSlotDisconnectReason(u32 slot);
+    bool TakeSlotBondComplete(u32 slot);
+
+    /* Lock-free direct atomic lookup table mapping conn_id (0..31) to controller for 0 ns report routing */
+    extern std::atomic<controller::XboxOneBleController *> g_active_controllers[MaxConnIdRange];
+    void RegisterActiveController(u32 conn_id, controller::XboxOneBleController *ctrl);
+    void UnregisterActiveController(u32 conn_id);
+    controller::XboxOneBleController *GetActiveController(u32 conn_id) noexcept;
+
+    /* Legacy / single-slot helpers */
     void SetTarget(const bluetooth::Address *address);
     bool GetTarget(bluetooth::Address *out);
     void SetConnection(u32 conn_id);
@@ -44,12 +71,15 @@ namespace ams::ble::events {
     u32 GetConnectionFast() noexcept;
     bool IsDisconnected();
     u16 GetDisconnectReason();
-    void RequestLowLatencyConnectionParameters(const bluetooth::Address &address);
+    bool TakeBondComplete();
+
+    void RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count = 0);
 
     // Results of our GATT requests arrive on the LE HID stream; the host thread reports each one here so a
     // request is not issued while the previous one is still pending
     void NoteGattResult(u32 result);
     u32 GetGattResultCount();
+    bool WaitForGattResult(u32 slot_index, u32 count_before, TimeSpan timeout);
     bool WaitForGattResult(u32 count_before, TimeSpan timeout);
     u32 GetGattFailure();       // last non-zero result since ClearGattFailure
     void ClearGattFailure();
@@ -65,9 +95,6 @@ namespace ams::ble::events {
     // btm runs classic inquiry while the Controllers screen is open; that is the window for pairing new pads
     void SetInquiryActive(bool active);
     bool IsPairingWindowOpen();
-
-    // Set when the stack reports the bond with the target complete (core Connection event)
-    bool TakeBondComplete();
 
     // The console's sleep state (from the psc power module): no radio activity is allowed while asleep
     void SetRadioEnabled(bool enabled);
