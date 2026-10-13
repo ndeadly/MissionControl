@@ -21,7 +21,7 @@ all: $(TARGETS)
 mcmitm_version.cpp: $(GIT_HEAD) $(GIT_INDEX)
 	echo "namespace ams::mc { unsigned int mc_version = $(VERSION); const char *mc_build_name = \"$(BUILD_VERSION)\"; const char *mc_build_date = \"$(BUILD_DATE)\"; }" > mc_mitm/source/$@
 
-mc_mitm:
+mc_mitm: mcmitm_version.cpp
 	$(MAKE) -C $@
 
 clean:
