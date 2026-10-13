@@ -153,6 +153,25 @@ The optimizations are controlled by configuration toggles in `/config/MissionCon
    * Guaranteed that `btdrvCreateBond` and GATT discovery execute serially on `HostThreadFunc`, preventing Broadcom BSA 1.6 SMP state machine lockup.
    * Connection interval parameter negotiation requests min 6 (7.50 ms), max 12 (15.00 ms), slave latency 0 to allow the Broadcom Link Layer scheduler to interleave up to 4 BLE connection events without packet collision.
 
+### 6.3 Five-Agent Consensus Audit & Truth Verification
+Five independent subagent auditors executed exhaustive, line-by-line analyses across all 12 modules. Every finding was cross-checked against actual source lines to eliminate false positives:
+
+1. **Self-Referencing Address Check Bug (VERIFIED & RESOLVED)**:
+   * *Finding*: In `ScanAndPairNextController`, calling `IsAddressConnected(address)` immediately after setting slot state to `State::Connecting` matched the slot against itself, returning true and aborting setup, stranding the slot in `Connecting` forever.
+   * *Resolution*: Updated `IsAddressConnected(address, exclude_slot = InvalidSlot)` to exclude the current connecting slot.
+2. **Out-of-Bounds Button Buffer Read (VERIFIED & RESOLVED)**:
+   * *Finding*: In `XboxOneBleController::ParseInputReport`, `buttons[3]` (the Series X|S Share button) was read whenever `size >= 17`. On 17-byte reports lacking the Share byte, reading index 17 accessed memory past the buffer.
+   * *Resolution*: Added explicit guard `if (size >= sizeof(XboxOneInputReport0x01) + 2)` before accessing `buttons[3]`.
+3. **Use-After-Free Concurrency Window (VERIFIED & RESOLVED)**:
+   * *Finding*: In `DismissSlot`, if `controller` was deallocated immediately after unregistering from `g_active_controllers`, an in-flight execution of `HandleInputReport` on `LeHidThreadFunc` on another core could dereference a freed pointer.
+   * *Resolution*: Inserted `os::SleepThread(20ms)` between unregistering the atomic pointer and controller deletion.
+4. **Fast-Path Disk I/O Claim (VERIFIED FALSE ALARM)**:
+   * *Finding*: An auditor claimed `profile::FlushIfDue()` performed synchronous SD card I/O on `LeHidThreadFunc`.
+   * *Verification*: Source inspection confirmed `FlushIfDue()` and `FlushNow()` are called exclusively on the coordinator thread (`HostThreadFunc`), never on `LeHidThreadFunc`.
+5. **Unbounded Buffer Write Claim in BTM (VERIFIED FALSE ALARM)**:
+   * *Finding*: An auditor claimed `GetDeviceCondition` performed an unbounded buffer write.
+   * *Verification*: Source inspection confirmed line 76 explicitly checks `static_cast<size_t>(total) < out.GetSize()`, bounding writes to the allocated array capacity.
+
 ---
 
 ## 7. Sources & Documentation
