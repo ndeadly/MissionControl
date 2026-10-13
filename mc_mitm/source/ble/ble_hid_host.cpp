@@ -508,7 +508,7 @@ namespace ams::ble {
                 if (g_host_slots[i].state == BleDeviceSlot::State::Connected) {
                     const u32 slot_idx = static_cast<u32>(i);
                     if (events::IsSlotDisconnected(slot_idx)) {
-                        log::Write("slot %u: controller disconnected (reason=0x%04x)", i, events::GetSlotDisconnectReason(slot_idx));
+                        log::Write("slot %u: controller disconnected (reason=0x%04x)", slot_idx, events::GetSlotDisconnectReason(slot_idx));
                         DismissSlot(slot_idx);
 
                         const size_t remaining = GetConnectedCount();
@@ -520,7 +520,7 @@ namespace ams::ble {
                             }
                         }
                     } else if (gatt::TakeRediscovered(slot_idx)) {
-                        log::Write("slot %u: services re-discovered, subscribing again", i);
+                        log::Write("slot %u: services re-discovered, subscribing again", slot_idx);
                         gatt::HidService hid;
                         static_cast<void>(gatt::Subscribe(slot_idx, g_host_slots[i].conn_id, &hid));
                     }
