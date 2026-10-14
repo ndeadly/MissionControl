@@ -184,6 +184,23 @@ Five independent subagent auditors executed exhaustive, line-by-line analyses ac
   * Eliminated all floating-point format specifiers (`%f`, `%.2f`) from `ble_events.cpp` and `ble_profile.cpp`.
   * Implemented pure integer arithmetic for connection intervals and frequencies (e.g. `(interval * 125) / 100` and `(interval * 125) % 100` for `%u.%02ums`). Zero heap allocations, zero libc bignum calls, completely crash-proof.
 
+### 6.5 Resolution of Multi-Controller Connection Failure (`rc=0x29e71`)
+* **Hardware Log Evidence**:
+  * In `/config/MissionControl/ble.log`, Controller 0 (`14:cb:65:e8:2b:e2`) connected on `conn_id=6` (`client_if=6`).
+  * When the second controller (`40:8e:2c:7a:3a:9a`) was detected in pairing mode, the log repeatedly reported:
+    ```text
+    btdrvConnectGattServer slot=1 rc=0x29e71
+    ```
+* **Root Cause**:
+  * Error `0x29e71` is `ams::ble::ResultNoConnection` (Module 113, description 670).
+  * In Broadcom BSA 1.6 on Horizon OS, a single GATT Client Interface (`client_if`) maintains only one connection control block (`clcb`). Calling `btdrvConnectGattServer` on `client_if=6` while Controller 0 is already active on `client_if=6` is rejected with `GATT_BUSY` / `0x29e71`.
+  * Previously, `ble_hid_host.cpp` stored a single global `g_client_if = 6` for all slots.
+* **Resolution**:
+  * During bootup, Nintendo's `btm` registers 4 separate GATT client interfaces (`client_if=3, 4, 5, 6`) before bringing down its own BLE usage.
+  * Refactored `ble_events.cpp` to capture the entire pool of registered client interfaces (`g_available_client_ifs[4]`).
+  * In `ble_hid_host.cpp`, dynamically assign each slot its own dedicated `client_if` (Slot 0 $\rightarrow$ `client_if=3`, Slot 1 $\rightarrow$ `client_if=4`, Slot 2 $\rightarrow$ `client_if=5`, Slot 3 $\rightarrow$ `client_if=6`).
+  * `btdrvConnectGattServer` now connects each controller through an independent, unoccupied client handle, completely eliminating `0x29e71`.
+
 ---
 
 ## 7. Sources & Documentation
