@@ -67,6 +67,7 @@ namespace ams::ble {
 
             State state = State::Vacant;
             u32 conn_id = InvalidConnId;
+            u8 client_if = InvalidClientIf;
             bluetooth::Address address = {};
             gatt::HidService hid = {};
             std::shared_ptr<controller::XboxOneBleController> controller = nullptr;
@@ -238,9 +239,8 @@ namespace ams::ble {
             log::Write("btdrvEnableBle rc=0x%x", rc.GetValue());
             events::Pump(TimeSpan::FromSeconds(6));
 
-            g_client_if = events::GetSpareClientIf();
-            if (g_client_if != InvalidClientIf) {
-                log::Write("using gatt client_if=%u", g_client_if);
+            if (events::GetAvailableClientIfCount() > 0) {
+                log::Write("found %zu gatt client_ifs from btm (primary=%u)", events::GetAvailableClientIfCount(), events::GetClientIfForSlot(0));
                 R_SUCCEED();
             }
 
@@ -276,10 +276,9 @@ namespace ams::ble {
 
             if (events::TakeRadioCycled()) {
                 events::Pump(TimeSpan::FromSeconds(2));
-                if (u8 spare = events::GetSpareClientIf(); spare != InvalidClientIf) {
-                    g_client_if = spare;
+                if (events::GetAvailableClientIfCount() > 0) {
+                    log::Write("radio cycled: %zu gatt client_ifs available (slot 0 uses %u)", events::GetAvailableClientIfCount(), events::GetClientIfForSlot(0));
                 }
-                log::Write("using gatt client_if=%u", g_client_if);
             }
         }
 
@@ -361,16 +360,23 @@ namespace ams::ble {
         Result Connect(u32 slot, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout) {
             events::SetSlotConnecting(slot, address);
 
+            const u8 client_if = events::GetClientIfForSlot(slot);
+            if (client_if == InvalidClientIf) {
+                log::Write("slot %u: no client_if available", slot);
+                return ResultNoConnection();
+            }
+            g_host_slots[slot].client_if = client_if;
+
             Result rc = btdrvRemoveBond(address);
             log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, rc.GetValue());
 
-            rc = btdrvConnectGattServer(g_client_if, address, true, 0);
-            log::Write("btdrvConnectGattServer slot=%u rc=0x%x", slot, rc.GetValue());
+            rc = btdrvConnectGattServer(client_if, address, true, 0);
+            log::Write("btdrvConnectGattServer slot=%u client_if=%u rc=0x%x", slot, client_if, rc.GetValue());
             R_TRY(rc);
 
             rc = WaitForConnection(slot, address, out_conn_id, timeout);
             if (R_FAILED(rc)) {
-                static_cast<void>(btdrvCancelConnectGattServer(g_client_if, address, true));
+                static_cast<void>(btdrvCancelConnectGattServer(client_if, address, true));
             }
             R_RETURN(rc);
         }

@@ -48,6 +48,9 @@ namespace ams::ble::events {
         constinit bool g_registering = false;
         constinit bool g_scanning = false;
         constinit u32 g_expected_filter_events = 0;
+        constexpr size_t MaxClientIfs = 4;
+        constinit u8 g_available_client_ifs[MaxClientIfs] = { InvalidClientIf, InvalidClientIf, InvalidClientIf, InvalidClientIf };
+        constinit size_t g_client_if_count = 0;
         constinit u8 g_spare_client_if = InvalidClientIf;
 
         struct EventSlot {
@@ -279,7 +282,18 @@ namespace ams::ble::events {
                 case BtdrvBleEventType_ServerRegistration:
                     ours = g_registering;
                     if (!ours && (type == BtdrvBleEventType_ClientRegistration) && (info->client_registration.result == 0) && (info->client_registration.status == 1)) {
-                        g_spare_client_if = info->client_registration.client_if;
+                        const u8 cif = info->client_registration.client_if;
+                        g_spare_client_if = cif;
+                        bool found = false;
+                        for (size_t i = 0; i < g_client_if_count; ++i) {
+                            if (g_available_client_ifs[i] == cif) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found && (g_client_if_count < MaxClientIfs)) {
+                            g_available_client_ifs[g_client_if_count++] = cif;
+                        }
                     }
                     break;
                 case BtdrvBleEventType_ScanResult:
@@ -658,6 +672,19 @@ namespace ams::ble::events {
     u8 GetSpareClientIf() {
         std::scoped_lock lk(g_lock);
         return g_spare_client_if;
+    }
+
+    u8 GetClientIfForSlot(u32 slot) {
+        std::scoped_lock lk(g_lock);
+        if (slot < g_client_if_count) {
+            return g_available_client_ifs[slot];
+        }
+        return (g_client_if_count > 0) ? g_available_client_ifs[0] : g_spare_client_if;
+    }
+
+    size_t GetAvailableClientIfCount() {
+        std::scoped_lock lk(g_lock);
+        return g_client_if_count;
     }
 
     u32 TakeRingDropped() {

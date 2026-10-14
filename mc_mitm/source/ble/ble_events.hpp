@@ -102,8 +102,10 @@ namespace ams::ble::events {
     void WaitRadioEnabled();
     bool TakeRadioCycled();
 
-    // Last GATT client btm registered, usable as ours since btm never connects with it on a retail console
+    // GATT clients btm registered, usable as ours since btm never connects with them on a retail console
     u8 GetSpareClientIf();
+    u8 GetClientIfForSlot(u32 slot);
+    size_t GetAvailableClientIfCount();
 
     /* Queue consumed by the host thread */
     u32 TakeRingDropped();
