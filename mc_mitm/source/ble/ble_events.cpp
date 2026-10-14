@@ -333,9 +333,13 @@ namespace ams::ble::events {
 
         if (type == BtdrvBleEventType_PreferredConnectionParameters) {
             auto &pref = info->preferred_connection_parameters;
-            log::Write("evt PreferredConnectionParameters conn_id=%u min=%u (%.2fms) max=%u (%.2fms) latency=%u timeout=%ums",
-                pref.conn_id, pref.min_conn_interval, pref.min_conn_interval * 1.25f,
-                pref.max_conn_interval, pref.max_conn_interval * 1.25f,
+            const u32 min_w = (pref.min_conn_interval * 125) / 100;
+            const u32 min_f = (pref.min_conn_interval * 125) % 100;
+            const u32 max_w = (pref.max_conn_interval * 125) / 100;
+            const u32 max_f = (pref.max_conn_interval * 125) % 100;
+            log::Write("evt PreferredConnectionParameters conn_id=%u min=%u (%u.%02ums) max=%u (%u.%02ums) latency=%u timeout=%ums",
+                pref.conn_id, pref.min_conn_interval, min_w, min_f,
+                pref.max_conn_interval, max_w, max_f,
                 pref.slave_latency, static_cast<u32>(pref.supervision_tout * 10));
 
             if (mitm::GetGlobalConfig()->ble.low_latency) {
@@ -706,22 +710,29 @@ namespace ams::ble::events {
             case BtdrvBleEventType_ClientRegistration:
                 log::Write("evt ClientRegistration result=%u client_if=%u status=%u", info.client_registration.result, info.client_registration.client_if, info.client_registration.status);
                 break;
-            case BtdrvBleEventType_ConnectionUpdate:
-                log::Write("evt ConnectionUpdate result=%u conn_id=%u interval=%.2fms (%u) latency=%u timeout=%ums",
+            case BtdrvBleEventType_ConnectionUpdate: {
+                const u32 int_w = (info.connection_update.conn_interval * 125) / 100;
+                const u32 int_f = (info.connection_update.conn_interval * 125) % 100;
+                log::Write("evt ConnectionUpdate result=%u conn_id=%u interval=%u.%02ums (%u) latency=%u timeout=%ums",
                     info.connection_update.result, info.connection_update.conn_id,
-                    info.connection_update.conn_interval * 1.25f, info.connection_update.conn_interval,
+                    int_w, int_f, info.connection_update.conn_interval,
                     info.connection_update.conn_latency, static_cast<u32>(info.connection_update.supervision_tout * 10));
                 break;
-            case BtdrvBleEventType_PreferredConnectionParameters:
-                log::Write("evt PreferredConnectionParameters conn_id=%u min=%u (%.2fms) max=%u (%.2fms) latency=%u timeout=%ums",
-                    info.preferred_connection_parameters.conn_id,
-                    info.preferred_connection_parameters.min_conn_interval,
-                    info.preferred_connection_parameters.min_conn_interval * 1.25f,
-                    info.preferred_connection_parameters.max_conn_interval,
-                    info.preferred_connection_parameters.max_conn_interval * 1.25f,
-                    info.preferred_connection_parameters.slave_latency,
-                    static_cast<u32>(info.preferred_connection_parameters.supervision_tout * 10));
+            }
+            case BtdrvBleEventType_PreferredConnectionParameters: {
+                auto &pref = info.preferred_connection_parameters;
+                const u32 min_w = (pref.min_conn_interval * 125) / 100;
+                const u32 min_f = (pref.min_conn_interval * 125) % 100;
+                const u32 max_w = (pref.max_conn_interval * 125) / 100;
+                const u32 max_f = (pref.max_conn_interval * 125) % 100;
+                log::Write("evt PreferredConnectionParameters conn_id=%u min=%u (%u.%02ums) max=%u (%u.%02ums) latency=%u timeout=%ums",
+                    pref.conn_id,
+                    pref.min_conn_interval, min_w, min_f,
+                    pref.max_conn_interval, max_w, max_f,
+                    pref.slave_latency,
+                    static_cast<u32>(pref.supervision_tout * 10));
                 break;
+            }
             case BtdrvBleEventType_ClientConnection:
                 log::Write("evt ClientConnection result=%u status=%u client_if=%u conn_id=%u reason=0x%04x", info.client_connection.result, info.client_connection.status, info.client_connection.client_if, info.client_connection.conn_id, info.client_connection.reason);
                 LogAddress("  address", info.client_connection.address);

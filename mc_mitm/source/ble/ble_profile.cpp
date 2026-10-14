@@ -51,15 +51,22 @@ namespace ams::ble::profile {
 
             char buffer[BufferSize];
 
-            const float interval_ms = g_conn_interval > 0 ? (g_conn_interval * 1.25f) : 0.0f;
-            const float interval_hz = interval_ms > 0.0f ? (1000.0f / interval_ms) : 0.0f;
+            const u32 interval_w = g_conn_interval > 0 ? (static_cast<u32>(g_conn_interval) * 125) / 100 : 0;
+            const u32 interval_f = g_conn_interval > 0 ? (static_cast<u32>(g_conn_interval) * 125) % 100 : 0;
+            const u32 interval_hz = g_conn_interval > 0 ? (800 / g_conn_interval) : 0;
 
-            const float avg_delta_ms = (g_sum_delta_us / 1000.0f) / g_window_reports;
-            const float min_delta_ms = g_min_delta_us / 1000.0f;
-            const float max_delta_ms = g_max_delta_us / 1000.0f;
-            const float actual_hz = avg_delta_ms > 0.0f ? (1000.0f / avg_delta_ms) : 0.0f;
+            const u64 avg_delta_us = g_sum_delta_us / g_window_reports;
+            const u32 avg_delta_w = static_cast<u32>(avg_delta_us / 1000);
+            const u32 avg_delta_f = static_cast<u32>((avg_delta_us % 1000) / 10);
 
-            const float avg_process_us = static_cast<float>(g_sum_process_us) / g_window_reports;
+            const u32 min_delta_w = static_cast<u32>(g_min_delta_us / 1000);
+            const u32 min_delta_f = static_cast<u32>((g_min_delta_us % 1000) / 10);
+
+            const u32 max_delta_w = static_cast<u32>(g_max_delta_us / 1000);
+            const u32 max_delta_f = static_cast<u32>((g_max_delta_us % 1000) / 10);
+
+            const u32 actual_hz = avg_delta_us > 0 ? static_cast<u32>(1000000 / avg_delta_us) : 0;
+            const u32 avg_process_us = static_cast<u32>(g_sum_process_us / g_window_reports);
 
             int len = std::snprintf(buffer, sizeof(buffer),
                 "=== Mission Control BLE Latency & Cadence Profile ===\n"
@@ -67,25 +74,27 @@ namespace ams::ble::profile {
                 "Current Sample Window   : %lu reports\n"
                 "\n"
                 "Negotiated BLE Link Parameters:\n"
-                "  Connection Interval  : %.2f ms (%.1f Hz) [raw: %u]\n"
+                "  Connection Interval  : %u.%02u ms (%u Hz) [raw: %u]\n"
                 "  Slave Latency        : %u (events peripheral may skip)\n"
                 "  Supervision Timeout  : %u ms\n"
                 "\n"
                 "Packet Arrival Cadence (Radio Link Timing):\n"
-                "  Min Interval : %.2f ms\n"
-                "  Avg Interval : %.2f ms (%.1f reports/sec)\n"
-                "  Max Interval : %.2f ms\n"
+                "  Min Interval : %u.%02u ms\n"
+                "  Avg Interval : %u.%02u ms (%u reports/sec)\n"
+                "  Max Interval : %u.%02u ms\n"
                 "\n"
                 "mc.mitm Input Forwarding Latency (Parse -> Format -> Hid):\n"
                 "  Min Processing Time : %ld us\n"
-                "  Avg Processing Time : %.1f us\n"
+                "  Avg Processing Time : %u us\n"
                 "  Max Processing Time : %ld us\n"
                 "=====================================================\n\n",
                 g_total_reports, g_window_reports,
-                interval_ms, interval_hz, g_conn_interval,
+                interval_w, interval_f, interval_hz, g_conn_interval,
                 g_conn_latency,
                 static_cast<u32>(g_supervision_tout * 10),
-                min_delta_ms, avg_delta_ms, actual_hz, max_delta_ms,
+                min_delta_w, min_delta_f,
+                avg_delta_w, avg_delta_f, actual_hz,
+                max_delta_w, max_delta_f,
                 g_min_process_us, avg_process_us, g_max_process_us
             );
 
