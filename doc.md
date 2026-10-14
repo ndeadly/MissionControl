@@ -172,6 +172,18 @@ Five independent subagent auditors executed exhaustive, line-by-line analyses ac
    * *Finding*: An auditor claimed `GetDeviceCondition` performed an unbounded buffer write.
    * *Verification*: Source inspection confirmed line 76 explicitly checks `static_cast<size_t>(total) < out.GetSize()`, bounding writes to the allocated array capacity.
 
+### 6.4 Post-Mortem Analysis of Fatal Panic `0xFFE` (`std::abort`)
+* **Crash Dump Analysis**:
+  * Parsed Atmosphere binary crash dump `/run/media/aarush/SWITCH/atmosphere/fatal_errors/report_09f18011a.bin` (Magic: `AFE2`, Title ID: `010000000000bd00`, Error: `0xFFE`).
+  * PC Offset: `0x4c738` (`ams::AbortImpl()`).
+  * Stack Trace: `ble_events.cpp:714` $\rightarrow$ `log::Write()` $\rightarrow$ `vsnprintf()` $\rightarrow$ `_vsnprintf_r` $\rightarrow$ `_svfprintf_r` $\rightarrow$ `_dtoa_r` $\rightarrow$ `__d2b` $\rightarrow$ `__assert_func()` $\rightarrow$ `ams::AbortImpl()`.
+* **Root Cause**:
+  * In Horizon OS / Atmosphere Stratosphere sysmodules, the newlib libc heap allocator (`sbrk`) is not wired; dynamic heap allocations are managed via Atmosphere's slab/pool allocator.
+  * When `vsnprintf` formats floating-point numbers (`%.2f`), newlib's `_dtoa_r` and `__d2b` call internal bignum allocators (`Balloc()`). When `malloc` returns `NULL`, newlib invokes `assert(b != NULL)`, which executes `__assert_func()`, calling `ams::AbortImpl()` and panicking Atmosphere with `std::abort (0xFFE)`.
+* **Resolution**:
+  * Eliminated all floating-point format specifiers (`%f`, `%.2f`) from `ble_events.cpp` and `ble_profile.cpp`.
+  * Implemented pure integer arithmetic for connection intervals and frequencies (e.g. `(interval * 125) / 100` and `(interval * 125) % 100` for `%u.%02ums`). Zero heap allocations, zero libc bignum calls, completely crash-proof.
+
 ---
 
 ## 7. Sources & Documentation
