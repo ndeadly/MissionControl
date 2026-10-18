@@ -31,6 +31,38 @@ namespace ams::mitm::btm {
             }
         }
 
+        template <typename T>
+        void AppendVirtualDevices(T *device_condition, size_t max_size, sf::Out<s32> &total_out) {
+            bluetooth::Address virtual_devices[4];
+            const size_t virtual_count = controller::GetVirtualDevices(virtual_devices, util::size(virtual_devices));
+
+            s32 total = total_out.GetValue();
+            const s32 existing_count = total;
+            for (size_t i = 0; (i < virtual_count) && (static_cast<size_t>(total) < max_size); ++i) {
+                bool already_present = false;
+                for (s32 j = 0; j < existing_count; ++j) {
+                    if (std::memcmp(&device_condition[j].address, &virtual_devices[i], sizeof(bluetooth::Address)) == 0) {
+                        already_present = true;
+                        break;
+                    }
+                }
+                if (already_present) {
+                    continue;
+                }
+
+                auto device = &device_condition[total++];
+                std::memset(device, 0, sizeof(*device));
+                device->address = virtual_devices[i];
+                device->profile = BtmProfile_Hid;
+                device->profile_condition.hid.sniff_mode = BtmSniffMode_15ms;
+                device->profile_condition.hid.slot_mode  = BtmSlotMode_2;
+                device->profile_condition.hid.vid        = 0x057e;
+                device->profile_condition.hid.pid        = 0x2009;
+                std::strncpy(device->name, controller::ProControllerName, sizeof(device->name) - 1);
+            }
+            total_out.SetValue(total);
+        }
+
     }
 
     Result BtmMitmService::AcquireDeviceConditionEvent(sf::OutCopyHandle out_handle) {
@@ -66,26 +98,9 @@ namespace ams::mitm::btm {
             }
         }
 
-        // Append controllers btm doesn't know about (Bluetooth LE). Where a real entry exists it serves as a
-        // template for the fields whose meaning isn't known.
+        // Append controllers btm doesn't know about (Bluetooth LE).
         if ((profile == BtmProfile_Hid) || (profile == BtmProfile_None)) {
-            bluetooth::Address virtual_devices[4];
-            size_t virtual_count = controller::GetVirtualDevices(virtual_devices, util::size(virtual_devices));
-
-            s32 total = total_out.GetValue();
-            for (size_t i = 0; (i < virtual_count) && (static_cast<size_t>(total) < out.GetSize()); ++i, ++total) {
-                auto device = &device_condition[total];
-                if (total_out.GetValue() > 0) {
-                    *device = device_condition[0];
-                } else {
-                    std::memset(device, 0, sizeof(*device));
-                }
-
-                device->address = virtual_devices[i];
-                device->profile = BtmProfile_Hid;
-                std::strncpy(device->name, controller::ProControllerName, sizeof(device->name) - 1);
-            }
-            total_out.SetValue(total);
+            AppendVirtualDevices(device_condition, out.GetSize(), total_out);
         }
 
         R_SUCCEED();
@@ -131,23 +146,7 @@ namespace ams::mitm::btm {
         }
 
         if ((profile == BtmProfile_Hid) || (profile == BtmProfile_None)) {
-            bluetooth::Address virtual_devices[4];
-            size_t virtual_count = controller::GetVirtualDevices(virtual_devices, util::size(virtual_devices));
-
-            s32 total = total_out.GetValue();
-            for (size_t i = 0; (i < virtual_count) && (static_cast<size_t>(total) < out.GetSize()); ++i, ++total) {
-                auto device = &device_condition[total];
-                if (total_out.GetValue() > 0) {
-                    *device = device_condition[0];
-                } else {
-                    std::memset(device, 0, sizeof(*device));
-                }
-
-                device->address = virtual_devices[i];
-                device->profile = BtmProfile_Hid;
-                std::strncpy(device->name, controller::ProControllerName, sizeof(device->name) - 1);
-            }
-            total_out.SetValue(total);
+            AppendVirtualDevices(device_condition, out.GetSize(), total_out);
         }
 
         R_SUCCEED();

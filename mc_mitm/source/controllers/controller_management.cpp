@@ -364,6 +364,18 @@ namespace ams::controller {
     void AttachVirtualController(std::shared_ptr<SwitchController> controller) {
         {
             std::scoped_lock lk(g_controller_lock);
+            for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
+                if (utils::BluetoothAddressCompare((*it)->Address(), controller->Address())) {
+                    g_controllers.erase(it);
+                    break;
+                }
+            }
+            for (auto it = g_virtual_devices.begin(); it < g_virtual_devices.end(); ++it) {
+                if (utils::BluetoothAddressCompare(*it, controller->Address())) {
+                    g_virtual_devices.erase(it);
+                    break;
+                }
+            }
             g_controllers.push_back(controller);
             g_virtual_devices.push_back(controller->Address());
         }
@@ -400,6 +412,11 @@ namespace ams::controller {
         }
 
         return count;
+    }
+
+    size_t GetConnectedControllerCount() {
+        std::scoped_lock lk(g_controller_lock);
+        return g_controllers.size();
     }
 
 }

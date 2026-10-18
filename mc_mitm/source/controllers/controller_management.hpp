@@ -101,5 +101,6 @@ namespace ams::controller {
     void AttachVirtualController(std::shared_ptr<SwitchController> controller);
     void DetachVirtualController(bluetooth::Address address);
     size_t GetVirtualDevices(bluetooth::Address *out, size_t max);
+    size_t GetConnectedControllerCount();
 
 }
