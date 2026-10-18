@@ -191,7 +191,7 @@ namespace ams::ble::gatt {
             R_UNLESS(!events::IsSlotDisconnected(slot_index), ResultNoConnection());
 
             if (IsUuid16(attr.id.uuid, GattCharHidInformation) || IsUuid16(attr.id.uuid, GattCharReportMap)) {
-                const u32 results = events::GetGattResultCount();
+                const u32 results = events::GetGattResultCount(slot_index);
                 Result rc;
                 for (int attempt = 0; ; ++attempt) {
                     rc = btdrvReadGattCharacteristic(conn_id, service.is_primary, &service.id, &attr.id, BtdrvGattAuthReqType_NoMitm);
@@ -238,14 +238,14 @@ namespace ams::ble::gatt {
             log::Write("btdrvRegisterGattNotification slot=%u handle=0x%04x rc=0x%x", slot_index, attr.handle, rc.GetValue());
 
             // The write's asynchronous result is the subscription's: an error means the link never encrypted
-            const u32 results = events::GetGattResultCount();
+            const u32 results = events::GetGattResultCount(slot_index);
             const u8 enable_notifications[2] = { 0x01, 0x00 };
             rc = btdrvWriteGattDescriptor(conn_id, service.is_primary, &service.id, &attr.id, &cccd->id, enable_notifications, sizeof(enable_notifications), BtdrvGattAuthReqType_NoMitm);
             log::Write("btdrvWriteGattDescriptor(CCCD) slot=%u handle=0x%04x rc=0x%x", slot_index, cccd->handle, rc.GetValue());
             R_TRY(rc);
             R_UNLESS(events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(2)), svc::ResultTimedOut());
             R_UNLESS(!events::IsSlotDisconnected(slot_index), ResultNoConnection());
-            R_UNLESS(events::GetGattFailure() == 0, ResultInsufficientAuthentication());
+            R_UNLESS(events::GetGattFailure(slot_index) == 0, ResultInsufficientAuthentication());
             result = ResultSuccess();
         }
 

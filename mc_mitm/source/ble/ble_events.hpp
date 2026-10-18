@@ -49,6 +49,7 @@ namespace ams::ble::events {
     size_t GetActiveConnectionCount();
 
     void SetSlotConnecting(u32 slot, const bluetooth::Address &address);
+    void SetSlotConnection(u32 slot, const bluetooth::Address &address, u32 conn_id);
     void SetSlotConnection(u32 slot, u32 conn_id);
     void SetSlotClaimed(u32 slot, bool claimed);
     void ClearSlot(u32 slot);
@@ -57,40 +58,25 @@ namespace ams::ble::events {
     u16 GetSlotDisconnectReason(u32 slot);
     bool TakeSlotBondComplete(u32 slot);
 
-    /* Lock-free direct atomic lookup table mapping conn_id (0..31) to controller for 0 ns report routing */
-    extern std::atomic<controller::XboxOneBleController *> g_active_controllers[MaxConnIdRange];
-    void RegisterActiveController(u32 conn_id, controller::XboxOneBleController *ctrl);
-    void UnregisterActiveController(u32 conn_id);
+    /* Lock-free per-slot lookup table mapping any 32-bit conn_id to controller for O(1) report routing */
+    void RegisterSlotController(u32 slot, u32 conn_id, controller::XboxOneBleController *ctrl);
+    void UnregisterSlotController(u32 slot);
     controller::XboxOneBleController *GetActiveController(u32 conn_id) noexcept;
 
-    /* Legacy / single-slot helpers */
-    void SetTarget(const bluetooth::Address *address);
-    bool GetTarget(bluetooth::Address *out);
-    void SetConnection(u32 conn_id);
-    u32 GetConnection();
-    u32 GetConnectionFast() noexcept;
-    bool IsDisconnected();
-    u16 GetDisconnectReason();
-    bool TakeBondComplete();
-
-    void RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count = 0);
+    u16 RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count = 0);
 
     // Results of our GATT requests arrive on the LE HID stream; the host thread reports each one here so a
     // request is not issued while the previous one is still pending
-    void NoteGattResult(u32 result);
-    u32 GetGattResultCount();
+    void NoteGattResult(u32 conn_id, u8 notify_type, const BtdrvGattAttributeUuid &char_uuid, u32 result);
+    u32 GetGattResultCount(u32 slot_index);
     bool WaitForGattResult(u32 slot_index, u32 count_before, TimeSpan timeout);
-    bool WaitForGattResult(u32 count_before, TimeSpan timeout);
-    u32 GetGattFailure();       // last non-zero result since ClearGattFailure
-    void ClearGattFailure();
+    u32 GetGattFailure(u32 slot_index);       // last non-zero result since ClearGattFailure
+    void ClearGattFailure(u32 slot_index);
 
     // A link that came up for an address the host tried to reach while no target is set (a cancelled request
     // completing anyway) is held for the host to take over
     bool TakeAdoptedConnection(bluetooth::Address *out_address, u32 *out_conn_id);
     bool HasAdoptedConnection();
-
-    // The remembered controller, whose pairing requests are answered on its behalf
-    void SetClaimedAddress(const bluetooth::Address *address);
 
     // btm runs classic inquiry while the Controllers screen is open; that is the window for pairing new pads
     void SetInquiryActive(bool active);
@@ -108,6 +94,7 @@ namespace ams::ble::events {
     size_t GetAvailableClientIfCount();
 
     /* Queue consumed by the host thread */
+    void PushRecord(const EventRecord &record);
     u32 TakeRingDropped();
     bool Pop(EventRecord *out);
     void WaitForQueue(TimeSpan timeout);
@@ -143,11 +130,20 @@ namespace ams::ble::events {
                 }
             }
 
+            if (want == InvalidType) {
+                EventRecord wake_probe = { InvalidType, false, {} };
+                if (pred(wake_probe)) {
+                    if (out) {
+                        *out = wake_probe;
+                    }
+                    return true;
+                }
+            }
+
             const auto now = os::GetSystemTick().ToTimeSpan();
             if (now >= deadline) {
                 return false;
-            }
-
+            }\n
             WaitForQueue(deadline - now);
         }
     }

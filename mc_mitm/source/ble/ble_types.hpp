@@ -21,17 +21,17 @@
 namespace ams::ble {
 
     constexpr size_t MaxBleControllers = 4;
-    constexpr u32 MaxConnIdRange       = 32;
     constexpr u32 InvalidSlot          = 0xFFFFFFFF;
 
     constexpr u32 InvalidConnId   = 0xFFFFFFFF;
     constexpr u8  InvalidClientIf = 0xFF;
 
     /* BtdrvBleEventInfo field values not named by libnx */
-    constexpr u8 BleConnectionStatus_Connected    = 0;
-    constexpr u8 BleConnectionStatus_Disconnected = 2;
-    constexpr u8 BleScanStatus_NewDevice          = 2;
-    constexpr u8 GattNotifyType_Notification      = 4;
+    constexpr u8 BleConnectionStatus_Connected      = 0;
+    constexpr u8 BleConnectionStatus_Disconnected   = 2;
+    constexpr u8 BleScanStatus_NewDevice            = 2;
+    constexpr u8 GattNotifyType_WriteCharacteristic = 1;
+    constexpr u8 GattNotifyType_Notification        = 4;
 
     /* Bluetooth SIG assigned numbers for HID over GATT (HOGP) */
     constexpr u16 GattServiceHid           = 0x1812;
