@@ -143,7 +143,8 @@ namespace ams::ble::events {
             const auto now = os::GetSystemTick().ToTimeSpan();
             if (now >= deadline) {
                 return false;
-            }\n
+            }
+
             WaitForQueue(deadline - now);
         }
     }

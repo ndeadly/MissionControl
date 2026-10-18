@@ -574,7 +574,7 @@ namespace ams::ble {
                 } else {
                     // When controllers (Joy-Cons or BLE pads) are already active, pace BLE scans so we don't
                     // monopolize the shared 2.4 GHz radio while the Change Grip/Order screen stays open.
-                    if ((rc == svc::ResultTimedOut()) && events::IsPairingWindowOpen() && ((GetConnectedCount() > 0) || (controller::GetConnectedControllerCount() > 0))) {
+                    if (svc::ResultTimedOut::Includes(rc) && events::IsPairingWindowOpen() && ((GetConnectedCount() > 0) || (controller::GetConnectedControllerCount() > 0))) {
                         events::Pump(TimeSpan::FromSeconds(2));
                     }
                     return;
