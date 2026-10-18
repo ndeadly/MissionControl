@@ -29,6 +29,8 @@ namespace ams::controller {
         // Only the 9.0.0+ event layout is filled in; controllers only started using BLE in 2021
         R_UNLESS(hos::GetVersion() >= hos::Version_9_0_0, sf::ResultNotSupported());
 
+        std::scoped_lock lk(m_report_mutex);
+
         auto &event = m_event_info.data_report.v9;
         R_UNLESS(size + 1 <= sizeof(event.report.data), svc::ResultInvalidSize());
 
@@ -44,38 +46,88 @@ namespace ams::controller {
         R_SUCCEED();
     }
 
+    Result XboxOneBleController::HandleOutputDataReport(const u8 *report_buffer, size_t size) {
+        R_UNLESS(size >= 1, svc::ResultInvalidSize());
+
+        const auto report_id = static_cast<SwitchHidReportId>(report_buffer[0]);
+        if (report_id == SwitchHidReportId::BasicOutputReport) {
+            std::scoped_lock lk(m_rumble_mutex);
+            R_RETURN(XboxOneController::HandleOutputDataReport(report_buffer, size));
+        }
+
+        std::scoped_lock lk(m_report_mutex, m_rumble_mutex);
+        R_RETURN(XboxOneController::HandleOutputDataReport(report_buffer, size));
+    }
+
+    void XboxOneBleController::WaitIdle() {
+        std::scoped_lock lk(m_report_mutex, m_rumble_mutex);
+    }
+
     void XboxOneBleController::ParseInputReport(const u8 *report_buffer, size_t size) {
         XboxOneController::ParseInputReport(report_buffer, size);
 
         // The Bluetooth LE firmware shuffles the last two button bytes compared to the classic layout the base
-        // class decodes: View moved to bit 2 of the third button byte, and the trailing byte that used to hold
+        // class decodes: View moved to bit 2 of the second button byte, and the third button byte that used to hold
         // View now carries the Share button of Series X|S pads.
         auto xbox_report = reinterpret_cast<const XboxOneReportData *>(report_buffer);
         if ((xbox_report->id == InputReportId) && (size >= sizeof(XboxOneInputReport0x01) + 1)) {
             const u8 *buttons = reinterpret_cast<const u8 *>(&xbox_report->input0x01.buttons);
-            m_buttons.Assign(SwitchButton::Minus, (buttons[2] & 0x04) != 0);
-            if (size >= sizeof(XboxOneInputReport0x01) + 2) {
-                m_buttons.Assign(SwitchButton::Capture, (buttons[3] & 0x01) != 0);
-            }
+            m_buttons.Assign(SwitchButton::Minus,   (buttons[1] & 0x04) != 0);
+            m_buttons.Assign(SwitchButton::Capture, (buttons[2] & 0x01) != 0);
         }
     }
 
     Result XboxOneBleController::SetVibration(const SwitchMotorData *motor_data) {
+        if (!m_has_output_report) {
+            R_SUCCEED();
+        }
+
         // hid includes rumble data in every output report it sends, at around 60Hz. Turning each one into a GATT
-        // write saturates the LE link and starves the input notifications, so only send changes.
+        // write saturates the LE link and starves the input notifications, so throttle updates and use a 250ms sustain.
         const u8 strong = static_cast<u8>(100 * std::max(motor_data->left_motor.low_band_amp, motor_data->right_motor.low_band_amp));
         const u8 weak   = static_cast<u8>(100 * std::max(motor_data->left_motor.high_band_amp, motor_data->right_motor.high_band_amp));
-        if ((strong == m_last_rumble_strong) && (weak == m_last_rumble_weak)) {
-            R_SUCCEED();
+
+        const s64 now_tick = os::GetSystemTick().GetInt64Value();
+        const s64 elapsed_ms = (m_last_rumble_tick > 0)
+            ? os::Tick(now_tick - m_last_rumble_tick).ToTimeSpan().GetMilliSeconds()
+            : 1000;
+
+        const bool is_stop = (strong == 0) && (weak == 0);
+        const bool was_stopped = (m_last_rumble_strong == 0) && (m_last_rumble_weak == 0);
+
+        if (is_stop) {
+            if (was_stopped) {
+                R_SUCCEED();
+            }
+        } else {
+            if ((strong == m_last_rumble_strong) && (weak == m_last_rumble_weak) && (elapsed_ms < 180)) {
+                R_SUCCEED();
+            }
+            if (!was_stopped && (elapsed_ms < 32)) {
+                R_SUCCEED();
+            }
         }
 
         m_last_rumble_strong = strong;
         m_last_rumble_weak = weak;
+        m_last_rumble_tick = now_tick;
 
-        R_RETURN(XboxOneController::SetVibration(motor_data));
+        XboxOneReportData report = {};
+        report.id = 0x03;
+        report.output0x03.enable             = 0x03;
+        report.output0x03.magnitude_strong   = strong;
+        report.output0x03.magnitude_weak     = weak;
+        report.output0x03.pulse_sustain_10ms = is_stop ? 0 : 25;
+        report.output0x03.pulse_release_10ms = 0;
+        report.output0x03.loop_count         = 0;
+
+        R_RETURN(this->WriteDataReport(&report, sizeof(XboxOneOutputReport0x03) + 1));
     }
 
     Result XboxOneBleController::WriteDataReport(const void *report_buffer, size_t size) {
+        if (!m_has_output_report) {
+            R_SUCCEED();
+        }
         // Strip the report id: over GATT the characteristic itself identifies the report
         R_UNLESS(size >= 1, svc::ResultInvalidSize());
         const u8 *data = static_cast<const u8 *>(report_buffer);
