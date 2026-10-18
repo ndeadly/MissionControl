@@ -68,6 +68,7 @@ namespace ams::ble {
             State state = State::Vacant;
             u32 conn_id = InvalidConnId;
             u8 client_if = InvalidClientIf;
+            u16 negotiated_max_interval = 0;
             bluetooth::Address address = {};
             gatt::HidService hid = {};
             std::shared_ptr<controller::XboxOneBleController> controller = nullptr;
@@ -151,7 +152,7 @@ namespace ams::ble {
             return (std::strncmp(summary.name, "Xbox", 4) == 0) || (summary.has_appearance && (summary.appearance == AppearanceGamepad));
         }
 
-        /* LE HID event stream: lock-free demultiplexing via g_active_controllers */
+        /* LE HID event stream: lock-free demultiplexing via per-slot fast routing table */
 
         void LeHidThreadFunc(void *) {
             Event event;
@@ -169,29 +170,26 @@ namespace ams::ble {
 
                 rc = btdrvGetLeHidEventInfo(&g_le_hid_record.info, sizeof(g_le_hid_record.info), &g_le_hid_record.type);
                 if (R_FAILED(rc)) {
-                    log::Write("btdrvGetLeHidEventInfo rc=0x%x", rc.GetValue());
                     continue;
                 }
 
                 if (g_le_hid_record.type != BtdrvBleEventType_ClientNotify) {
-                    events::Log(g_le_hid_record);
+                    events::PushRecord(g_le_hid_record);
                     continue;
                 }
 
                 auto &notify = g_le_hid_record.info.client_notify;
 
                 if ((notify.type == GattNotifyType_Notification) && IsUuid16(notify.char_uuid, GattCharReport)) {
-                    // Lock-free O(1) routing via direct atomic pointer lookup table
-                    if (notify.conn_id < MaxConnIdRange) {
-                        if (auto *controller = events::g_active_controllers[notify.conn_id].load(std::memory_order_acquire)) {
-                            const u64 start_tick = profile::RecordReportStart();
-                            static_cast<void>(controller->HandleInputReport(notify.data, std::min<size_t>(notify.size, sizeof(notify.data))));
-                            profile::RecordReportEnd(start_tick);
-                        }
+                    // Lock-free O(1) routing via per-slot atomic lookup table (supports any 32-bit conn_id)
+                    if (auto *controller = events::GetActiveController(notify.conn_id)) {
+                        const u64 start_tick = profile::RecordReportStart();
+                        static_cast<void>(controller->HandleInputReport(notify.data, std::min<size_t>(notify.size, sizeof(notify.data))));
+                        profile::RecordReportEnd(start_tick);
                     }
-                } else {
-                    events::NoteGattResult(notify.result);
-                    events::Log(g_le_hid_record);
+                } else if (!((notify.type == GattNotifyType_WriteCharacteristic) && IsUuid16(notify.char_uuid, GattCharReport))) {
+                    events::NoteGattResult(notify.conn_id, notify.type, notify.char_uuid, notify.result);
+                    events::PushRecord(g_le_hid_record);
                 }
             }
         }
@@ -296,14 +294,20 @@ namespace ams::ble {
             Result rc = btdrvStartBleScan();
             if (R_FAILED(rc)) {
                 log::Write("btdrvStartBleScan rc=0x%x", rc.GetValue());
-                events::Pump(TimeSpan::FromSeconds(1));
+                events::ExpectFilterEvent();
+                static_cast<void>(btdrvEnableBleScanFilter(true));
+                // btm's classic inquiry burst occupies the radio for ~10.24s (rc=0x2a871); back off before retrying
+                events::Pump(TimeSpan::FromSeconds(2));
                 return rc;
             }
 
-            EventRecord e;
+            EventRecord e = {};
             const bool found = events::WaitFor(events::InvalidType, duration, &e, [](const EventRecord &r) {
+                if (!events::IsPairingWindowOpen() || events::HasAdoptedConnection() || !events::IsRadioEnabled()) {
+                    return true;
+                }
                 if (r.type != BtdrvBleEventType_ScanResult) {
-                    return events::HasAdoptedConnection() || !events::IsRadioEnabled();
+                    return false;
                 }
                 if (r.info.scan_result.status != BleScanStatus_NewDevice) {
                     return false;
@@ -322,8 +326,8 @@ namespace ams::ble {
 
             events::Pump(TimeSpan::FromSeconds(1));
 
-            R_UNLESS(!events::HasAdoptedConnection() && events::IsRadioEnabled(), svc::ResultCancelled());
-            R_UNLESS(found, svc::ResultTimedOut());
+            R_UNLESS(events::IsPairingWindowOpen() && !events::HasAdoptedConnection() && events::IsRadioEnabled(), svc::ResultCancelled());
+            R_UNLESS(found && (e.type == BtdrvBleEventType_ScanResult), svc::ResultTimedOut());
 
             *out_address = e.info.scan_result.address;
             events::LogAddress("found controller", *out_address);
@@ -352,7 +356,7 @@ namespace ams::ble {
             }
 
             *out_conn_id = e.info.client_connection.conn_id;
-            events::SetSlotConnection(slot, *out_conn_id);
+            events::SetSlotConnection(slot, address, *out_conn_id);
             log::Write("slot %u: connected conn_id=%u", slot, *out_conn_id);
             R_SUCCEED();
         }
@@ -431,7 +435,7 @@ namespace ams::ble {
             }
 
             auto controller = std::make_shared<controller::XboxOneBleController>(
-                slot.address, slot.conn_id, slot.hid.service.id, slot.hid.service.is_primary, slot.hid.output_report.id);
+                slot.address, slot.conn_id, slot.hid.service.id, slot.hid.service.is_primary, slot.hid.output_report.id, slot.hid.has_output_report);
 
             {
                 std::scoped_lock lk(g_slots_lock);
@@ -439,8 +443,8 @@ namespace ams::ble {
                 slot.state = BleDeviceSlot::State::Connected;
             }
 
-            // Register into lock-free atomic lookup table for 0 ns input routing
-            events::RegisterActiveController(slot.conn_id, controller.get());
+            // Register into lock-free per-slot lookup table for O(1) input routing
+            events::RegisterSlotController(slot_index, slot.conn_id, controller.get());
 
             controller::AttachVirtualController(controller);
             g_pairing_failed_tick = 0;
@@ -448,14 +452,14 @@ namespace ams::ble {
             u8 neutral[sizeof(controller::XboxOneInputReport0x01)] = { 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80 };
             static_cast<void>(controller->HandleInputReport(neutral, sizeof(neutral)));
 
-            // Request low-latency parameters (min 6, max 12, slave latency 0)
+            // Request low-latency parameters (min 6, max 9 or 12, slave latency 0)
             const size_t connected_count = GetConnectedCount();
-            events::RequestLowLatencyConnectionParameters(slot.address, connected_count);
+            slot.negotiated_max_interval = events::RequestLowLatencyConnectionParameters(slot.address, connected_count);
 
-            if (connected_count > 1) {
+            if (slot.negotiated_max_interval > 0) {
                 for (size_t i = 0; i < MaxBleControllers; ++i) {
-                    if ((i != slot_index) && (g_host_slots[i].state == BleDeviceSlot::State::Connected)) {
-                        events::RequestLowLatencyConnectionParameters(g_host_slots[i].address, connected_count);
+                    if ((i != slot_index) && (g_host_slots[i].state == BleDeviceSlot::State::Connected) && (g_host_slots[i].negotiated_max_interval != slot.negotiated_max_interval)) {
+                        g_host_slots[i].negotiated_max_interval = events::RequestLowLatencyConnectionParameters(g_host_slots[i].address, connected_count);
                     }
                 }
             }
@@ -475,28 +479,32 @@ namespace ams::ble {
                     return;
                 }
 
+                slot.state = BleDeviceSlot::State::Disconnecting;
                 conn_id = slot.conn_id;
                 address = slot.address;
 
-                if (conn_id < MaxConnIdRange) {
-                    events::UnregisterActiveController(conn_id);
-                }
+                events::UnregisterSlotController(slot_index);
 
                 controller = std::move(slot.controller);
                 slot.controller = nullptr;
-                slot.state = BleDeviceSlot::State::Vacant;
                 slot.conn_id = InvalidConnId;
+                slot.negotiated_max_interval = 0;
             }
 
-            if (conn_id < MaxConnIdRange) {
-                events::UnregisterActiveController(conn_id);
+            if (controller) {
+                // Ensure any in-flight HandleInputReport / HandleOutputDataReport on another core has finished
+                controller->WaitIdle();
             }
 
-            // Brief pause to allow in-flight LeHidThreadFunc execution on another core to finish
-            os::SleepThread(TimeSpan::FromMilliSeconds(20));
+            const bool was_disconnected = events::IsSlotDisconnected(slot_index);
 
             gatt::ResetSlot(slot_index);
             events::ClearSlot(slot_index);
+
+            {
+                std::scoped_lock lk(g_slots_lock);
+                g_host_slots[slot_index].state = BleDeviceSlot::State::Vacant;
+            }
 
             if (controller) {
                 profile::FlushNow();
@@ -504,7 +512,7 @@ namespace ams::ble {
                 log::Write("slot %u: controller removed from system", slot_index);
             }
 
-            if ((conn_id != InvalidConnId) && events::IsRadioEnabled()) {
+            if ((conn_id != InvalidConnId) && !was_disconnected && events::IsRadioEnabled()) {
                 static_cast<void>(btdrvDisconnectGattServer(conn_id));
             }
         }
@@ -521,7 +529,10 @@ namespace ams::ble {
                         if (remaining == 1) {
                             for (size_t j = 0; j < MaxBleControllers; ++j) {
                                 if (g_host_slots[j].state == BleDeviceSlot::State::Connected) {
-                                    events::RequestLowLatencyConnectionParameters(g_host_slots[j].address, 1);
+                                    const u16 target_max = (controller::GetConnectedControllerCount() > 1) ? 12 : 9;
+                                    if (g_host_slots[j].negotiated_max_interval != target_max) {
+                                        g_host_slots[j].negotiated_max_interval = events::RequestLowLatencyConnectionParameters(g_host_slots[j].address, 1);
+                                    }
                                 }
                             }
                         }
@@ -561,6 +572,11 @@ namespace ams::ble {
                         return;
                     }
                 } else {
+                    // When controllers (Joy-Cons or BLE pads) are already active, pace BLE scans so we don't
+                    // monopolize the shared 2.4 GHz radio while the Change Grip/Order screen stays open.
+                    if ((rc == svc::ResultTimedOut()) && events::IsPairingWindowOpen() && ((GetConnectedCount() > 0) || (controller::GetConnectedControllerCount() > 0))) {
+                        events::Pump(TimeSpan::FromSeconds(2));
+                    }
                     return;
                 }
             }
@@ -573,7 +589,7 @@ namespace ams::ble {
             g_host_slots[slot].conn_id = conn_id;
             g_host_slots[slot].address = address;
             g_host_slots[slot].state = BleDeviceSlot::State::Discovering;
-            events::SetSlotConnection(slot, conn_id);
+            events::SetSlotConnection(slot, address, conn_id);
             events::SetSlotClaimed(slot, true);
 
             gatt::Discover(slot, conn_id, address);
@@ -591,11 +607,11 @@ namespace ams::ble {
             Result rc = btdrvRegisterGattHidDataPath(&hid_uuid);
             log::Write("btdrvRegisterGattHidDataPath slot=%u rc=0x%x", slot, rc.GetValue());
 
-            events::ClearGattFailure();
+            events::ClearGattFailure(slot);
             gatt::HidService hid;
             rc = gatt::Subscribe(slot, conn_id, &hid);
             if (R_FAILED(rc)) {
-                log::Write("slot %u: subscription failed rc=0x%x gatt_result=%u", slot, rc.GetValue(), events::GetGattFailure());
+                log::Write("slot %u: subscription failed rc=0x%x gatt_result=%u", slot, rc.GetValue(), events::GetGattFailure(slot));
                 DismissSlot(slot);
                 os::SleepThread(TimeSpan::FromSeconds(1));
                 return;
