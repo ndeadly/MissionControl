@@ -201,6 +201,28 @@ Five independent subagent auditors executed exhaustive, line-by-line analyses ac
   * In `ble_hid_host.cpp`, dynamically assign each slot its own dedicated `client_if` (Slot 0 $\rightarrow$ `client_if=3`, Slot 1 $\rightarrow$ `client_if=4`, Slot 2 $\rightarrow$ `client_if=5`, Slot 3 $\rightarrow$ `client_if=6`).
   * `btdrvConnectGattServer` now connects each controller through an independent, unoccupied client handle, completely eliminating `0x29e71`.
 
+### 6.6 Post-Hardware-Trace Deep Audit & Multi-Controller Coexistence Fixes
+Following hardware validation with two Xbox controllers (`./ble.log`), a full audit uncovered and resolved 10 additional bugs:
+
+1. **Composite `conn_id` (`>= 256`) Input Drop on Slots 1–3**:
+   * *Root Cause*: Broadcom BSA encodes `conn_id = (tcb_idx << 8) | client_if` (e.g., Slot 0 = `3`, Slot 1 = `260` (`0x0104`), Slot 2 = `517` (`0x0205`), Slot 3 = `774` (`0x0306`)). Indexing `g_active_controllers[32]` by `conn_id < 32` silently dropped 100% of inputs from Slots 1–3.
+   * *Resolution*: Replaced the 32-element `conn_id`-indexed array with a 4-slot lock-free lookup table (`g_fast_slots[MaxBleControllers]`) matching arbitrary 32-bit `conn_id` values in registers.
+2. **View (`-`) and Share (`Capture`) Button Offset Shift**:
+   * *Root Cause*: Upstream commit `d450104` moved `dpad` out of `XboxOneButtonData` into `XboxOneInputReport0x01`, shifting `buttons[]` by 1 byte (`buttons[1]` holds View at `0x04`, `buttons[2]` holds Share at `0x01`, and `buttons[3]` was out of bounds).
+   * *Resolution*: Updated `XboxOneBleController::ParseInputReport` to decode `Minus` from `buttons[1] & 0x04` and `Capture` from `buttons[2] & 0x01`.
+3. **Stack-Wide BLE Reset (`result=55`) & Inquiry Stop Race**:
+   * *Root Cause*: `Scan()` continued running after `btm` stopped inquiry on leaving *Change Grip/Order*, mutating BLE scan filters and triggering a GATT reset (`result=55, status=2, conn_id=0xFFFFFFFF`) that `OnBleEvent` ignored.
+   * *Resolution*: Signal `g_ring_event` on `SetInquiryActive(false)` and `SetRadioEnabled(false)` to abort `Scan()` in 0 ms, and handle wildcard disconnect/deregister events (`conn_id == 0xFFFFFFFF` / `client_if == 0xFF`) by marking all active slots disconnected.
+4. **Elimination of Residual Fast-Path SD Card I/O**:
+   * *Root Cause*: `ble::profile::RecordReportEnd()` called `WriteSummaryToFile()` directly on `LeHidThreadFunc` (`-11` priority), and `LeHidThreadFunc` called `events::Log()` on every rumble GATT write completion (`notify.type = 1`).
+   * *Resolution*: Snapshot profiler windows in memory and flush exclusively on `HostThreadFunc` outside `g_lock`; ignore rumble write completions on `LeHidThreadFunc` and queue setup events to `g_ring`.
+5. **Per-Slot GATT Result Tracking & Adopted Slot Activation**:
+   * *Resolution*: Isolated `gatt_results` and `gatt_failure` per slot (ignoring rumble write completions) so active controller rumble cannot wake `WaitForGattResult` on a pairing slot; ensured `SetSlotConnection` marks adopted slots active with their Bluetooth address.
+6. **BLE Rumble Throttling & Joy-Con Harmonic Coexistence**:
+   * *Resolution*: Used a 250 ms sustain (`pulse_sustain_10ms = 25`) throttled to ~30 Hz (32 ms) with immediate stop-rumble passthrough; counted Classic Bluetooth Joy-Cons (`GetConnectedControllerCount()`) when selecting `max_conn_interval = 12` (15.0 ms, harmonic with Joy-Cons' 15 ms sniff interval) and paced BLE scans with a 3-second cooldown when controllers are active.
+7. **Deterministic `BtmDeviceCondition` Population**:
+   * *Resolution*: Always zero-initialize virtual BLE entries in `BtmMitmService` and populate `vid = 0x057e, pid = 0x2009` rather than copying `device_condition[0]`.
+
 ---
 
 ## 7. Sources & Documentation
