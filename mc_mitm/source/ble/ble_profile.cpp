@@ -44,29 +44,46 @@ namespace ams::ble::profile {
         constinit u16 g_conn_latency = 0;
         constinit u16 g_supervision_tout = 0;
 
-        void WriteSummaryToFile() {
-            if (g_window_reports == 0) {
+        struct ProfileSnapshot {
+            u64 total_reports;
+            u64 window_reports;
+            s64 min_delta_us;
+            s64 max_delta_us;
+            s64 sum_delta_us;
+            s64 min_process_us;
+            s64 max_process_us;
+            s64 sum_process_us;
+            u16 conn_interval;
+            u16 conn_latency;
+            u16 supervision_tout;
+        };
+
+        constinit ProfileSnapshot g_pending_snapshot = {};
+        constinit bool g_flush_pending = false;
+
+        void WriteSummaryToFile(const ProfileSnapshot &snap) {
+            if (snap.window_reports == 0) {
                 return;
             }
 
             char buffer[BufferSize];
 
-            const u32 interval_w = g_conn_interval > 0 ? (static_cast<u32>(g_conn_interval) * 125) / 100 : 0;
-            const u32 interval_f = g_conn_interval > 0 ? (static_cast<u32>(g_conn_interval) * 125) % 100 : 0;
-            const u32 interval_hz = g_conn_interval > 0 ? (800 / g_conn_interval) : 0;
+            const u32 interval_w = snap.conn_interval > 0 ? (static_cast<u32>(snap.conn_interval) * 125) / 100 : 0;
+            const u32 interval_f = snap.conn_interval > 0 ? (static_cast<u32>(snap.conn_interval) * 125) % 100 : 0;
+            const u32 interval_hz = snap.conn_interval > 0 ? (800 / snap.conn_interval) : 0;
 
-            const u64 avg_delta_us = g_sum_delta_us / g_window_reports;
+            const u64 avg_delta_us = snap.sum_delta_us / snap.window_reports;
             const u32 avg_delta_w = static_cast<u32>(avg_delta_us / 1000);
             const u32 avg_delta_f = static_cast<u32>((avg_delta_us % 1000) / 10);
 
-            const u32 min_delta_w = static_cast<u32>(g_min_delta_us / 1000);
-            const u32 min_delta_f = static_cast<u32>((g_min_delta_us % 1000) / 10);
+            const u32 min_delta_w = static_cast<u32>(snap.min_delta_us / 1000);
+            const u32 min_delta_f = static_cast<u32>((snap.min_delta_us % 1000) / 10);
 
-            const u32 max_delta_w = static_cast<u32>(g_max_delta_us / 1000);
-            const u32 max_delta_f = static_cast<u32>((g_max_delta_us % 1000) / 10);
+            const u32 max_delta_w = static_cast<u32>(snap.max_delta_us / 1000);
+            const u32 max_delta_f = static_cast<u32>((snap.max_delta_us % 1000) / 10);
 
             const u32 actual_hz = avg_delta_us > 0 ? static_cast<u32>(1000000 / avg_delta_us) : 0;
-            const u32 avg_process_us = static_cast<u32>(g_sum_process_us / g_window_reports);
+            const u32 avg_process_us = static_cast<u32>(snap.sum_process_us / snap.window_reports);
 
             int len = std::snprintf(buffer, sizeof(buffer),
                 "=== Mission Control BLE Latency & Cadence Profile ===\n"
@@ -88,14 +105,14 @@ namespace ams::ble::profile {
                 "  Avg Processing Time : %u us\n"
                 "  Max Processing Time : %ld us\n"
                 "=====================================================\n\n",
-                g_total_reports, g_window_reports,
-                interval_w, interval_f, interval_hz, g_conn_interval,
-                g_conn_latency,
-                static_cast<u32>(g_supervision_tout * 10),
+                snap.total_reports, snap.window_reports,
+                interval_w, interval_f, interval_hz, snap.conn_interval,
+                snap.conn_latency,
+                static_cast<u32>(snap.supervision_tout * 10),
                 min_delta_w, min_delta_f,
                 avg_delta_w, avg_delta_f, actual_hz,
                 max_delta_w, max_delta_f,
-                g_min_process_us, avg_process_us, g_max_process_us
+                snap.min_process_us, avg_process_us, snap.max_process_us
             );
 
             if (len <= 0) {
@@ -109,6 +126,22 @@ namespace ams::ble::profile {
             ON_SCOPE_EXIT { fs::CloseFile(file); };
 
             static_cast<void>(fs::WriteFile(file, 0, buffer, std::min<size_t>(len, sizeof(buffer)), fs::WriteOption::Flush));
+        }
+
+        ProfileSnapshot CaptureCurrentWindowLocked() {
+            return ProfileSnapshot{
+                .total_reports    = g_total_reports,
+                .window_reports   = g_window_reports,
+                .min_delta_us     = g_min_delta_us,
+                .max_delta_us     = g_max_delta_us,
+                .sum_delta_us     = g_sum_delta_us,
+                .min_process_us   = g_min_process_us,
+                .max_process_us   = g_max_process_us,
+                .sum_process_us   = g_sum_process_us,
+                .conn_interval    = g_conn_interval,
+                .conn_latency     = g_conn_latency,
+                .supervision_tout = g_supervision_tout,
+            };
         }
 
     }
@@ -189,7 +222,8 @@ namespace ams::ble::profile {
         ++g_total_reports;
 
         if (g_window_reports >= FlushThreshold) {
-            WriteSummaryToFile();
+            g_pending_snapshot = CaptureCurrentWindowLocked();
+            g_flush_pending = true;
             g_window_reports = 0;
             g_sum_delta_us = 0;
             g_min_delta_us = 0;
@@ -204,9 +238,20 @@ namespace ams::ble::profile {
         if (!g_enabled) {
             return;
         }
-        std::scoped_lock lk(g_lock);
-        if (g_window_reports >= FlushThreshold) {
-            WriteSummaryToFile();
+
+        ProfileSnapshot snap = {};
+        bool should_flush = false;
+        {
+            std::scoped_lock lk(g_lock);
+            if (g_flush_pending) {
+                snap = g_pending_snapshot;
+                g_flush_pending = false;
+                should_flush = true;
+            }
+        }
+
+        if (should_flush) {
+            WriteSummaryToFile(snap);
         }
     }
 
@@ -214,8 +259,25 @@ namespace ams::ble::profile {
         if (!g_enabled) {
             return;
         }
-        std::scoped_lock lk(g_lock);
-        WriteSummaryToFile();
+
+        ProfileSnapshot snap = {};
+        bool should_flush = false;
+        {
+            std::scoped_lock lk(g_lock);
+            if (g_window_reports > 0) {
+                snap = CaptureCurrentWindowLocked();
+                g_flush_pending = false;
+                should_flush = true;
+            } else if (g_flush_pending) {
+                snap = g_pending_snapshot;
+                g_flush_pending = false;
+                should_flush = true;
+            }
+        }
+
+        if (should_flush) {
+            WriteSummaryToFile(snap);
+        }
     }
 
     void Reset() {
@@ -228,6 +290,8 @@ namespace ams::ble::profile {
         g_min_process_us = 0;
         g_max_process_us = 0;
         g_sum_process_us = 0;
+        g_pending_snapshot = {};
+        g_flush_pending = false;
     }
 
 }
