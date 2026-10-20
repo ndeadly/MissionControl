@@ -47,6 +47,7 @@ namespace ams::ble::events {
         constinit os::SdkMutex g_lock;
         os::Event g_ring_event(os::EventClearMode_AutoClear);
         os::Event g_radio_event(os::EventClearMode_ManualClear);
+        std::atomic<bool> g_controller_count_changed{false};
 
         /* Guarded by g_lock */
         constinit bool g_active = false;
@@ -732,11 +733,7 @@ namespace ams::ble::events {
         }
     }
 
-    u16 RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count) {
-        if (!mitm::GetGlobalConfig()->ble.low_latency) {
-            return 0;
-        }
-
+    u16 GetTargetMaxConnectionInterval(size_t active_count) {
         const size_t total_controllers = std::max({
             static_cast<size_t>(1),
             active_count,
@@ -744,13 +741,44 @@ namespace ams::ble::events {
             controller::GetConnectedControllerCount()
         });
 
-        // Use max_interval = 12 (15.0 ms, harmonic with Joy-Cons' 15.0 ms BR/EDR sniff interval) when multiple
-        // controllers (Classic BT or BLE) share the radio; use 9 (11.25 ms) only for a single active BLE controller.
-        const u16 max_interval = (total_controllers > 1) ? 12 : 9;
+        if (total_controllers >= 4) {
+            return 20; // 25.0 ms max (min=16 / 20.0 ms)
+        } else if (total_controllers >= 2) {
+            return 12; // 15.0 ms harmonic
+        } else {
+            return mitm::GetGlobalConfig()->ble.low_latency ? 9 : 0; // 11.25 ms if low_latency enabled
+        }
+    }
+
+    u16 RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count) {
+        const size_t total_controllers = std::max({
+            static_cast<size_t>(1),
+            active_count,
+            GetActiveConnectionCount(),
+            controller::GetConnectedControllerCount()
+        });
+
+        if (total_controllers == 1 && !mitm::GetGlobalConfig()->ble.low_latency) {
+            return 0;
+        }
+
+        u16 min_interval = 6;
+        u16 max_interval = 9;
+
+        if (total_controllers >= 4) {
+            min_interval = 16; // 20.0 ms
+            max_interval = 20; // 25.0 ms
+        } else if (total_controllers >= 2) {
+            min_interval = 12; // 15.0 ms
+            max_interval = 12; // 15.0 ms
+        } else {
+            min_interval = 6;  // 7.5 ms
+            max_interval = 9;  // 11.25 ms
+        }
 
         BtdrvBleConnectionParameter param = {
-            .min_conn_interval = 6,            // 7.5 ms
-            .max_conn_interval = max_interval, // 9 (11.25 ms) for 1 pad, 12 (15.0 ms) for 2+ total pads
+            .min_conn_interval = min_interval,
+            .max_conn_interval = max_interval,
             .min_ce_length     = 0,
             .max_ce_length     = 0,
             .slave_latency     = 0,            // no skipped polling intervals
@@ -758,8 +786,22 @@ namespace ams::ble::events {
         };
 
         Result rc = btdrvSetBleConnectionParameter(address, &param, false);
-        log::Write("btdrvSetBleConnectionParameter(low_latency, total_active=%zu, max=%u) rc=0x%x", total_controllers, max_interval, rc.GetValue());
-        return max_interval;
+        char addr_str[18];
+        std::snprintf(addr_str, sizeof(addr_str), "%02x:%02x:%02x:%02x:%02x:%02x",
+            address.address[0], address.address[1], address.address[2],
+            address.address[3], address.address[4], address.address[5]);
+        log::Write("btdrvSetBleConnectionParameter [%s] min=%u max=%u total_pads=%u rc=0x%x",
+            addr_str, min_interval, max_interval, static_cast<u32>(total_controllers), rc.GetValue());
+        return R_SUCCEEDED(rc) ? max_interval : 0;
+    }
+
+    void NotifyControllerCountChanged() {
+        g_controller_count_changed.store(true, std::memory_order_release);
+        g_ring_event.Signal();
+    }
+
+    bool ConsumeControllerCountChanged() {
+        return g_controller_count_changed.exchange(false, std::memory_order_acq_rel);
     }
 
 }

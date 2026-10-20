@@ -63,7 +63,10 @@ namespace ams::ble::events {
     void UnregisterSlotController(u32 slot);
     controller::XboxOneBleController *GetActiveController(u32 conn_id) noexcept;
 
+    u16 GetTargetMaxConnectionInterval(size_t active_count);
     u16 RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count = 0);
+    void NotifyControllerCountChanged();
+    bool ConsumeControllerCountChanged();
 
     // Results of our GATT requests arrive on the LE HID stream; the host thread reports each one here so a
     // request is not issued while the previous one is still pending

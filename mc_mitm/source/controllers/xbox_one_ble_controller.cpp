@@ -14,6 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xbox_one_ble_controller.hpp"
+#include "controller_management.hpp"
+#include <algorithm>
 #include <stratosphere.hpp>
 
 namespace ams::controller {
@@ -84,13 +86,20 @@ namespace ams::controller {
 
         // hid includes rumble data in every output report it sends, at around 60Hz. Turning each one into a GATT
         // write saturates the LE link and starves the input notifications, so throttle updates and use a 250ms sustain.
+        constexpr s64 MinRumbleIntervalNs                  = TimeSpan::FromMilliSeconds(32).GetNanoSeconds();
+        constexpr s64 MultiControllerMinRumbleIntervalNs   = TimeSpan::FromMilliSeconds(64).GetNanoSeconds();
+        constexpr s64 HeavyMultiControllerRumbleIntervalNs = TimeSpan::FromMilliSeconds(96).GetNanoSeconds();
+
         const u8 strong = static_cast<u8>(100 * std::max(motor_data->left_motor.low_band_amp, motor_data->right_motor.low_band_amp));
         const u8 weak   = static_cast<u8>(100 * std::max(motor_data->left_motor.high_band_amp, motor_data->right_motor.high_band_amp));
 
         const s64 now_tick = os::GetSystemTick().GetInt64Value();
-        const s64 elapsed_ms = (m_last_rumble_tick > 0)
-            ? os::Tick(now_tick - m_last_rumble_tick).ToTimeSpan().GetMilliSeconds()
-            : 1000;
+        const TimeSpan elapsed_time = (m_last_rumble_tick > 0)
+            ? os::Tick(now_tick - m_last_rumble_tick).ToTimeSpan()
+            : TimeSpan::FromSeconds(1);
+
+        const s64 elapsed_ms = elapsed_time.GetMilliSeconds();
+        const s64 elapsed_ns = elapsed_time.GetNanoSeconds();
 
         const bool is_stop = (strong == 0) && (weak == 0);
         const bool was_stopped = (m_last_rumble_strong == 0) && (m_last_rumble_weak == 0);
@@ -103,8 +112,19 @@ namespace ams::controller {
             if ((strong == m_last_rumble_strong) && (weak == m_last_rumble_weak) && (elapsed_ms < 180)) {
                 R_SUCCEED();
             }
-            if (!was_stopped && (elapsed_ms < 32)) {
-                R_SUCCEED();
+            if (!was_stopped) {
+                if (elapsed_ns < MinRumbleIntervalNs) {
+                    R_SUCCEED();
+                }
+
+                const size_t total_controllers = controller::GetConnectedControllerCount();
+                const s64 min_rumble_interval_ns = (total_controllers >= 4) ? HeavyMultiControllerRumbleIntervalNs
+                                                 : (total_controllers >= 2) ? MultiControllerMinRumbleIntervalNs
+                                                 : MinRumbleIntervalNs;
+
+                if (elapsed_ns < min_rumble_interval_ns) {
+                    R_SUCCEED();
+                }
             }
         }
 

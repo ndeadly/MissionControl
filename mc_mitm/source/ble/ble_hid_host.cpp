@@ -194,7 +194,7 @@ namespace ams::ble {
             }
         }
 
-        constexpr s32 LowLatencyThreadPriority = -11; // Matches mc::HidReportThread & bluetooth.nso
+        constexpr s32 LowLatencyThreadPriority = -10; // 1 level below mc::HidReportThread (-11) to avoid preempting Classic BT report draining
         constexpr s32 DefaultThreadPriority = 9;
 
         void StartLeHidListener() {
@@ -428,6 +428,26 @@ namespace ams::ble {
 
         /* Presenting and dismissing controllers */
 
+        void RebalanceConnectionParameters() {
+            const size_t connected_count = GetConnectedCount();
+            if (connected_count == 0) {
+                return;
+            }
+
+            const u16 target_max = events::GetTargetMaxConnectionInterval(connected_count);
+            if (target_max == 0) {
+                return;
+            }
+
+            for (size_t i = 0; i < MaxBleControllers; ++i) {
+                if (g_host_slots[i].state == BleDeviceSlot::State::Connected) {
+                    if (g_host_slots[i].negotiated_max_interval != target_max) {
+                        g_host_slots[i].negotiated_max_interval = events::RequestLowLatencyConnectionParameters(g_host_slots[i].address, connected_count);
+                    }
+                }
+            }
+        }
+
         void PresentSlot(u32 slot_index) {
             auto &slot = g_host_slots[slot_index];
             if (!slot.hid.has_output_report) {
@@ -452,19 +472,11 @@ namespace ams::ble {
             u8 neutral[sizeof(controller::XboxOneInputReport0x01)] = { 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80 };
             static_cast<void>(controller->HandleInputReport(neutral, sizeof(neutral)));
 
-            // Request low-latency parameters (min 6, max 9 or 12, slave latency 0)
-            const size_t connected_count = GetConnectedCount();
-            slot.negotiated_max_interval = events::RequestLowLatencyConnectionParameters(slot.address, connected_count);
+            // Request low-latency parameters and rebalance active BLE slots
+            slot.negotiated_max_interval = 0;
+            RebalanceConnectionParameters();
 
-            if (slot.negotiated_max_interval > 0) {
-                for (size_t i = 0; i < MaxBleControllers; ++i) {
-                    if ((i != slot_index) && (g_host_slots[i].state == BleDeviceSlot::State::Connected) && (g_host_slots[i].negotiated_max_interval != slot.negotiated_max_interval)) {
-                        g_host_slots[i].negotiated_max_interval = events::RequestLowLatencyConnectionParameters(g_host_slots[i].address, connected_count);
-                    }
-                }
-            }
-
-            log::Write("slot %u: controller presented to system (conn_id=%u, total active=%zu)", slot_index, slot.conn_id, connected_count);
+            log::Write("slot %u: controller presented to system (conn_id=%u, total active=%zu)", slot_index, slot.conn_id, GetConnectedCount());
         }
 
         void DismissSlot(u32 slot_index) {
@@ -518,24 +530,14 @@ namespace ams::ble {
         }
 
         void ProcessPendingDisconnections() {
+            bool any_disconnected = false;
             for (size_t i = 0; i < MaxBleControllers; ++i) {
                 if (g_host_slots[i].state == BleDeviceSlot::State::Connected) {
                     const u32 slot_idx = static_cast<u32>(i);
                     if (events::IsSlotDisconnected(slot_idx)) {
                         log::Write("slot %u: controller disconnected (reason=0x%04x)", slot_idx, events::GetSlotDisconnectReason(slot_idx));
                         DismissSlot(slot_idx);
-
-                        const size_t remaining = GetConnectedCount();
-                        if (remaining == 1) {
-                            for (size_t j = 0; j < MaxBleControllers; ++j) {
-                                if (g_host_slots[j].state == BleDeviceSlot::State::Connected) {
-                                    const u16 target_max = (controller::GetConnectedControllerCount() > 1) ? 12 : 9;
-                                    if (g_host_slots[j].negotiated_max_interval != target_max) {
-                                        g_host_slots[j].negotiated_max_interval = events::RequestLowLatencyConnectionParameters(g_host_slots[j].address, 1);
-                                    }
-                                }
-                            }
-                        }
+                        any_disconnected = true;
                     } else if (gatt::TakeRediscovered(slot_idx)) {
                         log::Write("slot %u: services re-discovered, subscribing again", slot_idx);
                         gatt::HidService hid;
@@ -543,9 +545,18 @@ namespace ams::ble {
                     }
                 }
             }
+
+            const bool count_changed = events::ConsumeControllerCountChanged();
+            if (any_disconnected || count_changed) {
+                RebalanceConnectionParameters();
+            }
         }
 
         void ScanAndPairNextController() {
+            if (events::ConsumeControllerCountChanged()) {
+                RebalanceConnectionParameters();
+            }
+
             int slot_idx = FindFreeSlot();
             if (slot_idx < 0) {
                 return;
@@ -558,6 +569,9 @@ namespace ams::ble {
 
             if (!connected) {
                 Result rc = Scan(&address, TimeSpan::FromSeconds(5));
+                if (events::ConsumeControllerCountChanged()) {
+                    RebalanceConnectionParameters();
+                }
                 if (Adopt(&address, &conn_id)) {
                     connected = true;
                 } else if (R_SUCCEEDED(rc)) {

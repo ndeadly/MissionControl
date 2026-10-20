@@ -17,6 +17,7 @@
 #include <stratosphere.hpp>
 #include "../utils.hpp"
 #include "../btm_mitm/btm_device_condition.hpp"
+#include "../ble/ble_events.hpp"
 
 namespace ams::controller {
 
@@ -336,6 +337,8 @@ namespace ams::controller {
             // Try to disconnect the controller
             btdrvCloseHidConnection(controller->Address());
         }
+
+        ble::events::NotifyControllerCountChanged();
     }
 
     void RemoveHandler(bluetooth::Address address) {
@@ -344,6 +347,7 @@ namespace ams::controller {
         for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
             if (utils::BluetoothAddressCompare((*it)->Address(), address)) {
                 g_controllers.erase(it);
+                ble::events::NotifyControllerCountChanged();
                 return;
             }
         }
