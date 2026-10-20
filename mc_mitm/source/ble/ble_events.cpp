@@ -340,6 +340,8 @@ namespace ams::ble::events {
                     ours = g_expected_filter_events > 0;
                     if (ours) {
                         --g_expected_filter_events;
+                    } else if (info->scan_filter.result != 0) {
+                        return false;
                     }
                     break;
                 default:
