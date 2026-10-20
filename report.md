@@ -249,3 +249,40 @@ A line-by-line audit of the implementation cross-referenced against the hardware
   In `GetDeviceCondition` and `GetShortenedDeviceCondition`, when `total_out.GetValue() > 0`, the code copies `*device = device_condition[0];` as a template for virtual BLE controllers. If `device_condition[0]` is a Joy-Con (`vid = 0x057e, pid = 0x2006`) or a Bluetooth Audio device (`profile = BtmProfile_Audio`), the virtual BLE controller inherits the wrong `vid`/`pid` or audio union data.
 * **Resolution:**
   Always zero-initialize the virtual `BtmDeviceCondition` / `BtmShortenedDeviceCondition` entry, explicitly set `profile_condition.hid.vid = 0x057e`, `pid = 0x2009`, `sniff_mode = BtmSniffMode_15ms`, `slot_mode = BtmSlotMode_2`, and avoid adding duplicate entries if the address is already present in `device_condition`.
+
+---
+
+## 5-Player Super Smash Bros. Ultimate Hardware Test Validation (7 Concurrent Controllers)
+
+During hardware stress testing in *Super Smash Bros. Ultimate* (SSBU) with 7 concurrent wireless Bluetooth controllers (4 Joy-Cons + 1 Pro Controller + 2 BLE Xbox Series S controllers), two hardware test issues were diagnosed, root-caused, and resolved:
+
+### Issue 11 (SSBU Match Xbox `B` / Switch `A` Fast-Attack Lockout)
+
+* **Files Affected:**
+  * `mc_mitm/source/controllers/xbox_one_controller.cpp`
+* **Root Cause:**
+  Xbox Series X|S BLE input reports (`0x01`) transmit uncalibrated 16-bit raw ADC stick values (`0..65535`, center `0x8000`) designed for Microsoft's XInput software radial deadzones (`XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE = 7849` / `23.95%`, `XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE = 8689` / `26.52%`), whereas `SwitchVirtualControllerMemory` (`DefaultAnalogStickModelValues`) only configures a `12.5%` (`0x100/0x800`, `0x1000` in 16-bit) inner deadzone in SPI flash. When one Xbox controller's Right Stick rests between `12.5%` and `26.5%` off-center, it works normally in SSBU menus (which ignore the Right Stick), but inside an SSBU match the Right Stick acts as the C-Stick (`Direction + A` attack macro) which locks out the `A` button (fast attack) until the stick returns inside the neutral deadzone.
+* **Resolution:**
+  Added `ApplyRadialDeadzone` in `XboxOneController::MapInputReport0x01` (`xbox_one_controller.cpp`) that snaps deflections within the XInput deadzone (`7849` left, `8689` right) to exact center (`0x8000`) and smoothly rescales `(deadzone, 0x7fff]` onto `(HosInnerDeadzone (0x1000), 0x7fff]` so it meets Horizon OS `hid`'s 12.5% inner deadzone edge with zero step jump and zero deadzone stacking.
+
+---
+
+### Issue 12 (4th Joy-Con Input Delay & Latency with 7 Concurrent Bluetooth Controllers)
+
+* **Files Affected:**
+  * `mc_mitm/source/ble/ble_events.hpp`
+  * `mc_mitm/source/ble/ble_events.cpp`
+  * `mc_mitm/source/ble/ble_hid_host.cpp`
+  * `mc_mitm/source/controllers/controller_management.cpp`
+  * `mc_mitm/source/controllers/xbox_one_ble_controller.cpp`
+* **Root Cause:**
+  1. `RequestLowLatencyConnectionParameters` hardcoded `min_conn_interval = 6` (`7.5 ms`), causing the Broadcom BCM4356 link layer to negotiate `7.5 ms` (`133.3 Hz`) for both BLE Xbox controllers (`4` BLE anchor events per `15 ms` BR/EDR sniff frame) and preempt the 5th Classic BT device (the 4th Joy-Con) at the tail of each 15 ms piconet frame.
+  2. `ble_hid_host` only rebalanced BLE connection intervals when BLE controllers connected/disconnected, ignoring Classic BT Joy-Con attach/detach events.
+  3. `mc::BleHidEventThread` ran at priority `-11`, contending directly with `mc::HidReportThread` (`-11`).
+  4. 60 Hz rumble across 7 controllers saturated BLE GATT writes.
+* **Resolution:**
+  * Scaled BLE connection intervals in `ble_events.cpp` to `min=6, max=9` (`7.5–11.25 ms`) for 1 controller, `min=12, max=12` (`15.0 ms`) for 2–3 controllers, and `min=16, max=20` (`20.0–25.0 ms`) for 4+ controllers (preventing 15.0 ms phase-lock with the 4th Joy-Con).
+  * Triggered `ble::events::NotifyControllerCountChanged()` from `controller::AttachHandler` and `RemoveHandler` to dynamically rebalance BLE slots when Classic BT controllers connect/disconnect.
+  * Adjusted `LowLatencyThreadPriority` to `-10` (1 level below `mc::HidReportThread`).
+  * Added 3-tier dynamic rumble throttling (`32 ms` / `64 ms` / `96 ms`) in `XboxOneBleController::SetVibration`.
+
