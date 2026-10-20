@@ -15,12 +15,46 @@
  */
 #include "xbox_one_controller.hpp"
 #include <stratosphere.hpp>
+#include <algorithm>
+#include <cmath>
 
 namespace ams::controller {
 
     namespace {
 
         constexpr u16 TriggerMax = 0x3ff;
+
+        constexpr u16 StickCenter       = 0x8000;
+        constexpr s32 MaxStickRadius    = 0x7fff;
+        constexpr s32 HosInnerDeadzone  = 0x1000; // Matches 12.5% (0x100/0x800) inner deadzone in DefaultAnalogStickModelValues
+
+        // Microsoft XInput standard radial deadzones
+        constexpr u32 LeftStickDeadzone  = 7849; // XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE (~23.95%)
+        constexpr u32 RightStickDeadzone = 8689; // XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE (~26.52%)
+
+        std::pair<u16, u16> ApplyRadialDeadzone(u16 raw_x, u16 raw_y, u32 deadzone) {
+            const s32 dx = static_cast<s32>(raw_x) - static_cast<s32>(StickCenter);
+            const s32 dy = static_cast<s32>(raw_y) - static_cast<s32>(StickCenter);
+            const u64 dist_sq = static_cast<u64>(static_cast<s64>(dx) * dx + static_cast<s64>(dy) * dy);
+            const u64 deadzone_sq = static_cast<u64>(deadzone) * deadzone;
+
+            if (dist_sq <= deadzone_sq) {
+                return { StickCenter, StickCenter };
+            }
+
+            const float dist = std::sqrt(static_cast<float>(dist_sq));
+            if (dist >= static_cast<float>(MaxStickRadius)) {
+                return { raw_x, raw_y };
+            }
+
+            const float norm = (dist - static_cast<float>(deadzone)) / static_cast<float>(MaxStickRadius - deadzone);
+            const float target_dist = static_cast<float>(HosInnerDeadzone) + norm * static_cast<float>(MaxStickRadius - HosInnerDeadzone);
+            const float scale = target_dist / dist;
+
+            const s32 out_x = std::clamp<s32>(static_cast<s32>(StickCenter) + static_cast<s32>(std::lround(dx * scale)), 0, 0xffff);
+            const s32 out_y = std::clamp<s32>(static_cast<s32>(StickCenter) + static_cast<s32>(std::lround(dy * scale)), 0, 0xffff);
+            return { static_cast<u16>(out_x), static_cast<u16>(out_y) };
+        }
 
     }
 
@@ -55,15 +89,20 @@ namespace ams::controller {
     void XboxOneController::MapInputReport0x01(const XboxOneReportData *src, bool new_format) {
         auto dpad = DirectionalPad(src->input0x01.dpad);
 
-        m_left_stick.SetValuesFrom(
+        const auto [lx, ly] = ApplyRadialDeadzone(
             src->input0x01.left_stick.GetX(),
-            src->input0x01.left_stick.GetYInverted()
+            src->input0x01.left_stick.GetYInverted(),
+            LeftStickDeadzone
         );
 
-        m_right_stick.SetValuesFrom(
+        const auto [rx, ry] = ApplyRadialDeadzone(
             src->input0x01.right_stick.GetX(),
-            src->input0x01.right_stick.GetYInverted()
+            src->input0x01.right_stick.GetYInverted(),
+            RightStickDeadzone
         );
+
+        m_left_stick.SetValuesFrom(lx, ly);
+        m_right_stick.SetValuesFrom(rx, ry);
 
         SwitchButtons button_state = m_buttons;
         button_state.Assign(SwitchButton::ZR, src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
