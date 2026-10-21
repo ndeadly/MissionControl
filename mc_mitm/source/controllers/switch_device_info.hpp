@@ -87,6 +87,26 @@ namespace ams::controller {
             .format_version = 0x02
         };
 
+        static constexpr SwitchDeviceInfo NesControllerLeft = {
+            .bt_firmware    = { 0x03, 0x90 },
+            .device_type    = 0x09,
+            .device_name    = "NES Controller (L)",
+            .vendor_id      = 0x057E,
+            .product_id     = 0x2007,
+            .unk            = 0x02,
+            .format_version = 0x02
+        };
+
+        static constexpr SwitchDeviceInfo NesControllerRight = {
+            .bt_firmware    = { 0x03, 0x90 },
+            .device_type    = 0x0A,
+            .device_name    = "NES Controller (R)",
+            .vendor_id      = 0x057E,
+            .product_id     = 0x2007,
+            .unk            = 0x02,
+            .format_version = 0x02
+        };
+
         static constexpr SwitchDeviceInfo SnesController = {
             .bt_firmware    = { 0x03, 0xB8 },
             .device_type    = 0x0B,
