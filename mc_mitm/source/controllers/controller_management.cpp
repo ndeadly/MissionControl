@@ -213,6 +213,12 @@ namespace ams::controller {
             }
         }
 
+        for (auto hwId : StadiaController::hardware_ids) {
+            if ( (device->vid == hwId.vid) && (device->pid == hwId.pid) ) {
+                return ControllerType_Stadia;
+            }
+        }
+
         return ControllerType_Unknown;
     }
 
@@ -319,6 +325,9 @@ namespace ams::controller {
                 break;
             case ControllerType_Amazon:
                 controller = std::make_shared<AmazonController>(address, id);
+                break;
+            case ControllerType_Stadia:
+                controller = std::make_shared<StadiaController>(address, id);
                 break;
             default:
                 controller = std::make_shared<UnknownController>(address, id);

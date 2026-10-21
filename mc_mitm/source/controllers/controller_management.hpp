@@ -44,6 +44,7 @@
 #include "atari_controller.hpp"
 #include "bionik_controller.hpp"
 #include "amazon_controller.hpp"
+#include "stadia_controller.hpp"
 
 namespace ams::controller {
 
@@ -79,6 +80,7 @@ namespace ams::controller {
         ControllerType_Atari,
         ControllerType_Bionik,
         ControllerType_Amazon,
+        ControllerType_Stadia,
         ControllerType_Unknown,
     };
 
