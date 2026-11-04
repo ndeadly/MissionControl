@@ -22,7 +22,6 @@ namespace ams::controller {
         // Degrees to radians and nanoseconds to seconds
         constexpr double QuatScaleFactor = std::numbers::pi / 180.0f / 1000000000.0f;
 
-        // Unit of the dscale timestamps: one period of the IMU's 800 Hz internal sampling (see PackGyroFixedPrecision)
         constexpr s64 DscaleTimestampUnitNs = 1250000;
 
         // See https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/issues/18#issuecomment-331324555
@@ -163,10 +162,7 @@ namespace ams::controller {
         m_motion_data.dscale.mode2.delta_mid_avg_1 = 0;
         m_motion_data.dscale.mode2.delta_mid_avg_2 = 0;
 
-        // Timestamps handling is still a bit unclear, these are the values that result in no drifting.
-        // The system derives angular velocity from the change in rotation between reports using these timestamps,
-        // and reads them in units of 1.25 ms (the IMU's 800 Hz sampling) rather than 1 ms: in milliseconds every
-        // emulated controller reported about 81% of its real turn rate, while the orientation itself was exact.
+        // Timestamps handling is still a bit unclear, these are the values that result in no drifting 
         auto timestamp_start = os::ConvertToTimeSpan(m_previous_tick).GetNanoSeconds() / DscaleTimestampUnitNs;
         m_motion_data.dscale.mode2.timestamp_start_l = timestamp_start & 0x1;
         m_motion_data.dscale.mode2.timestamp_start_h = (timestamp_start >> 1) & 0x3FF;
