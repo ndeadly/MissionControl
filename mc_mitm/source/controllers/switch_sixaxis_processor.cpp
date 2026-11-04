@@ -162,7 +162,6 @@ namespace ams::controller {
         m_motion_data.dscale.mode2.delta_mid_avg_1 = 0;
         m_motion_data.dscale.mode2.delta_mid_avg_2 = 0;
 
-        // Timestamps handling is still a bit unclear, these are the values that result in no drifting 
         auto timestamp_start = os::ConvertToTimeSpan(m_previous_tick).GetNanoSeconds() / DscaleTimestampUnitNs;
         m_motion_data.dscale.mode2.timestamp_start_l = timestamp_start & 0x1;
         m_motion_data.dscale.mode2.timestamp_start_h = (timestamp_start >> 1) & 0x3FF;
