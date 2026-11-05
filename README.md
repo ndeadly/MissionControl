@@ -1,3 +1,6 @@
+> **Fork notice:** this fork adds DS4 lightbar colours, button remapping and live ini reload, plus a companion app.
+> See [FORK.md](FORK.md) and [AI_NOTICE.md](AI_NOTICE.md) (the additions were written with AI assistance).
+
 <p align="left">
 <a href="https://github.com/ndeadly/MissionControl/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/ndeadly/MissionControl"></a>
 <a href="https://github.com/ndeadly/MissionControl/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/ndeadly/MissionControl"></a>
