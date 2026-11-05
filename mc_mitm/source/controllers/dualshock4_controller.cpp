@@ -60,9 +60,64 @@ namespace ams::controller {
 
         constexpr u32 CrcSeed = 0xB758EC66;  // CRC32 of {0xa2, 0x11} bytes at beginning of output report
 
+        // Every Switch button a Dualshock 4 input can be mapped to. These are cleared and rebuilt from the button map on each report.
+        constexpr u32 RemappableButtons =
+            static_cast<u32>(SwitchButton::Y)       | static_cast<u32>(SwitchButton::X)      |
+            static_cast<u32>(SwitchButton::B)       | static_cast<u32>(SwitchButton::A)      |
+            static_cast<u32>(SwitchButton::R)       | static_cast<u32>(SwitchButton::ZR)     |
+            static_cast<u32>(SwitchButton::Minus)   | static_cast<u32>(SwitchButton::Plus)   |
+            static_cast<u32>(SwitchButton::StickR)  | static_cast<u32>(SwitchButton::StickL) |
+            static_cast<u32>(SwitchButton::Home)    | static_cast<u32>(SwitchButton::Capture)|
+            static_cast<u32>(SwitchButton::Down)    | static_cast<u32>(SwitchButton::Up)     |
+            static_cast<u32>(SwitchButton::Right)   | static_cast<u32>(SwitchButton::Left)   |
+            static_cast<u32>(SwitchButton::L)       | static_cast<u32>(SwitchButton::ZL);
+
+        struct TouchpadZones {
+            bool left;
+            bool centre;
+            bool right;
+        };
+
+        // Translates the pressed Dualshock 4 inputs into Switch buttons using the user's button map (see dualshock4_map_* in the ini)
+        SwitchButtons MapDualshock4Buttons(const Dualshock4ButtonData &buttons, bool l2, bool r2, const TouchpadZones &touch) {
+            const auto &map = mitm::GetGlobalConfig()->misc.dualshock4_button_map;
+            const auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(buttons.dpad));
+
+            SwitchButtons state;
+            auto press = [&](mitm::Dualshock4Input input, bool pressed) {
+                state.SetIf(SwitchButtons(map[input]), pressed);
+            };
+
+            press(mitm::Dualshock4Input_Cross,          buttons.cross);
+            press(mitm::Dualshock4Input_Circle,         buttons.circle);
+            press(mitm::Dualshock4Input_Square,         buttons.square);
+            press(mitm::Dualshock4Input_Triangle,       buttons.triangle);
+            press(mitm::Dualshock4Input_L1,             buttons.L1);
+            press(mitm::Dualshock4Input_R1,             buttons.R1);
+            press(mitm::Dualshock4Input_L2,             l2);
+            press(mitm::Dualshock4Input_R2,             r2);
+            press(mitm::Dualshock4Input_L3,             buttons.L3);
+            press(mitm::Dualshock4Input_R3,             buttons.R3);
+            press(mitm::Dualshock4Input_Share,          buttons.share);
+            press(mitm::Dualshock4Input_Options,        buttons.options);
+            press(mitm::Dualshock4Input_Ps,             buttons.ps);
+            press(mitm::Dualshock4Input_DpadUp,         dpad.IsUp());
+            press(mitm::Dualshock4Input_DpadDown,       dpad.IsDown());
+            press(mitm::Dualshock4Input_DpadLeft,       dpad.IsLeft());
+            press(mitm::Dualshock4Input_DpadRight,      dpad.IsRight());
+            press(mitm::Dualshock4Input_TouchpadLeft,   touch.left);
+            press(mitm::Dualshock4Input_TouchpadCentre, touch.centre);
+            press(mitm::Dualshock4Input_TouchpadRight,  touch.right);
+
+            return state;
+        }
+
     }
 
     Result Dualshock4Controller::Initialize() {
+        // Read the generation first: if the configuration is reloaded in between we simply apply it again on the next report
+        m_config_generation = mitm::GetConfigurationGeneration();
+
         auto config = mitm::GetGlobalConfig();
         m_report_rate = static_cast<Dualshock4ReportRate>(config->misc.dualshock4_polling_rate);
         m_lightbar_brightness = config->misc.dualshock4_lightbar_brightness;
@@ -93,11 +148,31 @@ namespace ams::controller {
     Result Dualshock4Controller::SetPlayerLed(SwitchPlayerNumber player_number) {
         u8 player_index = static_cast<u8>(player_number);
 
-        RGBColour colour = PlayerLedBaseColours[player_index];
+        auto config = mitm::GetGlobalConfig();
+
+        // Brightness is read here rather than cached so that edits to the ini file take effect straight away
+        m_lightbar_brightness = config->misc.dualshock4_lightbar_brightness;
         u8 multiplier = LedBrightnessMultipliers[m_lightbar_brightness];
-        colour.r *= multiplier;
-        colour.g *= multiplier;
-        colour.b *= multiplier;
+
+        // Look up a user-defined colour: per-player override first, then the global one
+        int custom = config->misc.dualshock4_lightbar_colour[player_index];
+        if (custom < 0) {
+            custom = config->misc.dualshock4_lightbar_colour[0];
+        }
+
+        RGBColour colour;
+        if ((player_index != 0) && (custom >= 0)) {
+            // Custom colours use the full 0-255 range per channel. Scale by brightness so that the max setting (9) is 100%
+            constexpr u32 MaxMultiplier = 8 * Step;
+            colour.r = static_cast<u8>(((custom >> 16) & 0xff) * multiplier / MaxMultiplier);
+            colour.g = static_cast<u8>(((custom >>  8) & 0xff) * multiplier / MaxMultiplier);
+            colour.b = static_cast<u8>(( custom        & 0xff) * multiplier / MaxMultiplier);
+        } else {
+            colour = PlayerLedBaseColours[player_index];
+            colour.r *= multiplier;
+            colour.g *= multiplier;
+            colour.b *= multiplier;
+        }
 
         R_RETURN(this->SetLightbarColour(colour));
     }
@@ -107,8 +182,28 @@ namespace ams::controller {
         R_RETURN(this->PushRumbleLedState());
     }
 
+    void Dualshock4Controller::ApplyConfiguration() {
+        auto config = mitm::GetGlobalConfig();
+        m_report_rate = static_cast<Dualshock4ReportRate>(config->misc.dualshock4_polling_rate);
+
+        // Re-send the lightbar colour (which also pushes the new report rate). Leave the lightbar alone until the
+        // system has assigned this controller a player number.
+        auto player_number = m_player_indicator.GetPlayerNumber();
+        if (player_number != SwitchPlayerNumber::Invalid) {
+            R_DISCARD(this->SetPlayerLed(player_number));
+        }
+    }
+
     void Dualshock4Controller::ParseInputReport(const u8 *report_buffer, size_t size) {
         AMS_UNUSED(size);
+
+        // The ini file was reloaded since we last looked: push the new lightbar colour/brightness to the controller
+        const u32 generation = mitm::GetConfigurationGeneration();
+        if (generation != m_config_generation) {
+            m_config_generation = generation;
+            this->ApplyConfiguration();
+        }
+
         auto report = reinterpret_cast<const Dualshock4ReportData *>(report_buffer);
 
         switch(report->id) {
@@ -122,8 +217,6 @@ namespace ams::controller {
     }
 
     void Dualshock4Controller::MapInputReport0x01(const Dualshock4ReportData *src) {
-        auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x01.buttons.dpad));
-
         m_left_stick.SetValuesFrom(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted()
@@ -134,24 +227,15 @@ namespace ams::controller {
             src->input0x01.right_stick.GetYInverted()
         );
 
+        // This report carries no touchpad position, so the touchpad can't be used here
         SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
-        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
-        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
-        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
-        button_state.Assign(SwitchButton::A,      src->input0x01.buttons.circle);
-        button_state.Assign(SwitchButton::B,      src->input0x01.buttons.cross);
-        button_state.Assign(SwitchButton::X,      src->input0x01.buttons.triangle);
-        button_state.Assign(SwitchButton::Y,      src->input0x01.buttons.square);
-        button_state.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
-        button_state.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::Minus,  src->input0x01.buttons.share);
-        button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.options);
-        button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
-        button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
-        button_state.Assign(SwitchButton::Home,   src->input0x01.buttons.ps);
+        button_state.Clear(SwitchButtons(RemappableButtons));
+        button_state.Set(MapDualshock4Buttons(
+            src->input0x01.buttons,
+            src->input0x01.left_trigger  > (m_trigger_threshold * TriggerMax),
+            src->input0x01.right_trigger > (m_trigger_threshold * TriggerMax),
+            TouchpadZones{}
+        ));
         m_buttons = button_state;
     }
 
@@ -159,8 +243,6 @@ namespace ams::controller {
         m_power_info.SetPowered(src->input0x11.powered);
         m_power_info.SetCharging(src->input0x11.powered && !(src->input0x11.battery_level > 10));
         m_power_info.SetBatteryLevel(BatteryLookup[std::clamp<u8>(src->input0x11.battery_level, 0, sizeof(BatteryLookup) - 1)]);
-
-        auto dpad = DirectionalPad(static_cast<DirectionalPadType<0, 8>>(src->input0x11.buttons.dpad));
 
         m_left_stick.SetValuesFrom(
             src->input0x11.left_stick.GetX(),
@@ -172,24 +254,8 @@ namespace ams::controller {
             src->input0x11.right_stick.GetYInverted()
         );
 
-        SwitchButtons button_state = m_buttons;
-        button_state.Assign(SwitchButton::Down,   dpad.IsDown());
-        button_state.Assign(SwitchButton::Up,     dpad.IsUp());
-        button_state.Assign(SwitchButton::Right,  dpad.IsRight());
-        button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
-        button_state.Assign(SwitchButton::A,      src->input0x11.buttons.circle);
-        button_state.Assign(SwitchButton::B,      src->input0x11.buttons.cross);
-        button_state.Assign(SwitchButton::X,      src->input0x11.buttons.triangle);
-        button_state.Assign(SwitchButton::Y,      src->input0x11.buttons.square);
-        button_state.Assign(SwitchButton::R,      src->input0x11.buttons.R1);
-        button_state.Assign(SwitchButton::L,      src->input0x11.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     src->input0x11.right_trigger > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::ZL,     src->input0x11.left_trigger  > (m_trigger_threshold * TriggerMax));
-        button_state.Assign(SwitchButton::Minus,  src->input0x11.buttons.share);
-        button_state.Assign(SwitchButton::Plus,   src->input0x11.buttons.options);
-        button_state.Assign(SwitchButton::StickL, src->input0x11.buttons.L3);
-        button_state.Assign(SwitchButton::StickR, src->input0x11.buttons.R3);
-        button_state.Assign(SwitchButton::Home,   src->input0x11.buttons.ps);
+        // Work out which third of the touchpad is being pressed (the touchpad acts as three buttons)
+        TouchpadZones touch = {};
         if (src->input0x11.buttons.touchpad) {
             for (int i = 0; i < src->input0x11.num_reports; ++i) {
                 const Dualshock4TouchReport *touch_report = &src->input0x11.touch_reports[i];
@@ -201,18 +267,25 @@ namespace ams::controller {
                         u16 x = (point->x_hi << 8) | point->x_lo;
 
                         if (x < (0.15 * TouchpadWidth)) {
-                            button_state.Set(SwitchButton::Minus);
+                            touch.left = true;
                         } else if (x > (0.85 * TouchpadWidth)) {
-                            button_state.Set(SwitchButton::Plus);
+                            touch.right = true;
                         } else {
-                            button_state.Set(SwitchButton::Capture);
+                            touch.centre = true;
                         }
                     }
                 }
             }
-        } else {
-            button_state.Clear(SwitchButton::Capture);
         }
+
+        SwitchButtons button_state = m_buttons;
+        button_state.Clear(SwitchButtons(RemappableButtons));
+        button_state.Set(MapDualshock4Buttons(
+            src->input0x11.buttons,
+            src->input0x11.left_trigger  > (m_trigger_threshold * TriggerMax),
+            src->input0x11.right_trigger > (m_trigger_threshold * TriggerMax),
+            touch
+        ));
         m_buttons = button_state;
 
         utils::Vec3d<float> accel = {

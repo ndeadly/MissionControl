@@ -100,7 +100,12 @@ namespace ams {
 
         // Create timer event for periodically checking whether the current running application has changed
         os::TimerEvent timer_event(os::EventClearMode_ManualClear);
-        timer_event.StartPeriodic(ams::TimeSpan::FromSeconds(1), ams::TimeSpan::FromSeconds(1));
+        // The timer ticks 4 times a second so that edits to the ini file show up (e.g. on the lightbar) almost immediately.
+        // The process check below still runs once a second.
+        constexpr auto TimerPeriod = ams::TimeSpan::FromMilliSeconds(250);
+        constexpr u32 TicksPerSecond = 4;
+        u32 timer_ticks = 0;
+        timer_event.StartPeriodic(TimerPeriod, TimerPeriod);
 
         os::MultiWaitType wait_manager;
         os::MultiWaitHolderType holder_pm_module;
@@ -141,7 +146,10 @@ namespace ams {
 
                 case 1:
                     timer_event.Clear();
-                    mc::CheckForProcessSwitch();
+                    if ((++timer_ticks % TicksPerSecond) == 0) {
+                        mc::CheckForProcessSwitch();
+                    }
+                    mitm::PollConfigurationReload();
                     break;
 
                 AMS_UNREACHABLE_DEFAULT_CASE();

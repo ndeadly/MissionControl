@@ -195,7 +195,8 @@ namespace ams::controller {
             , m_report_rate(Dualshock4ReportRate_125Hz)
             , m_lightbar_colour({0, 0, 0})
             , m_lightbar_brightness(0)
-            , m_rumble_state({0, 0}) { }
+            , m_rumble_state({0, 0})
+            , m_config_generation(0) { }
 
             virtual Result Initialize() override;
             virtual Result SetVibration(const SwitchMotorData *motor_data) override;
@@ -212,6 +213,7 @@ namespace ams::controller {
             Result GetVersionInfo(Dualshock4VersionInfo *version_info);
             Result GetCalibrationData(Dualshock4ImuCalibrationData *calibration);
             Result PushRumbleLedState();
+            void ApplyConfiguration();
 
             Dualshock4ReportRate m_report_rate;
             RGBColour m_lightbar_colour;
@@ -219,6 +221,8 @@ namespace ams::controller {
             Dualshock4RumbleData m_rumble_state;
 
             Dualshock4ImuCalibrationData m_motion_calibration;
+
+            u32 m_config_generation;
     };
 
 }

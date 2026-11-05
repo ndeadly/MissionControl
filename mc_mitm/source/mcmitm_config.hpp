@@ -18,6 +18,31 @@
 
 namespace ams::mitm {
 
+    // Physical Dualshock 4 inputs that can be remapped to Switch buttons from the ini file
+    enum Dualshock4Input : int {
+        Dualshock4Input_Cross,
+        Dualshock4Input_Circle,
+        Dualshock4Input_Square,
+        Dualshock4Input_Triangle,
+        Dualshock4Input_L1,
+        Dualshock4Input_R1,
+        Dualshock4Input_L2,
+        Dualshock4Input_R2,
+        Dualshock4Input_L3,
+        Dualshock4Input_R3,
+        Dualshock4Input_Share,
+        Dualshock4Input_Options,
+        Dualshock4Input_Ps,
+        Dualshock4Input_DpadUp,
+        Dualshock4Input_DpadDown,
+        Dualshock4Input_DpadLeft,
+        Dualshock4Input_DpadRight,
+        Dualshock4Input_TouchpadLeft,
+        Dualshock4Input_TouchpadCentre,
+        Dualshock4Input_TouchpadRight,
+        Dualshock4Input_Count
+    };
+
     struct MissionControlConfig {
         struct {
             bool enable_rumble;
@@ -39,10 +64,23 @@ namespace ams::mitm {
             bool dualsense_enable_player_leds;
             int dualsense_vibration_intensity;
             int dualsense_adaptive_trigger_travel;
+            // Custom Dualshock 4 lightbar colours as 0xRRGGBB, or -1 if unset.
+            // Index 0 applies to all players, indices 1-8 override it for that player number.
+            int dualshock4_lightbar_colour[9];
+            // What each Dualshock 4 input is mapped to, as a bitmask of controller::SwitchButton values (0 = unbound).
+            // Indexed by Dualshock4Input.
+            u32 dualshock4_button_map[Dualshock4Input_Count];
         } misc;
     };
 
     void LoadConfiguration();
+
+    // Called from the main loop several times a second. Re-reads the ini file when its contents have changed.
+    void PollConfigurationReload();
+
+    // Incremented every time a new configuration has been loaded, so that long-lived objects can notice and refresh
+    u32 GetConfigurationGeneration();
+
     MissionControlConfig *GetGlobalConfig();
     SetLanguage GetSystemLanguage();
 
