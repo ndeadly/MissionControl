@@ -7,6 +7,8 @@
 !/tests/advertising_regression.cpp
 !/tests/gatt_regression.cpp
 !/tests/gatt_shim/
+!/tests/profile_regression.cpp
+!/tests/profile_shim/
 dist/
 mc_mitm/build/
 mc_mitm/out/

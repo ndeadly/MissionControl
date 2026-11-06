@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ble_profile.hpp"
+#include "ble_log.hpp"
 #include <cstdio>
 #include <algorithm>
 
@@ -30,6 +31,7 @@ namespace ams::ble::profile {
 
         constinit u64 g_total_reports = 0;
         constinit u64 g_window_reports = 0;
+        constinit u64 g_window_intervals = 0;
         constinit s64 g_last_arrival_tick = 0;
 
         constinit s64 g_min_delta_us = 0;
@@ -47,6 +49,7 @@ namespace ams::ble::profile {
         struct ProfileSnapshot {
             u64 total_reports;
             u64 window_reports;
+            u64 window_intervals;
             s64 min_delta_us;
             s64 max_delta_us;
             s64 sum_delta_us;
@@ -72,7 +75,7 @@ namespace ams::ble::profile {
             const u32 interval_f = snap.conn_interval > 0 ? (static_cast<u32>(snap.conn_interval) * 125) % 100 : 0;
             const u32 interval_hz = snap.conn_interval > 0 ? (800 / snap.conn_interval) : 0;
 
-            const u64 avg_delta_us = snap.sum_delta_us / snap.window_reports;
+            const u64 avg_delta_us = snap.window_intervals ? snap.sum_delta_us / snap.window_intervals : 0;
             const u32 avg_delta_w = static_cast<u32>(avg_delta_us / 1000);
             const u32 avg_delta_f = static_cast<u32>((avg_delta_us % 1000) / 10);
 
@@ -90,12 +93,12 @@ namespace ams::ble::profile {
                 "Total Reports Processed : %lu\n"
                 "Current Sample Window   : %lu reports\n"
                 "\n"
-                "Negotiated BLE Link Parameters:\n"
+                "Most Recently Updated BLE Link Parameters:\n"
                 "  Connection Interval  : %u.%02u ms (%u Hz) [raw: %u]\n"
                 "  Slave Latency        : %u (events peripheral may skip)\n"
                 "  Supervision Timeout  : %u ms\n"
                 "\n"
-                "Packet Arrival Cadence (Radio Link Timing):\n"
+                "Packet Arrival Cadence (combined stream from all BLE pads):\n"
                 "  Min Interval : %u.%02u ms\n"
                 "  Avg Interval : %u.%02u ms (%u reports/sec)\n"
                 "  Max Interval : %u.%02u ms\n"
@@ -104,6 +107,7 @@ namespace ams::ble::profile {
                 "  Min Processing Time : %ld us\n"
                 "  Avg Processing Time : %u us\n"
                 "  Max Processing Time : %ld us\n"
+                "This is not per-controller or end-to-end input latency.\n"
                 "=====================================================\n\n",
                 snap.total_reports, snap.window_reports,
                 interval_w, interval_f, interval_hz, snap.conn_interval,
@@ -120,18 +124,30 @@ namespace ams::ble::profile {
             }
 
             fs::FileHandle file;
-            if (R_FAILED(fs::OpenFile(std::addressof(file), ProfileFilePath, fs::OpenMode_Write))) {
+            Result rc = fs::OpenFile(std::addressof(file), ProfileFilePath, fs::OpenMode_Write);
+            if (R_FAILED(rc)) {
+                log::Write("BLE profile: open failed rc=0x%x", rc.GetValue());
                 return;
             }
             ON_SCOPE_EXIT { fs::CloseFile(file); };
 
-            static_cast<void>(fs::WriteFile(file, 0, buffer, std::min<size_t>(len, sizeof(buffer)), fs::WriteOption::Flush));
+            // OpenMode_Write cannot extend a file. Resize first, also removing
+            // stale text when a later summary is shorter. Exclude the NUL byte.
+            const size_t length = std::min<size_t>(len, sizeof(buffer) - 1);
+            rc = fs::SetFileSize(file, length);
+            if (R_FAILED(rc)) {
+                log::Write("BLE profile: resize failed rc=0x%x", rc.GetValue());
+                return;
+            }
+            rc = fs::WriteFile(file, 0, buffer, length, fs::WriteOption::Flush);
+            if (R_FAILED(rc)) log::Write("BLE profile: write failed rc=0x%x", rc.GetValue());
         }
 
         ProfileSnapshot CaptureCurrentWindowLocked() {
             return ProfileSnapshot{
                 .total_reports    = g_total_reports,
                 .window_reports   = g_window_reports,
+                .window_intervals = g_window_intervals,
                 .min_delta_us     = g_min_delta_us,
                 .max_delta_us     = g_max_delta_us,
                 .sum_delta_us     = g_sum_delta_us,
@@ -153,7 +169,12 @@ namespace ams::ble::profile {
         static_cast<void>(fs::CreateDirectory("sdmc:/config/MissionControl"));
 
         static_cast<void>(fs::DeleteFile(ProfileFilePath));
-        static_cast<void>(fs::CreateFile(ProfileFilePath, 0));
+        Result rc = fs::CreateFile(ProfileFilePath, 0);
+        if (R_FAILED(rc)) {
+            log::Write("BLE profile: create failed rc=0x%x", rc.GetValue());
+            g_enabled = false;
+            return;
+        }
 
         Reset();
         g_enabled = true;
@@ -184,7 +205,7 @@ namespace ams::ble::profile {
         std::scoped_lock lk(g_lock);
         if (g_last_arrival_tick > 0) {
             const s64 delta_us = os::Tick(now_tick - g_last_arrival_tick).ToTimeSpan().GetMicroSeconds();
-            if (g_window_reports == 0) {
+            if (g_window_intervals == 0) {
                 g_min_delta_us = delta_us;
                 g_max_delta_us = delta_us;
                 g_sum_delta_us = delta_us;
@@ -193,6 +214,7 @@ namespace ams::ble::profile {
                 g_max_delta_us = std::max(g_max_delta_us, delta_us);
                 g_sum_delta_us += delta_us;
             }
+            ++g_window_intervals;
         }
         g_last_arrival_tick = now_tick;
 
@@ -225,6 +247,7 @@ namespace ams::ble::profile {
             g_pending_snapshot = CaptureCurrentWindowLocked();
             g_flush_pending = true;
             g_window_reports = 0;
+            g_window_intervals = 0;
             g_sum_delta_us = 0;
             g_min_delta_us = 0;
             g_max_delta_us = 0;
@@ -283,6 +306,7 @@ namespace ams::ble::profile {
     void Reset() {
         g_total_reports = 0;
         g_window_reports = 0;
+        g_window_intervals = 0;
         g_last_arrival_tick = 0;
         g_min_delta_us = 0;
         g_max_delta_us = 0;

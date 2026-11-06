@@ -509,7 +509,7 @@ namespace ams::ble {
 
             // Initialize settings and storage before the input thread can see this controller.
             controller::AttachVirtualController(controller);
-            g_radio_recovery.Connected();
+            g_radio_recovery.Connected(std::to_array(slot.address.address));
             for (auto &failure : g_pairing_failures) {
                 if (AddressEqual(failure.address, slot.address)) failure = {};
             }
@@ -685,7 +685,7 @@ namespace ams::ble {
 
             g_host_slots[slot].state = BleDeviceSlot::State::Pairing;
             if (!Pair(slot, address)) {
-                g_radio_recovery.Request();
+                g_radio_recovery.PairingFailed(std::to_array(address.address));
                 NotePairingFailure(address);
                 log::Write("slot %u: backing off for %lds before trying to pair again", slot, PairingRetryBackoff.GetSeconds());
                 DismissSlot(slot);
@@ -721,26 +721,45 @@ namespace ams::ble {
             PresentSlot(slot);
         }
 
-        void RecoverRadioIfNeeded() {
-            if (!g_radio_recovery.Begin(mitm::GetGlobalConfig()->ble.radio_cycle,
-                    events::IsPairingWindowOpen(), events::IsRadioEnabled(), events::GetActiveConnectionCount())) return;
+        bool RecoverRadioIfNeeded() {
+            if (!g_radio_recovery.WaitingForClients()) {
+                if (!g_radio_recovery.Begin(mitm::GetGlobalConfig()->ble.radio_cycle,
+                        events::IsPairingWindowOpen(), events::IsRadioEnabled(), events::GetActiveConnectionCount())) return true;
 
-            const u32 generation = events::GetClientRegistrationGeneration();
-            Result rc = btdrvEmulateBluetoothCrash(BtdrvFatalReason_Unknown1);
-            log::Write("BLE pairing recovery: radio cycle rc=0x%x", rc.GetValue());
-            if (R_FAILED(rc)) return;
+                // All controller routes and old GATT subscriptions must be gone
+                // before the stack can reuse its connection/client identifiers.
+                log::Write("BLE pairing recovery: dismissing %zu active BLE controllers", GetConnectedCount());
+                DisconnectAll();
+                if (!events::IsRadioEnabled() || !events::IsPairingWindowOpen()) {
+                    g_radio_recovery.Defer();
+                    return false;
+                }
 
-            // Wait for newly registered clients, never reuse pre-reset handles.
-            const bool ready = events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(8), nullptr, [&](const EventRecord &) {
-                return !events::IsRadioEnabled() ||
-                    ((events::GetClientRegistrationGeneration() != generation) && (events::GetAvailableClientIfCount() > 0));
-            });
-            if (ready && events::IsRadioEnabled()) {
-                for (auto &failure : g_pairing_failures) failure = {};
-                log::Write("BLE pairing recovery: new GATT clients available");
-            } else {
-                log::Write("BLE pairing recovery: waiting for stack bring-up failed");
+                const u32 generation = events::GetClientRegistrationGeneration();
+                Result rc = btdrvEmulateBluetoothCrash(BtdrvFatalReason_Unknown1);
+                log::Write("BLE pairing recovery: radio cycle rc=0x%x", rc.GetValue());
+                if (R_FAILED(rc)) return true;
+                g_radio_recovery.AwaitClients(generation);
+                g_hid_data_path_generation = UINT32_MAX;
             }
+
+            // A timeout must not resume scanning with stale client handles. Keep
+            // waiting on later coordinator passes without issuing another reset.
+            events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(8), nullptr, [&](const EventRecord &) {
+                return !events::IsRadioEnabled() || g_radio_recovery.AcceptClients(
+                    events::GetClientRegistrationGeneration(), events::GetAvailableClientIfCount());
+            });
+            if (g_radio_recovery.WaitingForClients() || !events::IsRadioEnabled()) {
+                log::Write("BLE pairing recovery: still waiting for fresh GATT clients");
+                return false;
+            }
+
+            for (auto &failure : g_pairing_failures) failure = {};
+            log::Write("BLE pairing recovery: new GATT clients available; hold Xbox sync buttons to pair again");
+            // Give Classic controllers time to reconnect before BLE scanning
+            // competes with their connection setup on the shared stack.
+            events::Pump(TimeSpan::FromSeconds(12));
+            return true;
         }
 
         /* Coordinator loop */
@@ -750,7 +769,7 @@ namespace ams::ble {
             bluetooth::ble::WaitInitialized();
 
             os::SleepThread(TimeSpan::FromSeconds(20));
-            log::Write("starting multi-device BLE host (gatt-fix-r3, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
+            log::Write("starting multi-device BLE host (reconnect-fix-r4, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
 
             if (R_FAILED(PrepareClient())) {
                 log::Write("giving up: no gatt client available");
@@ -764,7 +783,7 @@ namespace ams::ble {
                 WaitForRadio();
                 ProcessPendingDisconnections();
                 profile::FlushIfDue();
-                RecoverRadioIfNeeded();
+                if (!RecoverRadioIfNeeded()) continue;
 
                 if ((events::IsPairingWindowOpen() || events::HasAdoptedConnection()) && events::IsRadioEnabled() && (GetConnectedCount() < MaxBleControllers)) {
                     ScanAndPairNextController();

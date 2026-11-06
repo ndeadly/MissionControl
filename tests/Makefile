@@ -14,3 +14,8 @@ test:
 	cp ../mc_mitm/source/ble/ble_gatt.cpp ../mc_mitm/source/ble/ble_gatt.hpp gatt_shim/* $(BUILD_DIR)/gatt/
 	$(CXX) $(CXXFLAGS) -I$(BUILD_DIR)/gatt gatt_regression.cpp -o $(BUILD_DIR)/gatt_regression
 	$(BUILD_DIR)/gatt_regression
+
+	mkdir -p $(BUILD_DIR)/profile
+	cp ../mc_mitm/source/ble/ble_profile.cpp ../mc_mitm/source/ble/ble_profile.hpp profile_shim/* $(BUILD_DIR)/profile/
+	$(CXX) $(CXXFLAGS) -I$(BUILD_DIR)/profile profile_regression.cpp -o $(BUILD_DIR)/profile_regression
+	$(BUILD_DIR)/profile_regression
