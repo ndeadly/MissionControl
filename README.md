@@ -111,12 +111,12 @@ Model **1708** uses the normal Classic Bluetooth path on legacy firmware, and th
 
 The `[ble]` options are:
 
-* `radio_cycle`: Opt into stack recovery in Change Grip/Order. A controller turning off waits for other BLE players to disconnect; a **failed pairing can trigger recovery with other BLE pads still connected**. Recovery drops all Bluetooth links, including Joy-Cons/Pro Controllers. Hold the Xbox sync buttons again after the reset, starting with the pad that failed. The host waits for fresh GATT clients and gives Classic controllers 12 seconds to reconnect before resuming BLE scans. After a failed-pairing recovery, only that address successfully reconnecting rearms automatic recovery; another pad reconnecting cannot cause a reset loop. If the target never reconnects, further automatic resets remain blocked for that boot. This uses the recovery API reported in [the follow-up to the original probe](https://github.com/ferrolho/MissionControl/pull/1); revision 4 still needs on-console validation. Default false; enabled in the workspace's ready-to-use config.
+* `radio_cycle`: Recover a refused pairing in Change Grip/Order once **all BLE links are down**. A failed third pad will not disconnect working BLE players. The shared-radio reset can briefly interrupt Nintendo/Classic controllers. Recovery is limited to once per minute, then waits for fresh GATT clients and a 12-second Classic reconnect interval. If re-pairing remains refused, switch off all Xbox BLE pads, reopen Change Grip/Order and hold sync again after recovery. Default false; enabled in the workspace config. The stack-reset workaround comes from [the probe follow-up](https://github.com/ferrolho/MissionControl/pull/1); it is not persistent Secure Connections bonding.
 * `low_latency`: Request 7.5–11.25 ms with one BLE controller, 15 ms with multiple BLE controllers, and 20–25 ms when four or more controllers share Classic/BLE airtime. BLE input priority is -10; Classic input remains at -11. These are requested radio intervals, not guaranteed end-to-end latency. Default false.
 * `profile`: Collect aggregate report timing and write it after every 500 reports. It includes timer and mutex overhead; SD writes run on the coordinator. With multiple pads its arrival statistics describe the combined stream, not an individual controller. Default false.
 * `log`: Verbose Bluetooth LE stack diagnostics written to SD. Leave this and profiling disabled for normal play. Default false.
 
-Power-button-only reconnection is still limited by the original legacy-pairing implementation. Use the sync button. Switch controllers off before console sleep; this change does not add the separate sleep/wake fix from the follow-up probe.
+Power-button-only reconnection is still limited by the original legacy-pairing implementation. Use the sync button. Revision 5 closes BLE links before acknowledging console sleep; use sync to pair again after wake. The controller cannot wake the console.
 
 #### Xbox stick deadzones
 
@@ -351,7 +351,7 @@ git clone --recurse-submodules https://github.com/ndeadly/MissionControl.git
 cd MissionControl
 ```
 
-Finally, run the make command. This will build `libstratosphere` before building the `mc.mitm` sysmodule and packaging it up in a .zip archive along with the rest of the supporting files ready for installation. The resulting package can be installed as described in the installation section above.
+Finally, run the make command. This stages the pinned `libnx` source in `build_libnx/libnx` (refreshing it when the pin changes), then builds `libstratosphere` before building the `mc.mitm` sysmodule and packaging it up in a .zip archive along with the rest of the supporting files ready for installation. The resulting package can be installed as described in the installation section above.
 ```
 make dist
 ```

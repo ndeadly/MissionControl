@@ -2,6 +2,7 @@
 namespace ams::ble::gatt { void OnEvent(const EventRecord &); }
 namespace ams::ble::events {
 inline bool disconnected = false, radio = true, completed = true;
+inline bool disconnect_on_wait = false, sleep_on_wait = false;
 inline u32 failure = 0;
 inline u64 now_ms = 0;
 struct ScheduledRecord { u64 at_ms; EventRecord event; };
@@ -16,7 +17,11 @@ inline bool IsSlotDisconnected(u32) { return disconnected; }
 inline bool IsRadioEnabled() { return radio; }
 inline u32 GetGattFailure(u32) { return failure; }
 inline u32 GetGattResultCount(u32) { return 0; }
-inline bool WaitForGattResult(u32, u32, TimeSpan) { return completed && !disconnected; }
+inline bool WaitForGattResult(u32, u32, TimeSpan) {
+    if (disconnect_on_wait) disconnected = true;
+    if (sleep_on_wait) radio = false;
+    return completed && !disconnected && radio;
+}
 template<typename F> bool WaitFor(int want, TimeSpan timeout, EventRecord *out, F predicate) {
     const auto deadline = now_ms + timeout.milliseconds;
     for (;;) {

@@ -25,6 +25,10 @@ namespace ams::os {
     struct TimeSpan {
         s64 microseconds;
         s64 GetMicroSeconds() const { return microseconds; }
+        static TimeSpan FromSeconds(s64 seconds) { return {seconds * 1000000}; }
+        static TimeSpan FromMilliSeconds(s64 ms) { return {ms * 1000}; }
+        TimeSpan operator+(TimeSpan other) const { return {microseconds + other.microseconds}; }
+        bool operator>=(TimeSpan other) const { return microseconds >= other.microseconds; }
     };
     struct Tick {
         s64 value;
@@ -33,7 +37,14 @@ namespace ams::os {
         TimeSpan ToTimeSpan() const { return {value}; }
     };
     inline Tick GetSystemTick() { return Tick(now_us); }
+    inline void (*sleep_hook)() = nullptr;
+    inline void SleepThread(TimeSpan duration) {
+        now_us += duration.microseconds;
+        if (sleep_hook) sleep_hook();
+    }
 }
+
+namespace ams { using TimeSpan = os::TimeSpan; }
 
 namespace ams::fs {
     struct FileHandle { int mode; };

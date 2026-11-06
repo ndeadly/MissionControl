@@ -33,5 +33,6 @@ namespace ams::ble::profile {
     void FlushIfDue();
     void FlushNow();
     void Reset();
+    void BeginSession();
 
 }

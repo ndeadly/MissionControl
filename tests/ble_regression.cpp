@@ -86,71 +86,32 @@ static void TestSticks() {
 }
 
 static void TestRecovery() {
-    using Address = std::array<uint8_t, 6>;
-    constexpr Address first{0x40, 0x8e, 0x2c, 0x7a, 0x3a, 0x9a};
-    constexpr Address failed{0x14, 0xcb, 0x65, 0xe8, 0x2b, 0xe2};
-    constexpr Address other{0x10, 0xc7, 0x35, 0xb5, 0x63, 0x19};
     ams::ble::RadioRecovery recovery;
-    assert(!recovery.Begin(true, true, true, 0));
+    assert(!recovery.Begin(true, true, true, 0, 0));
     recovery.Request();
-    assert(!recovery.Begin(false, true, true, 0));
-    assert(!recovery.Begin(true, false, true, 0));
-    assert(!recovery.Begin(true, true, false, 0));
-    assert(!recovery.Begin(true, true, true, 1));
-    assert(recovery.Begin(true, true, true, 0));
-    recovery.Request();
-    assert(!recovery.Begin(true, true, true, 0));
-    recovery.Connected(first);
-    assert(!recovery.Begin(true, true, true, 0)); // successful recovery clears stale requests
-    recovery.Request();
-    assert(!recovery.Begin(true, true, true, 3));
-    assert(recovery.Begin(true, true, true, 0));
-
-    // Replay the supplied trace: two pads turn off, one stays connected, and
-    // 14:cb refuses a new bond. Recovery must no longer wait for the last pad.
-    recovery = {};
-    recovery.Connected(first);
-    recovery.Connected(failed);
-    recovery.Connected(other);
-    recovery.Request();
-    recovery.Request();
-    assert(!recovery.Begin(true, true, true, 1));
-    recovery.PairingFailed(failed);
-    assert(!recovery.Begin(false, true, true, 1));
-    assert(!recovery.Begin(true, false, true, 1));
-    assert(!recovery.Begin(true, true, false, 1));
-    assert(recovery.Begin(true, true, true, 1));
+    assert(!recovery.Begin(false, true, true, 0, 0));
+    assert(!recovery.Begin(true, false, true, 0, 0));
+    assert(!recovery.Begin(true, true, false, 0, 0));
+    // Trace at 191s: the third pad failed, but two working pads must stay up.
+    assert(!recovery.Begin(true, true, true, 2, 191000));
+    assert(!recovery.Begin(true, true, true, 1, 192000));
+    assert(recovery.Begin(true, true, true, 0, 193000));
     recovery.AwaitClients(42);
-    assert(recovery.WaitingForClients());
-    assert(!recovery.AcceptClients(42, 4)); // pre-reset clients, including after timeout
-    assert(!recovery.AcceptClients(43, 0)); // generation changed but no usable client
-    recovery.Request(); // reset-induced disconnect must not trigger a second reset
-    assert(!recovery.Begin(true, true, true, 0));
+    assert(!recovery.AcceptClients(42, 4));
+    assert(!recovery.AcceptClients(43, 0));
+    recovery.Request();
+    assert(!recovery.Begin(true, true, true, 0, 253000));
     assert(recovery.AcceptClients(46, 4));
     assert(!recovery.WaitingForClients());
-
-    // The other pad's success must not rearm resets for the failing pad.
-    recovery.Connected(other);
-    recovery.PairingFailed(failed);
-    assert(!recovery.Begin(true, true, true, 1));
-    recovery.PairingFailed(first); // cannot replace the recovery target
-    recovery.Connected(first);
-    assert(!recovery.Begin(true, true, true, 2));
-    recovery.Connected(failed);
-    assert(!recovery.Begin(true, true, true, 3));
-    recovery.PairingFailed(other);
-    assert(recovery.Begin(true, true, true, 2));
-
-    // Leaving Grip/Order or sleeping during teardown postpones the reset.
-    recovery.Defer();
-    assert(!recovery.Begin(true, false, true, 0));
-    assert(!recovery.Begin(true, true, false, 0));
-    assert(recovery.Begin(true, true, true, 0));
-
-    recovery = {};
-    recovery.PairingFailed(failed);
-    recovery.Connected(failed); // succeeds before the deferred reset was needed
-    assert(!recovery.Begin(true, true, true, 0));
+    // A failed target must not lock recovery forever (observed at 12846s).
+    assert(!recovery.Begin(true, true, true, 0, 252999));
+    assert(recovery.Begin(true, true, true, 0, 253000));
+    recovery.Request();
+    assert(!recovery.Begin(true, true, true, 2, 12846000));
+    assert(recovery.Begin(true, true, true, 0, 12846000));
+    recovery.Request();
+    recovery.Sleep();
+    assert(!recovery.Begin(true, true, true, 0, 13000000)); // intentional sleep is not a failure
 }
 
 int main() {

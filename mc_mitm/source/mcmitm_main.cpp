@@ -17,6 +17,7 @@
 #include <stratosphere.hpp>
 #include "mcmitm_initialization.hpp"
 #include "ble/ble_events.hpp"
+#include "ble/ble_sleep.hpp"
 #include "mcmitm_config.hpp"
 #include "mcmitm_process_monitor.hpp"
 
@@ -93,7 +94,7 @@ namespace ams {
 
         // Initialise pm module
         psc::PmModuleId pm_module_id = static_cast<psc::PmModuleId>(0xBD);
-        const psc::PmModuleId pm_dependencies[] = { psc::PmModuleId_Fs };
+        const psc::PmModuleId pm_dependencies[] = { psc::PmModuleId_Fs, psc::PmModuleId_Bluetooth };
         psc::PmModule pm_module;
         psc::PmState pm_state;
         psc::PmFlagSet pm_flags;
@@ -126,6 +127,10 @@ namespace ams {
                     pm_module.GetEventPointer()->Clear();
                     if (R_SUCCEEDED(pm_module.GetRequest(&pm_state, &pm_flags))) {
                         switch (pm_state) {
+                            case psc::PmState_MinimumAwake:
+                                // Disconnect while Bluetooth is still awake, before acknowledging PSC.
+                                ams::ble::PrepareForSleep();
+                                break;
                             case psc::PmState_ShutdownReady:
                                 shutdown = true;
                                 [[fallthrough]];

@@ -5,6 +5,12 @@ THIS_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIRECTORY := $(abspath $(dir $(THIS_MAKEFILE)))
 include $(dir $(abspath $(lastword $(MAKEFILE_LIST))))/../lib/Atmosphere-libs/config/templates/stratosphere.mk
 
+# Keep the local libnx/toolchain integration here, so Atmosphere-libs can use
+# an unmodified upstream commit. Preserve the deferred automatic map filename.
+ifeq ($(ATMOSPHERE_BOARD),nx-hac-001)
+export LDFLAGS = -specs=$(ATMOSPHERE_LIBRARIES_DIR)/libstratosphere/stratosphere.specs -specs=$(if $(LIBNX),$(LIBNX),$(DEVKITPRO)/libnx)/switch.specs $(CXXFLAGS) $(CXXWRAPS) $(CXXREQUIRED) -Wl,-Map,$(notdir $*.map) -Wl,-z,relro,-z,now -Wl,-z,notext
+endif
+
 ATMOSPHERE_SYSTEM_MODULE_TARGETS := nsp
 
 #---------------------------------------------------------------------------------

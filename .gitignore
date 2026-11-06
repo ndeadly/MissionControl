@@ -9,6 +9,8 @@
 !/tests/gatt_shim/
 !/tests/profile_regression.cpp
 !/tests/profile_shim/
+!/tests/sleep_regression.cpp
+!/tests/sleep_shim/
 dist/
 mc_mitm/build/
 mc_mitm/out/

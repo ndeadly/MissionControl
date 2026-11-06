@@ -48,6 +48,15 @@ int main() {
     assert(fs::contents.ends_with("=====================================================\n\n")); // no stale suffix
     assert(fs::contents.find('\0') == std::string::npos);
 
+    // Reconnecting after a long idle/sleep gap starts a fresh cadence window,
+    // while the boot-wide report counter remains intact.
+    profile::BeginSession();
+    Report(180000000, 5);
+    Report(180015000, 5);
+    profile::FlushNow();
+    assert(fs::contents.find("Total Reports Processed : 3\n") != std::string::npos);
+    assert(fs::contents.find("Max Interval : 15.00 ms") != std::string::npos);
+
     // Report each filesystem failure and close every successful open.
     fs::fail_resize = true;
     auto writes_before = fs::writes;

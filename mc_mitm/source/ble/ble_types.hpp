@@ -30,8 +30,8 @@ namespace ams::ble {
     constexpr u8 BleConnectionStatus_Connected      = 0;
     constexpr u8 BleConnectionStatus_Disconnected   = 2;
     constexpr u8 BleScanStatus_NewDevice            = 2;
-    constexpr u8 GattNotifyType_WriteCharacteristic = 1;
-    constexpr u8 GattNotifyType_Notification        = 4;
+    constexpr u8 GattNotifyType_WriteCharacteristic = BtdrvGattOperationType_CharacteristicWrite;
+    constexpr u8 GattNotifyType_Notification        = BtdrvGattOperationType_Notification;
 
     /* Bluetooth SIG assigned numbers for HID over GATT (HOGP) */
     constexpr u16 GattServiceHid           = 0x1812;

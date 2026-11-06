@@ -43,6 +43,7 @@ namespace ams::ble::events {
         constinit os::SdkMutex g_lock;
         os::Event g_ring_event(os::EventClearMode_AutoClear);
         os::Event g_radio_event(os::EventClearMode_ManualClear);
+        os::Event g_sleep_prepared_event(os::EventClearMode_ManualClear);
         std::atomic<bool> g_controller_count_changed{false};
 
         /* Guarded by g_lock */
@@ -81,6 +82,9 @@ namespace ams::ble::events {
 
         constinit bool g_radio_enabled = false;
         constinit bool g_radio_cycled = false;
+        constinit bool g_power_awake = true;
+        constinit bool g_preparing_sleep = false;
+        constinit bool g_sleep_cleanup_pending = false;
 
         constinit s64 g_inquiry_started_tick = 0;
 
@@ -337,6 +341,7 @@ namespace ams::ble::events {
         if (type == BtdrvBleEventType_ClientConnection) {
             auto &connection = info->client_connection;
             const bool connected = (connection.result == 0) && (connection.status == BleConnectionStatus_Connected);
+            if (!connected && g_adopted && connection.conn_id == g_adopted_conn_id) g_adopted = false;
 
             if (!connected && (connection.conn_id == InvalidConnId) && (connection.client_if == InvalidClientIf)) {
                 // Stack-wide BLE teardown/reset (e.g. result=55 status=2 client_if=255 conn_id=0xFFFFFFFF)
@@ -444,6 +449,7 @@ namespace ams::ble::events {
         if (!is_ours) {
             return false;
         }
+        if (!IsRadioEnabled()) return true; // do not restart security while suspending/asleep
 
         if (type == BtdrvEventType_SspRequest) {
             auto &request = info->ssp_request.v12;
@@ -474,8 +480,8 @@ namespace ams::ble::events {
     void TakeOwnership() {
         std::scoped_lock lk(g_lock);
         g_owns_ble = true;
-        g_radio_enabled = true;
-        g_radio_event.Signal();
+        g_radio_enabled = g_power_awake;
+        if (g_radio_enabled) g_radio_event.Signal();
     }
 
     void SetRegistering(bool registering) {
@@ -577,6 +583,7 @@ namespace ams::ble::events {
 
     void SetRadioEnabled(bool enabled) {
         std::scoped_lock lk(g_lock);
+        g_power_awake = enabled;
         if (enabled) {
             if (!g_radio_enabled) {
                 g_radio_cycled = true;
@@ -593,6 +600,52 @@ namespace ams::ble::events {
     bool IsRadioEnabled() {
         std::scoped_lock lk(g_lock);
         return g_radio_enabled;
+    }
+
+    bool BeginSleep() {
+        std::scoped_lock lk(g_lock);
+        g_preparing_sleep = true;
+        g_sleep_cleanup_pending = true;
+        g_sleep_prepared_event.Clear();
+        g_power_awake = g_radio_enabled = false;
+        g_radio_event.Clear();
+        for (u32 slot = 0; slot < MaxBleControllers; ++slot) UnregisterSlotController(slot);
+        g_ring_event.Signal();
+        return g_owns_ble;
+    }
+
+    void EndSleep() {
+        std::scoped_lock lk(g_lock);
+        g_adopted = false;
+        g_have_attempted = false;
+        g_preparing_sleep = false;
+        g_sleep_prepared_event.Signal();
+    }
+
+    SleepLink GetSleepLink(u32 slot) {
+        std::scoped_lock lk(g_lock);
+        if (slot == MaxBleControllers) {
+            return {g_adopted, InvalidClientIf, g_adopted_conn_id, g_adopted_address};
+        }
+        const auto &link = g_slots[slot];
+        const u8 client_if = slot < g_client_if_count ? g_available_client_ifs[slot] :
+            g_client_if_count > 0 ? g_available_client_ifs[0] : g_spare_client_if;
+        return {link.active && !link.disconnected, client_if, link.conn_id, link.address};
+    }
+
+    void WaitForSleepPreparation() {
+        {
+            std::scoped_lock lk(g_lock);
+            if (!g_preparing_sleep) return;
+        }
+        g_sleep_prepared_event.Wait();
+    }
+
+    bool TakeSleepCleanup() {
+        std::scoped_lock lk(g_lock);
+        const bool pending = g_sleep_cleanup_pending;
+        g_sleep_cleanup_pending = false;
+        return pending;
     }
 
     void WaitRadioEnabled() {
@@ -723,7 +776,7 @@ namespace ams::ble::events {
                 auto &notify = info.client_notify;
                 char chr[0x40];
                 FormatUuid(notify.char_uuid, chr, sizeof(chr));
-                log::Write("evt ClientNotify result=%u conn_id=%u type=%u char=%s size=%u", notify.result, notify.conn_id, notify.type, chr, notify.size);
+                log::Write("evt ClientNotify result=%u conn_id=%u type=%u char=%s size=%u", notify.result, notify.conn_id, notify.op_type, chr, notify.size);
                 break;
             }
             case BtdrvBleEventType_ClientCacheSave:

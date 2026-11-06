@@ -15,6 +15,7 @@
  */
 #include "xbox_one_ble_controller.hpp"
 #include "controller_management.hpp"
+#include "../ble/ble_events.hpp"
 #include <algorithm>
 #include <stratosphere.hpp>
 
@@ -146,6 +147,7 @@ namespace ams::controller {
     }
 
     Result XboxOneBleController::WriteDataReport(const void *report_buffer, size_t size) {
+        R_UNLESS(ble::events::IsRadioEnabled(), svc::ResultInvalidState());
         if (!m_has_output_report) {
             R_SUCCEED();
         }

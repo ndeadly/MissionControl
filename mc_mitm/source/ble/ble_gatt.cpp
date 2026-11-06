@@ -161,10 +161,12 @@ namespace ams::ble::gatt {
         };
         const auto disconnected = [&](const EventRecord &) { return link_lost(); };
 
-        // Preserve the probe's connection setup sequence. An accepted cache
-        // query immediately after connection need not emit any attributes.
+        // Wait for fresh discovery before querying. Fall back to the original
+        // two-second settle if the stack is using its cache or emits no event.
         // Do not gate CreateBond on an attribute table that may arrive later.
-        events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(2), nullptr, disconnected);
+        events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(2), nullptr, [&](const EventRecord &) {
+            return link_lost() || !s.replace_pending; // first fresh cache chunk, not a reused address cache
+        });
         R_UNLESS(!link_lost(), ResultNoConnection());
 
         Result rc = btdrvGetGattAttribute(address, conn_id);
@@ -250,6 +252,7 @@ namespace ams::ble::gatt {
                 const u32 results = events::GetGattResultCount(slot_index);
                 Result rc;
                 for (int attempt = 0; ; ++attempt) {
+                    R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
                     rc = btdrvReadGattCharacteristic(conn_id, service.is_primary, &service.id, &attr.id, BtdrvGattAuthReqType_NoMitm);
                     log::Write("btdrvReadGattCharacteristic slot=%u handle=0x%04x rc=0x%x", slot_index, attr.handle, rc.GetValue());
                     // Refused locally while the pad's connection parameter update is in flight; it clears within a second or two
@@ -260,8 +263,10 @@ namespace ams::ble::gatt {
                 }
                 R_TRY(rc);
                 // The first authenticated read may carry a whole Just Works pairing before it completes
-                R_UNLESS(events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(10)), svc::ResultTimedOut());
-                R_UNLESS(events::GetGattFailure(slot_index) == 0, ResultInsufficientAuthentication());
+                const bool completed = events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(10));
+                R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
+                R_UNLESS(completed, svc::ResultTimedOut());
+                R_UNLESS(events::GetGattFailure(slot_index) == 0, svc::ResultInvalidState());
             }
         }
 
@@ -294,15 +299,16 @@ namespace ams::ble::gatt {
 
             R_TRY(rc);
 
-            // The write's asynchronous result is the subscription's: an error means the link never encrypted
+            // The asynchronous write must complete successfully before presenting the pad.
             const u32 results = events::GetGattResultCount(slot_index);
             const u8 enable_notifications[2] = { 0x01, 0x00 };
             rc = btdrvWriteGattDescriptor(conn_id, service.is_primary, &service.id, &attr.id, &cccd->id, enable_notifications, sizeof(enable_notifications), BtdrvGattAuthReqType_NoMitm);
             log::Write("btdrvWriteGattDescriptor(CCCD) slot=%u handle=0x%04x rc=0x%x", slot_index, cccd->handle, rc.GetValue());
             R_TRY(rc);
-            R_UNLESS(events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(2)), svc::ResultTimedOut());
-            R_UNLESS(!events::IsSlotDisconnected(slot_index), ResultNoConnection());
-            R_UNLESS(events::GetGattFailure(slot_index) == 0, ResultInsufficientAuthentication());
+            const bool completed = events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(2));
+            R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
+            R_UNLESS(completed, svc::ResultTimedOut());
+            R_UNLESS(events::GetGattFailure(slot_index) == 0, svc::ResultInvalidState());
             result = ResultSuccess();
         }
 

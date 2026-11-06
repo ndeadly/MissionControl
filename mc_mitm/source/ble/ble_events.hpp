@@ -92,6 +92,18 @@ namespace ams::ble::events {
     void WaitRadioEnabled();
     bool TakeRadioCycled();
 
+    struct SleepLink {
+        bool active;
+        u8 client_if;
+        u32 conn_id;
+        bluetooth::Address address;
+    };
+    bool BeginSleep();
+    void EndSleep();
+    SleepLink GetSleepLink(u32 slot); // MaxBleControllers selects the queued adopted link
+    void WaitForSleepPreparation();
+    bool TakeSleepCleanup();
+
     // GATT clients btm registered, usable as ours since btm never connects with them on a retail console
     u8 GetSpareClientIf();
     u8 GetClientIfForSlot(u32 slot);

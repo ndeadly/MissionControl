@@ -2,6 +2,7 @@ PROJECT_NAME := MissionControl
 MC_MITM_TID := 010000000000bd00
 
 export LIBNX ?= $(CURDIR)/build_libnx/libnx
+LIBNX_REVISION := $(shell git -C lib/libnx rev-parse HEAD)
 
 GIT_BRANCH := $(shell git symbolic-ref --short HEAD | sed s/[^a-zA-Z0-9_-]/_/g)
 GIT_HASH := $(shell git rev-parse --short HEAD)
@@ -21,8 +22,23 @@ all: $(TARGETS)
 mcmitm_version.cpp: $(GIT_HEAD) $(GIT_INDEX)
 	echo "namespace ams::mc { unsigned int mc_version = $(VERSION); const char *mc_build_name = \"$(BUILD_VERSION)\"; const char *mc_build_date = \"$(BUILD_DATE)\"; }" > mc_mitm/source/$@
 
-mc_mitm: mcmitm_version.cpp
+mc_mitm: mcmitm_version.cpp prepare_libnx
 	$(MAKE) -C $@
+
+# The system libnx package does not supply this build's staged headers/library.
+# Refresh them together when the pinned source changes; keep external LIBNX overrides.
+prepare_libnx:
+ifeq ($(abspath $(LIBNX)),$(CURDIR)/build_libnx/libnx)
+	@if test "$$(cat $(LIBNX)/.mc-revision 2>/dev/null)" != "$(LIBNX_REVISION)" || \
+	    ! test -f $(LIBNX)/lib/libnx.a || ! git -C lib/libnx diff --quiet HEAD; then \
+	    rm -rf $(CURDIR)/build_libnx/stage && \
+	    $(MAKE) -C lib/libnx/nx install DESTDIR=$(CURDIR)/build_libnx/stage && \
+	    rm -rf $(LIBNX) && \
+	    mkdir -p $(LIBNX) && \
+	    cp -a $(CURDIR)/build_libnx/stage$(DEVKITPRO)/libnx/. $(LIBNX)/ && \
+	    echo "$(LIBNX_REVISION)" > $(LIBNX)/.mc-revision; \
+	fi
+endif
 
 clean:
 	$(MAKE) -C mc_mitm clean
@@ -52,4 +68,4 @@ dist: all
 
 	cd dist; zip -r $(PROJECT_NAME)-$(BUILD_VERSION).zip ./*; cd ../;
 
-.PHONY: all clean dist $(TARGETS)
+.PHONY: all clean dist prepare_libnx $(TARGETS)

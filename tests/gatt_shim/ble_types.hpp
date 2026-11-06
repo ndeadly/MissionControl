@@ -17,6 +17,7 @@ namespace svc {
 inline Result ResultInvalidArgument() { return {1}; }
 inline Result ResultTimedOut() { return {2}; }
 inline Result ResultNotFound() { return {3}; }
+inline Result ResultInvalidState() { return {8}; }
 }
 struct TimeSpan {
     u64 milliseconds;

@@ -78,6 +78,7 @@ static void Reset(DiscoveryMode next = DiscoveryMode::AfterSettling) {
     for (auto &slot : gatt::g_slots) slot = {};
     events::queue.clear();
     events::disconnected = false;
+    events::disconnect_on_wait = events::sleep_on_wait = false;
     events::radio = events::completed = true;
     events::failure = 0;
     connected_at = events::now_ms = 0;
@@ -101,6 +102,17 @@ static void AssertSubscribed(u32 slot, u32 conn_id) {
 }
 
 int main() {
+    // Fresh discovery at 800ms allows an earlier query, while a reused cache
+    // must retain the two-second fallback. Keep the MTU and final settling.
+    Reset(DiscoveryMode::Never);
+    auto fresh = Cache(260);
+    events::Schedule(fresh, 800);
+    const ams::bluetooth::Address fresh_address{{9,8,7,6,5,4}};
+    assert(R_SUCCEEDED(gatt::Discover(0, 260, fresh_address)));
+    assert(query_times.front() == 800);
+    assert(events::now_ms == 1400);
+    AssertSubscribed(0, 260);
+
     const ams::bluetooth::Address a{{1}}, b{{2}};
     // No preloaded attribute events: the fake driver only produces them in
     // response to a request issued after connection setup has progressed.
@@ -180,6 +192,17 @@ int main() {
     assert(gatt::TakeRediscovered(1));
     assert(gatt::g_slots[1].table.count == 6);
     AssertSubscribed(1, 774);
+
+    events::failure = 26; // raw callback failure must not be labelled successful authentication
+    assert(gatt::Subscribe(1, 774, &hid).value == 8);
+    events::failure = 0;
+    events::disconnect_on_wait = true;
+    assert(gatt::Subscribe(1, 774, &hid).value == 4);
+    events::disconnect_on_wait = events::disconnected = false;
+    events::sleep_on_wait = true;
+    assert(gatt::Subscribe(1, 774, &hid).value == 4);
+    events::sleep_on_wait = false;
+    events::radio = true;
 
     register_result = {7};
     assert(gatt::Subscribe(1, 774, &hid).value == 7);

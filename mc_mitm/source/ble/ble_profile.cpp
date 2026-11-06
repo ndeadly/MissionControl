@@ -303,6 +303,14 @@ namespace ams::ble::profile {
         }
     }
 
+    void BeginSession() {
+        if (!g_enabled) return;
+        std::scoped_lock lk(g_lock);
+        const u64 total = g_total_reports;
+        Reset();
+        g_total_reports = total;
+    }
+
     void Reset() {
         g_total_reports = 0;
         g_window_reports = 0;
