@@ -19,6 +19,8 @@
 #include "ble_log.hpp"
 #include "ble_profile.hpp"
 #include "ble_results.hpp"
+#include "ble_recovery.hpp"
+#include "ble_advertising.hpp"
 #include "../mcmitm_config.hpp"
 #include "../mcmitm_initialization.hpp"
 #include "../bluetooth_mitm/bluetooth/bluetooth_ble.hpp"
@@ -47,11 +49,34 @@ namespace ams::ble {
         constexpr u32 BondTransport_Le = 2;
 
         constinit u8 g_client_if = InvalidClientIf;
+        RadioRecovery g_radio_recovery;
+        u32 g_hid_data_path_generation = UINT32_MAX;
 
         // A refused pairing leaves the stack refusing the next ones for a while, so asking again straight away
         // only keeps that going
         constexpr TimeSpan PairingRetryBackoff = TimeSpan::FromSeconds(30);
-        constinit s64 g_pairing_failed_tick = 0;
+        struct PairingFailure {
+            bluetooth::Address address = {};
+            s64 tick = 0;
+        };
+        PairingFailure g_pairing_failures[MaxBleControllers];
+
+        bool PairingBackoffActive(const bluetooth::Address &address) {
+            for (const auto &failure : g_pairing_failures) {
+                if (failure.tick && AddressEqual(failure.address, address) &&
+                    ((os::GetSystemTick() - os::Tick(failure.tick)).ToTimeSpan() < PairingRetryBackoff)) return true;
+            }
+            return false;
+        }
+
+        void NotePairingFailure(const bluetooth::Address &address) {
+            auto *oldest = &g_pairing_failures[0];
+            for (auto &failure : g_pairing_failures) {
+                if (AddressEqual(failure.address, address)) { oldest = &failure; break; }
+                if (failure.tick < oldest->tick) oldest = &failure;
+            }
+            *oldest = {address, os::GetSystemTick().GetInt64Value()};
+        }
 
         /* Multi-device slot management */
 
@@ -72,7 +97,6 @@ namespace ams::ble {
             bluetooth::Address address = {};
             gatt::HidService hid = {};
             std::shared_ptr<controller::XboxOneBleController> controller = nullptr;
-            s64 last_active_tick = 0;
         };
 
         constinit os::SdkMutex g_slots_lock;
@@ -99,6 +123,13 @@ namespace ams::ble {
             return -1;
         }
 
+        u32 FindSlotForAddress(const bluetooth::Address &address, u32 fallback) {
+            for (u32 i = 0; i < MaxBleControllers; ++i) {
+                if ((g_host_slots[i].state == BleDeviceSlot::State::Vacant) && gatt::HasCachedAddress(i, address)) return i;
+            }
+            return fallback;
+        }
+
         bool IsAddressConnected(const bluetooth::Address &address, u32 exclude_slot = InvalidSlot) {
             std::scoped_lock lk(g_slots_lock);
             for (size_t i = 0; i < MaxBleControllers; ++i) {
@@ -112,47 +143,7 @@ namespace ams::ble {
             return false;
         }
 
-        /* Advertisement parsing */
-
-        struct AdvertisementSummary {
-            char name[0x20];
-            bool has_appearance;
-            u16 appearance;
-        };
-
-        void ParseAdvertisements(const BtdrvBleAdvertisement *ad_list, u8 count, AdvertisementSummary *out) {
-            std::memset(out, 0, sizeof(*out));
-
-            count = std::min<u8>(count, 10);
-            for (u8 i = 0; i < count; ++i) {
-                auto &ad = ad_list[i];
-                size_t len = std::min<size_t>(ad.size, sizeof(ad.data));
-
-                switch (ad.type) {
-                    case BtdrvAdType_ShortenedLocalName:
-                    case BtdrvAdType_CompleteLocalName: {
-                        size_t n = std::min(len, sizeof(out->name) - 1);
-                        std::memcpy(out->name, ad.data, n);
-                        out->name[n] = '\0';
-                        break;
-                    }
-                    case BtdrvAdType_Appearance:
-                        if (len >= 2) {
-                            out->has_appearance = true;
-                            out->appearance = ad.data[0] | (ad.data[1] << 8);
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        bool IsXboxController(const AdvertisementSummary &summary) {
-            return (std::strncmp(summary.name, "Xbox", 4) == 0) || (summary.has_appearance && (summary.appearance == AppearanceGamepad));
-        }
-
-        /* LE HID event stream: lock-free demultiplexing via per-slot fast routing table */
+        /* LE HID event stream: bounded lookup with ownership across dispatch */
 
         void LeHidThreadFunc(void *) {
             Event event;
@@ -174,15 +165,17 @@ namespace ams::ble {
                 }
 
                 if (g_le_hid_record.type != BtdrvBleEventType_ClientNotify) {
-                    events::PushRecord(g_le_hid_record);
+                    // The HID data path can deliver connection lifecycle events too.
+                    // Apply them to slot state, not just to the logging/GATT queue.
+                    static_cast<void>(events::OnBleEvent(g_le_hid_record.type, &g_le_hid_record.info));
                     continue;
                 }
 
                 auto &notify = g_le_hid_record.info.client_notify;
 
-                if ((notify.type == GattNotifyType_Notification) && IsUuid16(notify.char_uuid, GattCharReport)) {
-                    // Lock-free O(1) routing via per-slot atomic lookup table (supports any 32-bit conn_id)
-                    if (auto *controller = events::GetActiveController(notify.conn_id)) {
+                if ((notify.type == GattNotifyType_Notification) && (notify.result == 0) && IsUuid16(notify.char_uuid, GattCharReport)) {
+                    // Keep the controller alive until dispatch finishes, including during disconnect.
+                    if (auto controller = events::GetActiveController(notify.conn_id)) {
                         const u64 start_tick = profile::RecordReportStart();
                         static_cast<void>(controller->HandleInputReport(notify.data, std::min<size_t>(notify.size, sizeof(notify.data))));
                         profile::RecordReportEnd(start_tick);
@@ -282,58 +275,114 @@ namespace ams::ble {
 
         /* Scanning and connection */
 
+        Result ConfigureScanFilter(u32 action) {
+            events::ExpectFilterEvent();
+            Result rc = action == 2 ? btdrvClearBleScanFilters() : btdrvEnableBleScanFilter(action == 3);
+            log::Write("scan filter request action=%u rc=0x%x", action, rc.GetValue());
+            if (R_FAILED(rc)) {
+                // A rejected IPC does not have an asynchronous completion.
+                events::CancelExpectedFilterEvent();
+                return rc;
+            }
+            EventRecord e = {};
+            const bool completed = events::WaitFor(BtdrvBleEventType_ScanFilter, TimeSpan::FromSeconds(1), &e,
+                [=](const EventRecord &r) { return r.info.scan_filter.action == action; });
+            if (!completed) log::Write("scan filter completion timed out action=%u", action);
+            R_UNLESS(completed, svc::ResultTimedOut());
+            R_UNLESS(e.info.scan_filter.result == 0, svc::ResultInvalidState());
+            R_SUCCEED();
+        }
+
         Result Scan(bluetooth::Address *out_address, TimeSpan duration) {
             events::SetScanning(true);
             ON_SCOPE_EXIT { events::SetScanning(false); };
 
-            events::ExpectFilterEvent();
-            static_cast<void>(btdrvClearBleScanFilters());
-            events::ExpectFilterEvent();
-            static_cast<void>(btdrvEnableBleScanFilter(false));
+            // Filter and scan calls complete asynchronously. Keep ownership until
+            // their completions have been drained, including when no pad is found.
+            ON_SCOPE_EXIT {
+                if (events::IsRadioEnabled()) {
+                    Result restore_rc = ConfigureScanFilter(3);
+                    if (R_FAILED(restore_rc)) log::Write("scan filter restore failed rc=0x%x", restore_rc.GetValue());
+                }
+            };
+            R_TRY(ConfigureScanFilter(2));
+            R_TRY(ConfigureScanFilter(4));
+            R_UNLESS(events::IsPairingWindowOpen() && events::IsRadioEnabled(), svc::ResultCancelled());
 
             Result rc = btdrvStartBleScan();
+            log::Write("btdrvStartBleScan rc=0x%x", rc.GetValue());
             if (R_FAILED(rc)) {
-                log::Write("btdrvStartBleScan rc=0x%x", rc.GetValue());
-                events::ExpectFilterEvent();
-                static_cast<void>(btdrvEnableBleScanFilter(true));
-                // btm's classic inquiry burst occupies the radio for ~10.24s (rc=0x2a871); back off before retrying
-                events::Pump(TimeSpan::FromSeconds(2));
+                // The observed Classic inquiry occupies the radio for 10.24 s.
+                // Retrying five times per second only floods it with filter IPCs.
+                events::Pump(TimeSpan::FromSeconds(1));
                 return rc;
             }
 
+            u32 advertisements = 0, rejected_transport = 0, rejected_identity = 0, unavailable = 0, failed = 0;
+            bluetooth::Address logged_addresses[8] = {};
+            size_t logged_count = 0;
+            bool scan_complete = false;
             EventRecord e = {};
-            const bool found = events::WaitFor(events::InvalidType, duration, &e, [](const EventRecord &r) {
+            const bool found = events::WaitFor(events::InvalidType, duration, &e, [&](const EventRecord &r) {
                 if (!events::IsPairingWindowOpen() || events::HasAdoptedConnection() || !events::IsRadioEnabled()) {
                     return true;
                 }
                 if (r.type != BtdrvBleEventType_ScanResult) {
                     return false;
                 }
-                if (r.info.scan_result.status != BleScanStatus_NewDevice) {
-                    return false;
+                const auto &scan = r.info.scan_result;
+                if (scan.status == 1) {
+                    scan_complete = true;
+                    return true;
                 }
-                if (IsAddressConnected(r.info.scan_result.address)) {
-                    return false;
+                if (scan.status != BleScanStatus_NewDevice) return false;
+                ++advertisements;
+                const auto summary = ParseAdvertisements(scan.ad_list, scan.count);
+                const char *decision = "candidate";
+                if (scan.result != 0) { ++failed; decision = "scan-error"; }
+                else if (!IsBleAdvertisement(summary, scan.device_type)) { ++rejected_transport; decision = "classic"; }
+                else if (!IsXboxCandidate(summary)) { ++rejected_identity; decision = "identity"; }
+                else if (IsAddressConnected(scan.address) || PairingBackoffActive(scan.address)) { ++unavailable; decision = "active-or-backoff"; }
+                const bool candidate = std::strcmp(decision, "candidate") == 0;
+
+                // Bound diagnostic SD writes: one detail per address (up to eight
+                // per scan), plus the selected candidate. No input-thread I/O.
+                if (log::IsEnabled() && (candidate || (logged_count < std::size(logged_addresses) &&
+                        std::none_of(logged_addresses, logged_addresses + logged_count,
+                            [&](const auto &address) { return AddressEqual(address, scan.address); })))) {
+                    if (logged_count < std::size(logged_addresses)) logged_addresses[logged_count++] = scan.address;
+                    events::LogAddress("scan device", scan.address);
+                    log::Write("  result=%u type=%u addr_type=%u rssi=%ld name='%s' appearance=0x%04x flags=0x%02x hid=%u decision=%s",
+                        scan.result, scan.device_type, scan.ble_addr_type, static_cast<long>(scan.rssi), summary.name,
+                        summary.appearance, summary.flags, summary.has_hid_service, decision);
                 }
-                AdvertisementSummary summary;
-                ParseAdvertisements(r.info.scan_result.ad_list, r.info.scan_result.count, &summary);
-                return IsXboxController(summary);
+                return candidate;
             });
 
-            static_cast<void>(btdrvStopBleScan());
-            events::ExpectFilterEvent();
-            static_cast<void>(btdrvEnableBleScanFilter(true));
+            if (!scan_complete && events::IsRadioEnabled()) {
+                Result stop_rc = btdrvStopBleScan();
+                log::Write("btdrvStopBleScan rc=0x%x", stop_rc.GetValue());
+                if (R_SUCCEEDED(stop_rc)) {
+                    scan_complete = events::WaitFor(BtdrvBleEventType_ScanResult, TimeSpan::FromSeconds(1), nullptr,
+                        [](const EventRecord &r) { return r.info.scan_result.status == 1; });
+                    if (!scan_complete) log::Write("scan stop completion timed out");
+                }
+                R_TRY(stop_rc);
+                R_UNLESS(scan_complete, svc::ResultTimedOut());
+            }
 
-            events::Pump(TimeSpan::FromSeconds(1));
+            log::Write("scan summary: advertisements=%u classic=%u identity=%u unavailable=%u errors=%u dropped=%u",
+                advertisements, rejected_transport, rejected_identity, unavailable, failed, events::TakeRingDropped());
 
             R_UNLESS(events::IsPairingWindowOpen() && !events::HasAdoptedConnection() && events::IsRadioEnabled(), svc::ResultCancelled());
-            R_UNLESS(found && (e.type == BtdrvBleEventType_ScanResult), svc::ResultTimedOut());
+            R_UNLESS(found && (e.type == BtdrvBleEventType_ScanResult) &&
+                (e.info.scan_result.status == BleScanStatus_NewDevice), svc::ResultTimedOut());
 
             *out_address = e.info.scan_result.address;
             events::LogAddress("found controller", *out_address);
 
             if (log::IsEnabled()) {
-                SetSysBluetoothDevicesSettings settings;
+                SetSysBluetoothDevicesSettings settings = {};
                 Result info_rc = btdrvGetPairedDeviceInfo(*out_address, &settings);
                 log::Write("btdrvGetPairedDeviceInfo rc=0x%x key_present=%u key_type=%u device_type=%u",
                     info_rc.GetValue(), settings.link_key_present, settings.key_type, settings.device_type);
@@ -356,7 +405,7 @@ namespace ams::ble {
             }
 
             *out_conn_id = e.info.client_connection.conn_id;
-            events::SetSlotConnection(slot, address, *out_conn_id);
+            R_UNLESS(!events::IsSlotDisconnected(slot), ResultNoConnection());
             log::Write("slot %u: connected conn_id=%u", slot, *out_conn_id);
             R_SUCCEED();
         }
@@ -385,13 +434,6 @@ namespace ams::ble {
             R_RETURN(rc);
         }
 
-        bool PairingBackoffActive() {
-            if (g_pairing_failed_tick == 0) {
-                return false;
-            }
-            return (os::GetSystemTick() - os::Tick(g_pairing_failed_tick)).ToTimeSpan() < PairingRetryBackoff;
-        }
-
         bool Adopt(bluetooth::Address *out_address, u32 *out_conn_id) {
             if (!events::TakeAdoptedConnection(out_address, out_conn_id)) {
                 return false;
@@ -407,22 +449,24 @@ namespace ams::ble {
                 return false;
             }
 
-            const auto deadline = os::GetSystemTick().ToTimeSpan() + TimeSpan::FromSeconds(10);
-            while (os::GetSystemTick().ToTimeSpan() < deadline) {
-                events::Pump(TimeSpan::FromMilliSeconds(200));
-                if (events::IsSlotDisconnected(slot)) {
-                    break;
-                }
-                if (events::TakeSlotBondComplete(slot)) {
-                    events::Pump(TimeSpan::FromSeconds(1));
-                    if (!events::IsSlotDisconnected(slot)) {
-                        log::Write("slot %u: paired", slot);
-                        return true;
-                    }
-                    break;
-                }
+            bool bonded = false;
+            events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(10), nullptr, [&](const EventRecord &) {
+                bonded = bonded || events::TakeSlotBondComplete(slot);
+                return bonded || events::IsSlotDisconnected(slot) || !events::IsRadioEnabled();
+            });
+            if (bonded) {
+                // The probe's bond indication can precede a refused pairing's
+                // disconnect and late discovery events. Drain them before use.
+                events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(1), nullptr, [&](const EventRecord &) {
+                    return events::IsSlotDisconnected(slot) || !events::IsRadioEnabled();
+                });
             }
-            log::Write("slot %u: pairing failed", slot);
+            if (bonded && !events::IsSlotDisconnected(slot) && events::IsRadioEnabled()) {
+                log::Write("slot %u: paired", slot);
+                return true;
+            }
+            log::Write("slot %u: pairing failed (bond_indication=%u disconnected=%u reason=0x%04x radio=%u)",
+                slot, bonded, events::IsSlotDisconnected(slot), events::GetSlotDisconnectReason(slot), events::IsRadioEnabled());
             return false;
         }
 
@@ -463,14 +507,16 @@ namespace ams::ble {
                 slot.state = BleDeviceSlot::State::Connected;
             }
 
-            // Register into lock-free per-slot lookup table for O(1) input routing
-            events::RegisterSlotController(slot_index, slot.conn_id, controller.get());
-
+            // Initialize settings and storage before the input thread can see this controller.
             controller::AttachVirtualController(controller);
-            g_pairing_failed_tick = 0;
+            g_radio_recovery.Connected();
+            for (auto &failure : g_pairing_failures) {
+                if (AddressEqual(failure.address, slot.address)) failure = {};
+            }
 
             u8 neutral[sizeof(controller::XboxOneInputReport0x01)] = { 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80 };
             static_cast<void>(controller->HandleInputReport(neutral, sizeof(neutral)));
+            events::RegisterSlotController(slot_index, slot.conn_id, controller);
 
             // Request low-latency parameters and rebalance active BLE slots
             slot.negotiated_max_interval = 0;
@@ -505,28 +551,40 @@ namespace ams::ble {
 
             if (controller) {
                 // Ensure any in-flight HandleInputReport / HandleOutputDataReport on another core has finished
-                controller->WaitIdle();
+                controller->Disconnect();
             }
 
-            const bool was_disconnected = events::IsSlotDisconnected(slot_index);
+            // Cancel the client request and remove notification registrations before
+            // recycling the slot. Keep event ownership until the disconnect completes.
+            if (events::IsRadioEnabled()) {
+                if (conn_id != InvalidConnId) {
+                    gatt::Unsubscribe(slot_index, conn_id);
+                    if (!events::IsSlotDisconnected(slot_index)) {
+                        Result rc = btdrvDisconnectGattServer(conn_id);
+                        log::Write("btdrvDisconnectGattServer slot=%u conn_id=%u rc=0x%x", slot_index, conn_id, rc.GetValue());
+                        events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(2), nullptr, [&](const EventRecord &) {
+                            return events::IsSlotDisconnected(slot_index) || !events::IsRadioEnabled();
+                        });
+                    }
+                }
+                const u8 client_if = g_host_slots[slot_index].client_if;
+                if (client_if != InvalidClientIf) {
+                    static_cast<void>(btdrvCancelConnectGattServer(client_if, address, true));
+                }
+            }
 
             gatt::ResetSlot(slot_index);
             events::ClearSlot(slot_index);
-
             {
                 std::scoped_lock lk(g_slots_lock);
-                g_host_slots[slot_index].state = BleDeviceSlot::State::Vacant;
+                g_host_slots[slot_index] = {};
             }
-
             if (controller) {
                 profile::FlushNow();
                 controller::DetachVirtualController(address);
                 log::Write("slot %u: controller removed from system", slot_index);
             }
 
-            if ((conn_id != InvalidConnId) && !was_disconnected && events::IsRadioEnabled()) {
-                static_cast<void>(btdrvDisconnectGattServer(conn_id));
-            }
         }
 
         void ProcessPendingDisconnections() {
@@ -536,6 +594,7 @@ namespace ams::ble {
                     const u32 slot_idx = static_cast<u32>(i);
                     if (events::IsSlotDisconnected(slot_idx)) {
                         log::Write("slot %u: controller disconnected (reason=0x%04x)", slot_idx, events::GetSlotDisconnectReason(slot_idx));
+                        g_radio_recovery.Request();
                         DismissSlot(slot_idx);
                         any_disconnected = true;
                     } else if (gatt::TakeRediscovered(slot_idx)) {
@@ -561,7 +620,7 @@ namespace ams::ble {
             if (slot_idx < 0) {
                 return;
             }
-            const u32 slot = static_cast<u32>(slot_idx);
+            u32 slot = static_cast<u32>(slot_idx);
 
             bluetooth::Address address;
             u32 conn_id = InvalidConnId;
@@ -578,10 +637,12 @@ namespace ams::ble {
                     if (IsAddressConnected(address, slot)) {
                         return;
                     }
+                    slot = FindSlotForAddress(address, slot);
                     g_host_slots[slot].state = BleDeviceSlot::State::Connecting;
                     g_host_slots[slot].address = address;
                     connected = R_SUCCEEDED(Connect(slot, address, &conn_id, TimeSpan::FromSeconds(15)));
                     if (!connected) {
+                        NotePairingFailure(address);
                         DismissSlot(slot);
                         return;
                     }
@@ -600,32 +661,57 @@ namespace ams::ble {
                 return;
             }
 
+            if (g_host_slots[slot].state == BleDeviceSlot::State::Vacant) slot = FindSlotForAddress(address, slot);
             g_host_slots[slot].conn_id = conn_id;
             g_host_slots[slot].address = address;
             g_host_slots[slot].state = BleDeviceSlot::State::Discovering;
-            events::SetSlotConnection(slot, address, conn_id);
+            if (!events::IsAddressActive(address)) {
+                events::SetSlotConnecting(slot, address);
+                events::SetSlotConnection(slot, address, conn_id);
+            }
+            if (events::IsSlotDisconnected(slot)) {
+                DismissSlot(slot);
+                return;
+            }
             events::SetSlotClaimed(slot, true);
 
-            gatt::Discover(slot, conn_id, address);
+            Result rc = gatt::Discover(slot, conn_id, address);
+            if (R_FAILED(rc)) {
+                log::Write("slot %u: GATT setup failed before pairing rc=0x%x", slot, rc.GetValue());
+                NotePairingFailure(address);
+                DismissSlot(slot);
+                return;
+            }
 
             g_host_slots[slot].state = BleDeviceSlot::State::Pairing;
             if (!Pair(slot, address)) {
-                g_pairing_failed_tick = os::GetSystemTick().GetInt64Value();
+                g_radio_recovery.Request();
+                NotePairingFailure(address);
                 log::Write("slot %u: backing off for %lds before trying to pair again", slot, PairingRetryBackoff.GetSeconds());
                 DismissSlot(slot);
                 os::SleepThread(TimeSpan::FromSeconds(1));
                 return;
             }
 
-            auto hid_uuid = MakeUuid16(GattServiceHid);
-            Result rc = btdrvRegisterGattHidDataPath(&hid_uuid);
-            log::Write("btdrvRegisterGattHidDataPath slot=%u rc=0x%x", slot, rc.GetValue());
-
+            rc = ResultSuccess();
+            const u32 generation = events::GetClientRegistrationGeneration();
+            if (g_hid_data_path_generation != generation) {
+                auto hid_uuid = MakeUuid16(GattServiceHid);
+                rc = btdrvRegisterGattHidDataPath(&hid_uuid);
+                log::Write("btdrvRegisterGattHidDataPath slot=%u rc=0x%x", slot, rc.GetValue());
+                if (R_FAILED(rc)) {
+                    DismissSlot(slot);
+                    return;
+                }
+                g_hid_data_path_generation = generation;
+            }
             events::ClearGattFailure(slot);
-            gatt::HidService hid;
+            gatt::HidService hid = {};
             rc = gatt::Subscribe(slot, conn_id, &hid);
             if (R_FAILED(rc)) {
                 log::Write("slot %u: subscription failed rc=0x%x gatt_result=%u", slot, rc.GetValue(), events::GetGattFailure(slot));
+                g_radio_recovery.Request();
+                NotePairingFailure(address);
                 DismissSlot(slot);
                 os::SleepThread(TimeSpan::FromSeconds(1));
                 return;
@@ -635,6 +721,28 @@ namespace ams::ble {
             PresentSlot(slot);
         }
 
+        void RecoverRadioIfNeeded() {
+            if (!g_radio_recovery.Begin(mitm::GetGlobalConfig()->ble.radio_cycle,
+                    events::IsPairingWindowOpen(), events::IsRadioEnabled(), events::GetActiveConnectionCount())) return;
+
+            const u32 generation = events::GetClientRegistrationGeneration();
+            Result rc = btdrvEmulateBluetoothCrash(BtdrvFatalReason_Unknown1);
+            log::Write("BLE pairing recovery: radio cycle rc=0x%x", rc.GetValue());
+            if (R_FAILED(rc)) return;
+
+            // Wait for newly registered clients, never reuse pre-reset handles.
+            const bool ready = events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(8), nullptr, [&](const EventRecord &) {
+                return !events::IsRadioEnabled() ||
+                    ((events::GetClientRegistrationGeneration() != generation) && (events::GetAvailableClientIfCount() > 0));
+            });
+            if (ready && events::IsRadioEnabled()) {
+                for (auto &failure : g_pairing_failures) failure = {};
+                log::Write("BLE pairing recovery: new GATT clients available");
+            } else {
+                log::Write("BLE pairing recovery: waiting for stack bring-up failed");
+            }
+        }
+
         /* Coordinator loop */
 
         void HostThreadFunc(void *) {
@@ -642,7 +750,7 @@ namespace ams::ble {
             bluetooth::ble::WaitInitialized();
 
             os::SleepThread(TimeSpan::FromSeconds(20));
-            log::Write("starting multi-device BLE host");
+            log::Write("starting multi-device BLE host (gatt-fix-r3, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
 
             if (R_FAILED(PrepareClient())) {
                 log::Write("giving up: no gatt client available");
@@ -656,8 +764,9 @@ namespace ams::ble {
                 WaitForRadio();
                 ProcessPendingDisconnections();
                 profile::FlushIfDue();
+                RecoverRadioIfNeeded();
 
-                if (events::IsPairingWindowOpen() && events::IsRadioEnabled() && !PairingBackoffActive() && (GetConnectedCount() < MaxBleControllers)) {
+                if ((events::IsPairingWindowOpen() || events::HasAdoptedConnection()) && events::IsRadioEnabled() && (GetConnectedCount() < MaxBleControllers)) {
                     ScanAndPairNextController();
                 } else {
                     events::Pump(TimeSpan::FromMilliSeconds(100));

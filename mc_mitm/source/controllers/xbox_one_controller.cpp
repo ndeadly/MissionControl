@@ -16,7 +16,7 @@
 #include "xbox_one_controller.hpp"
 #include <stratosphere.hpp>
 #include <algorithm>
-#include <cmath>
+#include "xbox_stick.hpp"
 
 namespace ams::controller {
 
@@ -24,42 +24,18 @@ namespace ams::controller {
 
         constexpr u16 TriggerMax = 0x3ff;
 
-        constexpr u16 StickCenter       = 0x8000;
-        constexpr s32 MaxStickRadius    = 0x7fff;
-        constexpr s32 HosInnerDeadzone  = 0x1000; // Matches 12.5% (0x100/0x800) inner deadzone in DefaultAnalogStickModelValues
+    }
 
-        // Microsoft XInput standard radial deadzones
-        constexpr u32 LeftStickDeadzone  = 7849; // XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE (~23.95%)
-        constexpr u32 RightStickDeadzone = 8689; // XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE (~26.52%)
-
-        std::pair<u16, u16> ApplyRadialDeadzone(u16 raw_x, u16 raw_y, u32 deadzone) {
-            const s32 dx = static_cast<s32>(raw_x) - static_cast<s32>(StickCenter);
-            const s32 dy = static_cast<s32>(raw_y) - static_cast<s32>(StickCenter);
-            const u64 dist_sq = static_cast<u64>(static_cast<s64>(dx) * dx + static_cast<s64>(dy) * dy);
-            const u64 deadzone_sq = static_cast<u64>(deadzone) * deadzone;
-
-            if (dist_sq <= deadzone_sq) {
-                return { StickCenter, StickCenter };
-            }
-
-            const float dist = std::sqrt(static_cast<float>(dist_sq));
-            if (dist >= static_cast<float>(MaxStickRadius)) {
-                return { raw_x, raw_y };
-            }
-
-            const float norm = (dist - static_cast<float>(deadzone)) / static_cast<float>(MaxStickRadius - deadzone);
-            const float target_dist = static_cast<float>(HosInnerDeadzone) + norm * static_cast<float>(MaxStickRadius - HosInnerDeadzone);
-            const float scale = target_dist / dist;
-
-            const s32 out_x = std::clamp<s32>(static_cast<s32>(StickCenter) + static_cast<s32>(std::lround(dx * scale)), 0, 0xffff);
-            const s32 out_y = std::clamp<s32>(static_cast<s32>(StickCenter) + static_cast<s32>(std::lround(dy * scale)), 0, 0xffff);
-            return { static_cast<u16>(out_x), static_cast<u16>(out_y) };
-        }
-
+    Result XboxOneController::Initialize() {
+        // Settings apply to both Classic and BLE Xbox controllers, with optional
+        // per-address overrides so one worn stick need not affect every player.
+        m_stick_config = mitm::GetGlobalConfig()->xbox;
+        mitm::LoadXboxConfiguration((GetControllerDirectory(m_address) + "/config.ini").c_str(), &m_stick_config);
+        R_RETURN(EmulatedSwitchController::Initialize());
     }
 
     Result XboxOneController::SetVibration(const SwitchMotorData *motor_data) {
-        XboxOneReportData report;
+        XboxOneReportData report = {};
         report.id = 0x03;
         report.output0x03.enable             = 0x3;
         report.output0x03.magnitude_strong   = static_cast<u8>(100 * std::max(motor_data->left_motor.low_band_amp, motor_data->right_motor.low_band_amp));
@@ -72,10 +48,12 @@ namespace ams::controller {
     }
 
     void XboxOneController::ParseInputReport(const u8 *report_buffer, size_t size) {
+        if (size < 2) return;
         auto report = reinterpret_cast<const XboxOneReportData *>(report_buffer);
 
         switch(report->id) {
             case 0x01:
+                if (size < 1 + sizeof(XboxOneInputReport0x01) - 1) return;
                 this->MapInputReport0x01(report, size >= sizeof(XboxOneInputReport0x01) + 1); break;
             case 0x02:
                 this->MapInputReport0x02(report); break;
@@ -89,16 +67,16 @@ namespace ams::controller {
     void XboxOneController::MapInputReport0x01(const XboxOneReportData *src, bool new_format) {
         auto dpad = DirectionalPad(src->input0x01.dpad);
 
-        const auto [lx, ly] = ApplyRadialDeadzone(
+        const auto [lx, ly] = xbox::ApplyRadialDeadzone(
             src->input0x01.left_stick.GetX(),
             src->input0x01.left_stick.GetYInverted(),
-            LeftStickDeadzone
+            m_stick_config.left_stick_deadzone
         );
 
-        const auto [rx, ry] = ApplyRadialDeadzone(
+        const auto [rx, ry] = xbox::ApplyRadialDeadzone(
             src->input0x01.right_stick.GetX(),
             src->input0x01.right_stick.GetYInverted(),
-            RightStickDeadzone
+            m_stick_config.right_stick_deadzone
         );
 
         m_left_stick.SetValuesFrom(lx, ly);

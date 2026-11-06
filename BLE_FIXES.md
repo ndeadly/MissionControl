@@ -1,0 +1,79 @@
+# BLE fixes and validation
+
+Changes are in `arkseal-ble-xbox`, based on `7801b6d`. The sibling upstream and proof-of-concept checkouts were left unchanged. The workspace-level `../missioncontrol.ini` is the gameplay config included in the test package.
+
+## Revision 3: linked controllers dropped before pairing
+
+The next trace confirms `scan-fix-r2` on HOS `0x17000100` (23.0.1); the user also confirmed Atmosphère 1.12.1. Xbox advertisements with an empty name, appearance `0x03c4`, flags `0x06`, and a zero transport field are now selected. Eight connections across two Xbox addresses opened successfully. Each was disconnected about 5.12–5.14 seconds after its connection event. There are no cache events and no `btdrvCreateBond` calls; the profile is still empty.
+
+The coordinator's pre-bond `Discover` wait timed out and called its own teardown. This was another regression introduced in revision 1: it queried attributes immediately, removed the original MTU/setup sequence, and required an input report attribute before allowing pairing. A successful cache-query IPC is not evidence that the table is populated or that callbacks will follow immediately.
+
+Revision 3 restores the original probe's two-second settling period, attribute query, 256-byte MTU request/completion wait, and 500 ms drain. A still-live link may proceed to `CreateBond` with an empty table. The one-second post-bond settling guard and authenticated report-map read are also restored. Subscription validates the HID input/CCCD **after** pairing, retrying the attribute query then if needed. Setup still cancels when the link closes or the radio sleeps. MTU refusal/timeout alone does not reject an otherwise live link. These changes add connection-setup time; they do not change input dispatch, connection intervals or rumble scheduling during gameplay.
+
+Cache chunks still replace duplicate handles, but polling the rediscovery flag no longer causes a later chunk to erase previously collected attributes. Logs identify pre-bond setup, post-bond missing attributes, pairing failure state, and locally requested disconnects. Startup identifies this build as `gatt-fix-r3`.
+
+The former GATT test preloaded a complete cache table and could not detect this regression. Its replacement uses a timed driver fixture: attributes can be delayed until a later query, an MTU request, or simulated pairing completion. It also covers multi-chunk tables, MTU responses for a different connection, missing/refused MTU replies, disconnect/sleep cancellation, post-bond timeout, cached reconnects and duplicate/late cache delivery. The actual production GATT source is compiled against the fixture. Reintroducing revision 2's early-query/pre-bond gate makes the new suite fail. The fixture does not emulate controller security or the Broadcom stack.
+
+The Switch release build, native regression suites and ASan/UBSan checks passed. Console pairing/input is still unverified for revision 3. The supplied trace established the failed stage, but cannot distinguish which removed setup step was needed on the radio; the whole original sequence has been restored rather than guessing which step to omit again.
+
+Install **`../MissionControl-BLE-gatt-fix-r3.zip`** by copying its `atmosphere/` and `config/` directories to the SD root and rebooting. Both diagnostics are enabled in this package. Wait about 30 seconds after boot, enter Change Grip/Order, and hold sync on one 1914 until it flashes rapidly. Allow roughly 30 seconds for Classic inquiry and BLE setup. Then try the remaining controllers. Save `ble.log` and `ble_profile.txt` from this run; the startup marker must say `gatt-fix-r3`. Disable both diagnostics and reboot before measuring gameplay latency. Earlier packages have been preserved separately.
+
+## Revision 2: no Xbox controllers discovered
+
+The supplied `../ble.log` contains 50 rejected scan starts (`0x2a871`) during the initial 10.24-second Classic inquiry, then repeated scan start/stop events. There are no `found controller` or GATT connection attempts. `../ble_profile.txt` is empty. The old logger deliberately omitted device advertisements, so this trace cannot distinguish missing advertisements from advertisements rejected by our selection code.
+
+A regression in the first revision required every advertisement to contain an Xbox name. Xbox can send its name separately in a scan response: [this captured Xbox advertisement](https://github.com/esp32beans/picow_bt#gap_le_advertisementsino) carries flags, power, gamepad appearance and the HID service UUID, without the name. The original probe accepted it; the first revision did not. Revision 2 restores the nameless-gamepad fallback, prefers complete names over shortened names, and recognizes explicit LE-only advertising flags even when the transport field is zero. Named non-Xbox devices and Classic-only Xbox inquiry results remain excluded. The nameless fallback is not vendor identification; keep other BLE gamepads out of pairing mode.
+
+Filter commands and scan-stop now wait for their actual asynchronous completions, with bounded timeouts, before another scan/connection starts. Busy retries back off one second instead of issuing five scan/filter sequences per second. Diagnostic logs include scan return codes, completion errors, bounded per-address details and aggregate rejection/drop counts. No input-thread logging or new threads were added. The startup line identifies this build as `scan-fix-r2` and records the HOS version.
+
+The checkout includes the firmware 23.0.0 patches from upstream commit `71bbe2d`; they are unchanged and included in the package. Atmosphère 1.12.1 is recommended for firmware 23: its [release notes](https://github.com/Atmosphere-NX/Atmosphere/releases/tag/1.12.1) describe DNS/filesystem fixes and an increase in the custom-sysmodule memory budget from 16 MB to 40 MB. They do not claim an Xbox BLE pairing fix. Update the matching fusee payload if used.
+
+Revision 2 passed the Switch release build, the existing routing/deadzone/recovery/GATT suites, and a new regression suite using the production advertisement parser and actual libnx advertisement types. The new suite reproduces the previous nameless-advertisement rejection and checks name precedence, Classic exclusion, and truncated/oversized fields. All suites also passed ASan/UBSan with leak detection disabled as described below. Scan IPC ordering was reviewed in code and compiled for Switch; host tests do not emulate the radio's completion timing. The new console log is still needed to confirm the cause and fix on these four controllers.
+
+Install **`../MissionControl-BLE-scan-fix-r2.zip`** by copying its `atmosphere/` and `config/` directories to the SD root and rebooting. This diagnostic package enables `log=true` and `profile=true`. The earlier package remains available separately.
+
+1. Wait about 30 seconds after boot, open Change Grip/Order, and hold sync on one 1914 until it flashes rapidly. Allow at least 20 seconds for the initial Classic inquiry and BLE setup.
+2. If it connects, add the remaining two 1914s and the 1708; then test power-off and re-pairing using the recovery instructions below.
+3. Retain `ble.log` and `ble_profile.txt` from this run, including failures. Look for `scan-fix-r2` to confirm the installed binary. `scan summary` distinguishes zero advertisements from rejected ones; `decision` identifies why a received device was skipped.
+4. After collecting a useful trace, disable both diagnostics and reboot before comparing gameplay latency.
+
+## What changed
+
+- **Re-pairing:** added optional `radio_cycle` recovery using `btdrvEmulateBluetoothCrash`, based on the hardware observations in [ferrolho/MissionControl PR #1](https://github.com/ferrolho/MissionControl/pull/1). The coordinator waits for fresh GATT registrations. Recovery is deferred until Change Grip/Order is open and no BLE links remain; Classic controllers briefly disconnect too. One attempt per successful session prevents repeated radio resets. This is a workaround for stack state, not persistent Secure Connections bonding.
+- **Disconnect safety:** a report lookup now holds a shared reference through dispatch. Previously teardown could free the raw pointer before the input thread acquired its controller mutex. Disconnect also disables further reports/output, unregisters notifications, cancels the client request, and keeps event ownership through teardown. Delayed disconnects with a different connection ID are ignored. Lifecycle events arriving on the LE HID stream now update slot state.
+- **GATT reuse:** matching vacant slots preserve each address's cache when reconnect order changes. Cache updates replace duplicate handles instead of filling the 64-attribute table with duplicates. Discovery, read, notification-registration and CCCD failures are checked. A disconnect no longer counts as a successful GATT completion. The HID data path is registered once per client-registration generation.
+- **Pairing time:** scan waits end on actual completions and busy retries back off one second; unsuccessful active scans retain an airtime cooldown. Pairing backoff is per address, so one failing pad does not block the others. Revision 3 restores the probe's GATT/MTU/report-map and post-bond settling sequence after the attempted setup optimization prevented pairing.
+- **Xbox 1708:** Classic-only scan results stay out of the BLE host; BLE packets without the Series Share byte are normalized. The controller's firmware still determines its transport. Revision 2 restores nameless gamepad candidates, as explained above.
+- **Sticks:** configurable radial deadzones for each stick, globally or per address, default 15%. The previous constants were about 24% left / 27% right. Direction and full travel are preserved, with the existing HOS inner-deadzone compensation. Centered and outer-radius inputs avoid square roots. Actual drift still requires tuning on the physical controller.
+- **Gameplay work:** bounded rumble writes now also cover repeated stop/start pulses, with stop commands immediate. Failed writes are retried on later commands. Disabled rumble skips decoding. Four BLE pads request 15 ms instead of the former 20–25 ms; crowded mixed Classic/BLE setups retain the prior coexistence intervals. Logging/profiling are disabled in the supplied gameplay config.
+
+There are still four fixed BLE slots and no new threads or per-report heap allocations. The route lookup takes a short mutex and a shared-reference increment; it releases that mutex before processing input or performing IPC. Safety replaces the old unprotected-pointer assumption. There is no input smoothing or report-rate limiter.
+
+## Validation performed
+
+- Baseline and changed Switch release builds completed with the installed devkitA64 toolchain. Existing dependency / ignored-result warnings remain; the final incremental build added no warnings in changed source.
+- `make -C tests test` passed. It covers composite connection IDs, a deterministic in-flight teardown, 100,000 concurrent slot replacements, stick boundary/monotonicity/symmetry/full-range checks, and recovery deferral/retry limits.
+- The GATT tests compile the **unmodified production `ble_gatt.cpp`** against a host IPC shim. They exercise discovery, address-cache reconnects, stale cache events, duplicate cache delivery, subscription registration failure, completion timeout, and disconnect cancellation. The shim validates host logic; it does not emulate the Broadcom radio/security stack.
+- The same suites passed AddressSanitizer and UndefinedBehaviorSanitizer. Leak detection was disabled because LeakSanitizer cannot run under this environment's ptrace sandbox; leak checking is not claimed.
+- `git diff --check` passed. ARM compiler stack-usage output was inspected: the scan frame is 3,200 bytes; event waits use roughly 1.1 KiB each on the 16 KiB coordinator stack. This is a static review, not a runtime stack high-water measurement.
+
+ARM ELF section sizes from the first revision, bytes (not the revision 2 package):
+
+| Build | text | data | bss | sum |
+| --- | ---: | ---: | ---: | ---: |
+| Baseline | 462284 | 41688 | 481984 | 985956 |
+| Changed | 471900 | 41688 | 477888 | 991476 |
+
+Zero-initialized storage decreased by 4 KiB after moving per-template event buffers onto the existing coordinator stack. Code grew by 9,616 bytes; the section sum grew by 5,520 bytes. This is not a measurement of total runtime RAM or CPU use.
+
+## Install and validate on the Switch
+
+The workspace package `../MissionControl-BLE-fixes.zip` contains `atmosphere/` and `config/`, including an active `missioncontrol.ini`. Copy these to the SD root and reboot to load the new module/config. It uses this checkout's existing firmware patches; compatibility with firmware versions beyond those patches is not newly established.
+
+1. Pair each controller, then all four together. For the 1708, record its firmware version and whether the log identifies a BLE scan/connection. No extra model selector is required.
+2. Power a BLE pad off. If other BLE pads remain, recovery deliberately waits. Turn them off, open Change Grip/Order, allow the radio cycle, and hold the sync buttons again. Test several repetitions and a controller idle timeout. Xbox-button-only reconnect is not implemented.
+3. In the Switch stick test, release the drifting stick and adjust just its override in `/config/MissionControl/controllers/<12 lowercase MAC digits>/config.ini`, under `[xbox]`. Start with `left_stick_deadzone=20` for a drifting left stick; use the smallest sufficient value. Reconnect after changing this file. Global changes require a reboot.
+4. Compare Smash character select and gameplay with the same controllers, first with rumble enabled and then disabled. Keep `log=false` and `profile=false` for this comparison. CPU usage, radio packet loss and end-to-end latency require console measurements; none are claimed from the host tests.
+5. If pairing still fails, temporarily set `log=true`, reboot, reproduce initial pairing → power-off → attempted re-pairing, and retain `/config/MissionControl/ble.log`. Include HOS, Atmosphere and Xbox firmware versions. Turn diagnostics off again for normal play.
+
+The on-console steps remain unverified here. In particular, the radio recovery behavior is reported by the follow-up probe author on a 1708; this multi-controller implementation has not been hardware-tested. The separate controller-wakes-console sleep fix is outside these changes.

@@ -18,7 +18,13 @@
 
 namespace ams::mitm {
 
+    struct XboxControllerConfig {
+        int left_stick_deadzone;
+        int right_stick_deadzone;
+    };
+
     struct MissionControlConfig {
+        XboxControllerConfig xbox;
         struct {
             bool enable_rumble;
             bool enable_motion;
@@ -46,10 +52,12 @@ namespace ams::mitm {
             bool log;
             bool low_latency;
             bool profile;
+            bool radio_cycle;
         } ble;
     };
 
     void LoadConfiguration();
+    void LoadXboxConfiguration(const char *path, XboxControllerConfig *config);
     MissionControlConfig *GetGlobalConfig();
     SetLanguage GetSystemLanguage();
 

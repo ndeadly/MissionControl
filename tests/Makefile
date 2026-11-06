@@ -1,0 +1,16 @@
+CXX ?= g++
+BUILD_DIR ?= /tmp/missioncontrol-tests
+CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -Werror -pthread
+
+.PHONY: test
+test:
+	mkdir -p $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) ble_regression.cpp -o $(BUILD_DIR)/ble_regression
+	$(BUILD_DIR)/ble_regression
+	$(CXX) $(CXXFLAGS) -I../lib/libnx/nx/include advertising_regression.cpp -o $(BUILD_DIR)/advertising_regression
+	$(BUILD_DIR)/advertising_regression
+
+	mkdir -p $(BUILD_DIR)/gatt
+	cp ../mc_mitm/source/ble/ble_gatt.cpp ../mc_mitm/source/ble/ble_gatt.hpp gatt_shim/* $(BUILD_DIR)/gatt/
+	$(CXX) $(CXXFLAGS) -I$(BUILD_DIR)/gatt gatt_regression.cpp -o $(BUILD_DIR)/gatt_regression
+	$(BUILD_DIR)/gatt_regression

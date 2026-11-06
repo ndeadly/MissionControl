@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "emulated_switch_controller.hpp"
+#include "../mcmitm_config.hpp"
 
 namespace ams::controller {
 
@@ -122,12 +123,15 @@ namespace ams::controller {
                 {0x045e, 0x0b0a}    // Official Xbox Adaptive Controller
             };
 
-            XboxOneController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id) { }
+            XboxOneController(bluetooth::Address address, HardwareID id) : EmulatedSwitchController(address, id), m_stick_config(mitm::GetGlobalConfig()->xbox) { }
+
+            Result Initialize() override;
 
             virtual Result SetVibration(const SwitchMotorData *motor_data) override;
             virtual void ParseInputReport(const u8 *report_buffer, size_t size) override;
 
         private:
+            mitm::XboxControllerConfig m_stick_config;
             void MapInputReport0x01(const XboxOneReportData *src, bool new_format);
             void MapInputReport0x02(const XboxOneReportData *src);
             void MapInputReport0x04(const XboxOneReportData *src);

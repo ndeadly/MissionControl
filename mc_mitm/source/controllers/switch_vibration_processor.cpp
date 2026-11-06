@@ -37,12 +37,13 @@ namespace ams::controller {
     }
 
     void SwitchVibrationProcessor::ProcessMotorData(const SwitchEncodedMotorData *encoded_motor_data) {
+        if (!m_enabled) return;
         SwitchMotorData motor_data;
 
         bool samples_available = GetNextDecodedValue(&m_decoder_left,  &encoded_motor_data->left_motor,  &motor_data.left_motor)
                                | GetNextDecodedValue(&m_decoder_right, &encoded_motor_data->right_motor, &motor_data.right_motor);
 
-        if (samples_available && m_enabled) {
+        if (samples_available) {
             R_DISCARD(m_controller->SetVibration(&motor_data));
         }
     }

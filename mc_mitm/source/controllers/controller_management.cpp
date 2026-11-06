@@ -366,6 +366,11 @@ namespace ams::controller {
     }
 
     void AttachVirtualController(std::shared_ptr<SwitchController> controller) {
+        // Finish settings/storage initialization before either HID output lookups
+        // or device-list polling can expose the controller to another thread.
+        // Storage failure still permits using the controller with defaults.
+        static_cast<void>(controller->Initialize());
+
         {
             std::scoped_lock lk(g_controller_lock);
             for (auto it = g_controllers.begin(); it < g_controllers.end(); ++it) {
@@ -383,9 +388,6 @@ namespace ams::controller {
             g_controllers.push_back(controller);
             g_virtual_devices.push_back(controller->Address());
         }
-
-        // Failure here only affects the per-controller settings storage, the controller still works
-        static_cast<void>(controller->Initialize());
 
         // Let hid know there is a new device to pick up
         mitm::btm::condition::Signal();

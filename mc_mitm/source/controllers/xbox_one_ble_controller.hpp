@@ -40,7 +40,7 @@ namespace ams::controller {
             Result HandleInputReport(const u8 *data, size_t size);
             Result HandleOutputDataReport(const u8 *report_buffer, size_t size) override;
 
-            void WaitIdle();
+            void Disconnect();
 
         protected:
             void ParseInputReport(const u8 *report_buffer, size_t size) override;
@@ -55,6 +55,7 @@ namespace ams::controller {
             bool m_service_primary;
             BtdrvGattId m_output_report_id;
             bool m_has_output_report;
+            bool m_connected = true;
 
             u8 m_last_rumble_strong = 0;
             u8 m_last_rumble_weak = 0;

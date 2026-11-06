@@ -1,7 +1,12 @@
 .assets/
 .vscode/
 .patches/
-tests/
+/tests/*
+!/tests/Makefile
+!/tests/ble_regression.cpp
+!/tests/advertising_regression.cpp
+!/tests/gatt_regression.cpp
+!/tests/gatt_shim/
 dist/
 mc_mitm/build/
 mc_mitm/out/

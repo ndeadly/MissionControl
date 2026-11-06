@@ -33,15 +33,20 @@ namespace ams::controller {
 
         std::scoped_lock lk(m_report_mutex);
 
+        R_UNLESS(m_connected, svc::ResultInvalidState());
+        // Xbox One BLE pads can omit the Series share byte. Other HID Report
+        // characteristics (battery/guide) must never be decoded as stick data.
+        constexpr size_t InputSize = sizeof(XboxOneInputReport0x01);
+        R_UNLESS((size == InputSize) || (size == InputSize - 1), svc::ResultInvalidSize());
         auto &event = m_event_info.data_report.v9;
-        R_UNLESS(size + 1 <= sizeof(event.report.data), svc::ResultInvalidSize());
 
         event.res = 0;
         event.proto_mode = 0;
         event.addr = m_address;
         event.pad = 0;
-        event.report.size = size + 1;
+        event.report.size = sizeof(XboxOneInputReport0x01) + 1;
         event.report.data[0] = InputReportId;
+        event.report.data[sizeof(XboxOneInputReport0x01)] = 0;
         std::memcpy(&event.report.data[1], data, size);
 
         XboxOneController::HandleDataReportEvent(&m_event_info);
@@ -54,15 +59,18 @@ namespace ams::controller {
         const auto report_id = static_cast<SwitchHidReportId>(report_buffer[0]);
         if (report_id == SwitchHidReportId::BasicOutputReport) {
             std::scoped_lock lk(m_rumble_mutex);
+            R_UNLESS(m_connected, svc::ResultInvalidState());
             R_RETURN(XboxOneController::HandleOutputDataReport(report_buffer, size));
         }
 
         std::scoped_lock lk(m_report_mutex, m_rumble_mutex);
+        R_UNLESS(m_connected, svc::ResultInvalidState());
         R_RETURN(XboxOneController::HandleOutputDataReport(report_buffer, size));
     }
 
-    void XboxOneBleController::WaitIdle() {
+    void XboxOneBleController::Disconnect() {
         std::scoped_lock lk(m_report_mutex, m_rumble_mutex);
+        m_connected = false;
     }
 
     void XboxOneBleController::ParseInputReport(const u8 *report_buffer, size_t size) {
@@ -112,25 +120,14 @@ namespace ams::controller {
             if ((strong == m_last_rumble_strong) && (weak == m_last_rumble_weak) && (elapsed_ms < 180)) {
                 R_SUCCEED();
             }
-            if (!was_stopped) {
-                if (elapsed_ns < MinRumbleIntervalNs) {
-                    R_SUCCEED();
-                }
-
-                const size_t total_controllers = controller::GetConnectedControllerCount();
-                const s64 min_rumble_interval_ns = (total_controllers >= 4) ? HeavyMultiControllerRumbleIntervalNs
-                                                 : (total_controllers >= 2) ? MultiControllerMinRumbleIntervalNs
-                                                 : MinRumbleIntervalNs;
-
-                if (elapsed_ns < min_rumble_interval_ns) {
-                    R_SUCCEED();
-                }
-            }
+            // Stop packets remain immediate, but stop/start bursts must not bypass
+            // the write budget (menus can generate many short rumble pulses).
+            const size_t total_controllers = controller::GetConnectedControllerCount();
+            const s64 min_rumble_interval_ns = (total_controllers >= 4) ? HeavyMultiControllerRumbleIntervalNs
+                                             : (total_controllers >= 2) ? MultiControllerMinRumbleIntervalNs
+                                             : MinRumbleIntervalNs;
+            if (elapsed_ns < min_rumble_interval_ns) R_SUCCEED();
         }
-
-        m_last_rumble_strong = strong;
-        m_last_rumble_weak = weak;
-        m_last_rumble_tick = now_tick;
 
         XboxOneReportData report = {};
         report.id = 0x03;
@@ -141,7 +138,11 @@ namespace ams::controller {
         report.output0x03.pulse_release_10ms = 0;
         report.output0x03.loop_count         = 0;
 
-        R_RETURN(this->WriteDataReport(&report, sizeof(XboxOneOutputReport0x03) + 1));
+        R_TRY(this->WriteDataReport(&report, sizeof(XboxOneOutputReport0x03) + 1));
+        m_last_rumble_strong = strong;
+        m_last_rumble_weak = weak;
+        m_last_rumble_tick = now_tick;
+        R_SUCCEED();
     }
 
     Result XboxOneBleController::WriteDataReport(const void *report_buffer, size_t size) {

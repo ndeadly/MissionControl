@@ -105,15 +105,32 @@ Controllers must first be paired with the console (see below) before they can be
 
 Xbox controllers on firmware 5.x or newer, including all Series X|S and Adaptive controllers, use Bluetooth Low Energy instead of classic Bluetooth. Support for these is disabled by default. To enable it, set `enable=true` in the `[ble]` section of `/config/MissionControl/missioncontrol.ini` and reboot. Mission Control then brings the console's BLE radio up about 20 seconds after boot (this briefly cycles Bluetooth, so any classic controller connected at that moment reconnects a couple of seconds later) and looks for a controller.
 
-To pair, open *Controllers → Change Grip/Order* and hold the controller's sync button until its logo flashes rapidly, the same way as for a Pro Controller. The controller shows up after about 15 seconds. Two limitations come from the console's Bluetooth stack:
+To pair, open *Controllers → Change Grip/Order* and hold the controller's sync button until its logo flashes rapidly. Up to four BLE Xbox controllers can be connected. Pairing is serialized by the Bluetooth stack; discovery and subscription waits now end on their completion events. Classic inquiry still occupies the radio for roughly ten seconds at a time, so simultaneous pairing is not instantaneous.
 
-* The controller does not remember the console, and only one controller can be paired per console restart. Once a controller has been switched off, pairing it again is refused until the console is restarted. The console's stack only supports LE legacy pairing, and these controllers keep a bond only from LE Secure Connections pairing; no Secure Connections support was found in the console's Bluetooth module, so this cannot be changed from Mission Control.
-* Switch the controller off before putting the console to sleep. A controller left switched on wakes the console up again a few seconds later.
+Model **1708** uses the normal Classic Bluetooth path on legacy firmware, and the BLE host on BLE firmware. There is no model-specific enable flag. The BLE host leaves Classic-only scan results on the Classic path. Xbox advertisements can omit the name, so nameless gamepad advertisements remain pairing candidates, as in the original probe. This fallback cannot establish the vendor; keep other BLE gamepads out of pairing mode. Named non-Xbox devices are rejected. Short BLE input packets without a Series Share byte are accepted.
 
-The `[ble]` section also offers additional options:
-* `low_latency`: Requests low-latency BLE connection parameters (7.5 ms – 11.25 ms interval, 0 slave latency) and boosts the LE HID event thread priority to real-time (-11) to eliminate input lag [default false].
-* `profile`: Writes live performance timing metrics (packet arrival cadence, processing time in microseconds, and active BLE connection interval) to `/config/MissionControl/ble_profile.txt` every 5 seconds without introducing I/O lag [default false].
-* `log`: Writes verbose Bluetooth LE stack events to `/config/MissionControl/ble.log` [default false].
+The `[ble]` options are:
+
+* `radio_cycle`: Opt into stack recovery after a controller disconnects or pairing fails. Recovery runs only in Change Grip/Order when **no BLE links remain**, and briefly disconnects Classic controllers too. Switch off the remaining BLE pads before recovering a failed pad, then hold their sync buttons to pair again. It makes one recovery attempt per successful session to avoid a reset loop. This uses the recovery API reported in [the follow-up to the original probe](https://github.com/ferrolho/MissionControl/pull/1); the multi-controller adaptation still needs on-console validation. Default false; enabled in the workspace's ready-to-use config.
+* `low_latency`: Request 7.5–11.25 ms with one BLE controller, 15 ms with multiple BLE controllers, and 20–25 ms when four or more controllers share Classic/BLE airtime. BLE input priority is -10; Classic input remains at -11. These are requested radio intervals, not guaranteed end-to-end latency. Default false.
+* `profile`: Collect aggregate report timing and write it after every 500 reports. It includes timer and mutex overhead; SD writes run on the coordinator. With multiple pads its arrival statistics describe the combined stream, not an individual controller. Default false.
+* `log`: Verbose Bluetooth LE stack diagnostics written to SD. Leave this and profiling disabled for normal play. Default false.
+
+Power-button-only reconnection is still limited by the original legacy-pairing implementation. Use the sync button. Switch controllers off before console sleep; this change does not add the separate sleep/wake fix from the follow-up probe.
+
+#### Xbox stick deadzones
+
+`[xbox] left_stick_deadzone` and `right_stick_deadzone` accept integer percentages from 0 to 50, defaulting to 15. The radial filter preserves direction and rescales travel outside the deadzone using the existing default HOS inner-deadzone compensation. Zero disables this extra filter. Existing custom HOS calibration can change the effective response.
+
+For one drifting controller, create `/config/MissionControl/controllers/<12 lowercase MAC digits>/config.ini` with only that controller's overrides:
+
+```ini
+[xbox]
+left_stick_deadzone=20
+right_stick_deadzone=15
+```
+
+Use the smallest value that holds the stick at center in the Switch's stick test. Global settings live in `missioncontrol.ini`; per-controller values override them on the next connection. Reboot after changing global settings.
 
 Once connected, your controller's buttons are mapped as closely as possible to the physical layout of a Switch Pro Controller. This means that A/B and X/Y buttons will be swapped for controllers that use an Xbox style button layout rather than using what is printed on the button. The button combos `MINUS + DPAD_UP` and `MINUS + DPAD_DOWN` are provided for all controllers to function as an alternative for `CAPTURE` and `HOME` buttons in cases where there are not enough face buttons available. Button mappings can be changed from the official system menu at `System Settings->Controllers and Sensors->Change Button Mapping`.
 
@@ -224,7 +241,7 @@ Below is a list of features I am currently working on or would like to look into
 ### Known Issues and Limitations
 
 * Non-Switch controllers cannot be used to wake the system from sleep.
-* Controllers using the Bluetooth LE (BLE) standard are currently not supported and will not connect to the system.
+* Bluetooth LE support in this branch is experimental and limited to the Xbox report layouts described above.
 * Some controllers can take some time to be detected and subsequently pair with the console. Be patient and re-enter the sync mode of the controller several times if neccessary. Once synced, controllers should connect and work as usual.
 * Xbox One controllers cannot be switched off via software and will attempt to reconnect to the console after being disconnected. This is a limitation of the controller's bluetooth firmware. To switch the controller off, the guide button must be held in for several seconds.
 * Reported controller battery levels may not be correct. I'm relying entirely on reverse engineering notes found on the internet for these. In many cases I don't own the controller and there is simply no information available, so these controllers will always show full battery. Any help in improving this is most welcome.

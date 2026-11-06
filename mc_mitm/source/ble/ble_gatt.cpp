@@ -75,11 +75,25 @@ namespace ams::ble::gatt {
             auto &tbl = g_slots[slot_index].table;
             for (size_t i = 0; i < tbl.count; ++i) {
                 auto &desc = tbl.attributes[i];
-                if ((desc.type == BtdrvGattAttributeType_Descriptor) && IsUuid16(desc.id.uuid, uuid16) && (OwningCharacteristic(slot_index, desc) == &characteristic)) {
-                    return &desc;
+                if ((desc.type == BtdrvGattAttributeType_Descriptor) && IsUuid16(desc.id.uuid, uuid16)) {
+                    const auto *owner = OwningCharacteristic(slot_index, desc);
+                    if (owner && owner->handle == characteristic.handle) return &desc;
                 }
             }
             return nullptr;
+        }
+
+        bool HasHidInputReport(u32 slot_index) {
+            const auto *service = FindService(slot_index, GattServiceHid);
+            if (!service) return false;
+            const auto &table = g_slots[slot_index].table;
+            for (size_t i = 0; i < table.count; ++i) {
+                const auto &attr = table.attributes[i];
+                if ((attr.type == BtdrvGattAttributeType_Characteristic) && IsWithinService(attr, *service) &&
+                    IsUuid16(attr.id.uuid, GattCharReport) && (attr.property & BtdrvGattCharacteristicProperty_Notify) &&
+                    FindDescriptor(slot_index, attr, GattDescClientCharConfig)) return true;
+            }
+            return false;
         }
 
     }
@@ -89,6 +103,7 @@ namespace ams::ble::gatt {
             return;
         }
 
+        if (e.info.client_cache_save.result != 0) return;
         const u32 conn_id = e.info.client_cache_save.conn_id;
         u32 slot = InvalidSlot;
         for (size_t s = 0; s < MaxBleControllers; ++s) {
@@ -112,45 +127,66 @@ namespace ams::ble::gatt {
         }
 
         for (u32 i = 0; i < std::min<u32>(e.info.client_cache_save.count, 10); ++i) {
-            if (s.table.count < MaxAttributes) {
-                s.table.attributes[s.table.count++] = e.info.client_cache_save.attr_list[i];
+            const auto &attr = e.info.client_cache_save.attr_list[i];
+            size_t index = 0;
+            while ((index < s.table.count) && (s.table.attributes[index].handle != attr.handle)) ++index;
+            if (index < MaxAttributes) {
+                s.table.attributes[index] = attr;
+                if (index == s.table.count) ++s.table.count;
             }
         }
     }
 
-    void Discover(u32 slot_index, u32 conn_id, const bluetooth::Address &address) {
-        if (slot_index >= MaxBleControllers) {
-            return;
-        }
-
+    Result Discover(u32 slot_index, u32 conn_id, const bluetooth::Address &address) {
+        R_UNLESS(slot_index < MaxBleControllers, svc::ResultInvalidArgument());
         auto &s = g_slots[slot_index];
+        // Reconnect order need not match the previous slot order.
+        if (!AddressEqual(s.table.address, address)) {
+            s.table = {};
+            for (const auto &cached : g_slots) {
+                if (AddressEqual(cached.table.address, address)) {
+                    s.table = cached.table;
+                    break;
+                }
+            }
+        }
+        s.table.address = address;
         s.conn_id = conn_id;
         s.discovery_complete = false;
         s.rediscovered = false;
         s.replace_pending = true;
 
-        const bool reuse = (s.table.count > 0) && AddressEqual(s.table.address, address);
-        if (!reuse) {
-            s.table.count = 0;
-        }
-        s.table.address = address;
+        const auto link_lost = [&] {
+            return events::IsSlotDisconnected(slot_index) || !events::IsRadioEnabled();
+        };
+        const auto disconnected = [&](const EventRecord &) { return link_lost(); };
 
-        // The stack runs discovery on its own shortly after connecting to a device it hasn't seen
-        events::Pump(TimeSpan::FromSeconds(2));
+        // Preserve the probe's connection setup sequence. An accepted cache
+        // query immediately after connection need not emit any attributes.
+        // Do not gate CreateBond on an attribute table that may arrive later.
+        events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(2), nullptr, disconnected);
+        R_UNLESS(!link_lost(), ResultNoConnection());
 
         Result rc = btdrvGetGattAttribute(address, conn_id);
         log::Write("btdrvGetGattAttribute slot=%u rc=0x%x", slot_index, rc.GetValue());
 
         rc = btdrvConfigureAttMtu(conn_id, 0x100);
         log::Write("btdrvConfigureAttMtu slot=%u rc=0x%x", slot_index, rc.GetValue());
-
-        // The MTU result is the last thing the stack reports for a fresh link
-        events::WaitFor(BtdrvBleEventType_ClientConfigureMtu, TimeSpan::FromSeconds(5), nullptr, [&](const EventRecord &r) { return r.info.client_configure_mtu.conn_id == conn_id; });
-        events::Pump(TimeSpan::FromMilliSeconds(500));
-
-        s.discovery_complete = true;
-        s.replace_pending = false;
-        log::Write("slot %u attribute table holds %u entries%s", slot_index, s.table.count, reuse ? " (kept from previous connection)" : "");
+        if (R_SUCCEEDED(rc)) {
+            const bool completed = events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(5), nullptr, [&](const EventRecord &r) {
+                return disconnected(r) || ((r.type == BtdrvBleEventType_ClientConfigureMtu) &&
+                    (r.info.client_configure_mtu.conn_id == conn_id));
+            });
+            R_UNLESS(!link_lost(), ResultNoConnection());
+            // A larger MTU is optional; a missing/refused response does not
+            // prove that pairing failed. Input still fits the default MTU.
+            if (!completed) log::Write("slot %u: MTU completion timed out, continuing to pairing", slot_index);
+        }
+        events::WaitFor(events::InvalidType, TimeSpan::FromMilliSeconds(500), nullptr, disconnected);
+        R_UNLESS(!link_lost(), ResultNoConnection());
+        log::Write("slot %u: GATT setup finished, attributes=%u hid_input=%u; pairing next",
+            slot_index, s.table.count, HasHidInputReport(slot_index));
+        R_SUCCEED();
     }
 
     bool TakeRediscovered(u32 slot_index) {
@@ -165,6 +201,26 @@ namespace ams::ble::gatt {
     Result Subscribe(u32 slot_index, u32 conn_id, HidService *out) {
         if (slot_index >= MaxBleControllers) {
             R_THROW(svc::ResultInvalidArgument());
+        }
+
+        R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
+        if (!HasHidInputReport(slot_index)) {
+            // Called after CreateBond. Retry the cache query now that link
+            // setup/security has progressed, instead of disconnecting beforehand.
+            Result rc = btdrvGetGattAttribute(g_slots[slot_index].table.address, conn_id);
+            log::Write("btdrvGetGattAttribute after pairing slot=%u rc=0x%x", slot_index, rc.GetValue());
+            R_TRY(rc);
+            // Cache tables arrive in chunks. Give the query's remaining chunks
+            // the same settling window as initial discovery before snapshotting.
+            events::WaitFor(events::InvalidType, TimeSpan::FromMilliSeconds(500), nullptr, [&](const EventRecord &) {
+                return events::IsSlotDisconnected(slot_index) || !events::IsRadioEnabled();
+            });
+            const bool ready = events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(5), nullptr, [&](const EventRecord &) {
+                return events::IsSlotDisconnected(slot_index) || !events::IsRadioEnabled() || HasHidInputReport(slot_index);
+            });
+            R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
+            if (!ready) log::Write("slot %u: HID attributes unavailable after pairing (attributes=%u)", slot_index, g_slots[slot_index].table.count);
+            R_UNLESS(ready, svc::ResultTimedOut());
         }
 
         auto found = FindService(slot_index, GattServiceHid);
@@ -182,7 +238,7 @@ namespace ams::ble::gatt {
 
         // Authenticated reads are what make the stack encrypt the link (pairing first if it has to)
         for (size_t i = 0; i < count; ++i) {
-            auto &attr = s.table.attributes[i];
+            const auto attr = s.table.attributes[i];
             if ((attr.type != BtdrvGattAttributeType_Characteristic) || !IsWithinService(attr, service)) {
                 continue;
             }
@@ -204,15 +260,14 @@ namespace ams::ble::gatt {
                 }
                 R_TRY(rc);
                 // The first authenticated read may carry a whole Just Works pairing before it completes
-                if (!events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(10))) {
-                    events::Pump(TimeSpan::FromMilliSeconds(500));
-                }
+                R_UNLESS(events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(10)), svc::ResultTimedOut());
+                R_UNLESS(events::GetGattFailure(slot_index) == 0, ResultInsufficientAuthentication());
             }
         }
 
         Result result = svc::ResultNotFound();
         for (size_t i = 0; i < count; ++i) {
-            auto &attr = s.table.attributes[i];
+            const auto attr = s.table.attributes[i];
             if ((attr.type != BtdrvGattAttributeType_Characteristic) || !IsWithinService(attr, service) || !IsUuid16(attr.id.uuid, GattCharReport)) {
                 continue;
             }
@@ -237,6 +292,8 @@ namespace ams::ble::gatt {
             Result rc = btdrvRegisterGattNotification(conn_id, service.is_primary, &service.id, &attr.id);
             log::Write("btdrvRegisterGattNotification slot=%u handle=0x%04x rc=0x%x", slot_index, attr.handle, rc.GetValue());
 
+            R_TRY(rc);
+
             // The write's asynchronous result is the subscription's: an error means the link never encrypted
             const u32 results = events::GetGattResultCount(slot_index);
             const u8 enable_notifications[2] = { 0x01, 0x00 };
@@ -249,7 +306,26 @@ namespace ams::ble::gatt {
             result = ResultSuccess();
         }
 
+        s.discovery_complete = R_SUCCEEDED(result);
         R_RETURN(result);
+    }
+
+    void Unsubscribe(u32 slot_index, u32 conn_id) {
+        const auto *service = FindService(slot_index, GattServiceHid);
+        if (!service) return;
+        const auto &table = g_slots[slot_index].table;
+        for (size_t i = 0; i < table.count; ++i) {
+            const auto &attr = table.attributes[i];
+            if ((attr.type == BtdrvGattAttributeType_Characteristic) && IsWithinService(attr, *service) &&
+                IsUuid16(attr.id.uuid, GattCharReport) && (attr.property & BtdrvGattCharacteristicProperty_Notify)) {
+                static_cast<void>(btdrvUnregisterGattNotification(conn_id, service->is_primary, &service->id, &attr.id));
+            }
+        }
+    }
+
+    bool HasCachedAddress(u32 slot_index, const bluetooth::Address &address) {
+        return slot_index < MaxBleControllers && g_slots[slot_index].table.count > 0 &&
+            AddressEqual(g_slots[slot_index].table.address, address);
     }
 
     void ResetSlot(u32 slot_index) {

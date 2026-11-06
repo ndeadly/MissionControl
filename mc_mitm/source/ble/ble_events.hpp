@@ -41,6 +41,7 @@ namespace ams::ble::events {
     void SetRegistering(bool registering);
     void SetScanning(bool scanning);
     void ExpectFilterEvent();
+    void CancelExpectedFilterEvent();
 
     /* Multi-slot tracking */
     u32 FindSlotByConnId(u32 conn_id);
@@ -58,10 +59,10 @@ namespace ams::ble::events {
     u16 GetSlotDisconnectReason(u32 slot);
     bool TakeSlotBondComplete(u32 slot);
 
-    /* Lock-free per-slot lookup table mapping any 32-bit conn_id to controller for O(1) report routing */
-    void RegisterSlotController(u32 slot, u32 conn_id, controller::XboxOneBleController *ctrl);
+    /* Bounded four-slot lookup; the returned reference protects in-flight dispatch during teardown. */
+    void RegisterSlotController(u32 slot, u32 conn_id, std::shared_ptr<controller::XboxOneBleController> ctrl);
     void UnregisterSlotController(u32 slot);
-    controller::XboxOneBleController *GetActiveController(u32 conn_id) noexcept;
+    std::shared_ptr<controller::XboxOneBleController> GetActiveController(u32 conn_id);
 
     u16 GetTargetMaxConnectionInterval(size_t active_count);
     u16 RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count = 0);
@@ -95,6 +96,7 @@ namespace ams::ble::events {
     u8 GetSpareClientIf();
     u8 GetClientIfForSlot(u32 slot);
     size_t GetAvailableClientIfCount();
+    u32 GetClientRegistrationGeneration();
 
     /* Queue consumed by the host thread */
     void PushRecord(const EventRecord &record);
@@ -115,22 +117,23 @@ namespace ams::ble::events {
 
     template<typename F>
     bool WaitFor(bluetooth::BleEventType want, TimeSpan timeout, EventRecord *out, F pred) {
-        static EventRecord s_record;
+        EventRecord record;
 
         const auto deadline = os::GetSystemTick().ToTimeSpan() + timeout;
         for (;;) {
-            while (Pop(&s_record)) {
-                Log(s_record);
+            while (Pop(&record)) {
+                Log(record);
                 if (auto sink = GetSink(); sink) {
-                    sink(s_record);
+                    sink(record);
                 }
 
-                if (((want == InvalidType) || (s_record.type == want)) && pred(s_record)) {
+                if (((want == InvalidType) || (record.type == want)) && pred(record)) {
                     if (out) {
-                        *out = s_record;
+                        *out = record;
                     }
                     return true;
                 }
+                if (os::GetSystemTick().ToTimeSpan() >= deadline) return false;
             }
 
             if (want == InvalidType) {

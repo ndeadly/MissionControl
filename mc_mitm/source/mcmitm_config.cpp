@@ -25,6 +25,7 @@ namespace ams::mitm {
         constinit SetLanguage g_system_language;
 
         constinit MissionControlConfig g_global_config = {
+            .xbox = { .left_stick_deadzone = 15, .right_stick_deadzone = 15 },
             .general = {
                 .enable_rumble = true,
                 .enable_motion = true
@@ -44,7 +45,8 @@ namespace ams::mitm {
                 .enable = false,
                 .log = false,
                 .low_latency = false,
-                .profile = false
+                .profile = false,
+                .radio_cycle = false
             }
         };
 
@@ -56,9 +58,10 @@ namespace ams::mitm {
         }
 
         void ParseInt(const char *value, int *out, int min=INT_MIN, int max=INT_MAX) {
-            int tmp = std::strtol(value, nullptr, 10);
-            if ((tmp >= min) && (tmp <= max)) {
-                *out = tmp;
+            char *end = nullptr;
+            const long tmp = std::strtol(value, &end, 10);
+            if ((end != value) && (*end == '\0') && (tmp >= min) && (tmp <= max)) {
+                *out = static_cast<int>(tmp);
             }
         }
 
@@ -85,10 +88,23 @@ namespace ams::mitm {
             *out = address;
         }
 
+        int XboxConfigIniHandler(void *user, const char *section, const char *name, const char *value) {
+            if (strcasecmp(section, "xbox") != 0) return 1;
+            auto config = static_cast<XboxControllerConfig *>(user);
+            if (strcasecmp(name, "left_stick_deadzone") == 0) {
+                ParseInt(value, &config->left_stick_deadzone, 0, 50);
+            } else if (strcasecmp(name, "right_stick_deadzone") == 0) {
+                ParseInt(value, &config->right_stick_deadzone, 0, 50);
+            }
+            return 1;
+        }
+
         int ConfigIniHandler(void *user, const char *section, const char *name, const char *value) {
             auto config = reinterpret_cast<MissionControlConfig *>(user);
 
-            if (strcasecmp(section, "general") == 0) {
+            if (strcasecmp(section, "xbox") == 0) {
+                return XboxConfigIniHandler(&config->xbox, section, name, value);
+            } else if (strcasecmp(section, "general") == 0) {
                 if (strcasecmp(name, "enable_rumble") == 0) {
                     ParseBoolean(value, &config->general.enable_rumble);
                 } else if (strcasecmp(name, "enable_motion") == 0) {
@@ -127,6 +143,8 @@ namespace ams::mitm {
                     ParseBoolean(value, &config->ble.log);
                 } else if (strcasecmp(name, "low_latency") == 0) {
                     ParseBoolean(value, &config->ble.low_latency);
+                } else if (strcasecmp(name, "radio_cycle") == 0) {
+                    ParseBoolean(value, &config->ble.radio_cycle);
                 } else if (strcasecmp(name, "profile") == 0) {
                     ParseBoolean(value, &config->ble.profile);
                 }
@@ -157,6 +175,13 @@ namespace ams::mitm {
             R_ABORT_UNLESS(setMakeLanguage(language_code, &g_system_language));
         }
 
+    }
+
+    void LoadXboxConfiguration(const char *path, XboxControllerConfig *config) {
+        fs::FileHandle file;
+        if (R_FAILED(fs::OpenFile(&file, path, fs::OpenMode_Read))) return;
+        ON_SCOPE_EXIT { fs::CloseFile(file); };
+        util::ini::ParseFile(file, config, XboxConfigIniHandler);
     }
 
     void LoadConfiguration() {

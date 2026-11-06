@@ -16,6 +16,7 @@
 #include "ble_events.hpp"
 #include "ble_log.hpp"
 #include "ble_profile.hpp"
+#include "ble_controller_routes.hpp"
 #include "../mcmitm_config.hpp"
 #include "../controllers/controller_management.hpp"
 #include "../controllers/xbox_one_ble_controller.hpp"
@@ -32,12 +33,7 @@ namespace ams::ble::events {
         // a CreateBond that succeeded, and at once when pairing failed and the stack drops the link.
         constexpr u32 CoreConnectionType_Suspended = 3;
 
-        struct FastRouteSlot {
-            std::atomic<u32> conn_id{InvalidConnId};
-            std::atomic<controller::XboxOneBleController *> controller{nullptr};
-        };
-
-        constinit FastRouteSlot g_fast_slots[MaxBleControllers] = {};
+        ControllerRoutes<controller::XboxOneBleController, os::SdkMutex, MaxBleControllers> g_routes;
 
         constexpr size_t RingSize = 64;
         constinit EventRecord g_ring[RingSize];
@@ -58,6 +54,7 @@ namespace ams::ble::events {
         constexpr size_t MaxClientIfs = 4;
         constinit u8 g_available_client_ifs[MaxClientIfs] = { InvalidClientIf, InvalidClientIf, InvalidClientIf, InvalidClientIf };
         constinit size_t g_client_if_count = 0;
+        constinit u32 g_client_registration_generation = 0;
         constinit u8 g_spare_client_if = InvalidClientIf;
 
         struct EventSlot {
@@ -259,30 +256,16 @@ namespace ams::ble::events {
         return complete;
     }
 
-    void RegisterSlotController(u32 slot, u32 conn_id, controller::XboxOneBleController *ctrl) {
-        if (slot < MaxBleControllers) {
-            g_fast_slots[slot].controller.store(ctrl, std::memory_order_release);
-            g_fast_slots[slot].conn_id.store(conn_id, std::memory_order_release);
-        }
+    void RegisterSlotController(u32 slot, u32 conn_id, std::shared_ptr<controller::XboxOneBleController> ctrl) {
+        if (slot < MaxBleControllers) g_routes.Register(slot, conn_id, std::move(ctrl));
     }
 
     void UnregisterSlotController(u32 slot) {
-        if (slot < MaxBleControllers) {
-            g_fast_slots[slot].conn_id.store(InvalidConnId, std::memory_order_release);
-            g_fast_slots[slot].controller.store(nullptr, std::memory_order_release);
-        }
+        if (slot < MaxBleControllers) g_routes.Unregister(slot);
     }
 
-    controller::XboxOneBleController *GetActiveController(u32 conn_id) noexcept {
-        if (conn_id == InvalidConnId) {
-            return nullptr;
-        }
-        for (size_t i = 0; i < MaxBleControllers; ++i) {
-            if (g_fast_slots[i].conn_id.load(std::memory_order_acquire) == conn_id) {
-                return g_fast_slots[i].controller.load(std::memory_order_acquire);
-            }
-        }
-        return nullptr;
+    std::shared_ptr<controller::XboxOneBleController> GetActiveController(u32 conn_id) {
+        return g_routes.Find(conn_id);
     }
 
     bool OnBleEvent(bluetooth::BleEventType type, const bluetooth::BleEventInfo *info) {
@@ -298,9 +281,10 @@ namespace ams::ble::events {
                 case BtdrvBleEventType_ClientRegistration:
                 case BtdrvBleEventType_ServerRegistration:
                     ours = g_registering;
-                    if (!ours && (type == BtdrvBleEventType_ClientRegistration)) {
+                    if (type == BtdrvBleEventType_ClientRegistration) {
                         const u8 cif = info->client_registration.client_if;
                         if ((info->client_registration.result == 0) && (info->client_registration.status == 1)) {
+                            ++g_client_registration_generation;
                             g_spare_client_if = cif;
                             bool found = false;
                             for (size_t i = 0; i < g_client_if_count; ++i) {
@@ -371,12 +355,13 @@ namespace ams::ble::events {
                 }
 
                 if (slot != InvalidSlot) {
-                    if (!connected) {
+                    if (!connected && ((g_slots[slot].conn_id == InvalidConnId) || (connection.conn_id == g_slots[slot].conn_id))) {
                         g_slots[slot].disconnected = true;
                         g_slots[slot].disconnect_reason = connection.reason;
                         UnregisterSlotController(slot);
-                    } else {
+                    } else if (connected) {
                         g_slots[slot].conn_id = connection.conn_id;
+                        g_slots[slot].connecting = false;
                         g_slots[slot].disconnected = false;
                     }
                 }
@@ -413,9 +398,28 @@ namespace ams::ble::events {
                 return false;
             }
 
+            if (type == BtdrvEventType_BluetoothCrash) {
+                // btm must receive this event so it performs its normal recovery.
+                // Discard handles from the old stack before accepting new clients.
+                g_client_if_count = 0;
+                g_spare_client_if = InvalidClientIf;
+                std::fill(std::begin(g_available_client_ifs), std::end(g_available_client_ifs), InvalidClientIf);
+                g_adopted = false;
+                g_have_attempted = false;
+                g_expected_filter_events = 0;
+                for (u32 s = 0; s < MaxBleControllers; ++s) {
+                    if (g_slots[s].active) {
+                        g_slots[s].disconnected = true;
+                        UnregisterSlotController(s);
+                    }
+                }
+                g_ring_event.Signal();
+                return false;
+            }
+
             const auto check_match = [&](const bluetooth::Address &addr) -> bool {
                 for (size_t s = 0; s < MaxBleControllers; ++s) {
-                    if (g_slots[s].active && (g_slots[s].connecting || g_slots[s].claimed) && AddressEqual(addr, g_slots[s].address)) {
+                    if (g_slots[s].active && (g_slots[s].connecting || g_slots[s].claimed || (g_slots[s].conn_id != InvalidConnId)) && AddressEqual(addr, g_slots[s].address)) {
                         matched_slot = static_cast<u32>(s);
                         return true;
                     }
@@ -489,6 +493,11 @@ namespace ams::ble::events {
         ++g_expected_filter_events;
     }
 
+    void CancelExpectedFilterEvent() {
+        std::scoped_lock lk(g_lock);
+        if (g_expected_filter_events) --g_expected_filter_events;
+    }
+
     void NoteGattResult(u32 conn_id, u8 notify_type, const BtdrvGattAttributeUuid &char_uuid, u32 result) {
         // Ignore asynchronous GATT write completions from rumble output reports so they never interfere with setup
         if ((notify_type == GattNotifyType_WriteCharacteristic) && IsUuid16(char_uuid, GattCharReport)) {
@@ -530,14 +539,10 @@ namespace ams::ble::events {
     }
 
     bool WaitForGattResult(u32 slot_index, u32 count_before, TimeSpan timeout) {
-        const auto deadline = os::GetSystemTick().ToTimeSpan() + timeout;
-        while (os::GetSystemTick().ToTimeSpan() < deadline) {
-            if ((GetGattResultCount(slot_index) != count_before) || IsSlotDisconnected(slot_index)) {
-                return true;
-            }
-            Pump(TimeSpan::FromMilliSeconds(50));
-        }
-        return (GetGattResultCount(slot_index) != count_before) || IsSlotDisconnected(slot_index);
+        WaitFor(InvalidType, timeout, nullptr, [&](const EventRecord &) {
+            return (GetGattResultCount(slot_index) != count_before) || IsSlotDisconnected(slot_index) || !IsRadioEnabled();
+        });
+        return !IsSlotDisconnected(slot_index) && IsRadioEnabled() && (GetGattResultCount(slot_index) != count_before);
     }
 
     bool TakeAdoptedConnection(bluetooth::Address *out_address, u32 *out_conn_id) {
@@ -612,6 +617,11 @@ namespace ams::ble::events {
             return g_available_client_ifs[slot];
         }
         return (g_client_if_count > 0) ? g_available_client_ifs[0] : g_spare_client_if;
+    }
+
+    u32 GetClientRegistrationGeneration() {
+        std::scoped_lock lk(g_lock);
+        return g_client_registration_generation;
     }
 
     size_t GetAvailableClientIfCount() {
@@ -703,7 +713,7 @@ namespace ams::ble::events {
                 break;
             case BtdrvBleEventType_ScanResult:
                 if (info.scan_result.status != BleScanStatus_NewDevice) {
-                    log::Write("evt ScanResult status=0x%02x", info.scan_result.status);
+                    log::Write("evt ScanResult result=%u status=0x%02x", info.scan_result.result, info.scan_result.status);
                 }
                 break;
             case BtdrvBleEventType_ScanFilter:
@@ -743,7 +753,7 @@ namespace ams::ble::events {
             controller::GetConnectedControllerCount()
         });
 
-        if (total_controllers >= 4) {
+        if ((total_controllers >= 4) && (total_controllers > GetActiveConnectionCount())) {
             return 20; // 25.0 ms max (min=16 / 20.0 ms)
         } else if (total_controllers >= 2) {
             return 12; // 15.0 ms harmonic
@@ -753,30 +763,9 @@ namespace ams::ble::events {
     }
 
     u16 RequestLowLatencyConnectionParameters(const bluetooth::Address &address, size_t active_count) {
-        const size_t total_controllers = std::max({
-            static_cast<size_t>(1),
-            active_count,
-            GetActiveConnectionCount(),
-            controller::GetConnectedControllerCount()
-        });
-
-        if (total_controllers == 1 && !mitm::GetGlobalConfig()->ble.low_latency) {
-            return 0;
-        }
-
-        u16 min_interval = 6;
-        u16 max_interval = 9;
-
-        if (total_controllers >= 4) {
-            min_interval = 16; // 20.0 ms
-            max_interval = 20; // 25.0 ms
-        } else if (total_controllers >= 2) {
-            min_interval = 12; // 15.0 ms
-            max_interval = 12; // 15.0 ms
-        } else {
-            min_interval = 6;  // 7.5 ms
-            max_interval = 9;  // 11.25 ms
-        }
+        const u16 max_interval = GetTargetMaxConnectionInterval(active_count);
+        if (max_interval == 0) return 0;
+        const u16 min_interval = max_interval == 20 ? 16 : max_interval == 9 ? 6 : max_interval;
 
         BtdrvBleConnectionParameter param = {
             .min_conn_interval = min_interval,
@@ -793,7 +782,7 @@ namespace ams::ble::events {
             address.address[0], address.address[1], address.address[2],
             address.address[3], address.address[4], address.address[5]);
         log::Write("btdrvSetBleConnectionParameter [%s] min=%u max=%u total_pads=%u rc=0x%x",
-            addr_str, min_interval, max_interval, static_cast<u32>(total_controllers), rc.GetValue());
+            addr_str, min_interval, max_interval, static_cast<u32>(controller::GetConnectedControllerCount()), rc.GetValue());
         return R_SUCCEEDED(rc) ? max_interval : 0;
     }
 

@@ -42,8 +42,9 @@ namespace ams::ble::gatt {
     // Event sink, see events::SetSink
     void OnEvent(const EventRecord &record);
 
-    // Waits for the stack to report the device's attributes for the given slot, reusing the table held for it if none arrive
-    void Discover(u32 slot_index, u32 conn_id, const bluetooth::Address &address);
+    // Prepares GATT/MTU before pairing. A live link with no attributes yet is
+    // allowed through; Subscribe validates the HID table after pairing.
+    Result Discover(u32 slot_index, u32 conn_id, const bluetooth::Address &address);
 
     // Set when a cache report arrived after discovery completed, i.e. the stack re-discovered the services
     bool TakeRediscovered(u32 slot_index);
@@ -54,5 +55,7 @@ namespace ams::ble::gatt {
 
     // Resets slot connection state while retaining cached attributes for the address
     void ResetSlot(u32 slot_index);
+    bool HasCachedAddress(u32 slot_index, const bluetooth::Address &address);
+    void Unsubscribe(u32 slot_index, u32 conn_id);
 
 }
