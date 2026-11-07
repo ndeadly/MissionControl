@@ -20,6 +20,7 @@
 #include "ble_profile.hpp"
 #include "ble_results.hpp"
 #include "ble_recovery.hpp"
+#include "ble_pairing.hpp"
 #include "ble_advertising.hpp"
 #include "../mcmitm_config.hpp"
 #include "../mcmitm_initialization.hpp"
@@ -44,9 +45,6 @@ namespace ams::ble {
 
         // Application UUID for our own GATT client, should we need to register one
         constexpr BtdrvGattAttributeUuid GattClientAppUuid = { 0x10, { 0x4d, 0x43, 0x42, 0x4c, 0x45, 0x48, 0x4f, 0x53, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
-
-        // Transport argument to btdrvCreateBond (BTA convention: 1 = BR/EDR, 2 = LE)
-        constexpr u32 BondTransport_Le = 2;
 
         constinit u8 g_client_if = InvalidClientIf;
         RadioRecovery g_radio_recovery;
@@ -262,8 +260,9 @@ namespace ams::ble {
         void CleanupSleepIfNeeded() {
             events::WaitForSleepPreparation();
             if (events::TakeSleepCleanup()) {
+                const bool had_links = GetConnectedCount() != 0;
                 DisconnectAll(false); // the PSC thread already closed the transport
-                g_radio_recovery.Sleep();
+                g_radio_recovery.Sleep(had_links);
             }
         }
 
@@ -400,86 +399,12 @@ namespace ams::ble {
             R_SUCCEED();
         }
 
-        Result WaitForConnection(u32 slot, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout) {
-            EventRecord e;
-            if (!events::WaitFor(events::InvalidType, timeout, &e, [&](const EventRecord &r) {
-                return !events::IsRadioEnabled() || events::IsSlotDisconnected(slot) ||
-                    (r.type == BtdrvBleEventType_ClientConnection && AddressEqual(r.info.client_connection.address, address));
-            })) {
-                R_THROW(svc::ResultTimedOut());
-            }
-
-            R_UNLESS(events::IsRadioEnabled() && e.type == BtdrvBleEventType_ClientConnection, ResultNoConnection());
-            if ((e.info.client_connection.result != 0) || (e.info.client_connection.status != BleConnectionStatus_Connected)) {
-                log::Write("slot %u: connection failed result=%u status=%u", slot, e.info.client_connection.result, e.info.client_connection.status);
-                R_THROW(ResultNoConnection());
-            }
-
-            *out_conn_id = e.info.client_connection.conn_id;
-            R_UNLESS(!events::IsSlotDisconnected(slot), ResultNoConnection());
-            log::Write("slot %u: connected conn_id=%u", slot, *out_conn_id);
-            R_SUCCEED();
-        }
-
-        Result Connect(u32 slot, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout) {
-            events::SetSlotConnecting(slot, address);
-            R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
-
-            const u8 client_if = events::GetClientIfForSlot(slot);
-            if (client_if == InvalidClientIf) {
-                log::Write("slot %u: no client_if available", slot);
-                return ResultNoConnection();
-            }
-            g_host_slots[slot].client_if = client_if;
-
-            Result rc = btdrvRemoveBond(address);
-            log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, rc.GetValue());
-
-            rc = btdrvConnectGattServer(client_if, address, true, 0);
-            log::Write("btdrvConnectGattServer slot=%u client_if=%u rc=0x%x", slot, client_if, rc.GetValue());
-            R_TRY(rc);
-
-            rc = WaitForConnection(slot, address, out_conn_id, timeout);
-            if (R_FAILED(rc) && events::IsRadioEnabled()) {
-                static_cast<void>(btdrvCancelConnectGattServer(client_if, address, true));
-            }
-            R_RETURN(rc);
-        }
-
         bool Adopt(bluetooth::Address *out_address, u32 *out_conn_id) {
             if (!events::TakeAdoptedConnection(out_address, out_conn_id)) {
                 return false;
             }
             log::Write("controller connected on its own, conn_id=%u", *out_conn_id);
             return true;
-        }
-
-        bool Pair(u32 slot, const bluetooth::Address &address) {
-            Result rc = btdrvCreateBond(address, BondTransport_Le);
-            log::Write("btdrvCreateBond slot=%u rc=0x%x", slot, rc.GetValue());
-            if (R_FAILED(rc)) {
-                return false;
-            }
-
-            bool bonded = false;
-            events::WaitFor(events::InvalidType, TimeSpan::FromSeconds(10), nullptr, [&](const EventRecord &) {
-                bonded = bonded || events::TakeSlotBondComplete(slot);
-                return bonded || events::IsSlotDisconnected(slot) || !events::IsRadioEnabled();
-            });
-            if (bonded) {
-                // The probe's bond indication can precede a refused pairing's
-                // disconnect and late discovery events. Drain them before use.
-                events::WaitFor(events::InvalidType, TimeSpan::FromMilliSeconds(500), nullptr, [&](const EventRecord &) {
-                    return events::IsSlotDisconnected(slot) || !events::IsRadioEnabled();
-                });
-            }
-            if (bonded && !events::IsSlotDisconnected(slot) && events::IsRadioEnabled()) {
-                log::Write("slot %u: bond indication received; verifying encrypted GATT access", slot);
-                return true;
-            }
-            log::Write("slot %u: pairing failed (bond_indication=%u disconnected=%u reason=0x%04x radio=%u)",
-                slot, bonded, events::IsSlotDisconnected(slot), events::GetSlotDisconnectReason(slot), events::IsRadioEnabled());
-            return false;
         }
 
         /* Presenting and dismissing controllers */
@@ -653,7 +578,9 @@ namespace ams::ble {
                     slot = FindSlotForAddress(address, slot);
                     g_host_slots[slot].state = BleDeviceSlot::State::Connecting;
                     g_host_slots[slot].address = address;
-                    connected = R_SUCCEEDED(Connect(slot, address, &conn_id, TimeSpan::FromSeconds(15)));
+                    const u8 client_if = events::GetClientIfForSlot(slot);
+                    g_host_slots[slot].client_if = client_if;
+                    connected = R_SUCCEEDED(pairing::Connect(slot, client_if, address, &conn_id, TimeSpan::FromSeconds(15), gatt::HasCachedAddress(slot, address)));
                     if (!connected) {
                         NotePairingFailure(address);
                         DismissSlot(slot);
@@ -697,7 +624,7 @@ namespace ams::ble {
             }
 
             g_host_slots[slot].state = BleDeviceSlot::State::Pairing;
-            if (!Pair(slot, address)) {
+            if (!pairing::Pair(slot, address)) {
                 g_radio_recovery.Request();
                 NotePairingFailure(address, true);
                 if (events::IsRadioEnabled()) {
@@ -744,10 +671,27 @@ namespace ams::ble {
         }
 
         bool RecoverRadioIfNeeded() {
+            static size_t reported_active_links = 0;
+            const size_t active_links = events::GetActiveConnectionCount();
+            const bool deferred = g_radio_recovery.Pending() && mitm::GetGlobalConfig()->ble.radio_cycle &&
+                events::IsPairingWindowOpen() && events::IsRadioEnabled() && active_links != 0;
+            if (deferred && active_links != reported_active_links) {
+                log::Write("BLE pairing recovery deferred: %zu BLE links still active; turn all Xbox BLE pads off, then hold sync in Change Grip/Order", active_links);
+            }
+            reported_active_links = deferred ? active_links : 0;
             if (!g_radio_recovery.WaitingForClients()) {
                 if (!g_radio_recovery.Begin(mitm::GetGlobalConfig()->ble.radio_cycle,
                         events::IsPairingWindowOpen(), events::IsRadioEnabled(), events::GetActiveConnectionCount(),
-                        os::GetSystemTick().ToTimeSpan().GetMilliSeconds())) return true;
+                        os::GetSystemTick().ToTimeSpan().GetMilliSeconds())) {
+                    // A wake inside the reset cooldown must not spend the only
+                    // zero-link recovery window connecting a pad first.
+                    if (mitm::GetGlobalConfig()->ble.radio_cycle && g_radio_recovery.Pending() &&
+                            events::IsPairingWindowOpen() && events::IsRadioEnabled() && events::GetActiveConnectionCount() == 0) {
+                        events::Pump(TimeSpan::FromMilliSeconds(100));
+                        return false;
+                    }
+                    return true;
+                }
 
                 // No active BLE link is allowed through the recovery gate.
                 log::Write("BLE pairing recovery: no active BLE links, resetting stack");
@@ -786,7 +730,7 @@ namespace ams::ble {
             bluetooth::ble::WaitInitialized();
 
             os::SleepThread(TimeSpan::FromSeconds(20));
-            log::Write("starting multi-device BLE host (stability-fix-r5, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
+            log::Write("starting multi-device BLE host (reconnect-fix-r6, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
 
             if (R_FAILED(PrepareClient())) {
                 log::Write("giving up: no gatt client available");

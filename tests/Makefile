@@ -24,3 +24,8 @@ test:
 	cp ../mc_mitm/source/ble/ble_sleep.cpp ../mc_mitm/source/ble/ble_sleep.hpp profile_shim/* sleep_shim/* $(BUILD_DIR)/sleep/
 	$(CXX) $(CXXFLAGS) -I$(BUILD_DIR)/sleep sleep_regression.cpp -o $(BUILD_DIR)/sleep_regression
 	$(BUILD_DIR)/sleep_regression
+
+	mkdir -p $(BUILD_DIR)/pairing
+	cp ../mc_mitm/source/ble/ble_pairing.cpp ../mc_mitm/source/ble/ble_pairing.hpp gatt_shim/ble_log.hpp pairing_shim/* $(BUILD_DIR)/pairing/
+	$(CXX) $(CXXFLAGS) -I$(BUILD_DIR)/pairing pairing_regression.cpp -o $(BUILD_DIR)/pairing_regression
+	$(BUILD_DIR)/pairing_regression

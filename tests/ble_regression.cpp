@@ -110,8 +110,27 @@ static void TestRecovery() {
     assert(!recovery.Begin(true, true, true, 2, 12846000));
     assert(recovery.Begin(true, true, true, 0, 12846000));
     recovery.Request();
-    recovery.Sleep();
-    assert(!recovery.Begin(true, true, true, 0, 13000000)); // intentional sleep is not a failure
+    recovery.Sleep(false);
+    recovery.Sleep(false); // repeated empty PSC transitions preserve a refusal
+    assert(recovery.Pending());
+    assert(!recovery.Begin(true, true, false, 0, 13000000));
+    assert(recovery.Begin(true, true, true, 0, 13000000));
+
+    ams::ble::RadioRecovery wake;
+    wake.Sleep(false); // no previous links or failure: no needless reset
+    assert(!wake.Pending());
+    wake.Sleep(true); // close three working pads at MinimumAwake
+    wake.Sleep(false);
+    assert(wake.Pending());
+    assert(!wake.Begin(true, false, true, 0, 214000)); // waits for Grip/Order
+    assert(!wake.Begin(true, true, true, 2, 214000)); // never drop other players
+    assert(wake.Begin(true, true, true, 0, 214000)); // before the first new bond
+    wake.AwaitClients(5);
+    wake.Sleep(false); // suspend during recovery: old client handles unusable
+    assert(wake.Pending() && !wake.WaitingForClients());
+    assert(!wake.Begin(true, true, true, 0, 273999));
+    assert(wake.Pending()); // coordinator must wait instead of starting a link
+    assert(wake.Begin(true, true, true, 0, 274000));
 }
 
 int main() {

@@ -56,6 +56,7 @@ namespace ams::ble::events {
     void ClearSlot(u32 slot);
 
     bool IsSlotDisconnected(u32 slot);
+    u32 GetSlotConnectionId(u32 slot);
     u16 GetSlotDisconnectReason(u32 slot);
     bool TakeSlotBondComplete(u32 slot);
 

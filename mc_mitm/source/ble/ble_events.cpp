@@ -242,6 +242,12 @@ namespace ams::ble::events {
         return g_slots[slot].disconnected;
     }
 
+    u32 GetSlotConnectionId(u32 slot) {
+        std::scoped_lock lk(g_lock);
+        if (slot >= MaxBleControllers || !g_slots[slot].active || g_slots[slot].disconnected) return InvalidConnId;
+        return g_slots[slot].conn_id;
+    }
+
     u16 GetSlotDisconnectReason(u32 slot) {
         std::scoped_lock lk(g_lock);
         if (slot >= MaxBleControllers) {
@@ -453,12 +459,14 @@ namespace ams::ble::events {
 
         if (type == BtdrvEventType_SspRequest) {
             auto &request = info->ssp_request.v12;
-            static_cast<void>(btdrvRespondToSspRequest(request.addr, SspVariant_PasskeyConfirmation, true, request.passkey));
+            const Result rc = btdrvRespondToSspRequest(request.addr, SspVariant_PasskeyConfirmation, true, request.passkey);
+            log::Write("slot %u: SSP reply rc=0x%x", matched_slot, rc.GetValue());
             return true;
         }
 
         if (type == BtdrvEventType_Connection) {
             auto &connection = info->connection.v12;
+            log::Write("slot %u: core connection type=%u", matched_slot, connection.type);
             if (connection.type == CoreConnectionType_Suspended) {
                 std::scoped_lock lk(g_lock);
                 if (matched_slot != InvalidSlot) {

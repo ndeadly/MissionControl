@@ -11,6 +11,8 @@
 !/tests/profile_shim/
 !/tests/sleep_regression.cpp
 !/tests/sleep_shim/
+!/tests/pairing_regression.cpp
+!/tests/pairing_shim/
 dist/
 mc_mitm/build/
 mc_mitm/out/

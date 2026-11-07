@@ -34,7 +34,13 @@ namespace ams::ble {
                 m_last_attempt_ms = now_ms;
                 return true;
             }
-            void Sleep() { m_pending = false; m_waiting_for_clients = false; }
+            bool Pending() const { return m_pending; }
+            void Sleep(bool had_links) {
+                // Suspend closes links, but does not clear the native security
+                // state. Repeated empty PSC transitions must not lose recovery.
+                m_pending = m_pending || had_links || m_waiting_for_clients;
+                m_waiting_for_clients = false;
+            }
             void AwaitClients(std::uint32_t previous_generation) {
                 m_previous_generation = previous_generation;
                 m_waiting_for_clients = true;
