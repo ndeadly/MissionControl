@@ -2,9 +2,31 @@
 
 Changes are in `arkseal-ble-xbox`, based on `7801b6d`. The sibling upstream and proof-of-concept checkouts were left unchanged. The workspace-level `../missioncontrol.ini` is the gameplay config included in the test package.
 
-## Revision 7: preserve security on individual reconnects
+## R7 console result: individual reconnect remains unresolved
 
-**Candidate fix; individual reconnects are not yet verified on the Switch.** The supplied R6 trace proves that the previous 500 ms bond-removal delay did not solve this problem. R6 remains available as commit `22ebfe7` and `../MissionControl-BLE-reconnect-fix-r6.zip`.
+The November 8 console test **rejects the R7 reconnect hypothesis**. The 2,293-line log starts with `reconnect-fix-r7` on HOS 23.0.1, SHA-256 `acde5cd6fa9bc124138e34814e643a87fac2e3ac6a3f7f6de3df354c9068d068`. The accompanying profile SHA-256 is `ffbeb70acc9fa95285f66c40e14f0238585622646aaae1ee57248953b30f6826`.
+
+| Time (seconds) | Observation |
+| --- | --- |
+| 88–108 | All three controllers subscribe and are presented. |
+| 128 | `10:c7:35:b5:63:19` disconnects; two BLE links remain active. |
+| 153, 186 | Its R7 reconnect opens/discovers GATT, then the authenticated HID Information read completes with result `9`; the link ends with `0x0016`. No explicit `CreateBond` occurs on these attempts. |
+| 195–196 | The remaining two controllers disconnect. |
+| 202–204 | MissionControl requests a global stack reset and receives fresh native GATT clients. |
+| 232–256 | All three controllers successfully pair and subscribe again. |
+| 323, 356, 388, 420 | After `14:cb:65:e8:2b:e2` is disconnected individually, it fails at the same authenticated read with result `9` while the other two links stay active. |
+
+There are six failed reconnect reads, one explicit radio reset and six successful presentations (three initial, three after recovery). The profile's last window reports 5/8/56 microseconds minimum/average/maximum forwarding time. This does not measure end-to-end latency or establish a CPU bottleneck.
+
+The demonstrated recovery is the **shared stack reset**, not merely a reduction in the number of connected controllers. The zero-link recovery gate explains the user's observation: switching off the other pads permits that reset. The exact internal cause of the native refusal is still unknown. Callback result `9` must not be interpreted as an ATT or HCI error without verifying the driver's translation.
+
+Fetched [ferrolho PR #1](https://github.com/ferrolho/MissionControl/pull/1) into `../ferrolho-pr-1`, branch `review/ferrolho-pr-1`, pinned to `835c395ccf06836595330ed49bebb439f8a939ec`. The full eight-commit range uses one BLE controller and `RecycleRadio()` calls `btdrvEmulateBluetoothCrash` after link loss/refused pairing. It contains no per-peer security reset. Its `Pair()` comment explicitly notes that an authenticated request on an unbonded link fails. Importing its unconditional recovery would reintroduce disruption of working players. Its Classic-activity scan holdoff addresses a separate coexistence issue, not the failed encrypted read observed here.
+
+R7's host tests verify software branching and completion matching; they do not validate native security reuse. **Do not present R7 as a successful reconnect fix or request another identical test.** A targeted repair needs evidence from the native Bluetooth implementation or a lower-level security trace. No such dump/source is currently available locally. Atmosphere identifies the Bluetooth system program as `010000000000000B` (not `0100000000000013`, which is HID). Until a targeted repair is established, the verified workaround is to switch off all Xbox BLE pads, allow recovery in Change Grip/Order, then sync them again. Resetting while players remain connected has a different, disruptive behavior and is not a seamless fix.
+
+## Revision 7 implementation and original validation
+
+**Historical candidate: subsequently failed console validation, as recorded above.** The supplied R6 trace proves that the previous 500 ms bond-removal delay did not solve this problem. R6 remains available as commit `22ebfe7` and `../MissionControl-BLE-reconnect-fix-r6.zip`.
 
 The 3,783-line log identifies `reconnect-fix-r6` on HOS 23.0.1 (SHA-256 `50a4c446673a4091a4086610f665eec518db7207684b75b80c95ebd36e8bf920`). Three pads initially subscribe successfully. After `40:8e:2c:7a:3a:9a` disconnects, its returning link opens and discovers all 26 attributes, but four attempts end with `0x0016` about 140–170 ms after `CreateBond`; another ends with `0x0008`. Once the other two pads disconnect, recovery resets the stack at 5253 seconds, and all three subscribe again. Later, the same pattern affects `10:c7:35:b5:63:19`: two refusals with the other pads active, then another successful three-pad connection after the zero-link reset at 7172 seconds.
 
@@ -187,4 +209,4 @@ The latest workspace package `../MissionControl-BLE-reconnect-fix-r7.zip` contai
 4. Compare Smash character select and gameplay with the same controllers, first with rumble enabled and then disabled. Keep `log=false` and `profile=false` for this comparison. CPU usage, radio packet loss and end-to-end latency require console measurements; none are claimed from the host tests.
 5. If pairing still fails, temporarily set `log=true`, reboot, reproduce initial pairing → power-off → attempted re-pairing, and retain `/config/MissionControl/ble.log`. Include HOS, Atmosphere and Xbox firmware versions. Turn diagnostics off again for normal play.
 
-Revision 3 pairing/input on three controllers is user-confirmed. Revision 4's active-player resets were removed following the reported disruption. The revision 5 trace confirms early sleep teardown. Revision 6's trace confirms repeated three-pad pairing after zero-link stack recovery, but still refuses individual re-pairing while other pads remain connected. Revision 7 requires console validation as described above.
+Revision 3 pairing/input on three controllers is user-confirmed. Revision 4's active-player resets were removed following the reported disruption. The revision 5 trace confirms early sleep teardown. Revisions 6 and 7 confirm three-pad pairing after zero-link stack recovery, but both fail individual reconnect while other pads remain connected. The issue remains unresolved.

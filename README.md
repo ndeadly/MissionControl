@@ -118,7 +118,7 @@ The `[ble]` options are:
 
 Power-button-only reconnection is still limited by the original legacy-pairing implementation. Use the sync button. Revision 5 closes BLE links before acknowledging console sleep; use sync to pair again after wake. The controller cannot wake the console.
 
-Revision 7 changes reconnects for a controller that successfully subscribed during the current Bluetooth stack session: it preserves native security state and requests encrypted GATT access instead of removing the bond and forcing `CreateBond` again. New controllers and the first pairing after a stack reset retain the initial pairing sequence. Both authenticated HID reads and the notification-enable write must complete for the correct connection before input is enabled. This is a candidate fix for reconnecting one pad while others remain connected; console verification is still required. See [BLE_FIXES.md](BLE_FIXES.md).
+Revision 7's attempt to reuse native security through authenticated GATT **failed console validation**: individual reconnects still fail while other BLE pads remain connected. The verified workaround remains switching off all Xbox BLE pads, allowing the shared stack reset in Change Grip/Order, then using sync again. Initial pairing and pairing after that reset work; seamless individual reconnect remains unresolved. See the trace and PR comparison in [BLE_FIXES.md](BLE_FIXES.md).
 
 #### Xbox stick deadzones
 
