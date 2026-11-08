@@ -48,6 +48,7 @@ namespace ams::ble {
 
         constinit u8 g_client_if = InvalidClientIf;
         RadioRecovery g_radio_recovery;
+        pairing::SessionHistory g_sessions;
         u32 g_hid_data_path_generation = UINT32_MAX;
 
         // A refused pairing leaves the stack refusing the next ones for a while, so asking again straight away
@@ -562,6 +563,7 @@ namespace ams::ble {
 
             bluetooth::Address address;
             u32 conn_id = InvalidConnId;
+            u32 session_generation = events::GetClientRegistrationGeneration();
             bool connected = Adopt(&address, &conn_id);
 
             if (!connected) {
@@ -580,7 +582,8 @@ namespace ams::ble {
                     g_host_slots[slot].address = address;
                     const u8 client_if = events::GetClientIfForSlot(slot);
                     g_host_slots[slot].client_if = client_if;
-                    connected = R_SUCCEEDED(pairing::Connect(slot, client_if, address, &conn_id, TimeSpan::FromSeconds(15), gatt::HasCachedAddress(slot, address)));
+                    session_generation = events::GetClientRegistrationGeneration();
+                    connected = R_SUCCEEDED(pairing::Connect(slot, client_if, address, &conn_id, TimeSpan::FromSeconds(15), g_sessions.Contains(address, session_generation)));
                     if (!connected) {
                         NotePairingFailure(address);
                         DismissSlot(slot);
@@ -624,7 +627,12 @@ namespace ams::ble {
             }
 
             g_host_slots[slot].state = BleDeviceSlot::State::Pairing;
-            if (!pairing::Pair(slot, address)) {
+            if (session_generation != events::GetClientRegistrationGeneration()) {
+                log::Write("slot %u: native clients changed during setup; discarding old session", slot);
+                DismissSlot(slot, false);
+                return;
+            }
+            if (!pairing::PrepareSecurity(slot, address, g_sessions.Contains(address, session_generation))) {
                 g_radio_recovery.Request();
                 NotePairingFailure(address, true);
                 if (events::IsRadioEnabled()) {
@@ -655,7 +663,7 @@ namespace ams::ble {
             if (R_FAILED(rc)) {
                 log::Write("slot %u: subscription failed rc=0x%x gatt_result=%u", slot, rc.GetValue(), events::GetGattFailure(slot));
                 g_radio_recovery.Request();
-                NotePairingFailure(address);
+                NotePairingFailure(address, g_sessions.Contains(address, session_generation));
                 if (events::IsRadioEnabled()) {
                     const Result cancel_rc = btdrvCancelBond(address);
                     log::Write("btdrvCancelBond after subscription failure slot=%u rc=0x%x", slot, cancel_rc.GetValue());
@@ -665,7 +673,12 @@ namespace ams::ble {
                 return;
             }
 
+            if (session_generation != events::GetClientRegistrationGeneration()) {
+                DismissSlot(slot, false);
+                return;
+            }
             g_host_slots[slot].hid = hid;
+            g_sessions.Remember(slot, address, session_generation);
             log::Write("slot %u: paired and subscribed", slot);
             PresentSlot(slot);
         }
@@ -730,7 +743,7 @@ namespace ams::ble {
             bluetooth::ble::WaitInitialized();
 
             os::SleepThread(TimeSpan::FromSeconds(20));
-            log::Write("starting multi-device BLE host (reconnect-fix-r6, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
+            log::Write("starting multi-device BLE host (reconnect-fix-r7, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
 
             if (R_FAILED(PrepareClient())) {
                 log::Write("giving up: no gatt client available");

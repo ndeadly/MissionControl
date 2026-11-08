@@ -2,6 +2,37 @@
 
 Changes are in `arkseal-ble-xbox`, based on `7801b6d`. The sibling upstream and proof-of-concept checkouts were left unchanged. The workspace-level `../missioncontrol.ini` is the gameplay config included in the test package.
 
+## Revision 7: preserve security on individual reconnects
+
+**Candidate fix; individual reconnects are not yet verified on the Switch.** The supplied R6 trace proves that the previous 500 ms bond-removal delay did not solve this problem. R6 remains available as commit `22ebfe7` and `../MissionControl-BLE-reconnect-fix-r6.zip`.
+
+The 3,783-line log identifies `reconnect-fix-r6` on HOS 23.0.1 (SHA-256 `50a4c446673a4091a4086610f665eec518db7207684b75b80c95ebd36e8bf920`). Three pads initially subscribe successfully. After `40:8e:2c:7a:3a:9a` disconnects, its returning link opens and discovers all 26 attributes, but four attempts end with `0x0016` about 140–170 ms after `CreateBond`; another ends with `0x0008`. Once the other two pads disconnect, recovery resets the stack at 5253 seconds, and all three subscribe again. Later, the same pattern affects `10:c7:35:b5:63:19`: two refusals with the other pads active, then another successful three-pad connection after the zero-link reset at 7172 seconds.
+
+This establishes a native pairing-path failure, rather than a particular bad controller or a two-controller limit. The reason reconnecting **all** pads works is the zero-link radio reset. R6 deliberately defers that shared reset while other BLE players are connected. The logs do not reveal which internal security flag/key causes the native refusal: `CreateBond` IPC success is only acceptance of the request, and `0x0016` is the later local-host termination. The [probe follow-up](https://github.com/ferrolho/MissionControl/pull/1) reports the same reset-dependent refusal. The on-disk upstream/probe/refactor branches contain no separate persistent-bonding implementation.
+
+### Changes
+
+- Remember the addresses of successfully subscribed pads with their native client-registration generation, in four fixed entries. Discovery/cache presence alone cannot qualify a pad for reconnect.
+- For a returning pad in that generation, do **not** call `RemoveBond` or force another `CreateBond`. Preserve whatever native LE security state remains and let `NoMitm` authenticated GATT reads request encryption/security. This is a different security path to test, not proof that a usable stored key exists. A new pad or a pad returning after stack recovery uses the original initial-pairing sequence. The unsuccessful 500 ms cleanup workaround is removed.
+- Require matching connection, operation and characteristic for both HID metadata reads and the CCCD write. An unrelated notification or completion cannot mark security/subscription successful. Missing mandatory metadata, callback errors, timeouts, sleep and disconnect abort setup. No plaintext fallback is added.
+- Retain the zero-active-BLE recovery rule. Failed reconnects back off 30 seconds. Native registration changes invalidate setup/history. No new threads, input processing, rumble work or per-report allocations are added.
+
+The supplied profile records 515,740 reports and 4/6/11 microseconds min/average/max forwarding time in its last window. Its 33.9-second maximum arrival gap can include idle/disconnected time across the combined stream, so it cannot measure a pad's radio latency or CPU usage. It does not explain the reproducible security-stage refusals.
+
+### Validation and console test
+
+All six host suites, ASan/UBSan (leak detection disabled in the ptrace sandbox), the ARM release build and `git diff --check` pass. Production pairing tests check that a reconnect makes neither destructive bond removal nor explicit bond creation, while a fresh session still does. GATT tests use timed completions, unrelated-device/operation/characteristic traffic, missing replies, callback failures including raw result 26, missing authentication metadata, bounded local authentication retries, sleep/disconnect, and failed or absent CCCD completion. Deliberately restoring unconditional bond removal or accepting the wrong GATT operation makes the relevant regression fail. These fixtures do not emulate the Switch's native security stack.
+
+The ARM ELF is 483,116 bytes text, 41,816 data and 477,888 BSS: text grows 368 bytes from R6 and the aligned data/BSS section sizes are unchanged. The new completion-wait frame is 1,120 bytes on the existing 16 KiB coordinator stack. These are static build figures, not measured gameplay latency or runtime memory use. Existing Atmosphere-libs header warnings remain; dependency pins are unchanged from the November 6 audit.
+
+Install `../MissionControl-BLE-reconnect-fix-r7.zip` by copying `atmosphere/` and `config/` to the SD root and rebooting. This diagnostic package enables logging/profiling. Check for startup marker `reconnect-fix-r7`.
+
+1. Pair all three pads, then turn **only one** off while leaving the other two on. Open Change Grip/Order and hold that pad's sync button. Repeat for each pad.
+2. The returning pad should log `reconnect preserving native security state`, then `reconnect requesting encrypted GATT access without CreateBond`, successful authenticated reads/CCCD, and `paired and subscribed`. No global radio reset or disconnect of the other pads should occur.
+3. Also test all-off/re-pairing and console sleep/wake; after a stack reset, the initial `CreateBond` path should still work. Save both logs before rebooting.
+4. If the returning authenticated read is refused or the link still drops, this candidate has not solved the native limitation. Keep the other pads connected long enough to capture the failure, then use the existing all-off recovery. Do not interpret the passing host tests as proof of hardware success.
+5. Disable `log` and `profile` and reboot before comparing gameplay performance.
+
 ## Revision 6: retain recovery across sleep and separate returning-pad cleanup
 
 This is a **candidate reconnect fix**, not a claim of hardware verification. Revision 5 remains available as `../MissionControl-BLE-stability-fix-r5.zip` and commit `ca14594`.
@@ -148,12 +179,12 @@ Zero-initialized storage decreased by 4 KiB after moving per-template event buff
 
 ## Install and validate on the Switch
 
-The latest workspace package `../MissionControl-BLE-reconnect-fix-r6.zip` contains `atmosphere/` and `config/`, including an active `missioncontrol.ini`. Copy these to the SD root and reboot to load the new module/config. It uses this checkout's existing firmware patches; compatibility with firmware versions beyond those patches is not newly established.
+The latest workspace package `../MissionControl-BLE-reconnect-fix-r7.zip` contains `atmosphere/` and `config/`, including an active `missioncontrol.ini`. Copy these to the SD root and reboot to load the new module/config. It uses this checkout's existing firmware patches; compatibility with firmware versions beyond those patches is not newly established.
 
 1. Pair each controller, then all four together. For the 1708, record its firmware version and whether the log identifies a BLE scan/connection. No extra model selector is required.
-2. Use the revision 6 console test above. Recovery waits until all BLE pads are off. Xbox-button-only reconnect is not implemented.
+2. Use the revision 7 console test above. Shared-radio recovery waits until all BLE pads are off; individual reconnects now try authenticated GATT without forced re-bonding. Xbox-button-only reconnect is not implemented.
 3. In the Switch stick test, release the drifting stick and adjust just its override in `/config/MissionControl/controllers/<12 lowercase MAC digits>/config.ini`, under `[xbox]`. Start with `left_stick_deadzone=20` for a drifting left stick; use the smallest sufficient value. Reconnect after changing this file. Global changes require a reboot.
 4. Compare Smash character select and gameplay with the same controllers, first with rumble enabled and then disabled. Keep `log=false` and `profile=false` for this comparison. CPU usage, radio packet loss and end-to-end latency require console measurements; none are claimed from the host tests.
 5. If pairing still fails, temporarily set `log=true`, reboot, reproduce initial pairing → power-off → attempted re-pairing, and retain `/config/MissionControl/ble.log`. Include HOS, Atmosphere and Xbox firmware versions. Turn diagnostics off again for normal play.
 
-Revision 3 pairing/input on three controllers is user-confirmed. Revision 4 multi-controller radio recovery remains unverified on the console; the original recovery API was tested by the follow-up probe author on a 1708. The latest revision 5 trace confirms early sleep teardown and three working links after stack recovery, with the per-pad reconnect refusal described above still present. Revision 6 remains a candidate requiring console validation.
+Revision 3 pairing/input on three controllers is user-confirmed. Revision 4's active-player resets were removed following the reported disruption. The revision 5 trace confirms early sleep teardown. Revision 6's trace confirms repeated three-pad pairing after zero-link stack recovery, but still refuses individual re-pairing while other pads remain connected. Revision 7 requires console validation as described above.

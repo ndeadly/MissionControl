@@ -96,6 +96,26 @@ namespace ams::ble::gatt {
             return false;
         }
 
+        Result WaitForOperation(u32 slot, u32 conn_id, u8 operation, u16 characteristic, TimeSpan timeout) {
+            EventRecord event = {};
+            const bool completed = events::WaitFor(events::InvalidType, timeout, &event, [&](const EventRecord &record) {
+                if (events::IsSlotDisconnected(slot) || !events::IsRadioEnabled()) return true;
+                if (record.type != BtdrvBleEventType_ClientNotify) return false;
+                const auto &notify = record.info.client_notify;
+                return notify.conn_id == conn_id && notify.op_type == operation && IsUuid16(notify.char_uuid, characteristic);
+            });
+            R_UNLESS(!events::IsSlotDisconnected(slot) && events::IsRadioEnabled(), ResultNoConnection());
+            if (!completed) log::Write("slot %u: GATT completion timeout conn_id=%u op=%u char=0x%04x", slot, conn_id, operation, characteristic);
+            R_UNLESS(completed, svc::ResultTimedOut());
+            // An unrelated notification or a different pad's completion is not
+            // evidence that this request (and its encryption) succeeded.
+            if (event.info.client_notify.result != 0) {
+                log::Write("slot %u: GATT completion failed conn_id=%u op=%u char=0x%04x result=%u", slot, conn_id, operation, characteristic, event.info.client_notify.result);
+                R_THROW(svc::ResultInvalidState());
+            }
+            R_SUCCEED();
+        }
+
     }
 
     void OnEvent(const EventRecord &e) {
@@ -238,7 +258,9 @@ namespace ams::ble::gatt {
         out->service = service;
         out->has_output_report = false;
 
-        // Authenticated reads are what make the stack encrypt the link (pairing first if it has to)
+        // Authenticated reads request encryption (pairing first if needed).
+        // Both mandatory HID characteristics must complete before subscribing.
+        bool read_information = false, read_map = false;
         for (size_t i = 0; i < count; ++i) {
             const auto attr = s.table.attributes[i];
             if ((attr.type != BtdrvGattAttributeType_Characteristic) || !IsWithinService(attr, service)) {
@@ -249,7 +271,6 @@ namespace ams::ble::gatt {
             R_UNLESS(!events::IsSlotDisconnected(slot_index), ResultNoConnection());
 
             if (IsUuid16(attr.id.uuid, GattCharHidInformation) || IsUuid16(attr.id.uuid, GattCharReportMap)) {
-                const u32 results = events::GetGattResultCount(slot_index);
                 Result rc;
                 for (int attempt = 0; ; ++attempt) {
                     R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
@@ -263,12 +284,14 @@ namespace ams::ble::gatt {
                 }
                 R_TRY(rc);
                 // The first authenticated read may carry a whole Just Works pairing before it completes
-                const bool completed = events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(10));
-                R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
-                R_UNLESS(completed, svc::ResultTimedOut());
-                R_UNLESS(events::GetGattFailure(slot_index) == 0, svc::ResultInvalidState());
+                const bool information = IsUuid16(attr.id.uuid, GattCharHidInformation);
+                R_TRY(WaitForOperation(slot_index, conn_id, BtdrvGattOperationType_CharacteristicRead,
+                    information ? GattCharHidInformation : GattCharReportMap, TimeSpan::FromSeconds(10)));
+                if (information) read_information = true;
+                else read_map = true;
             }
         }
+        R_UNLESS(read_information && read_map, svc::ResultNotFound());
 
         Result result = svc::ResultNotFound();
         for (size_t i = 0; i < count; ++i) {
@@ -300,15 +323,11 @@ namespace ams::ble::gatt {
             R_TRY(rc);
 
             // The asynchronous write must complete successfully before presenting the pad.
-            const u32 results = events::GetGattResultCount(slot_index);
             const u8 enable_notifications[2] = { 0x01, 0x00 };
             rc = btdrvWriteGattDescriptor(conn_id, service.is_primary, &service.id, &attr.id, &cccd->id, enable_notifications, sizeof(enable_notifications), BtdrvGattAuthReqType_NoMitm);
             log::Write("btdrvWriteGattDescriptor(CCCD) slot=%u handle=0x%04x rc=0x%x", slot_index, cccd->handle, rc.GetValue());
             R_TRY(rc);
-            const bool completed = events::WaitForGattResult(slot_index, results, TimeSpan::FromSeconds(2));
-            R_UNLESS(!events::IsSlotDisconnected(slot_index) && events::IsRadioEnabled(), ResultNoConnection());
-            R_UNLESS(completed, svc::ResultTimedOut());
-            R_UNLESS(events::GetGattFailure(slot_index) == 0, svc::ResultInvalidState());
+            R_TRY(WaitForOperation(slot_index, conn_id, BtdrvGattOperationType_DescriptorWrite, GattCharReport, TimeSpan::FromSeconds(2)));
             result = ResultSuccess();
         }
 

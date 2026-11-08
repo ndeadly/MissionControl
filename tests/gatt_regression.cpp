@@ -14,6 +14,30 @@ static u64 connected_at;
 static std::vector<u64> query_times;
 static std::vector<u16> read_uuids;
 static std::vector<u32> mtu_connections;
+static bool unrelated_completions;
+static u64 completion_delay;
+static int auth_refusals;
+static unsigned notification_registrations;
+static bool cccd_completed;
+static u32 cccd_failure;
+
+static void Complete(u32 conn_id, u8 operation, BtdrvGattAttributeUuid uuid) {
+    if (events::disconnect_on_wait) events::Schedule(EventRecord{events::Disconnect, {}}, 1);
+    if (events::sleep_on_wait) events::Schedule(EventRecord{events::RadioOff, {}}, 1);
+    EventRecord event{};
+    event.type = BtdrvBleEventType_ClientNotify;
+    event.info.client_notify = {events::failure, conn_id, operation, uuid};
+    const bool cccd = operation == BtdrvGattOperationType_DescriptorWrite;
+    if (cccd) event.info.client_notify.result = cccd_failure;
+    if (events::completed && (!cccd || cccd_completed)) events::Schedule(event, completion_delay);
+    if (unrelated_completions) {
+        auto noise = event;
+        noise.info.client_notify.result = 0;
+        ++noise.info.client_notify.conn_id; events::Schedule(noise, 1);
+        noise = event; ++noise.info.client_notify.op_type; events::Schedule(noise, 2);
+        noise = event; ++noise.info.client_notify.char_uuid.value; events::Schedule(noise, 3);
+    }
+}
 
 static EventRecord Cache(u32 conn_id) {
     EventRecord e{};
@@ -66,13 +90,20 @@ Result btdrvConfigureAttMtu(u32 conn_id, u16 mtu) {
     }
     return mtu_result;
 }
-Result btdrvReadGattCharacteristic(u32, bool, const BtdrvGattId *, const BtdrvGattId *attr, int) {
+Result btdrvReadGattCharacteristic(u32 conn_id, bool, const BtdrvGattId *, const BtdrvGattId *attr, int auth) {
+    assert(auth == BtdrvGattAuthReqType_NoMitm);
     read_uuids.push_back(attr->uuid.value);
+    if (auth_refusals > 0) { --auth_refusals; return ResultInsufficientAuthentication(); }
+    Complete(conn_id, BtdrvGattOperationType_CharacteristicRead, attr->uuid);
     return {0};
 }
-Result btdrvRegisterGattNotification(u32, bool, const BtdrvGattId *, const BtdrvGattId *) { return register_result; }
+Result btdrvRegisterGattNotification(u32, bool, const BtdrvGattId *, const BtdrvGattId *) { ++notification_registrations; return register_result; }
 Result btdrvUnregisterGattNotification(u32, bool, const BtdrvGattId *, const BtdrvGattId *) { ++unregister_count; return {0}; }
-Result btdrvWriteGattDescriptor(u32, bool, const BtdrvGattId *, const BtdrvGattId *, const BtdrvGattId *, const u8 *, size_t, int) { return {0}; }
+Result btdrvWriteGattDescriptor(u32 conn_id, bool, const BtdrvGattId *, const BtdrvGattId *attr, const BtdrvGattId *, const u8 *data, size_t size, int auth) {
+    assert(auth == BtdrvGattAuthReqType_NoMitm && size == 2 && data[0] == 1 && data[1] == 0);
+    Complete(conn_id, BtdrvGattOperationType_DescriptorWrite, attr->uuid);
+    return {0};
+}
 
 static void Reset(DiscoveryMode next = DiscoveryMode::AfterSettling) {
     for (auto &slot : gatt::g_slots) slot = {};
@@ -87,6 +118,12 @@ static void Reset(DiscoveryMode next = DiscoveryMode::AfterSettling) {
     mtu_reply = true;
     register_result = query_result = mtu_result = {0};
     unregister_count = 0;
+    notification_registrations = 0;
+    unrelated_completions = false;
+    completion_delay = 20;
+    auth_refusals = 0;
+    cccd_completed = true;
+    cccd_failure = 0;
     query_times.clear();
     read_uuids.clear();
     mtu_connections.clear();
@@ -145,7 +182,7 @@ int main() {
         if (!timeout) mtu_result = {7};
         assert(R_SUCCEEDED(gatt::Discover(0, 260, a)));
         AssertSubscribed(0, 260);
-        assert(events::now_ms == (timeout ? 7500u : 2500u));
+        assert(events::now_ms == (timeout ? 7560u : 2560u));
     }
 
     // A different controller's MTU response must not finish this setup wait.
@@ -220,5 +257,38 @@ int main() {
     assert(gatt::Subscribe(1, 1028, &hid).value == 7);
     assert(gatt::Discover(4, 1028, b).value == 1);
 
-    std::cout << "GATT delayed discovery/pairing order/MTU/cache/cancellation regressions passed\n";
+    // Reconnect security can take a full pairing exchange. Noise from the two
+    // active pads, a different operation, or a different characteristic cannot
+    // finish our authenticated read. The CCCD must finish too.
+    Reset(); assert(R_SUCCEEDED(gatt::Discover(0, 260, a)));
+    unrelated_completions = true;
+    completion_delay = 1500;
+    const auto started = events::now_ms;
+    AssertSubscribed(0, 260);
+    assert(events::now_ms == started + 4500);
+    events::completed = false;
+    assert(gatt::Subscribe(0, 260, &hid).value == 2);
+    events::completed = true;
+    events::failure = 26;
+    assert(gatt::Subscribe(0, 260, &hid).value == 8);
+
+    Reset(); assert(R_SUCCEEDED(gatt::Discover(0, 260, a)));
+    auth_refusals = 2; AssertSubscribed(0, 260); // locally rejected requests can retry
+    auth_refusals = 5;
+    assert(gatt::Subscribe(0, 260, &hid).value == 5); // bounded, never plaintext fallback
+
+    Reset(); assert(R_SUCCEEDED(gatt::Discover(0, 260, a)));
+    gatt::g_slots[0].table.count = 4; // HID input/CCCD exist, authentication metadata missing
+    assert(gatt::Subscribe(0, 260, &hid).value == 3);
+    assert(notification_registrations == 0);
+
+    Reset(); assert(R_SUCCEEDED(gatt::Discover(0, 260, a)));
+    unrelated_completions = true;
+    cccd_completed = false;
+    assert(gatt::Subscribe(0, 260, &hid).value == 2); // reads alone cannot present a controller
+    cccd_completed = true;
+    cccd_failure = 26;
+    assert(gatt::Subscribe(0, 260, &hid).value == 8);
+
+    std::cout << "GATT discovery/authentication/completion isolation/cache/cancellation regressions passed\n";
 }

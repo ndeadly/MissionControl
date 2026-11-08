@@ -36,9 +36,12 @@ constexpr int BtdrvGattAttributeType_Descriptor = 3;
 constexpr int BtdrvGattCharacteristicProperty_Notify = 1;
 constexpr int BtdrvGattCharacteristicProperty_Write = 2;
 constexpr int BtdrvGattCharacteristicProperty_WriteNoResponse = 4;
-constexpr int BtdrvGattAuthReqType_NoMitm = 0;
+constexpr int BtdrvGattAuthReqType_NoMitm = 1;
+constexpr int BtdrvGattOperationType_CharacteristicRead = 0;
+constexpr int BtdrvGattOperationType_DescriptorWrite = 3;
 constexpr int BtdrvBleEventType_ClientCacheSave = 1;
 constexpr int BtdrvBleEventType_ClientConfigureMtu = 2;
+constexpr int BtdrvBleEventType_ClientNotify = 3;
 namespace ams::bluetooth { struct Address { u8 data[6]; }; }
 namespace ams::ble {
 constexpr u32 MaxBleControllers = 4, InvalidSlot = UINT32_MAX, InvalidConnId = UINT32_MAX;
@@ -50,6 +53,7 @@ struct EventRecord {
     struct {
         struct { u32 result = 0, conn_id = 0, count = 0; BtdrvGattAttribute attr_list[10]; } client_cache_save;
         struct { u32 result = 0, conn_id = 0; u16 mtu = 0; } client_configure_mtu;
+        struct { u32 result = 0, conn_id = 0; u8 op_type = 0; BtdrvGattAttributeUuid char_uuid = {}; } client_notify;
     } info;
 };
 }

@@ -22,6 +22,7 @@ namespace ams::bluetooth { struct Address { u8 address[6]; }; }
 constexpr int BtdrvBleEventType_ClientConnection = 1;
 namespace ams::ble {
 constexpr u32 InvalidConnId = UINT32_MAX;
+constexpr u32 MaxBleControllers = 4;
 constexpr u8 InvalidClientIf = UINT8_MAX;
 constexpr u32 BleConnectionStatus_Connected = 0;
 inline bool AddressEqual(const bluetooth::Address &a, const bluetooth::Address &b) { return std::memcmp(&a, &b, sizeof(a)) == 0; }

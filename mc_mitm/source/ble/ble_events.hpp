@@ -70,11 +70,9 @@ namespace ams::ble::events {
     void NotifyControllerCountChanged();
     bool ConsumeControllerCountChanged();
 
-    // Results of our GATT requests arrive on the LE HID stream; the host thread reports each one here so a
-    // request is not issued while the previous one is still pending
+    // Retain the most recent GATT failure for diagnostics. Completion waits
+    // match the queued connection/operation/characteristic, not a shared count.
     void NoteGattResult(u32 conn_id, u8 notify_type, const BtdrvGattAttributeUuid &char_uuid, u32 result);
-    u32 GetGattResultCount(u32 slot_index);
-    bool WaitForGattResult(u32 slot_index, u32 count_before, TimeSpan timeout);
     u32 GetGattFailure(u32 slot_index);       // last non-zero result since ClearGattFailure
     void ClearGattFailure(u32 slot_index);
 

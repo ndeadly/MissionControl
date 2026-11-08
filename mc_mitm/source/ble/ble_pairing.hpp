@@ -17,6 +17,29 @@
 #include "ble_types.hpp"
 
 namespace ams::ble::pairing {
-    Result Connect(u32 slot, u8 client_if, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout, bool returning_device);
-    bool Pair(u32 slot, const bluetooth::Address &address);
+    // Only successful subscriptions in the current native stack qualify for
+    // reconnect. A discovered address or an old GATT cache is not a bond.
+    class SessionHistory {
+        struct Peer {
+            bluetooth::Address address = {};
+            u32 generation = 0;
+            bool valid = false;
+        };
+        Peer m_peers[MaxBleControllers] = {};
+        public:
+            bool Contains(const bluetooth::Address &address, u32 generation) const {
+                for (const auto &peer : m_peers) {
+                    if (peer.valid && peer.generation == generation && AddressEqual(peer.address, address)) return true;
+                }
+                return false;
+            }
+            void Remember(u32 slot, const bluetooth::Address &address, u32 generation) {
+                if (slot < MaxBleControllers) m_peers[slot] = {address, generation, true};
+            }
+    };
+
+    Result Connect(u32 slot, u8 client_if, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout, bool reconnect);
+    // A true result only permits Subscribe to try authenticated GATT access;
+    // it is never sufficient to present a controller to the system.
+    bool PrepareSecurity(u32 slot, const bluetooth::Address &address, bool reconnect);
 }

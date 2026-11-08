@@ -67,7 +67,6 @@ namespace ams::ble::events {
             bool disconnected = false;
             u16 disconnect_reason = 0;
             bool bond_complete = false;
-            u32 gatt_results = 0;
             u32 gatt_failure = 0;
         };
 
@@ -187,7 +186,6 @@ namespace ams::ble::events {
         g_slots[slot].disconnected = false;
         g_slots[slot].disconnect_reason = 0;
         g_slots[slot].bond_complete = false;
-        g_slots[slot].gatt_results = 0;
         g_slots[slot].gatt_failure = 0;
 
         g_attempted = address;
@@ -521,7 +519,6 @@ namespace ams::ble::events {
         std::scoped_lock lk(g_lock);
         const u32 slot = FindSlotByConnIdInternal(conn_id);
         if (slot != InvalidSlot) {
-            ++g_slots[slot].gatt_results;
             if (result != 0) {
                 g_slots[slot].gatt_failure = result;
             }
@@ -542,21 +539,6 @@ namespace ams::ble::events {
         if (slot_index < MaxBleControllers) {
             g_slots[slot_index].gatt_failure = 0;
         }
-    }
-
-    u32 GetGattResultCount(u32 slot_index) {
-        std::scoped_lock lk(g_lock);
-        if (slot_index >= MaxBleControllers) {
-            return 0;
-        }
-        return g_slots[slot_index].gatt_results;
-    }
-
-    bool WaitForGattResult(u32 slot_index, u32 count_before, TimeSpan timeout) {
-        WaitFor(InvalidType, timeout, nullptr, [&](const EventRecord &) {
-            return (GetGattResultCount(slot_index) != count_before) || IsSlotDisconnected(slot_index) || !IsRadioEnabled();
-        });
-        return !IsSlotDisconnected(slot_index) && IsRadioEnabled() && (GetGattResultCount(slot_index) != count_before);
     }
 
     bool TakeAdoptedConnection(bluetooth::Address *out_address, u32 *out_conn_id) {

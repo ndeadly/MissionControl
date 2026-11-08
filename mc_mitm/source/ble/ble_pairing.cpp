@@ -44,7 +44,7 @@ namespace ams::ble::pairing {
         R_SUCCEED();
     }
 
-    Result Connect(u32 slot, u8 client_if, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout, bool returning_device) {
+    Result Connect(u32 slot, u8 client_if, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout, bool reconnect) {
         events::SetSlotConnecting(slot, address);
         R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
 
@@ -53,31 +53,28 @@ namespace ams::ble::pairing {
             return ResultNoConnection();
         }
 
-        Result rc = btdrvRemoveBond(address);
-        log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, rc.GetValue());
-        R_TRY(rc);
-
-        // Allow native bond-removal work to settle before reopening a previous
-        // session. There is no documented unpair-complete event: this is a
-        // bounded guard, not proof that the native stack has forgotten the bond.
-        if (returning_device) {
-            events::WaitFor(events::InvalidType, TimeSpan::FromMilliSeconds(500), nullptr, [](const EventRecord &) {
-                return !events::IsRadioEnabled();
-            });
+        if (!reconnect) {
+            const Result rc = btdrvRemoveBond(address);
+            log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, rc.GetValue());
+            R_TRY(rc);
+        } else {
+            // Removing security state and issuing CreateBond again is the path
+            // that repeatedly closes returning links with reason 0x0016. Keep
+            // any native LE state and let authenticated GATT request encryption.
+            log::Write("slot %u: reconnect preserving native security state", slot);
         }
         R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
-        // A previously cancelled direct request can still complete during the
-        // settling window. Retain that live handle rather than opening twice.
+        // A previously cancelled direct request can complete during the IPC.
+        // Retain that live handle rather than opening twice.
         if (const u32 late_conn_id = events::GetSlotConnectionId(slot); late_conn_id != InvalidConnId) {
             *out_conn_id = late_conn_id;
-            log::Write("slot %u: adopting late connection during bond cleanup conn_id=%u", slot, late_conn_id);
+            log::Write("slot %u: adopting late connection conn_id=%u", slot, late_conn_id);
             R_SUCCEED();
         }
-        // Disconnection/bond indications drained above belong to the old
-        // session. Arm the slot for the new request only after that drain.
+        // Arm the slot after any synchronous cleanup events.
         events::SetSlotConnecting(slot, address);
 
-        rc = btdrvConnectGattServer(client_if, address, true, 0);
+        Result rc = btdrvConnectGattServer(client_if, address, true, 0);
         log::Write("btdrvConnectGattServer slot=%u client_if=%u rc=0x%x", slot, client_if, rc.GetValue());
         R_TRY(rc);
 
@@ -88,8 +85,12 @@ namespace ams::ble::pairing {
         R_RETURN(rc);
     }
 
-    bool Pair(u32 slot, const bluetooth::Address &address) {
+    bool PrepareSecurity(u32 slot, const bluetooth::Address &address, bool reconnect) {
         if (!events::IsRadioEnabled() || events::IsSlotDisconnected(slot)) return false;
+        if (reconnect) {
+            log::Write("slot %u: reconnect requesting encrypted GATT access without CreateBond", slot);
+            return true;
+        }
         // Discovery or old bond removal can produce the same core indication
         // as pairing. Only a new indication may satisfy this attempt.
         static_cast<void>(events::TakeSlotBondComplete(slot));

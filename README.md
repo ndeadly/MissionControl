@@ -118,6 +118,8 @@ The `[ble]` options are:
 
 Power-button-only reconnection is still limited by the original legacy-pairing implementation. Use the sync button. Revision 5 closes BLE links before acknowledging console sleep; use sync to pair again after wake. The controller cannot wake the console.
 
+Revision 7 changes reconnects for a controller that successfully subscribed during the current Bluetooth stack session: it preserves native security state and requests encrypted GATT access instead of removing the bond and forcing `CreateBond` again. New controllers and the first pairing after a stack reset retain the initial pairing sequence. Both authenticated HID reads and the notification-enable write must complete for the correct connection before input is enabled. This is a candidate fix for reconnecting one pad while others remain connected; console verification is still required. See [BLE_FIXES.md](BLE_FIXES.md).
+
 #### Xbox stick deadzones
 
 `[xbox] left_stick_deadzone` and `right_stick_deadzone` accept integer percentages from 0 to 50, defaulting to 15. The radial filter preserves direction and rescales travel outside the deadzone using the existing default HOS inner-deadzone compensation. Zero disables this extra filter. Existing custom HOS calibration can change the effective response.
