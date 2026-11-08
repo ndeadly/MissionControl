@@ -632,7 +632,7 @@ namespace ams::ble {
                 DismissSlot(slot, false);
                 return;
             }
-            if (!pairing::PrepareSecurity(slot, address, g_sessions.Contains(address, session_generation))) {
+            if (!pairing::PrepareSecurity(slot, address)) {
                 g_radio_recovery.Request();
                 NotePairingFailure(address, true);
                 if (events::IsRadioEnabled()) {
@@ -743,7 +743,7 @@ namespace ams::ble {
             bluetooth::ble::WaitInitialized();
 
             os::SleepThread(TimeSpan::FromSeconds(20));
-            log::Write("starting multi-device BLE host (reconnect-fix-r7, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
+            log::Write("starting multi-device BLE host (reconnect-probe-r8, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
 
             if (R_FAILED(PrepareClient())) {
                 log::Write("giving up: no gatt client available");

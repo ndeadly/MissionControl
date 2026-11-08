@@ -39,7 +39,6 @@ namespace ams::ble::pairing {
     };
 
     Result Connect(u32 slot, u8 client_if, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout, bool reconnect);
-    // A true result only permits Subscribe to try authenticated GATT access;
-    // it is never sufficient to present a controller to the system.
-    bool PrepareSecurity(u32 slot, const bluetooth::Address &address, bool reconnect);
+    // A fresh security indication only permits Subscribe to verify authenticated GATT access.
+    bool PrepareSecurity(u32 slot, const bluetooth::Address &address);
 }

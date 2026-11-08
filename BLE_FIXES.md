@@ -2,6 +2,24 @@
 
 Changes are in `arkseal-ble-xbox`, based on `7801b6d`. The sibling upstream and proof-of-concept checkouts were left unchanged. The workspace-level `../missioncontrol.ini` is the gameplay config included in the test package.
 
+## Revision 8: restore explicit pairing without deleting returning-peer state
+
+**Diagnostic build, not a verified reconnect fix.** R7 omitted explicit pairing on remembered links. The fetched probe source says authenticated reads on an unbonded link fail; the R7 hardware trace below confirms that failure on this console. R8 corrects this by always issuing `CreateBond` and waiting for a fresh indication plus the disconnect guard before attempting the authenticated HID reads. A remembered successful subscription is no longer sufficient to bypass pairing.
+
+The remaining experiment is narrowly scoped:
+
+| Returning controller | RemoveBond before connect | CreateBond after discovery | Hardware result |
+| --- | --- | --- | --- |
+| R6 | Yes | Yes | Refused while other BLE players remain connected |
+| R7 | No | No | First authenticated read fails with result 9 |
+| R8 | No | Yes | Not yet tested |
+
+Initial pairing and the first pairing after a native stack reset still remove the old record and explicitly pair. Same-generation successful peers retain their record while explicitly pairing again. The native security fault remains unidentified; this change does not establish that preserving the record is sufficient to repair it. There is no change to the zero-active-link reset rule, input processing, connection intervals or rumble scheduling.
+
+Validation: six native regression suites, ASan/UBSan (leak detection disabled in the ptrace sandbox), the ARM release build, and whitespace checks pass. The pairing regression now requires a returning connection to skip removal but issue `CreateBond`, wait for a fresh indication, and reject disconnect/sleep/refusal. Independent Luna review checked that history no longer bypasses pairing and still limits record preservation to successful peers in the current native generation. These checks validate host logic, not controller security behavior.
+
+Install the diagnostic `../MissionControl-BLE-reconnect-probe-r8.zip`, reboot, and verify startup marker `reconnect-probe-r8`. Connect all three pads, switch just one off, then hold its sync button in Change Grip/Order while the other two stay on. The returning address should log `reconnect preserving native security state`, then `btdrvCreateBond`, followed by successful authenticated reads/CCCD and `paired and subscribed` if this sequence works. Save the log even if it fails. Also check all-off recovery and sleep/wake. If `CreateBond` is refused again, the targeted repair remains unresolved; resetting the shared stack while no BLE pads are active remains the demonstrated workaround. Disable diagnostics and reboot for gameplay comparisons.
+
 ## R7 console result: individual reconnect remains unresolved
 
 The November 8 console test **rejects the R7 reconnect hypothesis**. The 2,293-line log starts with `reconnect-fix-r7` on HOS 23.0.1, SHA-256 `acde5cd6fa9bc124138e34814e643a87fac2e3ac6a3f7f6de3df354c9068d068`. The accompanying profile SHA-256 is `ffbeb70acc9fa95285f66c40e14f0238585622646aaae1ee57248953b30f6826`.
@@ -201,10 +219,10 @@ Zero-initialized storage decreased by 4 KiB after moving per-template event buff
 
 ## Install and validate on the Switch
 
-The latest workspace package `../MissionControl-BLE-reconnect-fix-r7.zip` contains `atmosphere/` and `config/`, including an active `missioncontrol.ini`. Copy these to the SD root and reboot to load the new module/config. It uses this checkout's existing firmware patches; compatibility with firmware versions beyond those patches is not newly established.
+The latest workspace package `../MissionControl-BLE-reconnect-probe-r8.zip` contains `atmosphere/` and `config/`, including an active `missioncontrol.ini`. Copy these to the SD root and reboot to load the new module/config. It uses this checkout's existing firmware patches; compatibility with firmware versions beyond those patches is not newly established.
 
 1. Pair each controller, then all four together. For the 1708, record its firmware version and whether the log identifies a BLE scan/connection. No extra model selector is required.
-2. Use the revision 7 console test above. Shared-radio recovery waits until all BLE pads are off; individual reconnects now try authenticated GATT without forced re-bonding. Xbox-button-only reconnect is not implemented.
+2. Use the revision 8 console test above. Shared-radio recovery waits until all BLE pads are off; individual reconnects explicitly pair while preserving the returning peer's record. Xbox-button-only reconnect is not implemented.
 3. In the Switch stick test, release the drifting stick and adjust just its override in `/config/MissionControl/controllers/<12 lowercase MAC digits>/config.ini`, under `[xbox]`. Start with `left_stick_deadzone=20` for a drifting left stick; use the smallest sufficient value. Reconnect after changing this file. Global changes require a reboot.
 4. Compare Smash character select and gameplay with the same controllers, first with rumble enabled and then disabled. Keep `log=false` and `profile=false` for this comparison. CPU usage, radio packet loss and end-to-end latency require console measurements; none are claimed from the host tests.
 5. If pairing still fails, temporarily set `log=true`, reboot, reproduce initial pairing → power-off → attempted re-pairing, and retain `/config/MissionControl/ble.log`. Include HOS, Atmosphere and Xbox firmware versions. Turn diagnostics off again for normal play.

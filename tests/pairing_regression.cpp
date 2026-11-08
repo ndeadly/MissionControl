@@ -44,11 +44,11 @@ static void Reset() {
     respond = new_bond = true;
 }
 int main() {
-    // Returning controllers must never destroy their native security record or
-    // force CreateBond. This is the sequence that failed with two other pads on.
+    // Returning controllers preserve native bond state, but still request LE
+    // security. The fresh indication and live-link guard gate authenticated GATT.
     Reset(); assert(R_SUCCEEDED(Connect()));
     assert(removes == 0 && connects == 1 && cancels == 0 && connected_at == 0);
-    assert(pairing::PrepareSecurity(0, Target, true)); assert(bonds == 0);
+    assert(pairing::PrepareSecurity(0, Target)); assert(bonds == 1 && events::now_ms == 620);
     Reset(); assert(R_SUCCEEDED(Connect(false))); assert(removes == 1 && connected_at == 0);
     Reset(); late_connection = true;
     u32 adopted = InvalidConnId;
@@ -73,24 +73,19 @@ int main() {
     assert(R_FAILED(Connect())); assert(cancels == 1); // another client's completion isn't ours
     Reset(); events::radio = false; assert(R_FAILED(Connect())); assert(removes == 0);
     Reset(); events::bond = true; new_bond = false;
-    assert(!pairing::PrepareSecurity(0, Target, false)); assert(bonds == 1 && events::now_ms == 10000); // stale indication
-    Reset(); assert(pairing::PrepareSecurity(0, Target, false)); assert(events::now_ms == 600);
-    Reset(); bond_fails = true; assert(!pairing::PrepareSecurity(0, Target, false)); assert(events::now_ms == 0);
+    assert(!pairing::PrepareSecurity(0, Target)); assert(bonds == 1 && events::now_ms == 10000); // stale indication
+    Reset(); assert(pairing::PrepareSecurity(0, Target)); assert(events::now_ms == 600);
+    Reset(); bond_fails = true; assert(!pairing::PrepareSecurity(0, Target)); assert(events::now_ms == 0);
     Reset();
     EventRecord refused;
     refused.info.client_connection.address = Target;
     refused.info.client_connection.status = 2;
     refused.info.client_connection.reason = 0x16;
     events::Schedule(BtdrvBleEventType_ClientConnection, 110, refused);
-    assert(!pairing::PrepareSecurity(0, Target, false)); assert(events::now_ms == 110);
-    Reset(); events::Schedule(events::Sleep, 200); assert(!pairing::PrepareSecurity(0, Target, false));
-    Reset(); events::disconnected = true; assert(!pairing::PrepareSecurity(0, Target, false)); assert(bonds == 0);
-    Reset(); events::radio = false; assert(!pairing::PrepareSecurity(0, Target, false)); assert(bonds == 0);
-    Reset(); events::radio = false;
-    assert(!pairing::PrepareSecurity(0, Target, true) && bonds == 0);
-    Reset(); events::disconnected = true;
-    assert(!pairing::PrepareSecurity(0, Target, true) && bonds == 0);
-
+    assert(!pairing::PrepareSecurity(0, Target)); assert(events::now_ms == 110);
+    Reset(); events::Schedule(events::Sleep, 200); assert(!pairing::PrepareSecurity(0, Target));
+    Reset(); events::disconnected = true; assert(!pairing::PrepareSecurity(0, Target)); assert(bonds == 0);
+    Reset(); events::radio = false; assert(!pairing::PrepareSecurity(0, Target)); assert(bonds == 0);
     pairing::SessionHistory sessions;
     constexpr ams::bluetooth::Address Other = {{0x40,0x8e,0x2c,0x7a,0x3a,0x9a}};
     assert(!sessions.Contains(Target, 4)); // advertisements/cache alone never authorize reuse

@@ -120,6 +120,8 @@ Power-button-only reconnection is still limited by the original legacy-pairing i
 
 Revision 7's attempt to reuse native security through authenticated GATT **failed console validation**: individual reconnects still fail while other BLE pads remain connected. The verified workaround remains switching off all Xbox BLE pads, allowing the shared stack reset in Change Grip/Order, then using sync again. Initial pairing and pairing after that reset work; seamless individual reconnect remains unresolved. See the trace and PR comparison in [BLE_FIXES.md](BLE_FIXES.md).
 
+Revision 8 restores explicit pairing for returning controllers while retaining their native record. This isolates a sequence that the previous two builds did not test. It is a diagnostic build awaiting console validation, not a confirmed solution.
+
 #### Xbox stick deadzones
 
 `[xbox] left_stick_deadzone` and `right_stick_deadzone` accept integer percentages from 0 to 50, defaulting to 15. The radial filter preserves direction and rescales travel outside the deadzone using the existing default HOS inner-deadzone compensation. Zero disables this extra filter. Existing custom HOS calibration can change the effective response.

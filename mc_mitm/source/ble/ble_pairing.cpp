@@ -58,9 +58,9 @@ namespace ams::ble::pairing {
             log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, rc.GetValue());
             R_TRY(rc);
         } else {
-            // Removing security state and issuing CreateBond again is the path
-            // that repeatedly closes returning links with reason 0x0016. Keep
-            // any native LE state and let authenticated GATT request encryption.
+            // Retain the native record on a returning link. PrepareSecurity
+            // still requests CreateBond explicitly; authenticated GATT alone
+            // did not establish security in the R7 console test.
             log::Write("slot %u: reconnect preserving native security state", slot);
         }
         R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
@@ -85,12 +85,9 @@ namespace ams::ble::pairing {
         R_RETURN(rc);
     }
 
-    bool PrepareSecurity(u32 slot, const bluetooth::Address &address, bool reconnect) {
+    bool PrepareSecurity(u32 slot, const bluetooth::Address &address) {
         if (!events::IsRadioEnabled() || events::IsSlotDisconnected(slot)) return false;
-        if (reconnect) {
-            log::Write("slot %u: reconnect requesting encrypted GATT access without CreateBond", slot);
-            return true;
-        }
+        log::Write("slot %u: requesting LE security with CreateBond", slot);
         // Discovery or old bond removal can produce the same core indication
         // as pairing. Only a new indication may satisfy this attempt.
         static_cast<void>(events::TakeSlotBondComplete(slot));
