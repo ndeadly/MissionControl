@@ -22,6 +22,8 @@ namespace ams::controller {
         // Degrees to radians and nanoseconds to seconds
         constexpr double QuatScaleFactor = std::numbers::pi / 180.0f / 1000000000.0f;
 
+        constexpr s64 DscaleTimestampUnitNs = 1250000;
+
         // See https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/issues/18#issuecomment-331324555
         constexpr float BaseGyroSensitivity = 936.0f / (13371 - 0); // 13371 and 0 (offset, would technically need to be done for each axis) match the factory_motion_calibration value in the SPI flash
         constexpr float BaseAccelSensitivity = 4.0f / (16384 - 0); // 16384 and 0 (offset, would technically need to be done for each axis) match the factory_motion_calibration value in the SPI flash
@@ -160,8 +162,7 @@ namespace ams::controller {
         m_motion_data.dscale.mode2.delta_mid_avg_1 = 0;
         m_motion_data.dscale.mode2.delta_mid_avg_2 = 0;
 
-        // Timestamps handling is still a bit unclear, these are the values that result in no drifting 
-        auto timestamp_start = os::ConvertToTimeSpan(m_previous_tick).GetMilliSeconds();
+        auto timestamp_start = os::ConvertToTimeSpan(m_previous_tick).GetNanoSeconds() / DscaleTimestampUnitNs;
         m_motion_data.dscale.mode2.timestamp_start_l = timestamp_start & 0x1;
         m_motion_data.dscale.mode2.timestamp_start_h = (timestamp_start >> 1) & 0x3FF;
         m_motion_data.dscale.mode2.timestamp_count = 3;
