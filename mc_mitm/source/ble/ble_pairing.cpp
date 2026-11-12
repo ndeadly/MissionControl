@@ -44,7 +44,7 @@ namespace ams::ble::pairing {
         R_SUCCEED();
     }
 
-    Result Connect(u32 slot, u8 client_if, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout, bool reconnect) {
+    Result Connect(u32 slot, u8 client_if, const bluetooth::Address &address, u32 *out_conn_id, TimeSpan timeout) {
         events::SetSlotConnecting(slot, address);
         R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
 
@@ -53,16 +53,9 @@ namespace ams::ble::pairing {
             return ResultNoConnection();
         }
 
-        if (!reconnect) {
-            const Result rc = btdrvRemoveBond(address);
-            log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, rc.GetValue());
-            R_TRY(rc);
-        } else {
-            // Retain the native record on a returning link. PrepareSecurity
-            // still requests CreateBond explicitly; authenticated GATT alone
-            // did not establish security in the R7 console test.
-            log::Write("slot %u: reconnect preserving native security state", slot);
-        }
+        const Result remove_rc = btdrvRemoveBond(address);
+        log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, remove_rc.GetValue());
+        R_TRY(remove_rc);
         R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
         // A previously cancelled direct request can complete during the IPC.
         // Retain that live handle rather than opening twice.
@@ -82,6 +75,24 @@ namespace ams::ble::pairing {
         if (R_FAILED(rc) && events::IsRadioEnabled()) {
             static_cast<void>(btdrvCancelConnectGattServer(client_if, address, true));
         }
+        R_RETURN(rc);
+    }
+
+    Result ClearPeer(u32 slot, const bluetooth::Address &address) {
+        R_UNLESS(slot < MaxBleControllers, ResultNoConnection());
+        R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
+        R_UNLESS(events::GetSlotConnectionId(slot) == InvalidConnId, ResultNoConnection());
+
+        Result rc = btdrvCancelBond(address);
+        log::Write("btdrvCancelBond slot=%u rc=0x%x", slot, rc.GetValue());
+        const Result cancel_rc = rc;
+
+        R_UNLESS(events::IsRadioEnabled(), ResultNoConnection());
+        R_UNLESS(events::GetSlotConnectionId(slot) == InvalidConnId, ResultNoConnection());
+        rc = btdrvRemoveBond(address);
+        log::Write("btdrvRemoveBond slot=%u rc=0x%x", slot, rc.GetValue());
+        if (R_FAILED(rc)) return rc;
+        if (R_FAILED(cancel_rc)) return cancel_rc;
         R_RETURN(rc);
     }
 

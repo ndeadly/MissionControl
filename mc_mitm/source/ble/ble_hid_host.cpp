@@ -48,34 +48,30 @@ namespace ams::ble {
 
         constinit u8 g_client_if = InvalidClientIf;
         RadioRecovery g_radio_recovery;
-        pairing::SessionHistory g_sessions;
         u32 g_hid_data_path_generation = UINT32_MAX;
 
-        // A refused pairing leaves the stack refusing the next ones for a while, so asking again straight away
-        // only keeps that going
-        constexpr TimeSpan PairingRetryBackoff = TimeSpan::FromSeconds(30);
+        constexpr s64 PairingRetryBackoffMs = 5000;
         struct PairingFailure {
             bluetooth::Address address = {};
             s64 tick = 0;
-            s64 delay_ms = 5000;
         };
         PairingFailure g_pairing_failures[MaxBleControllers];
 
         bool PairingBackoffActive(const bluetooth::Address &address) {
             for (const auto &failure : g_pairing_failures) {
                 if (failure.tick && AddressEqual(failure.address, address) &&
-                    ((os::GetSystemTick() - os::Tick(failure.tick)).ToTimeSpan().GetMilliSeconds() < failure.delay_ms)) return true;
+                    ((os::GetSystemTick() - os::Tick(failure.tick)).ToTimeSpan().GetMilliSeconds() < PairingRetryBackoffMs)) return true;
             }
             return false;
         }
 
-        void NotePairingFailure(const bluetooth::Address &address, bool bond_refused = false) {
+        void NotePairingFailure(const bluetooth::Address &address) {
             auto *oldest = &g_pairing_failures[0];
             for (auto &failure : g_pairing_failures) {
                 if (AddressEqual(failure.address, address)) { oldest = &failure; break; }
                 if (failure.tick < oldest->tick) oldest = &failure;
             }
-            *oldest = {address, os::GetSystemTick().GetInt64Value(), bond_refused ? PairingRetryBackoff.GetMilliSeconds() : 5000};
+            *oldest = {address, os::GetSystemTick().GetInt64Value()};
         }
 
         /* Multi-device slot management */
@@ -261,7 +257,13 @@ namespace ams::ble {
         void CleanupSleepIfNeeded() {
             events::WaitForSleepPreparation();
             if (events::TakeSleepCleanup()) {
-                const bool had_links = GetConnectedCount() != 0;
+                bool had_links = events::GetActiveConnectionCount() != 0;
+                {
+                    std::scoped_lock lk(g_slots_lock);
+                    for (const auto &slot : g_host_slots) {
+                        had_links = had_links || (slot.state != BleDeviceSlot::State::Vacant);
+                    }
+                }
                 DisconnectAll(false); // the PSC thread already closed the transport
                 g_radio_recovery.Sleep(had_links);
             }
@@ -321,9 +323,8 @@ namespace ams::ble {
             Result rc = btdrvStartBleScan();
             log::Write("btdrvStartBleScan rc=0x%x", rc.GetValue());
             if (R_FAILED(rc)) {
-                // The observed Classic inquiry occupies the radio for 10.24 s.
-                // Retrying five times per second only floods it with filter IPCs.
-                events::Pump(TimeSpan::FromSeconds(1));
+                // Give the shared radio time before retrying a rejected scan.
+                events::Pump(TimeSpan::FromSeconds(2));
                 return rc;
             }
 
@@ -468,6 +469,7 @@ namespace ams::ble {
             std::shared_ptr<controller::XboxOneBleController> controller;
             bluetooth::Address address = {};
             u32 conn_id = InvalidConnId;
+            bool already_disconnect_pending = false;
 
             {
                 std::scoped_lock lk(g_slots_lock);
@@ -476,16 +478,19 @@ namespace ams::ble {
                     return;
                 }
 
-                slot.state = BleDeviceSlot::State::Disconnecting;
+                already_disconnect_pending = slot.state == BleDeviceSlot::State::Disconnecting;
+                if (!already_disconnect_pending) {
+                    slot.state = BleDeviceSlot::State::Disconnecting;
+                }
                 conn_id = slot.conn_id;
                 address = slot.address;
 
-                events::UnregisterSlotController(slot_index);
-
-                controller = std::move(slot.controller);
-                slot.controller = nullptr;
-                slot.conn_id = InvalidConnId;
-                slot.negotiated_max_interval = 0;
+                if (!already_disconnect_pending) {
+                    events::UnregisterSlotController(slot_index);
+                    controller = std::move(slot.controller);
+                    slot.controller = nullptr;
+                    slot.negotiated_max_interval = 0;
+                }
             }
 
             if (controller) {
@@ -495,7 +500,7 @@ namespace ams::ble {
 
             // Cancel the client request and remove notification registrations before
             // recycling the slot. Keep event ownership until the disconnect completes.
-            if (close_transport && events::IsRadioEnabled()) {
+            if (close_transport && !already_disconnect_pending && events::IsRadioEnabled()) {
                 if (conn_id != InvalidConnId) {
                     gatt::Unsubscribe(slot_index, conn_id);
                     if (!events::IsSlotDisconnected(slot_index)) {
@@ -512,16 +517,39 @@ namespace ams::ble {
                 }
             }
 
-            gatt::ResetSlot(slot_index);
-            events::ClearSlot(slot_index);
-            {
-                std::scoped_lock lk(g_slots_lock);
-                g_host_slots[slot_index] = {};
+            if (close_transport && events::IsRadioEnabled() && events::IsSlotDisconnected(slot_index)) {
+                const Result rc = pairing::ClearPeer(slot_index, address);
+                if (R_FAILED(rc)) {
+                    log::Write("slot %u: failed to clear disconnected peer security state rc=0x%x", slot_index, rc.GetValue());
+                }
             }
+
             if (controller) {
                 profile::FlushNow();
                 controller::DetachVirtualController(address);
                 log::Write("slot %u: controller removed from system", slot_index);
+            }
+
+            if (!events::ClearSlot(slot_index, close_transport)) {
+                const u32 current_conn_id = events::GetSlotConnectionId(slot_index);
+                const u32 retained_conn_id = current_conn_id != InvalidConnId ? current_conn_id : conn_id;
+                {
+                    std::scoped_lock lk(g_slots_lock);
+                    auto &slot = g_host_slots[slot_index];
+                    if (slot.state == BleDeviceSlot::State::Disconnecting) {
+                        slot.conn_id = retained_conn_id;
+                    }
+                }
+                if (!already_disconnect_pending) {
+                    log::Write("slot %u: retaining disconnecting BLE link conn_id=%u until teardown is confirmed", slot_index, retained_conn_id);
+                }
+                return;
+            }
+
+            gatt::ResetSlot(slot_index);
+            {
+                std::scoped_lock lk(g_slots_lock);
+                g_host_slots[slot_index] = {};
             }
 
         }
@@ -529,11 +557,16 @@ namespace ams::ble {
         void ProcessPendingDisconnections() {
             bool any_disconnected = false;
             for (size_t i = 0; i < MaxBleControllers; ++i) {
-                if (g_host_slots[i].state == BleDeviceSlot::State::Connected) {
-                    const u32 slot_idx = static_cast<u32>(i);
+                const u32 slot_idx = static_cast<u32>(i);
+                if (g_host_slots[i].state == BleDeviceSlot::State::Disconnecting) {
+                    if (events::IsSlotDisconnected(slot_idx)) {
+                        log::Write("slot %u: disconnecting BLE link ended (reason=0x%04x)", slot_idx, events::GetSlotDisconnectReason(slot_idx));
+                        DismissSlot(slot_idx);
+                        any_disconnected = true;
+                    }
+                } else if (g_host_slots[i].state == BleDeviceSlot::State::Connected) {
                     if (events::IsSlotDisconnected(slot_idx)) {
                         log::Write("slot %u: controller disconnected (reason=0x%04x)", slot_idx, events::GetSlotDisconnectReason(slot_idx));
-                        g_radio_recovery.Request();
                         DismissSlot(slot_idx);
                         any_disconnected = true;
                     } else if (gatt::TakeRediscovered(slot_idx)) {
@@ -567,7 +600,9 @@ namespace ams::ble {
             bool connected = Adopt(&address, &conn_id);
 
             if (!connected) {
-                Result rc = Scan(&address, TimeSpan::FromSeconds(5));
+                const bool another_controller_connected = (events::GetActiveConnectionCount() > 0) || (controller::GetConnectedControllerCount() > 0);
+                const TimeSpan scan_duration = TimeSpan::FromSeconds(another_controller_connected ? 2 : 5);
+                Result rc = Scan(&address, scan_duration);
                 if (events::ConsumeControllerCountChanged()) {
                     RebalanceConnectionParameters();
                 }
@@ -583,16 +618,15 @@ namespace ams::ble {
                     const u8 client_if = events::GetClientIfForSlot(slot);
                     g_host_slots[slot].client_if = client_if;
                     session_generation = events::GetClientRegistrationGeneration();
-                    connected = R_SUCCEEDED(pairing::Connect(slot, client_if, address, &conn_id, TimeSpan::FromSeconds(15), g_sessions.Contains(address, session_generation)));
+                    connected = R_SUCCEEDED(pairing::Connect(slot, client_if, address, &conn_id, TimeSpan::FromSeconds(15)));
                     if (!connected) {
                         NotePairingFailure(address);
                         DismissSlot(slot);
                         return;
                     }
                 } else {
-                    // When controllers (Joy-Cons or BLE pads) are already active, pace BLE scans so we don't
-                    // monopolize the shared 2.4 GHz radio while the Change Grip/Order screen stays open.
-                    if (svc::ResultTimedOut::Includes(rc) && events::IsPairingWindowOpen() && ((GetConnectedCount() > 0) || (controller::GetConnectedControllerCount() > 0))) {
+                    // With another controller connected, pair a two-second scan with this two-second pause.
+                    if (svc::ResultTimedOut::Includes(rc) && events::IsPairingWindowOpen() && another_controller_connected) {
                         events::Pump(TimeSpan::FromSeconds(2));
                     }
                     return;
@@ -634,12 +668,12 @@ namespace ams::ble {
             }
             if (!pairing::PrepareSecurity(slot, address)) {
                 g_radio_recovery.Request();
-                NotePairingFailure(address, true);
+                NotePairingFailure(address);
+                log::Write("slot %u: backing off for %ldms before trying to pair again", slot, static_cast<long>(PairingRetryBackoffMs));
                 if (events::IsRadioEnabled()) {
                     const Result cancel_rc = btdrvCancelBond(address);
                     log::Write("btdrvCancelBond slot=%u rc=0x%x", slot, cancel_rc.GetValue());
                 }
-                log::Write("slot %u: backing off for %lds before trying to pair again", slot, PairingRetryBackoff.GetSeconds());
                 DismissSlot(slot);
                 os::SleepThread(TimeSpan::FromSeconds(1));
                 return;
@@ -663,7 +697,7 @@ namespace ams::ble {
             if (R_FAILED(rc)) {
                 log::Write("slot %u: subscription failed rc=0x%x gatt_result=%u", slot, rc.GetValue(), events::GetGattFailure(slot));
                 g_radio_recovery.Request();
-                NotePairingFailure(address, g_sessions.Contains(address, session_generation));
+                NotePairingFailure(address);
                 if (events::IsRadioEnabled()) {
                     const Result cancel_rc = btdrvCancelBond(address);
                     log::Write("btdrvCancelBond after subscription failure slot=%u rc=0x%x", slot, cancel_rc.GetValue());
@@ -678,7 +712,6 @@ namespace ams::ble {
                 return;
             }
             g_host_slots[slot].hid = hid;
-            g_sessions.Remember(slot, address, session_generation);
             log::Write("slot %u: paired and subscribed", slot);
             PresentSlot(slot);
         }
@@ -689,7 +722,7 @@ namespace ams::ble {
             const bool deferred = g_radio_recovery.Pending() && mitm::GetGlobalConfig()->ble.radio_cycle &&
                 events::IsPairingWindowOpen() && events::IsRadioEnabled() && active_links != 0;
             if (deferred && active_links != reported_active_links) {
-                log::Write("BLE pairing recovery deferred: %zu BLE links still active; turn all Xbox BLE pads off, then hold sync in Change Grip/Order", active_links);
+                log::Write("BLE pairing recovery deferred while %zu BLE links remain active", active_links);
             }
             reported_active_links = deferred ? active_links : 0;
             if (!g_radio_recovery.WaitingForClients()) {
@@ -743,7 +776,7 @@ namespace ams::ble {
             bluetooth::ble::WaitInitialized();
 
             os::SleepThread(TimeSpan::FromSeconds(20));
-            log::Write("starting multi-device BLE host (reconnect-probe-r8, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
+            log::Write("starting multi-device BLE host (native-peer-cleanup-r10, HOS=0x%x)", static_cast<u32>(hos::GetVersion()));
 
             if (R_FAILED(PrepareClient())) {
                 log::Write("giving up: no gatt client available");
@@ -752,14 +785,21 @@ namespace ams::ble {
 
             StartLeHidListener();
             events::SetSink(gatt::OnEvent);
+            u32 pairing_window_generation = events::PairingWindowGeneration();
 
             for (;;) {
                 WaitForRadio();
                 ProcessPendingDisconnections();
+                const u32 current_pairing_window_generation = events::PairingWindowGeneration();
+                if (current_pairing_window_generation != pairing_window_generation) {
+                    pairing_window_generation = current_pairing_window_generation;
+                    std::fill(std::begin(g_pairing_failures), std::end(g_pairing_failures), PairingFailure{});
+                    log::Write("BLE pairing window opened; ready to search (free slot=%s)", FindFreeSlot() >= 0 ? "yes" : "no");
+                }
                 profile::FlushIfDue();
                 if (!RecoverRadioIfNeeded()) continue;
 
-                if ((events::IsPairingWindowOpen() || events::HasAdoptedConnection()) && events::IsRadioEnabled() && (GetConnectedCount() < MaxBleControllers)) {
+                if ((events::IsPairingWindowOpen() || events::HasAdoptedConnection()) && events::IsRadioEnabled() && (FindFreeSlot() >= 0)) {
                     ScanAndPairNextController();
                 } else {
                     events::Pump(TimeSpan::FromMilliSeconds(100));

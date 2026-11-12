@@ -40,6 +40,7 @@ struct EventRecord {
 };
 }
 Result btdrvRemoveBond(ams::bluetooth::Address);
+Result btdrvCancelBond(ams::bluetooth::Address);
 Result btdrvConnectGattServer(u8, ams::bluetooth::Address, bool, u64);
 Result btdrvCancelConnectGattServer(u8, ams::bluetooth::Address, bool);
 Result btdrvCreateBond(ams::bluetooth::Address, u32);

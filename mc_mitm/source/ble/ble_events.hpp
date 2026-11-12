@@ -53,7 +53,7 @@ namespace ams::ble::events {
     void SetSlotConnection(u32 slot, const bluetooth::Address &address, u32 conn_id);
     void SetSlotConnection(u32 slot, u32 conn_id);
     void SetSlotClaimed(u32 slot, bool claimed);
-    void ClearSlot(u32 slot);
+    bool ClearSlot(u32 slot, bool preserve_live_connection = false);
 
     bool IsSlotDisconnected(u32 slot);
     u32 GetSlotConnectionId(u32 slot);
@@ -84,6 +84,7 @@ namespace ams::ble::events {
     // btm runs classic inquiry while the Controllers screen is open; that is the window for pairing new pads
     void SetInquiryActive(bool active);
     bool IsPairingWindowOpen();
+    u32 PairingWindowGeneration();
 
     // The console's sleep state (from the psc power module): no radio activity is allowed while asleep
     void SetRadioEnabled(bool enabled);

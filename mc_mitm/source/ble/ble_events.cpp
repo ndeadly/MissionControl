@@ -86,6 +86,7 @@ namespace ams::ble::events {
         constinit bool g_sleep_cleanup_pending = false;
 
         constinit s64 g_inquiry_started_tick = 0;
+        constinit u32 g_pairing_window_generation = 0;
 
         constinit Sink g_sink = nullptr;
 
@@ -164,7 +165,7 @@ namespace ams::ble::events {
 
     size_t GetActiveConnectionCount() {
         std::scoped_lock lk(g_lock);
-        size_t count = 0;
+        size_t count = g_adopted && (g_adopted_conn_id != InvalidConnId) ? 1 : 0;
         for (size_t i = 0; i < MaxBleControllers; ++i) {
             if (g_slots[i].active && (g_slots[i].conn_id != InvalidConnId) && !g_slots[i].disconnected) {
                 ++count;
@@ -223,13 +224,18 @@ namespace ams::ble::events {
         g_slots[slot].claimed = claimed;
     }
 
-    void ClearSlot(u32 slot) {
+    bool ClearSlot(u32 slot, bool preserve_live_connection) {
         std::scoped_lock lk(g_lock);
         if (slot >= MaxBleControllers) {
-            return;
+            return true;
+        }
+        if (preserve_live_connection && g_slots[slot].active &&
+                !g_slots[slot].disconnected && (g_slots[slot].conn_id != InvalidConnId)) {
+            return false;
         }
         UnregisterSlotController(slot);
         g_slots[slot] = {};
+        return true;
     }
 
     bool IsSlotDisconnected(u32 slot) {
@@ -560,6 +566,9 @@ namespace ams::ble::events {
 
     void SetInquiryActive(bool active) {
         std::scoped_lock lk(g_lock);
+        if (active && g_inquiry_started_tick == 0) {
+            ++g_pairing_window_generation;
+        }
         g_inquiry_started_tick = active ? os::GetSystemTick().GetInt64Value() : 0;
         if (!active) {
             g_ring_event.Signal();
@@ -569,6 +578,11 @@ namespace ams::ble::events {
     bool IsPairingWindowOpen() {
         std::scoped_lock lk(g_lock);
         return g_inquiry_started_tick != 0;
+    }
+
+    u32 PairingWindowGeneration() {
+        std::scoped_lock lk(g_lock);
+        return g_pairing_window_generation;
     }
 
     void SetRadioEnabled(bool enabled) {

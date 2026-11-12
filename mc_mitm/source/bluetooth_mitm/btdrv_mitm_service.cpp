@@ -66,9 +66,12 @@ namespace ams::mitm::bluetooth {
     // btm searches for new controllers only while the Controllers screen asks it to; the BLE host pairs new
     // controllers in the same window
     Result BtdrvMitmService::StartInquiry(u32 services, s64 duration) {
-        ams::ble::events::SetInquiryActive(true);
-        ams::ble::log::Write("btm started an inquiry, duration=%ld", duration);
-        R_RETURN(btdrvStartInquiryFwd(m_forward_service.get(), services, duration));
+        const Result rc = btdrvStartInquiryFwd(m_forward_service.get(), services, duration);
+        ams::ble::log::Write("btm started an inquiry, duration=%ld rc=0x%x", duration, rc.GetValue());
+        if (R_SUCCEEDED(rc)) {
+            ams::ble::events::SetInquiryActive(true);
+        }
+        R_RETURN(rc);
     }
 
     Result BtdrvMitmService::StopInquiry() {

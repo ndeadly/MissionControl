@@ -1,10 +1,94 @@
 # BLE fixes and validation
 
-Changes are in `arkseal-ble-xbox`, based on `7801b6d`. The sibling upstream and proof-of-concept checkouts were left unchanged. The workspace-level `../missioncontrol.ini` is the gameplay config included in the test package.
+Changes are in `arkseal-ble-xbox`, based on `7801b6d`. The sibling upstream and proof-of-concept checkouts were left unchanged. The workspace-level `../missioncontrol.ini` enables logging and profiling for the next diagnostic build.
 
-## Revision 8: restore explicit pairing without deleting returning-peer state
+## Revision 10: correct the native hook and reach address-scoped RemoveBond
 
-**Diagnostic build, not a verified reconnect fix.** R7 omitted explicit pairing on remembered links. The fetched probe source says authenticated reads on an unbonded link fail; the R7 hardware trace below confirms that failure on this console. R8 corrects this by always issuing `CreateBond` and waiting for a fresh indication plus the disconnect guard before attempting the authenticated HID reads. A remembered successful subscription is no longer sufficient to bypass pairing.
+R9 did not restore an individually returning pad while the other two remained connected. Static inspection now uses the extracted HOS 23.0.1 Bluetooth module, title `010000000000000B`, BuildID `064521c83399e09105d9a190688bf8b8c2c7f17c`, with `.text` SHA-256 `432a3f080809d4dab6c6174fe85c05ac51fd287b6c6d5f9a7bca5e541fd18d8e`.
+
+The pre-R10 IPS hook at runtime `0x119a0` replaced `sub sp,sp,#0x30`, but its cave later restored that frame. R10 relocates the hook to runtime `0x119b0`, after the original function prologue, and returns normal execution to `0x119b4`. The IPS also changes the native early-return guard at runtime `0x524c` from `tbz w0,#0,0x5274` to a NOP. Native disassembly traces public `RemoveBond` IPC command 11 to the existing per-address BSA message path (`0x134` event, six address bytes, internal message `0x10c`). When the classic peer-info lookup finds no matching row, `RemoveBond` returns success without queueing that message. The NOP bypasses this early return so addressed cleanup continues; the existing `cb30` bookkeeping and surrounding common/LE callback routes remain. The handler then reaches native peer-state cleanup at `0x70420` and, without a matching live ACL, `0xabd10`. The existing IPS custom type 4 also reaches the same message path, but the C wrapper still exposes only types 0–2; R10 does not add or call a new wrapper. See [the native disassembly notes](tools/BLUETOOTH_23_0_1.md).
+
+The dump confirms the function and event routing, not which on-device key or security record is removed, nor that the Xbox reconnect failure was caused by this guard. Earlier review found the surrounding LE and common callback routes; their runtime effects on this Xbox case remain unverified. R10 introduces no automatic radio reset on an ordinary single-pad disconnect. Existing shared-stack recovery still waits for all BLE links to be down.
+
+The native peer-info cache and LE security state are separate from Mission Control's slot bookkeeping. The `GetPairedInfo` fields inspected here describe classic peer data; their absence does not prove that an LE LTK is absent. IPC success acknowledges submission, not completion of native peer-state cleanup. The NOP opens the existing address-scoped command path; it is not proof that a specific Xbox key was deleted.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Vacant
+    Vacant --> Connecting: address-scoped RemoveBond requested
+    Connecting --> Discovering: GATT link established
+    Discovering --> Pairing: services ready; CreateBond
+    Pairing --> Connected: authenticated HID reads and CCCD succeed
+    Connecting --> Disconnecting: setup failure
+    Discovering --> Disconnecting: setup failure
+    Pairing --> Disconnecting: setup failure
+    Connected --> Disconnecting: confirmed peer disconnect
+    Disconnecting --> Disconnecting: retain live/in-flight native handle
+    Disconnecting --> Vacant: disconnect event; CancelBond/RemoveBond; ClearSlot
+    Vacant --> [*]
+```
+
+The slot is cleared only after native disconnect state can be retired; the native peer cache/security record is addressed separately by `RemoveBond`. A successful Change Grip/Order inquiry window clears retry backoff and resumes bounded scanning while other controllers remain connected.
+
+The startup marker is `native-peer-cleanup-r10`. Logging and profiling are enabled in the workspace config for this diagnostic build; they write to SD and should be disabled for gameplay comparisons. Test by pairing three pads, switching off only one, then holding sync in Change Grip/Order while the other two stay connected. Save logs whether it succeeds or fails. Six native suites and six ASan/UBSan suites passed; there is no integrated host teardown fixture for the normal-disconnect branch. The ARM release build passed. ELF text/data/BSS sizes are `483548/41720/477888` bytes, 48 fewer text bytes than R9 with data/BSS unchanged. The candidate [package](../MissionControl-native-peer-cleanup-r10.zip) has SHA-256 `28f7b4f701fd40ac4920d9a5cf464d748eb09f12a3445689d1561c5ae671b261`, 98 entries, and passed ZIP CRC checks; its NSP SHA-256 `e76a159112b517a8a94495d3f0a98b2b9ee6b6aae9eeee975d717cc663285b08` matches the ARM release output. It includes the active diagnostics-on config and a diagnostics-off gameplay alternative. **Console validation: pending.** No hardware success or cause is claimed.
+
+The reproducible patch verifier is `tools/verify_ble_hook.py`; it pins the extracted text hash, BuildID, original instruction bytes, corrected IPS hash, and reviewed baseline hash, and can apply the three IPS changes from that baseline. It packages no firmware binary. Positive verification passed; negative checks rejected a wrong BuildID, modified native text, and malformed IPS input.
+
+## Revision 8 console result
+
+**R8 did not reconnect the returning pad.** The November 8 trace and profile are `../ble.log` (SHA-256 `637bda1447d43ba08e74ee1414d97a5d9e982d2369e3567f56b40950c02e882f`) and `../ble_profile.txt` (SHA-256 `dbfa93e3701a3f2ec070547fee5464543797312e5908da535ff933e118a09863`). All three controllers initially paired at 207.725, 215.819 and 230.710 seconds. Address `10:c7:35:b5:63:19` disconnected at 1177.173 with reason `0x0013`; its reconnects reached `CreateBond` at 2892.589 and 2925.261, then disconnected about 140 ms later with reason `0x0016`. The other two pads went off at 2946.261 and 2946.313; the shared stack reset followed at 2947.558. After reset, a bond at 2972.584 reached reason `0x0008` at 2985.189 during subscription (raw callback result 26, decimal). A second reset at 3007.619 preceded successful pairing/subscription of all three at 3037.991, 3045.183 and 3060.009. The trace establishes the sequence and failures, not the physical cause of the reported timeout. The profile reports 4/8/17 µs last-forward timings; these aggregate measurements are not per-pad and are not end-to-end latency.
+
+## Revision 9: release disconnected peer state and retry in the pairing window
+
+R9 removes `SessionHistory` and the branch that skipped `RemoveBond`. Every connection now follows the same host sequence: `RemoveBond` → GATT discovery → `CreateBond` → authenticated HID reads → CCCD subscription → controller presentation. When a disconnect is confirmed, `DismissSlot` first issues address-scoped `CancelBond` and `RemoveBond`, then clears the local event/GATT slot. That cleanup is gated on a confirmed disconnect, no live connection for the peer, and the radio being available. A new pairing-window generation begins only when `StartInquiry` successfully opens a previously closed window. Entering the menu clears retry backoffs; scanning continues while other controllers remain connected. Retries use a uniform five-second backoff instead of thirty seconds. The existing all-BLE-links-down recovery remains available, and the shared radio is not reset while active BLE links remain.
+
+### R9 console result and next investigation
+
+The R9 earlier-cleanup hypothesis is **rejected by the latest console trace**. `../ble.log` has SHA-256 `fda8f3b700ec5d2b29364e6e97faabd820ae02f9dc273a837babc4f21237b0ab` and 3,194 lines. One shared reset is captured at 1731.674, followed by successful presentation of all three pads. The same `14:cb:65:e8:2b:e2` pad was manually powered off at 1804.677; while the other two remained active, repeated `CreateBond` attempts ended with reason `0x0016` about 100 ms later, from 1822.350 through 1931.834. The log then reaches sleep; it contains no second reset or post-wake pairing recovery. It does not establish the physical cause of the disconnects.
+
+At the time of the R9 review, the native `btdrv` implementation was unavailable locally. The pinned PR reference at `../ferrolho-pr-1/mc_mitm/source/ble/ble_hid_host.cpp` (commit `835c395ccf06836595330ed49bebb439f8a939ec`, lines 834–837) says removing the bond and detaching the HID host after link teardown had already been tried without changing the result; it leaves a radio cycle as the attempted recovery. This is reference-code evidence, not proof of what HOS 23 implements. Local libnx has BTM pair/unpair wrappers, but address unpair takes a company ID and six pattern bytes, and handle-based variants document a BTM BLE connection handle. Their selector semantics, compatibility with directly owned `btdrv` links, per-client GATT refresh, and event-forwarding effects are unproven. The native 23.0.1 main has since been extracted and inspected; see R10 above. That analysis improves the function-path evidence but does not prove which key record is affected or that reconnect is fixed.
+
+### Connection state machine
+
+Every new attempt requests `RemoveBond` before connecting. GATT discovery, `CreateBond`, authenticated HID reads, and CCCD subscription must complete before the controller is presented.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Vacant
+    Vacant --> Connecting: candidate accepted
+    Connecting --> Discovering: link established
+    Connecting --> Disconnecting: setup failure
+    Discovering --> Pairing: services discovered
+    Discovering --> Disconnecting: setup failure
+    Pairing --> Connected: bond, reads, CCCD complete
+    Pairing --> Disconnecting: setup failure
+    Connected --> Disconnecting: peer disconnect or teardown
+    Disconnecting --> Disconnecting: transport still live; retain slot
+    Disconnecting --> Vacant: no tracked live transport / PSC cleanup
+    Vacant --> [*]
+```
+
+These operations affect distinct state:
+
+| State | R9 operation | Scope |
+| --- | --- | --- |
+| Mission Control local slot | Clear event and GATT slot after confirmed disconnect | Address's local connection bookkeeping |
+| Bluetooth driver bond/security record | Address-scoped `CancelBond` and `RemoveBond` | Address only; libnx `RemoveBond` command 11 carries the address |
+| GATT slot connection state | Clear connection ID and discovery flags | The bounded address-matched attribute table is retained; it is not treated as proof of security state |
+
+The local libnx interface exposes address-scoped bond removal but no native completion acknowledgement proving the controller/driver has fully released its security state. The vendored libnx wrapper's `btmBleUnPairDevice` pattern takes a company ID and six pattern bytes; its semantics for directly owned `btdrv` links are unverified, so R9 does not claim compatibility from that pattern. Earlier R6 already called `RemoveBond` as a returning peer connected; R9 moves cleanup earlier, to confirmed disconnect, and clears menu retry backoffs. This is a targeted change in sequencing and retry opportunity, **not evidence that the native reconnect fault is fixed**.
+
+If a disconnect request is unconfirmed after the wait, the slot stays `Disconnecting` with its native connection ID until the disconnect event arrives and the guarded event state can be retired. Disconnecting slots and adopted native links count as live for recovery gating; the host does not repeat close IPC or reuse the slot, and there is no timeout that forcibly clears this state. With all four slots retained this way, the coordinator checks again through its existing 100 ms event pump rather than spinning. This protects live-link bookkeeping but can leave capacity unavailable until native teardown is reported.
+
+### Resource and radio coexistence scope
+
+R9 adds no threads, per-report allocations, or input-path work. It removes the bounded `SessionHistory`; input processing, requested connection intervals, and BLE/Classic priorities are unchanged. When any player is active, BLE scans run for two seconds followed by the existing two-second pause after an empty scan (about 50% nominal discovery duty, versus 5/7 before); with zero players, scan duration remains five seconds. A BLE start refused during Classic inquiry is retried after two seconds instead of one, reducing repeated setup/filter IPC frequency by half. The shorter empty scan can delay discovery. These are scheduling/code facts, not measured CPU, RAM, or input-delay improvements; the changes add no waits to the input dispatch path. Leave `log` and `profile` disabled during gameplay comparisons because they write diagnostics to SD.
+
+The supplied R8 trace is the failure baseline. R9's startup marker is `reconnect-cleanup-r9`. The candidate package `../MissionControl-BLE-reconnect-cleanup-r9.zip` has SHA-256 `ae988dc537fe1543c21166f56c00379d5017509478b9f06ca41d6dda3ab3461e`; its packaged NSP hash `fa26744f5a84e0711cf6fe11f844339f7875f366eeac165d66d2b6650348e17d` matches the release output. Its 98-entry ZIP passed CRC validation; the active gameplay config has diagnostics disabled and the optional diagnostic config enables them. Six host suites and ASan/UBSan passed before the final host/event teardown changes; there is no integrated teardown/inquiry fixture covering retained-slot state. The final source was reviewed and its ARM release build succeeded. ELF section sizes are text/data/bss `483596/41720/477888` bytes, compared with R8's `483036/41816/477888` (+560/-96/0). These results do not validate native security behavior or establish CPU, RAM, or input-latency improvements. Console validation is pending. Test with three pads: pair all, switch off just one, enter Change Grip/Order, and hold sync on that pad while the other two remain active. Save logs even if it fails. Also check all-off recovery and sleep/wake.
+
+## Revision 8 implementation and validation history
+
+R8 was a diagnostic build, not a verified reconnect fix. R7 omitted explicit pairing on remembered links. The fetched probe source says authenticated reads on an unbonded link fail; the R7 hardware trace below confirms that failure on this console. R8 always issued `CreateBond` and waited for a fresh indication plus the disconnect guard before attempting authenticated HID reads, but the console trace above shows that this did not resolve the individual reconnect failure.
 
 The remaining experiment is narrowly scoped:
 
@@ -12,13 +96,13 @@ The remaining experiment is narrowly scoped:
 | --- | --- | --- | --- |
 | R6 | Yes | Yes | Refused while other BLE players remain connected |
 | R7 | No | No | First authenticated read fails with result 9 |
-| R8 | No | Yes | Not yet tested |
+| R8 | No | Yes | Failed: repeated `CreateBond` attempts ended with reason `0x0016`; later subscription attempt ended with `0x0008` |
 
 Initial pairing and the first pairing after a native stack reset still remove the old record and explicitly pair. Same-generation successful peers retain their record while explicitly pairing again. The native security fault remains unidentified; this change does not establish that preserving the record is sufficient to repair it. There is no change to the zero-active-link reset rule, input processing, connection intervals or rumble scheduling.
 
-Validation: six native regression suites, ASan/UBSan (leak detection disabled in the ptrace sandbox), the ARM release build, and whitespace checks pass. The pairing regression now requires a returning connection to skip removal but issue `CreateBond`, wait for a fresh indication, and reject disconnect/sleep/refusal. Independent Luna review checked that history no longer bypasses pairing and still limits record preservation to successful peers in the current native generation. These checks validate host logic, not controller security behavior.
+R8 validation at the time: six native regression suites, ASan/UBSan (leak detection disabled in the ptrace sandbox), the ARM release build, and whitespace checks passed. Its pairing regression required a returning connection to skip removal but issue `CreateBond`, wait for a fresh indication, and reject disconnect/sleep/refusal. Independent Luna review checked that history no longer bypassed pairing and still limited record preservation to successful peers in the current native generation. These checks validated host logic, not controller security behavior.
 
-Install the diagnostic `../MissionControl-BLE-reconnect-probe-r8.zip`, reboot, and verify startup marker `reconnect-probe-r8`. Connect all three pads, switch just one off, then hold its sync button in Change Grip/Order while the other two stay on. The returning address should log `reconnect preserving native security state`, then `btdrvCreateBond`, followed by successful authenticated reads/CCCD and `paired and subscribed` if this sequence works. Save the log even if it fails. Also check all-off recovery and sleep/wake. If `CreateBond` is refused again, the targeted repair remains unresolved; resetting the shared stack while no BLE pads are active remains the demonstrated workaround. Disable diagnostics and reboot for gameplay comparisons.
+The R8 test procedure and expected `reconnect preserving native security state` marker are obsolete; R9 removes that behavior. See the R9 test above.
 
 ## R7 console result: individual reconnect remains unresolved
 
@@ -219,12 +303,12 @@ Zero-initialized storage decreased by 4 KiB after moving per-template event buff
 
 ## Install and validate on the Switch
 
-The latest workspace package `../MissionControl-BLE-reconnect-probe-r8.zip` contains `atmosphere/` and `config/`, including an active `missioncontrol.ini`. Copy these to the SD root and reboot to load the new module/config. It uses this checkout's existing firmware patches; compatibility with firmware versions beyond those patches is not newly established.
+The R9 candidate package is `../MissionControl-BLE-reconnect-cleanup-r9.zip`; it contains `atmosphere/` and `config/`. Copy these to the SD root and reboot to load the module/config. The active `missioncontrol.ini` uses the workspace gameplay defaults with diagnostics disabled. An optional `missioncontrol.diagnostics.ini` is included; to collect a trace, back up the active file, replace it with the diagnostic file renamed to `missioncontrol.ini`, reboot, reproduce the issue, and save `ble.log` and `ble_profile.txt`. Confirm startup marker `reconnect-cleanup-r9`. Console validation is pending; compatibility with firmware versions beyond this checkout's existing patches is not newly established.
 
 1. Pair each controller, then all four together. For the 1708, record its firmware version and whether the log identifies a BLE scan/connection. No extra model selector is required.
-2. Use the revision 8 console test above. Shared-radio recovery waits until all BLE pads are off; individual reconnects explicitly pair while preserving the returning peer's record. Xbox-button-only reconnect is not implemented.
+2. Use the revision 9 console test above. The returning pad needs its sync button in Change Grip/Order; individual reconnect has not been shown to work seamlessly. Shared-radio recovery waits until all BLE pads are off. Xbox-button-only reconnect is not implemented.
 3. In the Switch stick test, release the drifting stick and adjust just its override in `/config/MissionControl/controllers/<12 lowercase MAC digits>/config.ini`, under `[xbox]`. Start with `left_stick_deadzone=20` for a drifting left stick; use the smallest sufficient value. Reconnect after changing this file. Global changes require a reboot.
 4. Compare Smash character select and gameplay with the same controllers, first with rumble enabled and then disabled. Keep `log=false` and `profile=false` for this comparison. CPU usage, radio packet loss and end-to-end latency require console measurements; none are claimed from the host tests.
 5. If pairing still fails, temporarily set `log=true`, reboot, reproduce initial pairing → power-off → attempted re-pairing, and retain `/config/MissionControl/ble.log`. Include HOS, Atmosphere and Xbox firmware versions. Turn diagnostics off again for normal play.
 
-Revision 3 pairing/input on three controllers is user-confirmed. Revision 4's active-player resets were removed following the reported disruption. The revision 5 trace confirms early sleep teardown. Revisions 6 and 7 confirm three-pad pairing after zero-link stack recovery, but both fail individual reconnect while other pads remain connected. The issue remains unresolved.
+Revision 3 pairing/input on three controllers is user-confirmed. Revision 4's active-player resets were removed following the reported disruption. The revision 5 trace confirms early sleep teardown. Revisions 6 and 7 fail individual reconnect while other pads remain connected; R8's supplied trace also fails after explicit `CreateBond`. R9 console validation is pending, so the individual reconnect issue remains unresolved.
