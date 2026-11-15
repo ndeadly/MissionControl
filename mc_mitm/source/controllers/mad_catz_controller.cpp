@@ -25,12 +25,11 @@ namespace ams::controller {
     }
 
     void MadCatzController::ParseInputReport(const u8 *report_buffer, size_t size) {
-        AMS_UNUSED(size);
         auto report = reinterpret_cast<const MadCatzReportData *>(report_buffer);
 
         switch(report->id) {
             case 0x01:
-                this->MapInputReport0x01(report); break;
+                this->MapInputReport0x01(report, (size <= 11) ? MadCatzInputReport0x01Format_Firmware125 : MadCatzInputReport0x01Format_FirmwareStock); break;
             case 0x02:
                 this->MapInputReport0x02(report); break;
             case 0x81:
@@ -44,44 +43,76 @@ namespace ams::controller {
         }
     }
 
-    void MadCatzController::MapInputReport0x01(const MadCatzReportData *src) {
-        auto dpad = DirectionalPad(src->input0x01.dpad);
-        auto left_trigger  = AnalogTrigger(src->input0x01.left_trigger);
-        auto right_trigger = AnalogTrigger(src->input0x01.right_trigger);
-
-        m_left_stick.SetValuesFrom(
-            src->input0x01.left_stick.GetX(),
-            src->input0x01.left_stick.GetYInverted()
-        );
-
-        m_right_stick.SetValuesFrom(
-            src->input0x01.right_stick.GetX(),
-            src->input0x01.right_stick.GetYInverted()
-        );
-
+    void MadCatzController::MapInputReport0x01(const MadCatzReportData *src, MadCatzInputReport0x01Format fmt) {
         SwitchButtons button_state = m_buttons;
+
+        // The 0x01 Input Report has varying sizes based on the firmware
+        // version of the C.T.R.L. R used.
+        // The longer 16 byte report is the old firmware. ('Stock firmware')
+        // The shorter 10 byte report is the new 125 firmware. ('XInput compatible')
+        // Buttons and dpad in Input Report 0x01 are common to both firmware versions.
+        // The 0x02 Input Report is unchanged between the two revisions.
+        auto dpad = DirectionalPad(src->input0x01stock.dpad);
+
         button_state.Assign(SwitchButton::Down,   dpad.IsDown());
         button_state.Assign(SwitchButton::Up,     dpad.IsUp());
         button_state.Assign(SwitchButton::Right,  dpad.IsRight());
         button_state.Assign(SwitchButton::Left,   dpad.IsLeft());
-        button_state.Assign(SwitchButton::A,      src->input0x01.buttons.B);
-        button_state.Assign(SwitchButton::B,      src->input0x01.buttons.A);
-        button_state.Assign(SwitchButton::X,      src->input0x01.buttons.Y);
-        button_state.Assign(SwitchButton::Y,      src->input0x01.buttons.X);
-        button_state.Assign(SwitchButton::R,      src->input0x01.buttons.R1);
-        button_state.Assign(SwitchButton::L,      src->input0x01.buttons.L1);
-        button_state.Assign(SwitchButton::ZR,     right_trigger.GetNormalizedValue() > m_trigger_threshold);
-        button_state.Assign(SwitchButton::ZL,     left_trigger.GetNormalizedValue()  > m_trigger_threshold);
-        button_state.Assign(SwitchButton::Minus,  src->input0x01.buttons.select);
-        button_state.Assign(SwitchButton::Plus,   src->input0x01.buttons.start);
-        button_state.Assign(SwitchButton::StickL, src->input0x01.buttons.L3);
-        button_state.Assign(SwitchButton::StickR, src->input0x01.buttons.R3);
-        // button_state.Assign(SwitchButton::Home,   src->input0x01.buttons.home);
+
+        button_state.Assign(SwitchButton::A,      src->input0x01stock.buttons.B); // C.T.R.L. R has an Xbox One printed layout.
+        button_state.Assign(SwitchButton::B,      src->input0x01stock.buttons.A);
+        button_state.Assign(SwitchButton::X,      src->input0x01stock.buttons.Y);
+        button_state.Assign(SwitchButton::Y,      src->input0x01stock.buttons.X);
+
+        button_state.Assign(SwitchButton::R,      src->input0x01stock.buttons.RB); // Require that the player is using the Desktop mode switch
+        button_state.Assign(SwitchButton::ZR,     src->input0x01stock.buttons.RT); // which has the triggers mapped to digital button bits.
+        button_state.Assign(SwitchButton::L,      src->input0x01stock.buttons.LB);
+        button_state.Assign(SwitchButton::ZL,     src->input0x01stock.buttons.LT);
+
+        button_state.Assign(SwitchButton::Minus,  src->input0x01stock.buttons.back);
+        button_state.Assign(SwitchButton::Plus,   src->input0x01stock.buttons.start);
+
+        button_state.Assign(SwitchButton::StickL, src->input0x01stock.buttons.L3);
+        button_state.Assign(SwitchButton::StickR, src->input0x01stock.buttons.R3);
+
+        // Can't use the emblem button on C.T.R.L. R to map to the Switch home button.
+        // It seems an obvious choice, but it's an 'instantaneous' on-off button,
+        // and the Switch won't catch it.
+
+        //button_state.Assign(SwitchButton::Home, src->input0x01stock.buttons.emblem);
+
+        if (fmt == MadCatzInputReport0x01Format_Firmware125) {
+            m_left_stick.SetValuesFrom(
+                src->input0x01updated.left_stick.GetX(),
+                src->input0x01updated.left_stick.GetYInverted()
+            );
+            m_right_stick.SetValuesFrom(
+                src->input0x01updated.right_stick.GetX(),
+                src->input0x01updated.right_stick.GetYInverted()
+            );
+        } else {
+            m_left_stick.SetValuesFrom(
+                src->input0x01stock.left_stick.GetX(),
+                src->input0x01stock.left_stick.GetYInverted()
+            );
+            m_right_stick.SetValuesFrom(
+                src->input0x01stock.right_stick.GetX(),
+                src->input0x01stock.right_stick.GetYInverted()
+            );
+        }
+
         m_buttons = button_state;
     }
 
     void MadCatzController::MapInputReport0x02(const MadCatzReportData *src) {
-        m_buttons.Assign(SwitchButton::Home, src->input0x02.play);
+        // C.T.R.L. R media button panel is: [ V- | REW | Play | FF | V+ ]
+        // Map V- to Capture, and V+ to Home to match a Switch Pro controller.
+        SwitchButtons button_state = m_buttons;
+
+        button_state.Assign(SwitchButton::Capture, src->input0x02.volume_down);
+        button_state.Assign(SwitchButton::Home,    src->input0x02.volume_up);
+
+        m_buttons = button_state;
     }
 
     void MadCatzController::MapInputReport0x81(const MadCatzReportData *src) {
