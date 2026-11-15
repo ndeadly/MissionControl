@@ -64,8 +64,9 @@ Use controllers from other consoles natively on your Nintendo Switch via Bluetoo
 * __PowerA Moga Hero__
 * __PowerA Moga Pro__
 * __PowerA Moga Pro 2__
-* __Mad-Catz C.T.R.L.R__
-* __Mad-Catz L.Y.N.X 3__
+* __Mad Catz C.T.R.L. R__
+* __Mad Catz Micro C.T.R.L. R__
+* __Mad Catz L.Y.N.X 3__
 * __Razer Raiju Tournament__
 * __Razer Raiju Ultimate__
 * __Razer Serval__
@@ -127,6 +128,13 @@ If you have difficulty getting the controller to pair to the console, press and 
 Press and hold the `guide`(`X`) button until the LED starts blinking. Then press and hold the small sync button on the back near the charging port until the LED starts blinking more rapidly.
 
 *Note: controller firmware versions 5.xx.xxxx.x and upward use Bluetooth Low Energy and are not currently supported. Please refer to the [FAQ](#frequently-asked-questions) for instructions on downgrading to a compatible firmware*
+
+***Mad Catz C.T.R.L. R and Micro C.T.R.L. R controllers***
+Press and hold the `Emblem` (`⊜`) button to turn the controller on. Then press and hold the `Rewind` + `Fast Forward` (`⏪` + `⏩`) media buttons on the controller for three seconds until the `Emblem` flashes magenta once. This clears the Bluetooth pairing. The `Emblem` will cycle red/blue while the controller is in pairing mode. The `Emblem` will change to deep solid blue when pairing is successful (pair on the Change Grip/Order screen).
+
+The `Volume down` (`🔈`) button on the controller is mapped to `Capture`, and `Volume up` (`🔊`) is mapped to `Home`.
+
+Ensure the mode slider on the underside of the controller is set to the far right (`Desktop` (`💻`) icon) position, otherwise the button and trigger assignments will be wrong.
 
 ***Other Controllers***
 Please refer to your controller's user manual for information on how to put it into sync mode. Note that many generic Bluetooth controllers can be started in one of several modes. Usually you want to choose something like HID, PC or Android mode for it to work correctly.
