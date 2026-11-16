@@ -18,83 +18,48 @@
 
 namespace ams::controller {
 
-    // Additional notes for Mad Catz C.T.R.L. R:
-    // (Retail C.T.R.L. Model 32266, and Micro C.T.R.L. R)
-    // - Mathew 'Mad Cat' Carr - 2026/08/26 2026/11/15
-    //
-    // Should work with stock firmware as-new controllers, and controllers
-    // with the official Mad Catz XInput firmware update 1.2.5 ('XInput update').
-    // This is the retail boxed C.T.R.L. R controller,
-    // NOT the pack-in M.O.J.O. version.
-    // Sadly, the two are different. (M.O.J.O. controller is BLE.)
-    // Volume down is mapped to Switch Capture button.
-    // Volume up is mapped to Switch Home button.
-    // Mad Catz Emblem/Guide button is -not- the Switch Home button.
-
-    // The C.T.R.L. R pad has a physical mode which on the bottom.
-    // The three modes are 'Smart', 'Mouse' and 'Desktop'.
-    // These modes control whether the triggers are reported as
-    // analogue values or digital button bits.
-    // The C.T.R.L. R pad doesn't report this mode switch position over
-    // Bluetooth. Even the official Mad Catz drivers on Windows require
-    // the user to manually set the pad type in the system tray widget.
-    // Certain Input Report fields only have valid values in
-    // specific mode switch modes.
-    // We will require the user to set the switch to 'Desktop' mode
-    // where the LT RT analogue triggers read as digital on-off values,
-    // which is what the Switch wants.
-    // In this mode, partially pulled analogue triggers are interpreted
-    // as digital buttons by the C.T.R.L. R pad.
-    // (The C.T.R.L. R pad doesn't have GameCube-style
-    // haptic click action on the triggers.)
-    // Trigger analogue continuous values are only valid when the
-    // mode switch is Smart. Smart mode causes other issues, like the
-    // Back button becoming an instantaneous 'Android Back' system action.
-    // It's best to just use Desktop mode for this project.
-
-    // Several buttons' fields are instantaneous on-off tap actions,
-    // which means the Switch won't react to them fast enough,
-    // so we cannot use them in this project.
-
-    struct MadCatzButtonData {
-        u8 X      : 1;
-        u8 A      : 1;
-        u8 B      : 1;
-        u8 Y      : 1;
-        u8 LB     : 1;
-        u8 RB     : 1;
-        u8 LT     : 1; // Valid only in Desktop mode.
-        u8 RT     : 1; // Valid only in Desktop mode.
-
-        u8 back   : 1; // Valid only in Desktop mode.
-        u8 start  : 1;
-        u8 L3     : 1;
-        u8 R3     : 1;
-        u8 emblem : 1; // Valid only in Desktop mode. Instantaneous.
-        u8        : 0;
-    } PACKED;
-
-    // Input Report 0x01 contains buttons and sticks.
-    // Original controller firmware reported analogue values as u16.
-    // Controller firmware 1.2.5 reports analogue values as u8.
     enum MadCatzInputReport0x01Format {
         MadCatzInputReport0x01Format_FirmwareStock,
         MadCatzInputReport0x01Format_Firmware125,
     };
 
-    template <typename T> requires std::integral<T>
     struct MadCatzInputReport0x01 {
-        MadCatzButtonData buttons;
+        struct {
+            u8 X      : 1;
+            u8 A      : 1;
+            u8 B      : 1;
+            u8 Y      : 1;
+            u8 LB     : 1;
+            u8 RB     : 1;
+            u8 LT     : 1; // Valid only in Desktop mode.
+            u8 RT     : 1; // Valid only in Desktop mode.
+
+            u8 back   : 1; // Valid only in Desktop mode.
+            u8 start  : 1;
+            u8 L3     : 1;
+            u8 R3     : 1;
+            u8 emblem : 1; // Valid only in Desktop mode. Instantaneous.
+            u8        : 0;
+        } buttons;
         DirectionalPadType<1, 0> dpad;
-        AnalogStick<T> left_stick;
-        AnalogStick<T> right_stick;
-        AnalogTriggerType<T> left_trigger;
-        AnalogTriggerType<T> right_trigger;
+        struct {
+            union {
+                struct {
+                    AnalogStick<u16> left_stick;
+                    AnalogStick<u16> right_stick;
+                    AnalogTriggerType<u16> left_trigger;
+                    AnalogTriggerType<u16> right_trigger;
+                } fw_stock;
+                struct {
+                    AnalogStick<u8> left_stick;
+                    AnalogStick<u8> right_stick;
+                    AnalogTriggerType<u8> left_trigger;
+                    AnalogTriggerType<u8> right_trigger;
+                } fw_125;
+            };
+        } analogs;
     } PACKED;
 
-    // Input Report 0x02 contains media buttons and system events.
-    // Tap and hold events for FF and rewind appear as unique
-    // separate events, with the initial taps being instantaneous.
     struct MadCatzInputReport0x02 {
         u8 ff_tap      : 1; // Instantaneous.
         u8 rewind_tap  : 1; // Instantaneous.
@@ -105,7 +70,7 @@ namespace ams::controller {
         u8 rew_hold    : 1;
         u8 system_back : 1; // Valid only in Smart mode. Instantaneous.
 
-        u8 menu_up     : 1; // Valid only in Mouse mode. Act as a media remote's d-pad.
+        u8 menu_up     : 1; // Valid only in Mouse mode. D-pad acts as a media remote's d-pad.
         u8 menu_down   : 1; //  "
         u8 menu_left   : 1; //  "
         u8 menu_right  : 1; //  "
@@ -192,13 +157,12 @@ namespace ams::controller {
     struct MadCatzReportData {
         u8 id;
         union {
-            MadCatzInputReport0x01<u16> input0x01stock;
-            MadCatzInputReport0x01<u8>  input0x01updated;
-            MadCatzInputReport0x02      input0x02;
+            MadCatzInputReport0x01              input0x01;
+            MadCatzInputReport0x02              input0x02;
 
-            MadCatzInputReport0x81      input0x81;
-            MadCatzInputReport0x82      input0x82;
-            MadCatzInputReport0x83      input0x83;
+            MadCatzInputReport0x81              input0x81;
+            MadCatzInputReport0x82              input0x82;
+            MadCatzInputReport0x83              input0x83;
         };
     } PACKED;
 
