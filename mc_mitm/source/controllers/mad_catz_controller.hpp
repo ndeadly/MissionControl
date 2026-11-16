@@ -157,12 +157,12 @@ namespace ams::controller {
     struct MadCatzReportData {
         u8 id;
         union {
-            MadCatzInputReport0x01              input0x01;
-            MadCatzInputReport0x02              input0x02;
+            MadCatzInputReport0x01 input0x01;
+            MadCatzInputReport0x02 input0x02;
 
-            MadCatzInputReport0x81              input0x81;
-            MadCatzInputReport0x82              input0x82;
-            MadCatzInputReport0x83              input0x83;
+            MadCatzInputReport0x81 input0x81;
+            MadCatzInputReport0x82 input0x82;
+            MadCatzInputReport0x83 input0x83;
         };
     } PACKED;
 
