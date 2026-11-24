@@ -1,0 +1,52 @@
+[Unit]
+Description=dynamicOS NVR authenticated TLS mobile API
+After=network-online.target dynamicos-recorder.service run-dynamicos\x2dnvr-hls.mount
+Wants=network-online.target
+RequiresMountsFor=/var/lib/dynamicos-nvr
+ConditionPathIsMountPoint=/var/lib/dynamicos-nvr
+Requires=run-dynamicos\x2dnvr-hls.mount
+
+[Service]
+Type=simple
+User=dynamicos
+Group=dynamicos
+Environment=DYNAMICOS_APPLIANCE_MODE=1
+Environment=DYNAMICOS_STATE_DIR=/var/lib/dynamicos-nvr/state
+Environment=DYNAMICOS_RECORD_DIR=/var/lib/dynamicos-nvr/recordings
+Environment=DYNAMICOS_HLS_DIR=/run/dynamicos-nvr/hls
+Environment=PYTHONPATH=/opt/dynamicos-nvr/nvr
+EnvironmentFile=-/etc/dynamicos-nvr/api.env
+ExecStart=/opt/dynamicos-nvr/venv/bin/python /opt/dynamicos-nvr/nvr/api_daemon.py
+Restart=on-failure
+RestartSec=10
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateIPC=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictSUIDSGID=yes
+CapabilityBoundingSet=
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+ReadWritePaths=/var/lib/dynamicos-nvr /run/dynamicos-nvr/hls
+IPAddressDeny=any
+IPAddressAllow=localhost
+IPAddressAllow=10.0.0.0/8
+IPAddressAllow=172.16.0.0/12
+IPAddressAllow=192.168.0.0/16
+TasksMax=128
+MemoryMax=4G
+
+[Install]
+WantedBy=multi-user.target

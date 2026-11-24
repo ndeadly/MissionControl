@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=dynamicOS NVR
+Comment=Security appliance kiosk session
+Exec=/opt/dynamicos-nvr/appliance/start-nvr.sh
+Type=Application
+DesktopNames=dynamicOS

@@ -1,0 +1,15 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'com.vonder3urg.dynamicnvr'
+ compileSdk 35
+ defaultConfig { applicationId 'com.vonder3urg.dynamicnvr'; minSdk 26; targetSdk 35; versionCode 6; versionName '0.6.0' }
+ buildTypes { release { minifyEnabled false } }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies {
+ implementation 'androidx.media3:media3-exoplayer:1.11.1'
+ implementation 'androidx.media3:media3-exoplayer-hls:1.11.1'
+ implementation 'androidx.media3:media3-ui:1.11.1'
+ implementation 'androidx.media3:media3-datasource-okhttp:1.11.1'
+ implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}

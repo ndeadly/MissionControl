@@ -1,0 +1,9 @@
+dynamicOS NVR v15 sandbox engineering tests
+45 nvr backend tests: PASS
+20 appliance and hardening tests: PASS
+Total 65 automated tests PASS
+Python compileall: PASS
+Shell bash -n: PASS
+Sandbox policy audit: PASS
+Mount unit systemd-analyze verify: PASS
+NOT VERIFIED: physical ZOSI cameras, actual Mac mini boot, ISO creation, Android APK build, independent penetration audit.

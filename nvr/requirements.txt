@@ -1,0 +1,7 @@
+PySide6>=6.8,<7
+opencv-python-headless>=4.10,<5
+pyinstaller>=6.10,<7
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+cryptography>=44,<48
+keyring>=25,<27

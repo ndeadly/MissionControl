@@ -1,0 +1,10 @@
+[Unit]
+Description=Bounded tmpfs for dynamicOS NVR live segments
+Before=dynamicos-recorder.service lightdm.service
+[Mount]
+What=tmpfs
+Where=/run/dynamicos-nvr/hls
+Type=tmpfs
+Options=rw,nosuid,nodev,noexec,mode=0700,uid=dynamicos,gid=dynamicos,size=512M
+[Install]
+WantedBy=multi-user.target

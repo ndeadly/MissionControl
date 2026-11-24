@@ -1,0 +1,23 @@
+[Unit]
+Description=dynamicOS NVR recorder security and health validation
+After=dynamicos-recorder.service
+[Service]
+Type=oneshot
+User=dynamicos
+Group=dynamicos
+ExecStart=/usr/local/sbin/dynamicos-health
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+CapabilityBoundingSet=
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX
+IPAddressDeny=any
+SystemCallArchitectures=native
+ReadOnlyPaths=/var/lib/dynamicos-nvr

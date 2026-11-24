@@ -1,0 +1,92 @@
+name: dynamicOS NVR continuous verification
+on:
+  workflow_dispatch:
+  push:
+    paths: ['nvr/**','tests/**','appliance/**','android/**','.github/workflows/continuous-nvr.yml']
+  pull_request:
+    paths: ['nvr/**','tests/**','appliance/**','android/**','.github/workflows/continuous-nvr.yml']
+  schedule:
+    - cron: '17 3 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: nvr-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check source tree exists
+        run: test -f nvr/nvr.py && test -f android/app/build.gradle && test -f appliance/build-iso.sh
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install test dependencies
+        run: python -m pip install 'fastapi<1' 'httpx<1' 'cryptography>=41' 'uvicorn<1'
+      - name: Check Python and shell syntax
+        run: |
+          python -m compileall -q nvr appliance tests
+          find appliance -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+      - name: Run backend tests
+        env: {PYTHONPATH: 'nvr'}
+        run: python -m unittest discover -s nvr -p 'test_*.py' -v
+      - name: Run appliance and security tests
+        env: {PYTHONPATH: 'nvr'}
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+  android-debug:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.11.1'}
+      - name: Build unsigned-for-release debug APK
+        working-directory: android
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-Android-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+  linux-iso:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ISO builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common
+      - name: Build Linux installer/live ISO
+        run: sudo bash appliance/build-iso.sh "$RUNNER_TEMP/nvr-iso"
+      - name: Upload resulting ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-Linux-ISO-UNVERIFIED
+          path: ${{ runner.temp }}/nvr-iso/*.iso
+          if-no-files-found: error
+          retention-days: 7
+  pipeline-report:
+    needs: [verify,android-debug,linux-iso]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Summarize release readiness
+        env:
+          VERIFY: ${{ needs.verify.result }}
+          ANDROID: ${{ needs.android-debug.result }}
+          ISO: ${{ needs.linux-iso.result }}
+        run: |
+          echo '## dynamicOS NVR CI' >> "$GITHUB_STEP_SUMMARY"
+          echo "Verification: $VERIFY" >> "$GITHUB_STEP_SUMMARY"
+          echo "Android debug APK: $ANDROID" >> "$GITHUB_STEP_SUMMARY"
+          echo "Linux ISO: $ISO" >> "$GITHUB_STEP_SUMMARY"
+          echo 'CI builds are **not** device tests or a security certification. Never auto-flash the Mac mini.' >> "$GITHUB_STEP_SUMMARY"
+          test "$VERIFY" = success && test "$ANDROID" = success && test "$ISO" = success

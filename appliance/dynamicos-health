@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Fail loudly on stale/degraded recording state; no false green status."""
+import json, os, subprocess, sys, time
+from pathlib import Path
+VAULT=Path('/var/lib/dynamicos-nvr')
+STATE=VAULT/'state'/'recorder-status.json'
+def run(cmd):
+    return subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,timeout=5)
+def check():
+    mount=run(['findmnt','-n','-o','SOURCE','--mountpoint',str(VAULT)])
+    if mount.returncode or not mount.stdout.strip().startswith('/dev/'):
+        return 'CRITICAL: encrypted vault not mounted'
+    crypt=run(['lsblk','-n','-o','TYPE',mount.stdout.strip()])
+    if crypt.returncode or crypt.stdout.strip().splitlines()[0] != 'crypt':
+        return 'CRITICAL: vault is not dm-crypt'
+    service=run(['systemctl','is-active','--quiet','dynamicos-recorder.service'])
+    if service.returncode:return 'CRITICAL: recorder service stopped'
+    try:
+        status=json.loads(STATE.read_text())
+        age=time.time()-float(status['epoch'])
+        if age > 40 or age < -60:return 'CRITICAL: stale or invalid recorder heartbeat'
+        if status.get('state') != 'recording':return 'CRITICAL: recording engine degraded'
+        if int(status.get('configured',0)) < 1:return 'CRITICAL: no active cameras configured'
+        if int(status.get('running',0)) < int(status.get('configured',0)):
+            return 'WARNING: one or more cameras not recording'
+    except (OSError, ValueError, TypeError, KeyError):
+        return 'CRITICAL: recorder heartbeat not readable'
+    return None
+if __name__ == '__main__':
+    try: issue=check()
+    except (OSError,subprocess.TimeoutExpired,IndexError) as e:issue='CRITICAL: health probe failed: '+type(e).__name__
+    if issue:
+        subprocess.run(['logger','-t','dynamicos-health','-p','daemon.err',issue],check=False)
+        print(issue,file=sys.stderr)
+        sys.exit(2)
+    print('healthy')

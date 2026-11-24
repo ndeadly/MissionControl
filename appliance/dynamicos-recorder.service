@@ -1,0 +1,60 @@
+[Unit]
+Description=dynamicOS NVR encrypted continuous recording engine
+RequiresMountsFor=/var/lib/dynamicos-nvr
+ConditionPathIsMountPoint=/var/lib/dynamicos-nvr
+Requires=run-dynamicos\x2dnvr-hls.mount
+After=run-dynamicos\x2dnvr-hls.mount
+After=local-fs.target network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=dynamicos
+Group=dynamicos
+Environment=DYNAMICOS_APPLIANCE_MODE=1
+Environment=DYNAMICOS_STATE_DIR=/var/lib/dynamicos-nvr/state
+Environment=DYNAMICOS_RECORD_DIR=/var/lib/dynamicos-nvr/recordings
+Environment=PYTHONPATH=/opt/dynamicos-nvr/nvr
+ExecStartPre=/opt/dynamicos-nvr/venv/bin/python -c "from security_policy import require_vault;require_vault('/var/lib/dynamicos-nvr/recordings')"
+ExecStart=/opt/dynamicos-nvr/venv/bin/python /opt/dynamicos-nvr/nvr/recording_daemon.py
+Restart=on-failure
+RestartSec=10
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/dynamicos-nvr
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+PrivateIPC=yes
+RemoveIPC=yes
+UMask=0077
+TasksMax=128
+MemoryMax=6G
+ProtectKernelTunables=yes
+ProtectKernelLogs=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictNamespaces=yes
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+IPAddressDeny=any
+IPAddressAllow=localhost
+IPAddressAllow=10.0.0.0/8
+IPAddressAllow=172.16.0.0/12
+IPAddressAllow=192.168.0.0/16
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
