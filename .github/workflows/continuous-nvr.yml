@@ -42,7 +42,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: {distribution: temurin, java-version: '17'}
-      - uses: android-actions/setup-android@v3
+      - name: Configure preinstalled Android SDK
+        run: |
+          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
+          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with: {gradle-version: '8.11.1'}
       - name: Build unsigned-for-release debug APK
@@ -57,20 +61,22 @@ jobs:
   linux-iso:
     needs: verify
     runs-on: ubuntu-24.04
+    container:
+      image: debian:trixie
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
-      - name: Install ISO builder
+      - name: Install Git and current Debian live-build
         run: |
-          sudo apt-get update
-          sudo apt-get install -y live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y git ca-certificates live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common
+      - uses: actions/checkout@v4
       - name: Build Linux installer/live ISO
-        run: sudo bash appliance/build-iso.sh "$RUNNER_TEMP/nvr-iso"
+        run: bash appliance/build-iso.sh "$GITHUB_WORKSPACE/nvr-iso"
       - name: Upload resulting ISO
         uses: actions/upload-artifact@v4
         with:
           name: dynamicOS-NVR-Linux-ISO-UNVERIFIED
-          path: ${{ runner.temp }}/nvr-iso/*.iso
+          path: nvr-iso/*.iso
           if-no-files-found: error
           retention-days: 7
   pipeline-report:
