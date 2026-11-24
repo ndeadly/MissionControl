@@ -1,10 +1,6 @@
 name: dynamicOS NVR continuous verification
 on:
   workflow_dispatch:
-  push:
-    paths: ['nvr/**', 'tests/**', 'appliance/**', 'android/**', '.github/workflows/nvr-ci.yml']
-  schedule:
-    - cron: '17 3 * * *'
 permissions:
   contents: read
 jobs:
