@@ -1,7 +1,7 @@
 plugins { id 'com.android.application' }
 android {
  namespace 'com.vonder3urg.dynamicnvr'
- compileSdk 35
+ compileSdk 36
  defaultConfig { applicationId 'com.vonder3urg.dynamicnvr'; minSdk 26; targetSdk 35; versionCode 6; versionName '0.6.0' }
  buildTypes { release { minifyEnabled false } }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
