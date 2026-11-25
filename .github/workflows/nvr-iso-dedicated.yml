@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/nvr-iso-dedicated.yml'
+      - 'appliance/**'
 permissions:
   contents: read
 jobs:
