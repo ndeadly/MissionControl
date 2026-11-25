@@ -83,11 +83,19 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   iso:
-    needs: verify
+    # Build ISO independently: Android/backend test failures must not suppress
+    # creation of an ISO diagnostics artifact for hardware validation.
     runs-on: ubuntu-24.04
     timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
+      - name: Validate installer input before starting image build
+        run: |
+          set -Eeuo pipefail
+          bash -n projects/dynamicos-nvr/appliance/build-iso.sh
+          bash -n projects/dynamicos-nvr/appliance/install-on-debian.sh
+          bash -n projects/dynamicos-nvr/appliance/start-nvr.sh
+          test -s projects/dynamicos-nvr/appliance/requirements-linux.txt
       - name: Free disk capacity
         run: |
           df -h .
