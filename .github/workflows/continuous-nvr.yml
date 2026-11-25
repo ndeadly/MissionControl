@@ -72,8 +72,25 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y git ca-certificates live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common
       - uses: actions/checkout@v4
-      - name: Build Linux installer/live ISO
-        run: bash appliance/build-iso.sh "$GITHUB_WORKSPACE/nvr-iso"
+      - name: Build Linux installer/live ISO with durable diagnostics
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "$GITHUB_WORKSPACE/nvr-iso"
+          df -h "$GITHUB_WORKSPACE" | tee "$GITHUB_WORKSPACE/nvr-iso/disk-before.txt"
+          bash appliance/build-iso.sh "$GITHUB_WORKSPACE/nvr-iso" 2>&1 | tee "$GITHUB_WORKSPACE/nvr-iso/build.log"
+          df -h "$GITHUB_WORKSPACE" | tee "$GITHUB_WORKSPACE/nvr-iso/disk-after.txt"
+      - name: Preserve Linux build logs on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-ISO-build-diagnostics
+          path: |
+            nvr-iso/build.log
+            nvr-iso/disk-*.txt
+            nvr-iso/*.log
+          if-no-files-found: warn
+          retention-days: 14
       - name: Verify ISO structure and compute checksum
         shell: bash
         run: |
