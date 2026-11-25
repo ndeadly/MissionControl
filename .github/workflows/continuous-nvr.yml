@@ -11,7 +11,7 @@ permissions:
   contents: read
 concurrency:
   group: nvr-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   verify:
     runs-on: ubuntu-24.04
@@ -62,36 +62,34 @@ jobs:
     needs: verify
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
-    container:
-      image: debian:trixie
-      options: --privileged
-    timeout-minutes: 120
+    timeout-minutes: 150
     steps:
-      - name: Install Git and current Debian live-build
-        run: |
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y git ca-certificates live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common
       - uses: actions/checkout@v4
-      - name: Build Linux installer/live ISO with durable diagnostics
+      - name: Free runner disk space
+        run: |
+          df -h .
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet || true
+          df -h .
+      - name: Build Debian 13 test ISO with diagnostics
         shell: bash
         run: |
-          set -o pipefail
-          mkdir -p "$GITHUB_WORKSPACE/nvr-iso"
-          df -h "$GITHUB_WORKSPACE" | tee "$GITHUB_WORKSPACE/nvr-iso/disk-before.txt"
-          bash appliance/build-iso.sh "$GITHUB_WORKSPACE/nvr-iso" 2>&1 | tee "$GITHUB_WORKSPACE/nvr-iso/build.log"
-          df -h "$GITHUB_WORKSPACE" | tee "$GITHUB_WORKSPACE/nvr-iso/disk-after.txt"
-      - name: Preserve Linux build logs on success or failure
+          set -Eeuo pipefail
+          mkdir -p nvr-iso
+          docker run --rm --privileged --network host -v "$PWD:/work" -w /work debian:trixie bash -euo pipefail -c '
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common ca-certificates
+            bash appliance/build-iso.sh /work/nvr-iso
+          ' 2>&1 | tee nvr-iso/build.log
+      - name: Upload ISO build diagnostics even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dynamicOS-NVR-ISO-build-diagnostics
-          path: |
-            nvr-iso/build.log
-            nvr-iso/disk-*.txt
-            nvr-iso/*.log
+          path: nvr-iso/build.log
           if-no-files-found: warn
           retention-days: 14
-      - name: Verify ISO structure and compute checksum
+      - name: Validate built ISO metadata and checksum
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -101,7 +99,7 @@ jobs:
           test "$(stat -c %s "${images[0]}")" -gt 100000000
           xorriso -indev "${images[0]}" -report_el_torito plain
           sha256sum "${images[0]}" > nvr-iso/SHA256SUMS.txt
-          echo "Unverified test medium: not approved for unattended encrypted installation" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Development test ISO only: no production installation approval.' >> "$GITHUB_STEP_SUMMARY"
       - name: Upload ISO checksum
         uses: actions/upload-artifact@v4
         with:
@@ -109,10 +107,10 @@ jobs:
           path: nvr-iso/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 7
-      - name: Upload resulting ISO
+      - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: dynamicOS-NVR-Linux-ISO-UNVERIFIED
+          name: dynamicOS-NVR-Debian13-TEST-ISO
           path: nvr-iso/*.iso
           if-no-files-found: error
           retention-days: 7
