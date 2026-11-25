@@ -33,6 +33,16 @@ jobs:
           test -f nvr/nvr.py
           test -f android/app/build.gradle
           test -f appliance/build-iso.sh
+          test -f appliance/install-on-debian.sh
+          test -f appliance/start-nvr.sh
+          test -f appliance/dynamicos.desktop
+          test -f appliance/lightdm.conf
+          test -f appliance/requirements-linux.txt
+          test -f nvr/appliance_main.py
+          grep -q 'dynamicos-firstboot.service' appliance/build-iso.sh
+          grep -q 'lightdm-gtk-greeter' appliance/build-iso.sh
+          grep -q 'firmware-brcm80211' appliance/build-iso.sh
+          grep -q 'DYNAMICOS_OFFLINE' appliance/install-on-debian.sh
           python -m compileall -q nvr appliance tests
           find appliance -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
       - name: Run backend tests
@@ -115,7 +125,8 @@ jobs:
           test "$(stat -c %s "${images[0]}")" -gt 100000000
           xorriso -indev "${images[0]}" -report_el_torito plain
           sha256sum "${images[0]}" > SHA256SUMS.txt
-          echo "Development/test ISO, NOT a production-ready encrypted installer" >> "$GITHUB_STEP_SUMMARY"
+          echo "Development/test ISO with offline runtime and recovery desktop" >> "$GITHUB_STEP_SUMMARY"
+          echo "Production readiness still requires encrypted vault provisioning and Mac mini hardware validation" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: dynamicOS-NVR-v2-Debian13-ISO-TEST
