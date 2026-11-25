@@ -38,7 +38,6 @@ wpasupplicant
 network-manager
 iproute2
 iputils-ping
-isc-dhcp-client
 rfkill
 pciutils
 usbutils
@@ -66,6 +65,17 @@ libgl1
 libxkbcommon-x11-0
 libxcb-cursor0
 libxcb-xinerama0
+libxcb-icccm4
+libxcb-image0
+libxcb-keysyms1
+libxcb-randr0
+libxcb-render-util0
+libxcb-shape0
+libxcb-xfixes0
+libx11-xcb1
+libopengl0
+libdbus-1-3
+libfontconfig1
 fonts-dejavu-core
 PACKAGES
 
@@ -93,10 +103,66 @@ if [ -x /usr/bin/update-alternatives ] && [ -x /usr/bin/openbox-session ]; then
   update-alternatives --set x-session-manager /usr/bin/openbox-session || true
 fi
 if command -v systemctl >/dev/null 2>&1; then
-  systemctl enable NetworkManager.service lightdm.service || true
+  systemctl enable NetworkManager.service lightdm.service dynamicos-firstboot.service || true
 fi
 HOOK
 chmod +x config/hooks/live/0200-dynamicos-base.hook.chroot
+
+# Bundle the full Qt/Python application during ISO creation so an installed
+# machine has no dependency on Wi-Fi, DNS, or a package index at first boot.
+cat > config/hooks/live/0250-dynamicos-runtime.hook.chroot <<'HOOK'
+#!/bin/sh
+set -eu
+python3 -m venv /opt/dynamicos-nvr/venv
+/opt/dynamicos-nvr/venv/bin/python -m pip install --no-cache-dir -r /opt/dynamicos-nvr/appliance/requirements-linux.txt
+/opt/dynamicos-nvr/venv/bin/python -c 'import cv2, fastapi, cryptography; from PySide6.QtWidgets import QApplication'
+test -f /opt/dynamicos-nvr/nvr/appliance_main.py
+test -f /opt/dynamicos-nvr/appliance/start-nvr.sh
+chmod 0755 /opt/dynamicos-nvr/appliance/start-nvr.sh /opt/dynamicos-nvr/appliance/install-on-debian.sh
+HOOK
+chmod +x config/hooks/live/0250-dynamicos-runtime.hook.chroot
+
+# First boot is fail-closed: only provision the NVR when the administrator has
+# mounted a dm-crypt volume. No automatic disk selection or formatting.
+mkdir -p config/includes.chroot/etc/systemd/system config/includes.chroot/usr/local/sbin
+cat > config/includes.chroot/etc/systemd/system/dynamicos-firstboot.service <<'SERVICE'
+[Unit]
+Description=Provision dynamicOS NVR once an encrypted data volume is ready
+After=local-fs.target network.target
+ConditionPathIsMountPoint=/var/lib/dynamicos-nvr
+ConditionPathExists=!/etc/dynamicos-nvr/.provisioned
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/dynamicos-firstboot
+TimeoutStartSec=180
+[Install]
+WantedBy=multi-user.target
+SERVICE
+cat > config/includes.chroot/usr/local/sbin/dynamicos-firstboot <<'FIRSTBOOT'
+#!/bin/bash
+set -Eeuo pipefail
+src=$(findmnt -n -o SOURCE --target /var/lib/dynamicos-nvr)
+test "$(lsblk -n -o TYPE "$src" | head -n1)" = crypt || {
+  echo 'dynamicOS NVR: encrypted data volume missing; keeping recovery mode' >&2
+  exit 2
+}
+DYNAMICOS_OFFLINE=1 /opt/dynamicos-nvr/appliance/install-on-debian.sh
+install -m 0600 /dev/null /etc/dynamicos-nvr/.provisioned
+echo 'dynamicOS NVR provisioned; reboot to enter configured session.'
+FIRSTBOOT
+chmod +x config/includes.chroot/usr/local/sbin/dynamicos-firstboot
+cat > config/includes.chroot/usr/local/share/dynamicos-nvr/SETUP.txt <<'SETUP'
+FIRST BOOT / SAFE RECOVERY
+The recovery desktop is available before NVR provisioning.
+NetworkManager should manage ethernet and supported wireless interfaces.
+NVR recording will NOT start on an unencrypted disk.
+For an encrypted, already mounted LUKS volume at /var/lib/dynamicos-nvr:
+  su -
+  systemctl start dynamicos-firstboot.service
+  reboot
+Do not format or repartition a disk without separately verifying its contents.
+SETUP
+
 
 cat > config/includes.chroot/usr/local/share/dynamicos-nvr/INSTALL.txt <<'DOC'
 dynamicOS NVR — Debian 13 test/installer image
@@ -127,4 +193,6 @@ DOC
 test -f config/includes.chroot/opt/dynamicos-nvr/appliance/install-on-debian.sh
 test -f config/includes.chroot/opt/dynamicos-nvr/appliance/start-nvr.sh
 test -f config/hooks/live/0200-dynamicos-base.hook.chroot
+test -f config/hooks/live/0250-dynamicos-runtime.hook.chroot
+test -f config/includes.chroot/etc/systemd/system/dynamicos-firstboot.service
 lb build
