@@ -117,13 +117,31 @@ jobs:
         run: |
           set -Eeuo pipefail
           sudo apt-get update
-          sudo apt-get install -y xorriso
+          sudo apt-get install -y xorriso squashfs-tools
           cd projects/dynamicos-nvr/build/iso
           shopt -s nullglob
           images=(*.iso)
           test "${#images[@]}" -eq 1
           test "$(stat -c %s "${images[0]}")" -gt 100000000
           xorriso -indev "${images[0]}" -report_el_torito plain
+          # Inspect the actual filesystem stored in the ISO, not merely the source tree.
+          mkdir -p iso-inspect
+          xorriso -osirrox on -indev "${images[0]}" -extract /live/filesystem.squashfs iso-inspect/filesystem.squashfs
+          unsquashfs -ll iso-inspect/filesystem.squashfs > iso-inspect/files.txt
+          for file in \
+            /usr/share/xsessions/dynamicos-recovery.desktop \
+            /etc/lightdm/lightdm.conf.d/40-dynamicos-recovery.conf \
+            /etc/systemd/system/dynamicos-firstboot.service \
+            /usr/local/sbin/dynamicos-firstboot \
+            /opt/dynamicos-nvr/appliance/start-nvr.sh \
+            /opt/dynamicos-nvr/venv/bin/python \
+            /opt/dynamicos-nvr/nvr/appliance_main.py; do
+            grep -Fq "squashfs-root${file}" iso-inspect/files.txt || {
+              echo "Missing runtime component in ISO: ${file}" >&2; exit 1;
+            }
+          done
+          unsquashfs -cat iso-inspect/filesystem.squashfs /usr/share/xsessions/dynamicos-recovery.desktop | grep -q 'Exec=openbox-session'
+          rm -rf iso-inspect
           sha256sum "${images[0]}" > SHA256SUMS.txt
           echo "Development/test ISO with offline runtime and recovery desktop" >> "$GITHUB_STEP_SUMMARY"
           echo "Production readiness still requires encrypted vault provisioning and Mac mini hardware validation" >> "$GITHUB_STEP_SUMMARY"
