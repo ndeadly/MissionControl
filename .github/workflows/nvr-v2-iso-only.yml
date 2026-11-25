@@ -1,0 +1,72 @@
+name: dynamicOS NVR v2 ISO only
+on:
+  push:
+    branches: [dynamicos-nvr-v2-clean]
+    paths:
+      - '.github/workflows/nvr-v2-iso-only.yml'
+      - 'projects/dynamicos-nvr/appliance/**'
+      - 'projects/dynamicos-nvr/nvr/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-iso:
+    name: Build Debian 13 x86-64 test ISO
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout isolated NVR source
+        uses: actions/checkout@v4
+      - name: Check required source layout
+        run: |
+          set -Eeuo pipefail
+          test -f projects/dynamicos-nvr/appliance/build-iso.sh
+          test -f projects/dynamicos-nvr/nvr/nvr.py
+          bash -n projects/dynamicos-nvr/appliance/build-iso.sh
+          docker info >/dev/null
+      - name: Build Debian 13 with Debian 13 live-build
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p projects/dynamicos-nvr/build/iso
+          docker run --rm --privileged --network=host \
+            -v "$PWD/projects/dynamicos-nvr:/project" \
+            -w /project debian:trixie \
+            bash -euo pipefail -c '
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt-get install -y ca-certificates live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common
+              bash appliance/build-iso.sh /project/build/iso
+            ' 2>&1 | tee projects/dynamicos-nvr/build/iso/iso-build.log
+      - name: Validate ISO and create SHA256
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cd projects/dynamicos-nvr/build/iso
+          shopt -s nullglob
+          images=(*.iso)
+          if (( ${#images[@]} != 1 )); then
+            echo "::error::Expected one ISO, got ${#images[@]}"
+            exit 1
+          fi
+          sudo apt-get update
+          sudo apt-get install -y xorriso
+          test "$(stat -c %s "${images[0]}")" -gt 100000000
+          xorriso -indev "${images[0]}" -report_el_torito plain
+          sha256sum "${images[0]}" > SHA256SUMS.txt
+      - name: Upload build log even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-v2-iso-only-diagnostics
+          path: projects/dynamicos-nvr/build/iso/iso-build.log
+          if-no-files-found: warn
+      - name: Publish Debian 13 ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-v2-Debian13-TEST-ISO
+          path: |
+            projects/dynamicos-nvr/build/iso/*.iso
+            projects/dynamicos-nvr/build/iso/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
