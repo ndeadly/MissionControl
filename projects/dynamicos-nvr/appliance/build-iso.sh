@@ -54,8 +54,11 @@ xserver-xorg-core
 xserver-xorg-input-libinput
 xinit
 lightdm
+lightdm-gtk-greeter
 openbox
 xterm
+xauth
+dbus-user-session
 dbus-x11
 cryptsetup
 unattended-upgrades
@@ -103,7 +106,7 @@ if [ -x /usr/bin/update-alternatives ] && [ -x /usr/bin/openbox-session ]; then
   update-alternatives --set x-session-manager /usr/bin/openbox-session || true
 fi
 if command -v systemctl >/dev/null 2>&1; then
-  systemctl enable NetworkManager.service lightdm.service dynamicos-firstboot.service || true
+  systemctl enable NetworkManager.service lightdm.service dynamicos-firstboot.service
 fi
 HOOK
 chmod +x config/hooks/live/0200-dynamicos-base.hook.chroot
@@ -195,4 +198,6 @@ test -f config/includes.chroot/opt/dynamicos-nvr/appliance/start-nvr.sh
 test -f config/hooks/live/0200-dynamicos-base.hook.chroot
 test -f config/hooks/live/0250-dynamicos-runtime.hook.chroot
 test -f config/includes.chroot/etc/systemd/system/dynamicos-firstboot.service
+test -f config/includes.chroot/opt/dynamicos-nvr/appliance/requirements-linux.txt
+test -f config/includes.chroot/opt/dynamicos-nvr/nvr/appliance_main.py
 lb build
