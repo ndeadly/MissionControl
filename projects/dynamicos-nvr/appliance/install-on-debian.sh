@@ -14,11 +14,13 @@ if [[ "$(findmnt -n -o FSTYPE --target /run)" != tmpfs ]]; then
  echo 'ABBRUCH: /run ist nicht tmpfs' >&2; exit 2
 fi
 export DEBIAN_FRONTEND=noninteractive
+if [[ "${DYNAMICOS_OFFLINE:-0}" != 1 ]]; then
 apt-get update
 apt-get install -y --no-install-recommends python3 python3-venv python3-pip ffmpeg \
  xserver-xorg-core xserver-xorg-input-libinput xinit lightdm dbus-x11 \
  ca-certificates cryptsetup network-manager unattended-upgrades \
  nftables openssh-client pciutils util-linux procps libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-xinerama0 fonts-dejavu-core
+fi
 id dynamicos >/dev/null 2>&1 || useradd --create-home --shell /bin/bash --user-group dynamicos
 # Password-login disabled for dedicated graphical user; key-based SSH access must be denied by separate SSH policy.
 passwd -l dynamicos >/dev/null 2>&1 || true
@@ -26,13 +28,25 @@ install -d -o dynamicos -g dynamicos -m 0700 /var/lib/dynamicos-nvr/state /var/l
 # /run is tmpfs on Debian with systemd; no HLS segments on persistent disk.
 [[ "$(findmnt -n -o FSTYPE --target /run)" == 'tmpfs' ]] || { echo 'ABBRUCH: /run nicht tmpfs' >&2;exit 2; }
 install -d -m 0755 /opt/dynamicos-nvr
-cp -a "$REPO/nvr" "$REPO/appliance" /opt/dynamicos-nvr/
+if [[ "$(realpath -m "$REPO")" != "$(realpath -m /opt/dynamicos-nvr)" ]]; then
+  cp -a "$REPO/nvr" "$REPO/appliance" /opt/dynamicos-nvr/
+fi
 # Code is root-owned and cannot be modified by the recorder or kiosk account.
 chown -R root:root /opt/dynamicos-nvr
 chmod -R go-w /opt/dynamicos-nvr
 python3 /opt/dynamicos-nvr/appliance/audit-sandbox.py
-python3 -m venv /opt/dynamicos-nvr/venv
-/opt/dynamicos-nvr/venv/bin/pip install --no-cache-dir -r /opt/dynamicos-nvr/appliance/requirements-linux.txt
+if [[ ! -x /opt/dynamicos-nvr/venv/bin/python ]]; then
+  if [[ "${DYNAMICOS_OFFLINE:-0}" == 1 ]]; then
+    echo 'ABBRUCH: offline-Python-Umgebung fehlt im Abbild.' >&2; exit 3
+  fi
+  python3 -m venv /opt/dynamicos-nvr/venv
+fi
+if [[ "${DYNAMICOS_OFFLINE:-0}" != 1 ]]; then
+  /opt/dynamicos-nvr/venv/bin/pip install --no-cache-dir -r /opt/dynamicos-nvr/appliance/requirements-linux.txt
+fi
+/opt/dynamicos-nvr/venv/bin/python -c 'import cv2,fastapi,cryptography;from PySide6.QtWidgets import QApplication'
+test -x /opt/dynamicos-nvr/appliance/start-nvr.sh
+test -f /opt/dynamicos-nvr/nvr/appliance_main.py
 install -m 0644 /opt/dynamicos-nvr/appliance/dynamicos.desktop /usr/share/xsessions/dynamicos.desktop
 install -d -m 0755 /etc/lightdm/lightdm.conf.d
 install -m 0644 /opt/dynamicos-nvr/appliance/lightdm.conf /etc/lightdm/lightdm.conf.d/50-dynamicos.conf
