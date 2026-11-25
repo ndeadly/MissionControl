@@ -1,4 +1,5 @@
 name: dynamicOS NVR v2 ISO only
+# Actions re-enabled: fresh isolated ISO trigger
 on:
   push:
     branches: [dynamicos-nvr-v2-clean]
