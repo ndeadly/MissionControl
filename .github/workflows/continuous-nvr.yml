@@ -60,9 +60,11 @@ jobs:
           retention-days: 14
   linux-iso:
     needs: verify
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     container:
       image: debian:trixie
+      options: --privileged
     timeout-minutes: 120
     steps:
       - name: Install Git and current Debian live-build
