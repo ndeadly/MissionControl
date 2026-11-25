@@ -89,7 +89,11 @@ cp -a "$ROOT/nvr" "$ROOT/appliance" config/includes.chroot/opt/dynamicos-nvr/
 cat > config/hooks/live/0200-dynamicos-base.hook.chroot <<'HOOK'
 #!/bin/sh
 set -eu
-install -d /usr/share/xsessions /etc/lightdm/lightdm.conf.d
+install -d /usr/share/xsessions /etc/lightdm/lightdm.conf.d /etc/NetworkManager/conf.d
+cat > /etc/NetworkManager/conf.d/90-dynamicos-ifupdown.conf <<'NM'
+[ifupdown]
+managed=true
+NM
 cat > /usr/share/xsessions/dynamicos-recovery.desktop <<'DESKTOP'
 [Desktop Entry]
 Name=dynamicOS Recovery Desktop
