@@ -74,6 +74,24 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build Linux installer/live ISO
         run: bash appliance/build-iso.sh "$GITHUB_WORKSPACE/nvr-iso"
+      - name: Verify ISO structure and compute checksum
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          shopt -s nullglob
+          images=(nvr-iso/*.iso)
+          test "${#images[@]}" -eq 1
+          test "$(stat -c %s "${images[0]}")" -gt 100000000
+          xorriso -indev "${images[0]}" -report_el_torito plain
+          sha256sum "${images[0]}" > nvr-iso/SHA256SUMS.txt
+          echo "Unverified test medium: not approved for unattended encrypted installation" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload ISO checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-ISO-SHA256
+          path: nvr-iso/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload resulting ISO
         uses: actions/upload-artifact@v4
         with:
