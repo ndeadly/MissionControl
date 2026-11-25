@@ -1,0 +1,129 @@
+name: dynamicOS NVR v2 clean build
+on:
+  push:
+    branches:
+      - dynamicos-nvr-v2-clean
+    paths:
+      - 'projects/dynamicos-nvr/**'
+      - '.github/workflows/dynamicos-nvr-v2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: dynamicOS-NVR-v2-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: projects/dynamicos-nvr
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python -m pip install 'fastapi<1' 'httpx<1' 'cryptography>=41' 'uvicorn<1'
+      - name: Verify source and syntax
+        run: |
+          set -Eeuo pipefail
+          test -f nvr/nvr.py
+          test -f android/app/build.gradle
+          test -f appliance/build-iso.sh
+          python -m compileall -q nvr appliance tests
+          find appliance -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+      - name: Run backend tests
+        env:
+          PYTHONPATH: nvr
+        run: python -m unittest discover -s nvr -p 'test_*.py' -v
+      - name: Run security and appliance tests
+        env:
+          PYTHONPATH: nvr
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+  android-debug:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Provision Android SDK API 36
+        run: |
+          set -Eeuo pipefail
+          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
+          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Compile Android app
+        working-directory: projects/dynamicos-nvr/android
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-v2-Android-debug
+          path: projects/dynamicos-nvr/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+  iso:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk capacity
+        run: |
+          df -h .
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet || true
+          df -h .
+      - name: Build Debian 13 test ISO in isolated container
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p projects/dynamicos-nvr/build/iso
+          docker run --rm --privileged --network=host -v "$PWD/projects/dynamicos-nvr:/project" -w /project debian:trixie bash -euo pipefail -c '
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y ca-certificates live-build debootstrap xorriso squashfs-tools grub-efi-amd64-bin syslinux-common
+            bash appliance/build-iso.sh /project/build/iso
+          ' 2>&1 | tee projects/dynamicos-nvr/build/iso/build.log
+      - name: Preserve ISO build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-v2-ISO-diagnostics
+          path: projects/dynamicos-nvr/build/iso/build.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Validate ISO image and SHA-256
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo apt-get update
+          sudo apt-get install -y xorriso
+          cd projects/dynamicos-nvr/build/iso
+          shopt -s nullglob
+          images=(*.iso)
+          test "${#images[@]}" -eq 1
+          test "$(stat -c %s "${images[0]}")" -gt 100000000
+          xorriso -indev "${images[0]}" -report_el_torito plain
+          sha256sum "${images[0]}" > SHA256SUMS.txt
+          echo "Development/test ISO, NOT a production-ready encrypted installer" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-v2-Debian13-ISO-TEST
+          path: projects/dynamicos-nvr/build/iso/*.iso
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dynamicOS-NVR-v2-ISO-SHA256
+          path: projects/dynamicos-nvr/build/iso/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
