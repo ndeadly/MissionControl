@@ -11,7 +11,7 @@ permissions:
   contents: read
 concurrency:
   group: nvr-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-24.04
